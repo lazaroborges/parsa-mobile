@@ -17,14 +17,21 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'dart:io';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
-  await PrivateModeService.instance.initializePrivateMode();
+  final auth0 = Auth0(
+    dotenv.env['AUTH0_DOMAIN']!,
+    dotenv.env['AUTH0_CLIENT_ID']!,
+  );
 
-  runApp(const MonekinAppEntryPoint());
+  runApp(Auth0Provider(
+    auth0: auth0,
+    child: const MonekinAppEntryPoint(),
+  ));
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
@@ -120,23 +127,13 @@ class MaterialAppContainer extends StatefulWidget {
 }
 
 class _MaterialAppContainerState extends State<MaterialAppContainer> {
-  late Auth0 auth0;
   bool isLoggedIn = false;
   bool isLoading = true; // Add loading state
 
   @override
   void initState() {
     super.initState();
-    _initAuth0();
     _checkLoginStatus(); // Check if user is logged in
-  }
-
-  // Initialize Auth0
-  void _initAuth0() {
-    auth0 = Auth0(
-      dotenv.env['AUTH0_DOMAIN']!,
-      dotenv.env['AUTH0_CLIENT_ID']!,
-    );
   }
 
   // Check if the user is logged in
@@ -147,8 +144,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
 
       if (isOnline) {
         // If online, validate the token (or refresh it if necessary)
-        final credentials =
-            await auth0.credentialsManager.hasValidCredentials();
+        final credentials = await Auth0Provider.of(context)!
+            .auth0
+            .credentialsManager
+            .hasValidCredentials();
         final isValid = await _validateToken(credentials as String);
 
         if (isValid) {
@@ -166,8 +165,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         }
       } else {
         // Offline: Let the user in if we have stored credentials
-        final hasStoredCredentials =
-            await auth0.credentialsManager.hasValidCredentials();
+        final hasStoredCredentials = await Auth0Provider.of(context)!
+            .auth0
+            .credentialsManager
+            .hasValidCredentials();
         setState(() {
           isLoggedIn = hasStoredCredentials;
           isLoading = false;
@@ -198,7 +199,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       // Example: You can decode the token and check expiration or make an API call to validate it.
       // You can make a call to Auth0's token introspection or a call to your backend to validate.
       // This is a simple token validation skeleton:
-      final response = await auth0.credentialsManager.hasValidCredentials();
+      final response = await Auth0Provider.of(context)!
+          .auth0
+          .credentialsManager
+          .hasValidCredentials();
       return response != null;
     } catch (e) {
       print('Token validation failed: $e');
@@ -209,9 +213,14 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   // Perform logout (if necessary)
   Future<void> _performLogout() async {
     try {
-      await auth0.credentialsManager
+      await Auth0Provider.of(context)!
+          .auth0
+          .credentialsManager
           .clearCredentials(); // Clear stored credentials
-      await auth0.webAuthentication().logout(); // Perform Auth0 logout
+      await Auth0Provider.of(context)!
+          .auth0
+          .webAuthentication()
+          .logout(); // Perform Auth0 logout
     } catch (e) {
       print('Logout failed: $e');
     }
@@ -219,6 +228,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
 
   @override
   Widget build(BuildContext context) {
+    final auth0 = Auth0Provider.of(context)!.auth0;
     Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
 
     // Return a loading indicator while checking login status
@@ -281,7 +291,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       home: widget.introSeen
           ? (isLoggedIn
               ? const TabsPage()
-              : Auth0LoginPage(
+              : Auth0Service(
                   auth0: auth0)) // Show home if logged in, otherwise show login
           : const IntroPage(),
     );

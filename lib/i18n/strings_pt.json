@@ -177,7 +177,7 @@
         "male,female": "Dados insuficientes"
       },
       "descr": {
-        "insufficient_data": "Parece que não temos despesas suficientes para calcular sua saúde financeira. Adicione algumas despesas/receitas neste período para que possamos ajudá-lo!",
+        "insufficient_data": "Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!",
         "very_good": "Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa",
         "good": "Ótimo! Sua saúde financeira está boa. Visite a aba de análise para ver como economizar ainda mais!",
         "normal": "Sua saúde financeira está mais ou menos na média do restante da população para este período",
