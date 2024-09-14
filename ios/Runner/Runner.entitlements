@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:auth.parsa-ai.com.br</string>
+		<string>webcredentials:auth.parsa-ai.com.br?r=1</string>
 	</array>
 </dict>
 </plist>

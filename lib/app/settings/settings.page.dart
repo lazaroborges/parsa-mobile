@@ -14,7 +14,7 @@ import 'package:parsa/app/transactions/recurrent_transactions_page.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -160,7 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton(
-                onPressed: () => Auth0Service.logout(context, auth0),
+                onPressed: () => AuthMethods.logout(context, auth0),
                 child: const Text('Fazer logout'),
               ),
             ),
