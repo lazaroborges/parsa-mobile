@@ -513,11 +513,11 @@ class _DashboardPageState extends State<DashboardPage> {
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Good morning!';
+      return 'Bom dia!';
     } else if (hour < 18) {
-      return 'Good afternoon!';
+      return 'Boa tarde!';
     } else {
-      return 'Good evening!';
+      return 'Boa noite!';
     }
   }
 }
