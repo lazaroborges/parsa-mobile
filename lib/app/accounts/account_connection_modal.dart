@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:parsa/core/presentation/theme_service.dart';
 
 class AccountConnectionModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeService>(context).themeData;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Align(
@@ -21,7 +17,7 @@ class AccountConnectionModal extends StatelessWidget {
             bottom: 80,
           ),
           decoration: BoxDecoration(
-            color: theme.dialogBackgroundColor,
+            color: Theme.of(context).dialogBackgroundColor, // Access theme here
             borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
           ),
           child: Stack(
@@ -44,11 +40,13 @@ class AccountConnectionModal extends StatelessWidget {
                             width: 48,
                             height: 48,
                             decoration: ShapeDecoration(
-                              color: theme.primaryColorLight,
+                              color: Theme.of(context)
+                                  .primaryColorLight, // Access theme here
                               shape: RoundedRectangleBorder(
                                 side: BorderSide(
                                   width: 8,
-                                  color: theme.primaryColorDark,
+                                  color: Theme.of(context)
+                                      .primaryColorDark, // Access theme here
                                 ),
                                 borderRadius: BorderRadius.circular(28),
                               ),
@@ -67,7 +65,9 @@ class AccountConnectionModal extends StatelessWidget {
                                   width: double.infinity,
                                   child: Text(
                                     'Criar conta',
-                                    style: theme.textTheme.displaySmall,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall, // Access theme here
                                   ),
                                 ),
                               ],

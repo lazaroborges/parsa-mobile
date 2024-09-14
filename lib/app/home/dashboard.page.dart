@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/app/home/widgets/click_tracker.dart';
@@ -651,7 +652,7 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                   child: Tappable(
                     //   bgColor: AppColors.of(context).light,
                     onTap: () {
-                      RouteUtils.pushRoute(context, const AccountFormPage());
+                      RouteUtils.pushRoute(context, AccountConnectionModal());
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
