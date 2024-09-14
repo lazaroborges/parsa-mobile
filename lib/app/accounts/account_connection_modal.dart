@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 
-class AccountConnectionModal extends StatelessWidget {
-  const AccountConnectionModal({Key? key}) : super(key: key);
+class AccountConnectionModal extends StatefulWidget {
+  const AccountConnectionModal({super.key});
+
+  @override
+  _AccountConnectionModalState createState() => _AccountConnectionModalState();
+}
+
+class _AccountConnectionModalState extends State<AccountConnectionModal> {
+  bool isAutomaticSelected = true;
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +25,8 @@ class AccountConnectionModal extends StatelessWidget {
         right: 16,
         bottom: 80,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xB20F1728), // Semi-transparent background
+      decoration: const BoxDecoration(
+        color: Color(0xB20F1728), // Semi-transparent background
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -41,17 +48,17 @@ class AccountConnectionModal extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              shadows: [
+              shadows: const [
                 BoxShadow(
-                  color: const Color(0x07101828),
+                  color: Color(0x07101828),
                   blurRadius: 8,
-                  offset: const Offset(0, 8),
+                  offset: Offset(0, 8),
                   spreadRadius: -4,
                 ),
                 BoxShadow(
-                  color: const Color(0x14101828),
+                  color: Color(0x14101828),
                   blurRadius: 24,
-                  offset: const Offset(0, 20),
+                  offset: Offset(0, 20),
                   spreadRadius: -4,
                 ),
               ],
@@ -61,7 +68,7 @@ class AccountConnectionModal extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 352,
                   child: Column(
@@ -75,10 +82,10 @@ class AccountConnectionModal extends StatelessWidget {
                         decoration: ShapeDecoration(
                           color: const Color(0xFFF4EBFF),
                           shape: RoundedRectangleBorder(
-                            side: BorderSide(
+                            side: const BorderSide(
                               width: 8,
                               strokeAlign: BorderSide.strokeAlignCenter,
-                              color: const Color(0xFFF9F5FF),
+                              color: Color(0xFFF9F5FF),
                             ),
                             borderRadius: BorderRadius.circular(28),
                           ),
@@ -87,7 +94,7 @@ class AccountConnectionModal extends StatelessWidget {
                         child: const FlutterLogo(),
                       ),
                       const SizedBox(height: 16),
-                      Container(
+                      SizedBox(
                         width: double.infinity,
                         height: 76,
                         child: Column(
@@ -118,7 +125,7 @@ class AccountConnectionModal extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Container(
+                      SizedBox(
                         width: double.infinity,
                         height: 196,
                         child: Column(
@@ -133,10 +140,15 @@ class AccountConnectionModal extends StatelessWidget {
                               title: 'Automático',
                               description:
                                   'O Parsa sincroniza os dados da sua conta e categoriza as transações.',
-                              isSelected: true, // Adjust based on state
+                              isSelected: isAutomaticSelected,
                               selectedColor: appColors
                                   .primary, // Use theme's primary color
                               backgroundColor: const Color(0xFFF9F5FF),
+                              onTap: () {
+                                setState(() {
+                                  isAutomaticSelected = true;
+                                });
+                              },
                             ),
                             const SizedBox(height: 16),
                             _buildOptionTile(
@@ -146,10 +158,15 @@ class AccountConnectionModal extends StatelessWidget {
                               title: 'Manual',
                               description:
                                   'Você atualiza os dados da sua conta e categoriza as transações.',
-                              isSelected: false, // Adjust based on state
+                              isSelected: !isAutomaticSelected,
                               selectedColor: appColors
                                   .primary, // Use theme's primary color
                               backgroundColor: Colors.white,
+                              onTap: () {
+                                setState(() {
+                                  isAutomaticSelected = false;
+                                });
+                              },
                             ),
                           ],
                         ),
@@ -158,7 +175,7 @@ class AccountConnectionModal extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 23),
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 100,
                   child: Column(
@@ -180,7 +197,7 @@ class AccountConnectionModal extends StatelessWidget {
                         label: 'Cancela',
                         isPrimary: false,
                         onPressed: () {
-                          // Implement cancellation action
+                          Navigator.pop(context); // Close the modal
                         },
                       ),
                     ],
@@ -202,72 +219,77 @@ class AccountConnectionModal extends StatelessWidget {
     required bool isSelected,
     required Color selectedColor,
     required Color backgroundColor,
+    required VoidCallback onTap,
   }) {
     final appColors = AppColors.of(context);
     final theme = Theme.of(context);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: ShapeDecoration(
-        color: backgroundColor,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: isSelected ? selectedColor : const Color(0xFFD6BBFB),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: ShapeDecoration(
+          color: backgroundColor,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(
+              width: 1,
+              color: isSelected ? selectedColor : const Color(0xFFD6BBFB),
+            ),
+            borderRadius: BorderRadius.circular(8),
           ),
-          borderRadius: BorderRadius.circular(8),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: ShapeDecoration(
-              color: backgroundColor,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                  width: 1,
-                  color: isSelected ? selectedColor : const Color(0xFFCFD4DC),
+        child: Row(
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: ShapeDecoration(
+                color: backgroundColor,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                    width: 1,
+                    color: isSelected ? selectedColor : const Color(0xFFCFD4DC),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                borderRadius: BorderRadius.circular(8),
+              ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      size: 12,
+                      color: appColors.onPrimary,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color:
+                          isSelected ? selectedColor : const Color(0xFF344053),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.black, // Changed to black
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: isSelected
-                ? Icon(
-                    Icons.check,
-                    size: 12,
-                    color: appColors.onPrimary,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: isSelected ? selectedColor : const Color(0xFF344053),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: appColors.onPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -288,7 +310,8 @@ class AccountConnectionModal extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: isPrimary ? appColors.primary : Colors.white,
-          foregroundColor: isPrimary ? Colors.white : appColors.onSurface,
+          foregroundColor:
+              isPrimary ? appColors.onPrimary : appColors.onSurface,
           side: BorderSide(
             width: 1,
             color: isPrimary ? appColors.primary : const Color(0xFFCFD4DC),
@@ -303,9 +326,9 @@ class AccountConnectionModal extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: isPrimary ? Colors.white : appColors.onSurface,
+            color: isPrimary ? appColors.onPrimary : appColors.onSurface,
             fontSize: 16,
-            fontFamily: 'Inter',
+            fontFamily: 'Roboto',
             fontWeight: FontWeight.w600,
             height: 1.0,
           ),
