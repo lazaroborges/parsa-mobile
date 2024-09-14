@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/main.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Auth0Service extends StatelessWidget {
