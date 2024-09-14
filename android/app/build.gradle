@@ -60,8 +60,8 @@ android {
         applicationId "com.parsa.app"
 targetSdkVersion 35
 
-    manifestPlaceholders += [auth0Domain: "dev-bjeyt1zev08mha31.us.auth0.com", auth0Scheme: "https"]
-        manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://dev-bjeyt1zev08mha31.us.auth0.com/android/com.app.parsa/callback"]
+    manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
+        manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://auth.parsa-ai.com.br/android/com.app.parsa/callback"]
 
 
         // You can update the following values to match your application needs.

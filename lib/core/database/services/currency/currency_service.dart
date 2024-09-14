@@ -72,7 +72,7 @@ class CurrencyService {
   }
 
   Future<String> getDeviceDefaultCurrencyCode() async {
-    const defaultCurrencyCode = 'USD';
+    const defaultCurrencyCode = 'BRL';
 
     try {
       String? currentCountryCode =

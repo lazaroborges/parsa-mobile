@@ -30,6 +30,8 @@ import 'package:parsa/i18n/translations.g.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 
+// Formulário de criação de novas contas manuais
+
 class AccountFormPage extends StatefulWidget {
   const AccountFormPage({super.key, this.account});
 
@@ -142,11 +144,10 @@ class _AccountFormPageState extends State<AccountFormPage> {
       _fillForm();
     }
 
-    CurrencyService.instance.getUserPreferredCurrency().first.then((value) {
+    // Hard code 'BRL' as the currency
+    CurrencyService.instance.getCurrencyByCode('BRL').first.then((value) {
       setState(() {
-        if (widget.account == null) {
-          _currency = value;
-        }
+        _currency = value;
         _userPrCurrency = value;
       });
     });
@@ -279,7 +280,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
                         ? '${t.account.form.current_balance} *'
                         : '${t.account.form.initial_balance} *',
                     hintText: 'Ex.: 200',
-                    suffixText: _currency?.symbol,
+                    suffixText: 'BRL',
                   ),
                   keyboardType: TextInputType.number,
                   enabled:
@@ -291,55 +292,6 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
-                ReadOnlyTextFormField(
-                    displayValue: _currency != null
-                        ? _currency!.name
-                        : t.general.unspecified,
-                    onTap: () {
-                      if (_currency == null) return;
-
-                      showCurrencySelectorModal(
-                        context,
-                        CurrencySelectorModal(
-                            preselectedCurrency: _currency!,
-                            onCurrencySelected: (newCurrency) {
-                              setState(() {
-                                _currency = newCurrency;
-                              });
-                            }),
-                      );
-                    },
-                    decoration: InputDecoration(
-                        labelText: t.currencies.currency,
-                        suffixIcon: const Icon(Icons.arrow_drop_down),
-                        prefixIcon: _currency != null
-                            ? Container(
-                                margin: const EdgeInsets.all(10),
-                                clipBehavior: Clip.hardEdge,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(100)),
-                                child: SvgPicture.asset(
-                                  _currency!.currencyIconPath,
-                                  height: 25,
-                                  width: 25,
-                                ),
-                              )
-                            : null)),
-                const SizedBox(height: 12),
-                if (_currency != null)
-                  StreamBuilder(
-                      stream: ExchangeRateService.instance
-                          .getLastExchangeRateOf(currencyCode: _currency!.code),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData ||
-                            _currency?.code == _userPrCurrency?.code) {
-                          return Container();
-                        } else {
-                          return InlineInfoCard(
-                              text: t.account.form.currency_not_found_warn,
-                              mode: InlineInfoCardMode.warn);
-                        }
-                      }),
                 StreamBuilder(
                   stream: _accountToEdit == null
                       ? Stream.value(true)

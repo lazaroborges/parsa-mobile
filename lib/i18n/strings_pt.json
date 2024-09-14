@@ -426,8 +426,8 @@
       "currency-not-found-warn": "Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações",
       "already-exists": "Já existe outra com o mesmo nome, por favor escreva outro",
       "tr-before-opening-date": "Existem transações nesta conta com uma data anterior à data de abertura",
-      "iban": "IBAN",
-      "swift": "SWIFT"
+      "iban": "Número de Conta",
+      "swift": "Agencia"
     },
     "DELETE": {
       "warning-header": "Excluir conta?",

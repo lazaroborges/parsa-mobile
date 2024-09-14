@@ -4,7 +4,6 @@ import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/models/supported-icon/icon_displayer.dart';
 import 'package:parsa/core/models/supported-icon/supported_icon.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/services/supported_icon/supported_icon_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 

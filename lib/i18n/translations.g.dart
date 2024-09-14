@@ -6,7 +6,7 @@
 /// Locales: 3
 /// Strings: 1621 (540 per locale)
 ///
-/// Built on 2024-09-09 at 20:30 UTC
+/// Built on 2024-09-14 at 00:14 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -3508,8 +3508,8 @@ class _TranslationsAccountFormPt implements _TranslationsAccountFormEn {
 	@override String get currency_not_found_warn => 'Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações';
 	@override String get already_exists => 'Já existe outra com o mesmo nome, por favor escreva outro';
 	@override String get tr_before_opening_date => 'Existem transações nesta conta com uma data anterior à data de abertura';
-	@override String get iban => 'IBAN';
-	@override String get swift => 'SWIFT';
+	@override String get iban => 'Número de Conta';
+	@override String get swift => 'Agencia';
 }
 
 // Path: account.delete
@@ -5620,8 +5620,8 @@ extension on _TranslationsPt {
 			case 'account.form.currency_not_found_warn': return 'Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações';
 			case 'account.form.already_exists': return 'Já existe outra com o mesmo nome, por favor escreva outro';
 			case 'account.form.tr_before_opening_date': return 'Existem transações nesta conta com uma data anterior à data de abertura';
-			case 'account.form.iban': return 'IBAN';
-			case 'account.form.swift': return 'SWIFT';
+			case 'account.form.iban': return 'Número de Conta';
+			case 'account.form.swift': return 'Agencia';
 			case 'account.delete.warning_header': return 'Excluir conta?';
 			case 'account.delete.warning_text': return 'Essa ação excluirá essa conta e todas as suas transações';
 			case 'account.delete.success': return 'Conta excluída com sucesso';
