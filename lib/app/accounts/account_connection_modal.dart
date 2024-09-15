@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
+import 'pluggy_connector.dart';
+import 'account_form.dart';
 
 class AccountConnectionModal extends StatefulWidget {
   const AccountConnectionModal({super.key});
@@ -188,7 +190,21 @@ class _AccountConnectionModalState extends State<AccountConnectionModal> {
                         label: 'Confirma',
                         isPrimary: true,
                         onPressed: () {
-                          // Implement confirmation action
+                          if (isAutomaticSelected) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PluggyConnectorPage(),
+                              ),
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AccountFormPage(),
+                              ),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(height: 12),
