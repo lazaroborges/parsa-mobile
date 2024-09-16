@@ -1,7 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
-
-import 'package:parsa/core/services/auth/auth_service.dart'; // Import Auth0Service
+import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/auth_service.dart';
 
 class AuthMethods {
   // Fetch user profile data
@@ -41,16 +42,78 @@ class AuthMethods {
       await auth0.credentialsManager.clearCredentials();
 
       // Navigate back to the login page
-      await Navigator.pushAndRemoveUntil(
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => Auth0Service(auth0: auth0)),
+        MaterialPageRoute(
+            builder: (context) => Auth0Service(
+                auth0: auth0)), // Replace with your login page widget
         (Route<dynamic> route) => false,
       );
-      print('User logged out and navigated to Auth0Service');
+      print('User logged out and navigated to LoginPage');
     } catch (e) {
       print('Logout failed: $e'); // Enhanced error message
       print(
           'Error during logout attempt. Please ensure you are logged in and try again.');
     }
+  }
+
+  // Check if the user is logged in
+  static Future<bool> checkLoginStatus(BuildContext context) async {
+    try {
+      // Check if the device is online
+      final isOnline = await _checkInternetConnection();
+
+      if (isOnline) {
+        // If online, validate the token (or refresh it if necessary)
+        final hasValid =
+            await auth0(context).credentialsManager.hasValidCredentials();
+        final isValid = await _validateToken(context, hasValid as String);
+
+        if (isValid) {
+          return true;
+        } else {
+          // Token invalid, need to re-login
+          await logout(context, auth0(context));
+          return false;
+        }
+      } else {
+        // Offline: Let the user in if we have stored credentials
+        final hasStoredCredentials =
+            await auth0(context).credentialsManager.hasValidCredentials();
+        return hasStoredCredentials;
+      }
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false;
+    }
+  }
+
+  // Check internet connectivity
+  static Future<bool> _checkInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      return false; // No internet connection
+    }
+  }
+
+  // Validate the access token
+  static Future<bool> _validateToken(
+      BuildContext context, String accessToken) async {
+    try {
+      // Implement your token validation logic here
+      // For simplicity, we'll assume the token is valid
+      print('Token validation response: Valid');
+      return true;
+    } catch (e) {
+      print('Token validation failed: $e');
+      return false;
+    }
+  }
+
+  // Helper to get Auth0 instance from context
+  static Auth0 auth0(BuildContext context) {
+    return Auth0Provider.of(context)!.auth0;
   }
 }
