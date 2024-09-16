@@ -23,6 +23,7 @@ class Auth0Service extends StatelessWidget {
               final result = await auth0.webAuthentication().login();
               // Store the credentials
               await auth0.credentialsManager.storeCredentials(result);
+
               // Navigate to the main app page
               Navigator.pushReplacement(
                 context,

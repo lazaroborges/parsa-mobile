@@ -32,6 +32,7 @@ import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/services/finance_health_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/api/fetch_user_data.dart'; // Import the fetchUserData function
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -45,10 +46,33 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final data = await fetchUserData(context);
+      setState(() {
+        userData = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      // Handle error
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -652,7 +676,8 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                   child: Tappable(
                     //   bgColor: AppColors.of(context).light,
                     onTap: () {
-                      RouteUtils.pushRoute(context, AccountConnectionModal());
+                      RouteUtils.pushRoute(
+                          context, const AccountConnectionModal());
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
