@@ -32,7 +32,7 @@ import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/services/finance_health_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/core/api/fetch_user_data.dart'; // Import the fetchUserData function
+import 'package:parsa/core/api/api_login.dart'; // Import the fetchUserData function
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -57,12 +57,12 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _fetchUserData();
+    _apiLogin();
   }
 
-  Future<void> _fetchUserData() async {
+  Future<void> _apiLogin() async {
     try {
-      final data = await fetchUserData(context);
+      final data = await apiLogin(context);
       setState(() {
         userData = data;
         isLoading = false;
@@ -170,6 +170,20 @@ class _DashboardPageState extends State<DashboardPage> {
                                         stream: UserSettingService.instance
                                             .getSetting(SettingKey.userName),
                                         builder: (context, snapshot) {
+                                          if (userData != null &&
+                                              userData!['name'] != null) {
+                                            return Text(
+                                              userData!['name'],
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall!
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 18,
+                                                  ),
+                                            );
+                                          }
+
                                           if (!snapshot.hasData) {
                                             return const Skeleton(
                                                 width: 70, height: 12);
