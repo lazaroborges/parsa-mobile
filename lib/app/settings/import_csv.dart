@@ -203,19 +203,23 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
 
         if (account == null && defaultAccount == null) {
           await AccountService.instance.insertAccount(AccountInDB(
-              id: accountID,
-              name: accountColumn == null
-                  ? unknownAccountName
-                  : row[accountColumn!].toString(),
-              iniValue: 0,
-              displayOrder: 10,
-              date: DateTime.now(),
-              type: AccountType.normal,
-              iconId: SupportedIconService.instance.defaultSupportedIcon.id,
-              currencyId: (await CurrencyService.instance
-                      .getUserPreferredCurrency()
-                      .first)
-                  .code));
+            id: accountID,
+            name: accountColumn == null
+                ? unknownAccountName
+                : row[accountColumn!].toString(),
+            iniValue: 0,
+            displayOrder: 10,
+            date: DateTime.now(),
+            type: AccountType.normal,
+            iconId: SupportedIconService.instance.defaultSupportedIcon.id,
+            currencyId: (await CurrencyService.instance
+                    .getUserPreferredCurrency()
+                    .first)
+                .code,
+            balance: 0,
+            lastUpdateTime: DateTime.now(),
+            connectorID: null,
+          ));
         }
 
         final categoryToFind = categoryColumn == null

@@ -31,20 +31,19 @@ CREATE TABLE IF NOT EXISTS exchangeRates (
 ) AS ExchangeRateInDB;
 
 CREATE TABLE IF NOT EXISTS accounts (
-    id TEXT NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL PRIMARY KEY, -- Ensure UUIDs are generated when creating accounts
     
     -- Account name (unique among user accounts)
     name TEXT UNIQUE NOT NULL,
 
-    
     iniValue REAL NOT NULL,
 
-    -- Creation/Opening date of this account. Before this date, no transactions can exists on it.
+    -- Creation/Opening date of this account. Before this date, no transactions can exist on it.
     date DATETIME NOT NULL,
 
     description TEXT,
     type ENUMNAME(AccountType) NOT NULL CHECK(type IN ('normal', 'saving')),
-    
+
     iconId TEXT NOT NULL,
 
     -- The display order when listing accounts
@@ -53,14 +52,19 @@ CREATE TABLE IF NOT EXISTS accounts (
     -- If null, an automatic color will be applied
     color TEXT,
 
-    -- The closing date of the account. After this date, no transactions can exists on it.
+    -- The closing date of the account. After this date, no transactions can exist on it.
     closingDate DATETIME,
 
     -- ID of the currency used by this account and therefore all transactions contained in it
     currencyId TEXT NOT NULL REFERENCES currencies(code) ON DELETE CASCADE ON UPDATE CASCADE,
-    
+
     iban TEXT,
-    swift TEXT
+    swift TEXT,
+
+    -- New fields
+    balance REAL NOT NULL DEFAULT 0,
+    last_update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    connectorID TEXT
 ) AS AccountInDB;
 
 CREATE TABLE IF NOT EXISTS categories (

@@ -9,7 +9,9 @@ import 'package:parsa/i18n/translations.g.dart';
 
 enum AccountType {
   /// A normal type of account The default type
-  normal,
+  normal, //Legacy of Monekin Code - This is the value for Checking Account/Conta Corrente.
+
+  credit,
 
   /// This type of accounts can not have transactions. You only can add and withdraw money from it from other accounts
   saving;
@@ -59,6 +61,9 @@ class Account extends AccountInDB {
     required super.displayOrder,
     required super.iconId,
     required this.currency,
+    required super.balance,
+    required super.lastUpdateTime,
+    super.connectorID,
     super.closingDate,
     super.description,
     super.iban,
@@ -108,17 +113,21 @@ class Account extends AccountInDB {
   }
 
   static Account fromDB(AccountInDB account, CurrencyInDB currency) => Account(
-      id: account.id,
-      currency: currency,
-      iniValue: account.iniValue,
-      date: account.date,
-      displayOrder: account.displayOrder,
-      description: account.description,
-      iban: account.iban,
-      swift: account.swift,
-      name: account.name,
-      iconId: account.iconId,
-      closingDate: account.closingDate,
-      type: account.type,
-      color: account.color);
+        id: account.id,
+        currency: currency,
+        iniValue: account.iniValue,
+        date: account.date,
+        displayOrder: account.displayOrder,
+        description: account.description,
+        iban: account.iban,
+        swift: account.swift,
+        name: account.name,
+        iconId: account.iconId,
+        closingDate: account.closingDate,
+        type: account.type,
+        color: account.color,
+        balance: account.balance, // Add this line
+        lastUpdateTime: account.lastUpdateTime,
+        connectorID: account.connectorID,
+      );
 }
