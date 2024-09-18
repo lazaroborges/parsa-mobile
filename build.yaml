@@ -23,7 +23,7 @@ targets:
 
       slang_build_runner:
         options:
-          base_locale: en
+          base_locale: pt
           input_directory: lib/i18n
           input_file_pattern: .json
           output_directory: lib/i18n

@@ -6,10 +6,7 @@ import 'package:flutter/widgets.dart'; // Add this import
 Future<Map<String, dynamic>> apiLogin(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
 
-  print('fetching the user data cowabunga');
   final credentials = await auth0.credentialsManager.credentials();
-
-  print('credentials: ${credentials.accessToken}');
 
   final response = await http.post(
     Uri.parse(
@@ -22,9 +19,7 @@ Future<Map<String, dynamic>> apiLogin(BuildContext context) async {
     }),
   );
 
-  print('Response status: ${response.statusCode}');
   final data = json.decode(response.body);
-  print('Response body: ${data['name']}');
 
   if (response.statusCode == 200) {
     return data;

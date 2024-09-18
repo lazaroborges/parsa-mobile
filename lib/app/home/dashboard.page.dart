@@ -58,6 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _apiLogin();
+    // _fetchUserAccounts();
   }
 
   Future<void> _apiLogin() async {
@@ -129,13 +130,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         Tappable(
                           onTap: () {
-                            showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                showDragHandle: true,
-                                builder: (context) {
-                                  return const EditProfileModal();
-                                });
+                            // No action needed
                           },
                           bgColor: Colors.transparent,
                           borderRadius: 12,
@@ -145,13 +140,21 @@ class _DashboardPageState extends State<DashboardPage> {
                               children: [
                                 if (BreakPoint.of(context)
                                     .isSmallerThan(BreakpointID.md)) ...[
-                                  StreamBuilder(
-                                      stream: UserSettingService.instance
-                                          .getSetting(SettingKey.avatar),
-                                      builder: (context, snapshot) {
-                                        return UserAvatar(
-                                            avatar: snapshot.data);
-                                      }),
+                                  if (userData != null &&
+                                      userData!['profile_picture'] != null)
+                                    CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                          userData!['profile_picture']),
+                                      radius: 18,
+                                    )
+                                  else
+                                    StreamBuilder(
+                                        stream: UserSettingService.instance
+                                            .getSetting(SettingKey.avatar),
+                                        builder: (context, snapshot) {
+                                          return UserAvatar(
+                                              avatar: snapshot.data);
+                                        }),
                                   const SizedBox(width: 8),
                                 ],
                                 Column(
