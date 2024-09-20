@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:parsa/core/services/pluggy/flutter_pluggy_connect.dart';
+import 'package:flutter_pluggy_connect/flutter_pluggy_connect.dart';
 import 'package:http/http.dart' as http;
 
 class PluggyConnectorPage extends StatefulWidget {

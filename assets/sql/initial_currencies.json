@@ -1,13 +1,5 @@
 [
-  {
-    "code": "AED",
-    "names": {
-      "en": "UAE Dirham",
-      "es": "Dírham de los Emiratos Árabes Unidos"
-    },
-    "symbol": "dh",
-    "countryCodes": ["AE"]
-  },
+
   {
     "code": "AFN",
     "names": {
