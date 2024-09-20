@@ -37,6 +37,8 @@ import 'package:parsa/core/api/api_login.dart'; // Import the fetchUserData func
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
 
+import 'package:parsa/core/api/fetch_user_accounts.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -48,6 +50,7 @@ class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  Map<String, dynamic>? userAccounts; // Add this line to store fetched accounts
 
   @override
   void initState() {
@@ -58,7 +61,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _apiLogin();
-    // _fetchUserAccounts();
+    _fetchUserAccounts(); // Ensure this method is correctly named
   }
 
   Future<void> _apiLogin() async {
@@ -70,6 +73,26 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     } catch (e) {
       // Handle error
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // Implement the _fetchUserAccounts method
+  Future<void> _fetchUserAccounts() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final accounts = await fetchUserAccounts(context);
+      setState(() {
+        userAccounts = accounts;
+        isLoading = false;
+      });
+    } catch (e) {
+      // Handle error
+      print('Error fetching user accounts: $e');
       setState(() {
         isLoading = false;
       });

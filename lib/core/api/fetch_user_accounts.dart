@@ -8,6 +8,8 @@ Future<Map<String, dynamic>> fetchUserAccounts(BuildContext context) async {
 
   final credentials = await auth0.credentialsManager.credentials();
 
+  print(credentials.accessToken);
+
   final response = await http.get(
     Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/accounts/'),
     headers: {
@@ -15,6 +17,8 @@ Future<Map<String, dynamic>> fetchUserAccounts(BuildContext context) async {
       'Content-Type': 'application/json',
     },
   );
+
+  print(json.decode(response.body));
 
   if (response.statusCode == 200) {
     return json.decode(response.body);

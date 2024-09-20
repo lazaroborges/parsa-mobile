@@ -20,7 +20,10 @@ class Auth0Service extends StatelessWidget {
           onPressed: () async {
             print('Login attempt started');
             try {
-              final result = await auth0.webAuthentication().login();
+              final result = await auth0.webAuthentication().login(
+                    audience:
+                        'https://api.parsa.com.br/api', // Seu identificador da API no Auth0
+                  );
               // Store the credentials
               await auth0.credentialsManager.storeCredentials(result);
 
