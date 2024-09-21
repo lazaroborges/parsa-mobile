@@ -31,10 +31,10 @@ CREATE TABLE IF NOT EXISTS exchangeRates (
 ) AS ExchangeRateInDB;
 
 CREATE TABLE IF NOT EXISTS accounts (
-    id TEXT NOT NULL PRIMARY KEY, -- Ensure UUIDs are generated when creating accounts
+    id TEXT UNIQUE NOT NULL PRIMARY KEY, -- Ensure UUIDs are generated when creating accounts
     
     -- Account name (unique among user accounts)
-    name TEXT UNIQUE NOT NULL,
+    name TEXT  NOT NULL,
 
     iniValue REAL NOT NULL,
 
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     date DATETIME NOT NULL,
 
     description TEXT,
-    type ENUMNAME(AccountType) NOT NULL CHECK(type IN ('normal', 'saving')),
+    type ENUMNAME(AccountType) NOT NULL CHECK(type IN ('normal', 'saving', 'credit')),
 
     iconId TEXT NOT NULL,
 
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     -- New fields
     balance REAL NOT NULL DEFAULT 0,
     last_update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    connectorID TEXT
+    connectorID TEXT NOT NULL
 ) AS AccountInDB;
 
 CREATE TABLE IF NOT EXISTS categories (

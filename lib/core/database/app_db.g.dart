@@ -279,13 +279,13 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
       requiredDuringInsert: false,
       $customConstraints: '');
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
-  late final GeneratedColumnWithTypeConverter<AccountType, String> type =
-      GeneratedColumn<String>('type', aliasedName, false,
-              type: DriftSqlType.string,
-              requiredDuringInsert: true,
-              $customConstraints:
-                  'NOT NULL CHECK (type IN (\'normal\', \'saving\'))')
-          .withConverter<AccountType>(Accounts.$convertertype);
+  late final GeneratedColumnWithTypeConverter<AccountType,
+      String> type = GeneratedColumn<String>('type', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          $customConstraints:
+              'NOT NULL CHECK (type IN (\'normal\', \'saving\', \'credit\'))')
+      .withConverter<AccountType>(Accounts.$convertertype);
   static const VerificationMeta _iconIdMeta = const VerificationMeta('iconId');
   late final GeneratedColumn<String> iconId = GeneratedColumn<String>(
       'iconId', aliasedName, false,

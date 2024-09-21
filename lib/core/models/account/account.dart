@@ -22,6 +22,9 @@ enum AccountType {
     } else if (this == saving) {
       return Icons.savings;
     }
+    if (this == credit) {
+      return Icons.credit_card;
+    }
 
     return Icons.question_mark;
   }
@@ -34,6 +37,9 @@ enum AccountType {
     } else if (this == saving) {
       return t.account.types.saving;
     }
+    if (this == credit) {
+      return t.account.types.credit;
+    }
 
     return '';
   }
@@ -45,6 +51,9 @@ enum AccountType {
       return t.account.types.normal_descr;
     } else if (this == saving) {
       return t.account.types.saving_descr;
+    }
+    if (this == credit) {
+      return t.account.types.credit_descr;
     }
 
     return '';
@@ -130,4 +139,48 @@ class Account extends AccountInDB {
         lastUpdateTime: account.lastUpdateTime,
         connectorID: account.connectorID,
       );
+}
+
+class ApiAccount {
+  final String accountId;
+  final String bankName;
+  final String accountType;
+  final String number;
+  final String name;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int profile;
+  final String connectorId;
+  final String primaryColor;
+  final double? balance;
+
+  ApiAccount({
+    required this.accountId,
+    required this.bankName,
+    required this.accountType,
+    required this.number,
+    required this.name,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.profile,
+    required this.connectorId,
+    required this.primaryColor,
+    this.balance,
+  });
+
+  factory ApiAccount.fromJson(Map<String, dynamic> json) {
+    return ApiAccount(
+      accountId: json['accountId'],
+      bankName: json['bank_name'],
+      accountType: json['account_type'],
+      number: json['number'],
+      name: json['name'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+      profile: json['profile'],
+      connectorId: json['connector_id'],
+      primaryColor: json['primary_color'],
+      balance: json['balance'] != null ? double.parse(json['balance']) : null,
+    );
+  }
 }

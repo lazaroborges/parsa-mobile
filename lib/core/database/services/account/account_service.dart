@@ -16,7 +16,10 @@ class AccountService {
   static final AccountService instance = AccountService._(AppDB.instance);
 
   Future<int> insertAccount(AccountInDB account) {
-    return db.into(db.accounts).insert(account);
+    // It also updates the account.
+    return db
+        .into(db.accounts)
+        .insert(account, mode: InsertMode.insertOrReplace);
   }
 
   Future<bool> updateAccount(AccountInDB account) {

@@ -8,15 +8,12 @@ Future<Map<String, dynamic>> apiLogin(BuildContext context) async {
 
   final credentials = await auth0.credentialsManager.credentials();
 
-  final response = await http.post(
-    Uri.parse(
-        'https://naturally-creative-boxer.ngrok-free.app/api/auth-mobile/'),
+  final response = await http.get(
+    Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/user-info/'),
     headers: {
+      'Authorization': 'Bearer ${credentials.accessToken}',
       'Content-Type': 'application/json',
     },
-    body: json.encode({
-      'access_token': credentials.accessToken,
-    }),
   );
 
   final data = json.decode(response.body);

@@ -50,7 +50,6 @@ class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
   Map<String, dynamic>? userData;
   bool isLoading = true;
-  Map<String, dynamic>? userAccounts; // Add this line to store fetched accounts
 
   @override
   void initState() {
@@ -85,14 +84,13 @@ class _DashboardPageState extends State<DashboardPage> {
       isLoading = true;
     });
     try {
-      final accounts = await fetchUserAccounts(context);
+      await fetchUserAccounts(context);
       setState(() {
-        userAccounts = accounts;
         isLoading = false;
       });
     } catch (e) {
       // Handle error
-      print('Error fetching user accounts: $e');
+      print('--Error fetching user accounts: $e');
       setState(() {
         isLoading = false;
       });
@@ -164,10 +162,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                 if (BreakPoint.of(context)
                                     .isSmallerThan(BreakpointID.md)) ...[
                                   if (userData != null &&
-                                      userData!['profile_picture'] != null)
+                                      userData!['avatar_url'] != null)
                                     CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                          userData!['profile_picture']),
+                                      backgroundImage:
+                                          NetworkImage(userData!['avatar_url']),
                                       radius: 18,
                                     )
                                   else
@@ -197,9 +195,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                             .getSetting(SettingKey.userName),
                                         builder: (context, snapshot) {
                                           if (userData != null &&
-                                              userData!['name'] != null) {
+                                              userData!['first_name'] != null) {
                                             return Text(
-                                              userData!['name'],
+                                              userData!['first_name'],
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .titleSmall!
