@@ -434,11 +434,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             setState(() {});
           },
         ),
-        actions: [
-          MonekinPopupMenuButton(actionItems: [
-            //TODO
-          ])
-        ],
+        // actions: [
+        //   MonekinPopupMenuButton(actionItems: [
+        //     //TODO
+        //   ])
+        // ],
       ),
       body: Column(
         children: [

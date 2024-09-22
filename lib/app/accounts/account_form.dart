@@ -107,7 +107,8 @@ class _AccountFormPageState extends State<AccountFormPage> {
       swift: _swiftController.text.isEmpty ? null : _swiftController.text,
       balance: newBalance,
       lastUpdateTime: DateTime.now(),
-      connectorID: null,
+      connectorID:
+          _accountToEdit?.connectorID ?? '1', // Assign a valid connectorID
     );
 
     // Check for accounts with same names before continue:

@@ -72,7 +72,7 @@ class Account extends AccountInDB {
     required this.currency,
     required super.balance,
     required super.lastUpdateTime,
-    super.connectorID,
+    required super.connectorID,
     super.closingDate,
     super.description,
     super.iban,

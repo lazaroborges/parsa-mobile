@@ -251,13 +251,13 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
       'id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL PRIMARY KEY');
+      $customConstraints: 'UNIQUE NOT NULL PRIMARY KEY');
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      $customConstraints: 'UNIQUE NOT NULL');
+      $customConstraints: 'NOT NULL');
   static const VerificationMeta _iniValueMeta =
       const VerificationMeta('iniValue');
   late final GeneratedColumn<double> iniValue = GeneratedColumn<double>(
@@ -351,10 +351,11 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
   static const VerificationMeta _connectorIDMeta =
       const VerificationMeta('connectorID');
   late final GeneratedColumn<String> connectorID = GeneratedColumn<String>(
-      'connectorID', aliasedName, true,
+      'connectorID', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: false,
-      $customConstraints: '');
+      $customConstraints: 'NOT NULL DEFAULT \'1\'',
+      defaultValue: const CustomExpression('\'1\''));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -510,7 +511,7 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
       lastUpdateTime: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}last_update_time'])!,
       connectorID: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}connectorID']),
+          .read(DriftSqlType.string, data['${effectivePrefix}connectorID'])!,
     );
   }
 
@@ -556,7 +557,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
   /// New fields
   final double balance;
   final DateTime lastUpdateTime;
-  final String? connectorID;
+  final String connectorID;
   const AccountInDB(
       {required this.id,
       required this.name,
@@ -573,7 +574,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       this.swift,
       required this.balance,
       required this.lastUpdateTime,
-      this.connectorID});
+      required this.connectorID});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -604,9 +605,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
     }
     map['balance'] = Variable<double>(balance);
     map['last_update_time'] = Variable<DateTime>(lastUpdateTime);
-    if (!nullToAbsent || connectorID != null) {
-      map['connectorID'] = Variable<String>(connectorID);
-    }
+    map['connectorID'] = Variable<String>(connectorID);
     return map;
   }
 
@@ -633,9 +632,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           swift == null && nullToAbsent ? const Value.absent() : Value(swift),
       balance: Value(balance),
       lastUpdateTime: Value(lastUpdateTime),
-      connectorID: connectorID == null && nullToAbsent
-          ? const Value.absent()
-          : Value(connectorID),
+      connectorID: Value(connectorID),
     );
   }
 
@@ -659,7 +656,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       swift: serializer.fromJson<String?>(json['swift']),
       balance: serializer.fromJson<double>(json['balance']),
       lastUpdateTime: serializer.fromJson<DateTime>(json['last_update_time']),
-      connectorID: serializer.fromJson<String?>(json['connectorID']),
+      connectorID: serializer.fromJson<String>(json['connectorID']),
     );
   }
   @override
@@ -681,7 +678,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       'swift': serializer.toJson<String?>(swift),
       'balance': serializer.toJson<double>(balance),
       'last_update_time': serializer.toJson<DateTime>(lastUpdateTime),
-      'connectorID': serializer.toJson<String?>(connectorID),
+      'connectorID': serializer.toJson<String>(connectorID),
     };
   }
 
@@ -701,7 +698,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           Value<String?> swift = const Value.absent(),
           double? balance,
           DateTime? lastUpdateTime,
-          Value<String?> connectorID = const Value.absent()}) =>
+          String? connectorID}) =>
       AccountInDB(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -718,7 +715,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
         swift: swift.present ? swift.value : this.swift,
         balance: balance ?? this.balance,
         lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
-        connectorID: connectorID.present ? connectorID.value : this.connectorID,
+        connectorID: connectorID ?? this.connectorID,
       );
   AccountInDB copyWithCompanion(AccountsCompanion data) {
     return AccountInDB(
@@ -828,7 +825,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
   final Value<String?> swift;
   final Value<double> balance;
   final Value<DateTime> lastUpdateTime;
-  final Value<String?> connectorID;
+  final Value<String> connectorID;
   final Value<int> rowid;
   const AccountsCompanion({
     this.id = const Value.absent(),
@@ -931,7 +928,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       Value<String?>? swift,
       Value<double>? balance,
       Value<DateTime>? lastUpdateTime,
-      Value<String?>? connectorID,
+      Value<String>? connectorID,
       Value<int>? rowid}) {
     return AccountsCompanion(
       id: id ?? this.id,
@@ -4554,7 +4551,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           currency: await currencies.mapFromRow(row, tablePrefix: 'nested_0'),
           balance: row.read<double>('balance'),
           lastUpdateTime: row.read<DateTime>('last_update_time'),
-          connectorID: row.readNullable<String>('connectorID'),
+          connectorID: row.read<String>('connectorID'),
           closingDate: row.readNullable<DateTime>('closingDate'),
           description: row.readNullable<String>('description'),
           iban: row.readNullable<String>('iban'),
@@ -5177,7 +5174,7 @@ typedef $AccountsCreateCompanionBuilder = AccountsCompanion Function({
   Value<String?> swift,
   Value<double> balance,
   Value<DateTime> lastUpdateTime,
-  Value<String?> connectorID,
+  Value<String> connectorID,
   Value<int> rowid,
 });
 typedef $AccountsUpdateCompanionBuilder = AccountsCompanion Function({
@@ -5196,7 +5193,7 @@ typedef $AccountsUpdateCompanionBuilder = AccountsCompanion Function({
   Value<String?> swift,
   Value<double> balance,
   Value<DateTime> lastUpdateTime,
-  Value<String?> connectorID,
+  Value<String> connectorID,
   Value<int> rowid,
 });
 
@@ -5230,7 +5227,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<String?> swift = const Value.absent(),
             Value<double> balance = const Value.absent(),
             Value<DateTime> lastUpdateTime = const Value.absent(),
-            Value<String?> connectorID = const Value.absent(),
+            Value<String> connectorID = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AccountsCompanion(
@@ -5268,7 +5265,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<String?> swift = const Value.absent(),
             Value<double> balance = const Value.absent(),
             Value<DateTime> lastUpdateTime = const Value.absent(),
-            Value<String?> connectorID = const Value.absent(),
+            Value<String> connectorID = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AccountsCompanion.insert(

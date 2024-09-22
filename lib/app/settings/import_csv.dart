@@ -218,7 +218,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
                 .code,
             balance: 0,
             lastUpdateTime: DateTime.now(),
-            connectorID: null,
+            connectorID: '1',
           ));
         }
 

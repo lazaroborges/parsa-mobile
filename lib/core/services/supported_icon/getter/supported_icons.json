@@ -21,6 +21,7 @@
   { "id": "receipt_long", "scope": "money" },
   { "id": "auto_graph", "scope": "money" },
   { "id": "autopay", "scope": "money" },
+  { "id": "1", "scope": "logos/financial_institutions" },
   { "id": "201", "scope": "logos/financial_institutions" },
   { "id": "202", "scope": "logos/financial_institutions" },
   { "id": "203", "scope": "logos/financial_institutions" },
