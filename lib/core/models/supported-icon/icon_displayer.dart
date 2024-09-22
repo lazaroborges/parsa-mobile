@@ -10,6 +10,9 @@ part 'icon_displayer.g.dart';
 
 enum IconDisplayMode {
   decoratedBox,
+  svg,
+  svgBox,
+  circle,
   polygon,
 }
 
