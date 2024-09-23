@@ -16,12 +16,30 @@ Future<Map<String, dynamic>> fetchUserTransactions(BuildContext context) async {
       'Content-Type': 'application/json',
     },
   );
-  print(json.decode(response.body));
+  print(response.body.length);
   //send the response to syncTransactions()
 
   if (response.statusCode == 200) {
-    return json.decode(response.body);
+    var jsonResponse = json.decode(response.body);
+    int objectCount = jsonResponse.length; // Count the number of objects
+    print('Number of transactions: $objectCount');
+    return jsonResponse;
   } else {
     throw Exception('Failed to load user accounts');
   }
 }
+
+// // I need you to extend the Transaction model and create a service to write the transactions fetched above in to the database. Here is the schema:
+//         - id (UUIDField): The primary key of the transaction.
+//         - date (DateTimeField): The creation date of the transaction entry in the database.
+//         - transactionDate (DateTimeField): The actual date of the transaction.
+//         - lastUpdateDate (DateTimeField): The last update date of the transaction at the Open Finance Server.
+//         - description (CharField): A brief description of the transaction.
+//         - amount (DecimalField): The amount involved in the transaction.
+//         - account (ForeignKey): The account associated with the transaction.
+//         - notes (TextField): Additional notes about the transaction.
+//         - category (CharField): The category of the transaction.
+//         - transaction_type (CharField): The type of the transaction (e.g., debit or credit).
+
+
+

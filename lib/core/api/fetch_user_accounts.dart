@@ -4,11 +4,10 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:flutter/widgets.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
-import 'package:parsa/core/models/currency/currency.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 
-Future<Map<String, dynamic>> fetchUserAccounts(BuildContext context) async {
+Future<void> fetchUserAccounts(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
 
   final credentials = await auth0.credentialsManager.credentials();
