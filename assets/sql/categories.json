@@ -52,8 +52,18 @@
         "names": {
           "pt": "Auxílio Governamental"
         }
-      }, 
-{
+      }
+    ]
+  },
+  {
+    "names": {
+      "pt": "Benefícios"
+    },
+    "icon": "auto_graph",
+    "color": "1E2460",
+    "type": "B",
+    "subcategories": [
+      {
         "icon": "local_atm",
         "names": {
           "pt": "Pensão"
@@ -61,7 +71,7 @@
       }
     ]
   },
-    {
+  {
     "names": {
       "pt": "Compras"
     },
@@ -116,8 +126,18 @@
         "names": {
           "pt": "Livraria"
         }
-      }, 
-{
+      }
+    ]
+  },
+  {
+    "names": {
+      "pt": "Compras"
+    },
+    "icon": "shopping_bag",
+    "color": "3D642D",
+    "type": "I",
+    "subcategories": [
+      {
         "icon": "cashback",
         "names": {
           "pt": "Cashback"
@@ -125,7 +145,6 @@
       }
     ]
   },
-  
   {
     "names": {
       "pt": "Contas"
@@ -140,7 +159,24 @@
           "pt": "Impostos"
         }
       },
-
+      {
+        "icon": "receipt_long",
+        "names": {
+          "pt": "Impostos"
+        }
+      },
+      {
+        "icon": "money_off",
+        "names": {
+          "pt": "Impostos"
+        }
+      },
+      {
+        "icon": "monetization_on",
+        "names": {
+          "pt": "Impostos"
+        }
+      },
       {
         "icon": "credit_card",
         "names": {
@@ -153,14 +189,24 @@
           "pt": "Taxas Bancárias"
         }
       },
-
+      {
+        "icon": "atm",
+        "names": {
+          "pt": "Taxas Bancárias"
+        }
+      },
       {
         "icon": "credit_card_off",
         "names": {
           "pt": "Taxas de cartão de crédito"
         }
       },
-
+      {
+        "icon": "payments",
+        "names": {
+          "pt": "Taxas Bancárias"
+        }
+      },
       {
         "icon": "percent",
         "names": {
@@ -216,11 +262,28 @@
         }
       },
       {
+        "icon": "car_repair",
+        "names": {
+          "pt": "Seguros"
+        }
+      },
+      {
         "icon": "family_restroom",
         "names": {
           "pt": "Pensão alimentícia"
         }
-      },       {
+      }
+    ]
+  },
+  {
+    "names": {
+      "pt": "Contas"
+    },
+    "icon": "account_balance_wallet",
+    "color": "000000",
+    "type": "E",
+    "subcategories": [
+      {
         "icon": "settings",
         "names": {
           "pt": "Serviços"
@@ -234,7 +297,6 @@
       }
     ]
   },
-  
   {
     "names": {
       "pt": "Educação"
@@ -354,7 +416,7 @@
       {
         "icon": "payments",
         "names": {
-          "pt": "Investimentos "
+          "pt": "Investimentos"
         }
       },
       {
@@ -385,7 +447,12 @@
           "pt": "Pontos turísticos e eventos"
         }
       },
-
+      {
+        "icon": "music_note",
+        "names": {
+          "pt": "Festas & Eventos"
+        }
+      },
       {
         "icon": "movie",
         "names": {
@@ -494,7 +561,22 @@
       }
     ]
   },
- 
+  {
+    "names": {
+      "pt": "Outros"
+    },
+    "icon": "redeem",
+    "color": "BB4B4B",
+    "type": "E",
+    "subcategories": [
+      {
+        "icon": "volunteer_activism",
+        "names": {
+          "pt": "Presentes & Doações"
+        }
+      }
+    ]
+  },
   {
     "names": {
       "pt": "Outros"
@@ -506,7 +588,7 @@
       {
         "icon": "inventory_2",
         "names": {
-          "pt": "Despesa Não Classificada"
+          "pt": "Outros"
         }
       }
     ]
