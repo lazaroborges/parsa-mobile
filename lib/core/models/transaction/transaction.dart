@@ -33,7 +33,7 @@ class MoneyTransaction extends TransactionInDB {
       required super.type,
       super.notes,
       super.title,
-      super.status,
+      super.status, // to not consider a transaction, use enum 'notconsidered' (same as !isConsidered in the Backend)
       super.valueInDestiny,
       super.locAddress,
       super.locLatitude,

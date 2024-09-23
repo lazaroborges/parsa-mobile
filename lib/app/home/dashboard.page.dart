@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
@@ -217,8 +219,11 @@ class _DashboardPageState extends State<DashboardPage> {
                                           if (userData != null &&
                                               userData!['first_name'] != null) {
                                             return Text(
-                                              userData!['first_name']
-                                                  .toString(),
+                                              utf8.decode(
+                                                  userData!['first_name']
+                                                      .toString()
+                                                      .runes
+                                                      .toList()),
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .titleSmall!
