@@ -1,44 +1,6 @@
 [
   {
     "names": {
-      "en": "Aesthetics & Health",
-      "es": "Salud & belleza",
-      "pt": "Estética & Saúde"
-    },
-    "icon": "ecg_heart",
-    "color": "CC0605",
-    "type": "E",
-    "subcategories": [
-      {
-        "icon": "self_care",
-        "names": {
-          "en": "Personal care",
-          "es": "Cuidado personal",
-          "pt": "Cuidados pessoais"
-        }
-      },
-      {
-        "icon": "medication",
-        "names": {
-          "en": "Medical",
-          "es": "Médico",
-          "pt": "Médico"
-        }
-      },
-      {
-        "icon": "fitness_center",
-        "names": {
-          "en": "Fitness",
-          "es": "Fitness",
-          "pt": "Fitness"
-        }
-      }
-    ]
-  },
-  {
-    "names": {
-      "en": "Food & Dining",
-      "es": "Alimentación",
       "pt": "Alimentação"
     },
     "icon": "shopping_cart",
@@ -48,25 +10,35 @@
       {
         "icon": "dinner_dining",
         "names": {
-          "en": "Eating out",
-          "es": "Comer fuera",
           "pt": "Comer fora"
-        }
+        },
+        "id": "11010000"
       },
       {
         "icon": "nutrition",
         "names": {
-          "en": "Groceries",
-          "es": "Comestibles",
           "pt": "Mercado"
-        }
+        },
+        "id": "10000000"
+      },
+      {
+        "icon": "restaurant",
+        "names": {
+          "pt": "Restaurantes, bares e lanchonetes"
+        },
+        "id": "11010000"
+      },
+      {
+        "icon": "delivery_dining",
+        "names": {
+          "pt": "Delivery de alimentos"
+        },
+        "id": "11020000"
       }
     ]
   },
   {
     "names": {
-      "en": "Purchases",
-      "es": "Compras",
       "pt": "Compras"
     },
     "icon": "shopping_bag",
@@ -76,33 +48,70 @@
       {
         "icon": "library_books",
         "names": {
-          "en": "Stationery",
-          "es": "Papelería",
           "pt": "Papelaria"
-        }
+        },
+        "id": "08080000"
       },
       {
         "icon": "computer",
         "names": {
-          "en": "Electronics",
-          "es": "Electrónica",
           "pt": "Eletrônicos"
-        }
+        },
+        "id": "08020000"
       },
       {
         "icon": "checkroom",
         "names": {
-          "en": "Clothes",
-          "es": "Ropa",
           "pt": "Roupas"
-        }
+        },
+        "id": "08040000"
+      },
+      {
+        "icon": "pets",
+        "names": {
+          "pt": "Pet Shops e veterinários"
+        },
+        "id": "08030000"
+      },
+      {
+        "icon": "shopping_cart_checkout",
+        "names": {
+          "pt": "Compras online"
+        },
+        "id": "08010000"
+      },
+      {
+        "icon": "sports_bar",
+        "names": {
+          "pt": "Artigos esportivos"
+        },
+        "id": "08070000"
+      },
+      {
+        "icon": "child_friendly",
+        "names": {
+          "pt": "Artigos infantis"
+        },
+        "id": "08050000"
+      },
+      {
+        "icon": "book",
+        "names": {
+          "pt": "Livraria"
+        },
+        "id": "08060000"
+      },
+      {
+        "icon": "cashback",
+        "names": {
+          "pt": "Cashback"
+        },
+        "id": "08090000"
       }
     ]
   },
   {
     "names": {
-      "en": "Leisure",
-      "es": "Entretenimiento",
       "pt": "Lazer"
     },
     "icon": "golf_course",
@@ -112,41 +121,174 @@
       {
         "icon": "celebration",
         "names": {
-          "en": "Party",
-          "es": "Fiesta",
           "pt": "Festa"
-        }
+        },
+        "id": "21000000"
       },
       {
         "icon": "museum",
         "names": {
-          "en": "Sites of interest and events",
-          "es": "Eventos y sitios de interes",
           "pt": "Pontos turísticos e eventos"
-        }
+        },
+        "id": "07040002"
       },
       {
         "icon": "music_note",
         "names": {
-          "en": "Music",
-          "es": "Música y conciertos",
           "pt": "Música"
-        }
+        },
+        "id": "09030000"
       },
       {
         "icon": "movie",
         "names": {
-          "en": "TV-shows and movies",
-          "es": "Cine y TV",
           "pt": "Programas de TV e filmes"
-        }
+        },
+        "id": "09020000"
+      },
+      {
+        "icon": "stadium",
+        "names": {
+          "pt": "Estádios e arenas"
+        },
+        "id": "07040001"
+      },
+      {
+        "icon": "museum",
+        "names": {
+          "pt": "Museus e pontos turísticos"
+        },
+        "id": "07040002"
+      },
+      {
+        "icon": "theater_comedy",
+        "names": {
+          "pt": "Cinema, Teatro e Concertos"
+        },
+        "id": "07040003"
+      },
+      {
+        "icon": "casino",
+        "names": {
+          "pt": "Jogos e apostas"
+        },
+        "id": "14000000"
+      },
+      {
+        "icon": "casino",
+        "names": {
+          "pt": "Loteria"
+        },
+        "id": "14010000"
+      },
+      {
+        "icon": "casino",
+        "names": {
+          "pt": "Apostas online"
+        },
+        "id": "14020000"
       }
     ]
   },
   {
     "names": {
-      "en": "Transportation",
-      "es": "Transporte",
+      "pt": "Educação"
+    },
+    "icon": "school",
+    "color": "009688",
+    "type": "E",
+    "subcategories": [
+      {
+        "icon": "class",
+        "names": {
+          "pt": "Escola"
+        },
+        "id": "07020003"
+      },
+      {
+        "icon": "school",
+        "names": {
+          "pt": "Universidade"
+        },
+        "id": "07020002"
+      },
+      {
+        "icon": "child_care",
+        "names": {
+          "pt": "Creche"
+        },
+        "id": "07020004"
+      },
+      {
+        "icon": "laptop",
+        "names": {
+          "pt": "Cursos online"
+        },
+        "id": "07020001"
+      }
+    ]
+  },
+  {
+    "names": {
+      "pt": "Saúde"
+    },
+    "icon": "diversity_3",
+    "color": "CC0605",
+    "type": "E",
+    "subcategories": [
+      {
+        "icon": "self_care",
+        "names": {
+          "pt": "Cuidados pessoais"
+        },
+        "id": "18000000"
+      },
+      {
+        "icon": "medication",
+        "names": {
+          "pt": "Médico"
+        },
+        "id": "18000000"
+      },
+      {
+        "icon": "fitness_center",
+        "names": {
+          "pt": "Fitness"
+        },
+        "id": "07030001"
+      },
+      {
+        "icon": "local_hospital",
+        "names": {
+          "pt": "Hospitais, clínicas e laboratórios"
+        },
+        "id": "18040000"
+      },
+      {
+        "icon": "local_pharmacy",
+        "names": {
+          "pt": "Farmácia"
+        },
+        "id": "18020000"
+      },
+      {
+        "icon": "remove_red_eye",
+        "names": {
+          "pt": "Ótica"
+        },
+        "id": "18030000"
+      },
+      {
+        "icon": "medical_services",
+        "names": {
+          "pt": "Dentista"
+        },
+        "id": "18010000"
+      }
+    ]
+  },
+  {
+    "names": {
       "pt": "Transporte"
     },
     "icon": "tram",
@@ -156,49 +298,91 @@
       {
         "icon": "train",
         "names": {
-          "en": "Public Transport",
-          "es": "Transporte público",
           "pt": "Transporte público"
-        }
+        },
+        "id": "19020000"
       },
       {
         "icon": "speed",
         "names": {
-          "en": "Fuel",
-          "es": "Gasolina",
           "pt": "Combustível"
-        }
+        },
+        "id": "19050001"
       },
       {
         "icon": "receipt_long",
         "names": {
-          "en": "Tolls and parking",
-          "es": "Multas y parkimétros",
           "pt": "Pedágios e estacionamento"
-        }
+        },
+        "id": "19050003"
       },
       {
         "icon": "receipt",
         "names": {
-          "en": "Taxes and car insurance",
-          "es": "Seguro e impuestos",
           "pt": "Impostos e seguro de carro"
-        }
+        },
+        "id": "19050004"
       },
       {
         "icon": "car_repair",
         "names": {
-          "en": "Maintenance",
-          "es": "Mantenimiento",
           "pt": "Manutenção"
-        }
+        },
+        "id": "19050005"
+      },
+      {
+        "icon": "taxi_alert",
+        "names": {
+          "pt": "Táxi e transporte privado urbano"
+        },
+        "id": "19010000"
+      },
+      {
+        "icon": "directions_bus",
+        "names": {
+          "pt": "Passagem de ônibus"
+        },
+        "id": "12040000"
+      },
+      {
+        "icon": "car_rental",
+        "names": {
+          "pt": "Aluguel de veículos"
+        },
+        "id": "19030000"
+      },
+      {
+        "icon": "bike_scooter",
+        "names": {
+          "pt": "Aluguel de bicicletas"
+        },
+        "id": "19040000"
+      },
+      {
+        "icon": "local_gas_station",
+        "names": {
+          "pt": "Postos de gasolina"
+        },
+        "id": "19050001"
+      },
+      {
+        "icon": "parking",
+        "names": {
+          "pt": "Estacionamentos"
+        },
+        "id": "19050002"
+      },
+      {
+        "icon": "gavel",
+        "names": {
+          "pt": "Multas de trânsito"
+        },
+        "id": "19050006"
       }
     ]
   },
   {
     "names": {
-      "en": "Housing",
-      "es": "Hogar",
       "pt": "Moradia"
     },
     "icon": "home",
@@ -208,86 +392,220 @@
       {
         "icon": "key",
         "names": {
-          "en": "Rental",
-          "es": "Alquiler",
           "pt": "Aluguel"
-        }
+        },
+        "id": "17010000"
       },
       {
         "icon": "water",
         "names": {
-          "en": "Water",
-          "es": "Agua",
           "pt": "Água"
-        }
+        },
+        "id": "17020001"
       },
       {
         "icon": "bolt",
         "names": {
-          "en": "Electricity",
-          "es": "Luz",
           "pt": "Energia elétrica"
-        }
+        },
+        "id": "17020002"
+      },
+      {
+        "icon": "gas_meter",
+        "names": {
+          "pt": "Gás"
+        },
+        "id": "17020003"
       },
       {
         "icon": "language",
         "names": {
-          "en": "Internet",
-          "es": "Internet",
           "pt": "Internet"
-        }
+        },
+        "id": "07010001"
       },
       {
         "icon": "call",
         "names": {
-          "en": "Phone",
-          "es": "Teléfono",
           "pt": "Telefone"
-        }
+        },
+        "id": "07010002"
       },
       {
         "icon": "sprinkler",
         "names": {
-          "en": "Home supplies",
-          "es": "Productos para el hogar",
           "pt": "Produtos para o lar"
-        }
+        },
+        "id": "17030000"
       },
       {
         "icon": "bed",
         "names": {
-          "en": "Furniture and appliances",
-          "es": "Muebles y accesorios",
           "pt": "Móveis e eletrodomésticos"
-        }
+        },
+        "id": "17000000"
+      },
+      {
+        "icon": "balcony",
+        "names": {
+          "pt": "Impostos sobre moradia"
+        },
+        "id": "17040000"
       }
     ]
   },
   {
     "names": {
-      "en": "Taxes",
-      "es": "Impuestos",
-      "pt": "Impostos"
+      "pt": "Contas"
     },
-    "icon": "receipt",
-    "color": "B32821",
-    "type": "E"
-  },
-  {
-    "names": {
-      "en": "Plants & Pets",
-      "es": "Plantas & mascotas",
-      "pt": "Plantas & Pets"
-    },
-    "icon": "pets",
-    "color": "587246",
+    "icon": "account_balance_wallet",
+    "color": "781F19",
     "type": "E",
-    "subcategories": []
+    "subcategories": [
+      {
+        "icon": "receipt",
+        "names": {
+          "pt": "Impostos"
+        },
+        "id": "15000000"
+      },
+      {
+        "icon": "receipt_long",
+        "names": {
+          "pt": "Imposto de renda"
+        },
+        "id": "15010000"
+      },
+      {
+        "icon": "money_off",
+        "names": {
+          "pt": "Impostos sobre investimentos"
+        },
+        "id": "15020000"
+      },
+      {
+        "icon": "monetization_on",
+        "names": {
+          "pt": "Impostos sobre operações financeiras"
+        },
+        "id": "15030000"
+      },
+      {
+        "icon": "credit_card",
+        "names": {
+          "pt": "Pagamento de cartão de crédito"
+        },
+        "id": "05100000"
+      },
+      {
+        "icon": "account_balance",
+        "names": {
+          "pt": "Taxas de conta corrente"
+        },
+        "id": "16010000"
+      },
+      {
+        "icon": "atm",
+        "names": {
+          "pt": "Taxas sobre transferências e caixa eletrônico"
+        },
+        "id": "16020000"
+      },
+      {
+        "icon": "credit_card_off",
+        "names": {
+          "pt": "Taxas de cartão de crédito"
+        },
+        "id": "16030000"
+      },
+      {
+        "icon": "payments",
+        "names": {
+          "pt": "Atraso no pagamento e custos de cheque especial"
+        },
+        "id": "02010000"
+      },
+      {
+        "icon": "percent",
+        "names": {
+          "pt": "Juros cobrados"
+        },
+        "id": "02020000"
+      },
+      {
+        "icon": "apartment",
+        "names": {
+          "pt": "Financiamento imobiliário"
+        },
+        "id": "02030001"
+      },
+      {
+        "icon": "directions_car",
+        "names": {
+          "pt": "Financiamento de veículos"
+        },
+        "id": "02030002"
+      },
+      {
+        "icon": "school",
+        "names": {
+          "pt": "Empréstimo estudantil"
+        },
+        "id": "02030003"
+      },
+      {
+        "icon": "account_balance_wallet",
+        "names": {
+          "pt": "Empréstimos"
+        },
+        "id": "02040000"
+      },
+      {
+        "icon": "gavel",
+        "names": {
+          "pt": "Obrigações legais"
+        },
+        "id": "06000000"
+      },
+      {
+        "icon": "balance",
+        "names": {
+          "pt": "Saldo bloqueado"
+        },
+        "id": "06010000"
+      },
+      {
+        "icon": "local_hospital",
+        "names": {
+          "pt": "Seguro saúde"
+        },
+        "id": "200300000"
+      },
+      {
+        "icon": "home_repair_service",
+        "names": {
+          "pt": "Seguro residencial"
+        },
+        "id": "200200000"
+      },
+      {
+        "icon": "car_repair",
+        "names": {
+          "pt": "Seguro de veículos"
+        },
+        "id": "200400000"
+      },
+      {
+        "icon": "family_restroom",
+        "names": {
+          "pt": "Pensão alimentícia"
+        },
+        "id": "06020000"
+      }
+    ]
   },
   {
     "names": {
-      "en": "Holidays",
-      "es": "Vacaciones",
       "pt": "Férias"
     },
     "icon": "landscape",
@@ -297,109 +615,163 @@
       {
         "icon": "flight",
         "names": {
-          "en": "Travel",
-          "es": "Viaje",
           "pt": "Viagem"
-        }
+        },
+        "id": "12000000"
       },
       {
         "icon": "bed",
         "names": {
-          "en": "Accommodation",
-          "es": "Alojamiento",
           "pt": "Acomodação"
-        }
+        },
+        "id": "12020000"
+      },
+      {
+        "icon": "military_tech",
+        "names": {
+          "pt": "Programas de milhagem"
+        },
+        "id": "12030000"
+      },
+      {
+        "icon": "airport_shuttle",
+        "names": {
+          "pt": "Aeroportos e cias. aéreas"
+        },
+        "id": "12010000"
       }
     ]
   },
   {
     "names": {
-      "en": "Salary",
-      "es": "Salario",
       "pt": "Salário"
     },
     "icon": "work",
     "color": "4C9141",
-    "type": "I"
+    "type": "I",
+    "subcategories": [
+      {
+        "icon": "retirement",
+        "names": {
+          "pt": "Aposentadoria"
+        },
+        "id": "01020000"
+      },
+      {
+        "icon": "business_center",
+        "names": {
+          "pt": "Atividades de empreendedorismo"
+        },
+        "id": "01030000"
+      },
+      {
+        "icon": "government",
+        "names": {
+          "pt": "Auxílio do governo"
+        },
+        "id": "01040000"
+      },
+      {
+        "icon": "payments",
+        "names": {
+          "pt": "Renda não-recorrente"
+        },
+        "id": "01050000"
+      }
+    ]
   },
   {
     "names": {
-      "en": "Gifts & Donations",
-      "es": "Regalos & Donaciones",
       "pt": "Presentes & Doações"
     },
     "icon": "redeem",
     "color": "BB4B4B",
-    "type": "B"
+    "type": "B",
+    "subcategories": [
+      {
+        "icon": "volunteer_activism",
+        "names": {
+          "pt": "Doações"
+        },
+        "id": "13000000"
+      }
+    ]
   },
   {
     "names": {
-      "en": "Sale",
-      "es": "Venta",
       "pt": "Venda"
     },
     "icon": "logout",
     "color": "CDA434",
-    "type": "I"
+    "type": "I",
+    "id": "07000000"
   },
   {
     "names": {
-      "en": "Investments",
-      "es": "Inversión",
       "pt": "Investimentos"
     },
     "icon": "auto_graph",
     "color": "1E2460",
-    "type": "B"
+    "type": "B",
+    "subcategories": [
+      {
+        "icon": "account_balance_wallet",
+        "names": {
+          "pt": "Investimento automático"
+        },
+        "id": "03010000"
+      },
+      {
+        "icon": "savings",
+        "names": {
+          "pt": "Renda fixa"
+        },
+        "id": "03020000"
+      },
+      {
+        "icon": "account_balance",
+        "names": {
+          "pt": "Fundos multimercado"
+        },
+        "id": "03030000"
+      },
+      {
+        "icon": "bar_chart",
+        "names": {
+          "pt": "Renda variável"
+        },
+        "id": "03040000"
+      },
+      {
+        "icon": "payments",
+        "names": {
+          "pt": "Ajuste de margem"
+        },
+        "id": "03050000"
+      },
+      {
+        "icon": "percent",
+        "names": {
+          "pt": "Juros de rendimentos de dividendos"
+        },
+        "id": "03060000"
+      },
+      {
+        "icon": "local_atm",
+        "names": {
+          "pt": "Pensão"
+        },
+        "id": "03070000"
+      }
+    ]
   },
   {
     "names": {
-      "en": "Gambling",
-      "es": "Juegos & apuestas",
-      "pt": "Jogos & Apostas"
-    },
-    "icon": "casino",
-    "color": "2A6478",
-    "type": "B"
-  },
-  {
-    "names": {
-      "en": "Awards & Honours",
-      "es": "Premios & reconocimientos",
-      "pt": "Prêmios & Honrarias"
-    },
-    "icon": "military_tech",
-    "color": "F39F18",
-    "type": "I"
-  },
-  {
-    "names": {
-      "en": "Debts",
-      "es": "Deudas & devoluciones",
-      "pt": "Dívidas & reembolsos"
-    },
-    "icon": "redo",
-    "color": "781F19",
-    "type": "E"
-  },
-  {
-    "names": {
-      "en": "Loans",
-      "es": "Préstamos",
-      "pt": "Empréstimos"
-    },
-    "icon": "undo",
-    "color": "781F19",
-    "type": "I"
-  },
-  {
-    "names": {
-      "en": "Others",
-      "es": "Otros",
       "pt": "Outros"
     },
     "icon": "inventory_2",
     "color": "403A3A",
-    "type": "B"
+    "type": "B",
+    "id": "99999999"
   }
 ]

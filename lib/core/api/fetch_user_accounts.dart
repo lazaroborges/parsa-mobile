@@ -21,7 +21,6 @@ Future<Map<String, dynamic>> fetchUserAccounts(BuildContext context) async {
     },
   );
 
-  print(response.body);
   //send the response to syncAccounts()
   await syncAccounts(response.body);
 

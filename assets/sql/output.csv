@@ -1,0 +1,94 @@
+names.pt,icon,color,type,subcategories.icon,subcategories.names.pt,subcategories.id
+Alimentação,shopping_cart,F4A900,E,dinner_dining,Comer fora,11010000
+Alimentação,shopping_cart,F4A900,E,nutrition,Mercado,10000000
+Alimentação,shopping_cart,F4A900,E,restaurant,Restaurantes, bares e lanchonetes,11010000
+Alimentação,shopping_cart,F4A900,E,delivery_dining,Delivery de alimentos,11020000
+Compras,shopping_bag,3D642D,E,library_books,Papelaria,08080000
+Compras,shopping_bag,3D642D,E,computer,Eletrônicos,08020000
+Compras,shopping_bag,3D642D,E,checkroom,Roupas,08040000
+Compras,shopping_bag,3D642D,E,pets,Pet Shops e veterinários,08030000
+Compras,shopping_bag,3D642D,E,shopping_cart_checkout,Compras online,08010000
+Compras,shopping_bag,3D642D,E,sports_bar,Artigos esportivos,08070000
+Compras,shopping_bag,3D642D,E,child_friendly,Artigos infantis,08050000
+Compras,shopping_bag,3D642D,E,book,Livraria,08060000
+Compras,shopping_bag,3D642D,E,cashback,Cashback,08090000
+Lazer,golf_course,2A6478,E,celebration,Festa,21000000
+Lazer,golf_course,2A6478,E,museum,Pontos turísticos e eventos,07040002
+Lazer,golf_course,2A6478,E,music_note,Música,09030000
+Lazer,golf_course,2A6478,E,movie,Programas de TV e filmes,09020000
+Lazer,golf_course,2A6478,E,stadium,Estádios e arenas,07040001
+Lazer,golf_course,2A6478,E,museum,Museus e pontos turísticos,07040002
+Lazer,golf_course,2A6478,E,theater_comedy,Cinema, Teatro e Concertos,07040003
+Lazer,golf_course,2A6478,E,casino,Jogos e apostas,14000000
+Lazer,golf_course,2A6478,E,casino,Loteria,14010000
+Lazer,golf_course,2A6478,E,casino,Apostas online,14020000
+Educação,school,009688,E,class,Escola,07020003
+Educação,school,009688,E,school,Universidade,07020002
+Educação,school,009688,E,child_care,Creche,07020004
+Educação,school,009688,E,laptop,Cursos online,07020001
+Saúde,diversity_3,CC0605,E,self_care,Cuidados pessoais,18000000
+Saúde,diversity_3,CC0605,E,medication,Médico,18000000
+Saúde,diversity_3,CC0605,E,fitness_center,Fitness,07030001
+Saúde,diversity_3,CC0605,E,local_hospital,Hospitais, clínicas e laboratórios,18040000
+Saúde,diversity_3,CC0605,E,local_pharmacy,Farmácia,18020000
+Saúde,diversity_3,CC0605,E,remove_red_eye,Ótica,18030000
+Saúde,diversity_3,CC0605,E,medical_services,Dentista,18010000
+Transporte,tram,84C3BE,E,train,Transporte público,19020000
+Transporte,tram,84C3BE,E,speed,Combustível,19050001
+Transporte,tram,84C3BE,E,receipt_long,Pedágios e estacionamento,19050003
+Transporte,tram,84C3BE,E,receipt,Impostos e seguro de carro,19050004
+Transporte,tram,84C3BE,E,car_repair,Manutenção,19050005
+Transporte,tram,84C3BE,E,taxi_alert,Táxi e transporte privado urbano,19010000
+Transporte,tram,84C3BE,E,directions_bus,Passagem de ônibus,12040000
+Transporte,tram,84C3BE,E,car_rental,Aluguel de veículos,19030000
+Transporte,tram,84C3BE,E,bike_scooter,Aluguel de bicicletas,19040000
+Transporte,tram,84C3BE,E,local_gas_station,Postos de gasolina,19050001
+Transporte,tram,84C3BE,E,parking,Estacionamentos,19050002
+Transporte,tram,84C3BE,E,gavel,Multas de trânsito,19050006
+Moradia,home,4E5452,E,key,Aluguel,17010000
+Moradia,home,4E5452,E,water,Água,17020001
+Moradia,home,4E5452,E,bolt,Energia elétrica,17020002
+Moradia,home,4E5452,E,gas_meter,Gás,17020003
+Moradia,home,4E5452,E,language,Internet,07010001
+Moradia,home,4E5452,E,call,Telefone,07010002
+Moradia,home,4E5452,E,sprinkler,Produtos para o lar,17030000
+Moradia,home,4E5452,E,bed,Móveis e eletrodomésticos,17000000
+Moradia,home,4E5452,E,balcony,Impostos sobre moradia,17040000
+Contas,account_balance_wallet,781F19,E,receipt,Impostos,15000000
+Contas,account_balance_wallet,781F19,E,receipt_long,Imposto de renda,15010000
+Contas,account_balance_wallet,781F19,E,money_off,Impostos sobre investimentos,15020000
+Contas,account_balance_wallet,781F19,E,monetization_on,Impostos sobre operações financeiras,15030000
+Contas,account_balance_wallet,781F19,E,credit_card,Pagamento de cartão de crédito,05100000
+Contas,account_balance_wallet,781F19,E,account_balance,Taxas de conta corrente,16010000
+Contas,account_balance_wallet,781F19,E,atm,Taxas sobre transferências e caixa eletrônico,16020000
+Contas,account_balance_wallet,781F19,E,credit_card_off,Taxas de cartão de crédito,16030000
+Contas,account_balance_wallet,781F19,E,payments,Atraso no pagamento e custos de cheque especial,02010000
+Contas,account_balance_wallet,781F19,E,percent,Juros cobrados,02020000
+Contas,account_balance_wallet,781F19,E,apartment,Financiamento imobiliário,02030001
+Contas,account_balance_wallet,781F19,E,directions_car,Financiamento de veículos,02030002
+Contas,account_balance_wallet,781F19,E,school,Empréstimo estudantil,02030003
+Contas,account_balance_wallet,781F19,E,account_balance_wallet,Empréstimos,02040000
+Contas,account_balance_wallet,781F19,E,gavel,Obrigações legais,06000000
+Contas,account_balance_wallet,781F19,E,balance,Saldo bloqueado,06010000
+Contas,account_balance_wallet,781F19,E,local_hospital,Seguro saúde,200300000
+Contas,account_balance_wallet,781F19,E,home_repair_service,Seguro residencial,200200000
+Contas,account_balance_wallet,781F19,E,car_repair,Seguro de veículos,200400000
+Contas,account_balance_wallet,781F19,E,family_restroom,Pensão alimentícia,06020000
+Férias,landscape,FF7514,E,flight,Viagem,12000000
+Férias,landscape,FF7514,E,bed,Acomodação,12020000
+Férias,landscape,FF7514,E,military_tech,Programas de milhagem,12030000
+Férias,landscape,FF7514,E,airport_shuttle,Aeroportos e cias. aéreas,12010000
+Salário,work,4C9141,I,retirement,Aposentadoria,01020000
+Salário,work,4C9141,I,business_center,Atividades de empreendedorismo,01030000
+Salário,work,4C9141,I,government,Auxílio do governo,01040000
+Salário,work,4C9141,I,payments,Renda não-recorrente,01050000
+Presentes & Doações,redeem,BB4B4B,B,volunteer_activism,Doações,13000000
+Venda,logout,CDA434,I,,,,,
+Investimentos,auto_graph,1E2460,B,account_balance_wallet,Investimento automático,03010000
+Investimentos,auto_graph,1E2460,B,savings,Renda fixa,03020000
+Investimentos,auto_graph,1E2460,B,account_balance,Fundos multimercado,03030000
+Investimentos,auto_graph,1E2460,B,bar_chart,Renda variável,03040000
+Investimentos,auto_graph,1E2460,B,payments,Ajuste de margem,03050000
+Investimentos,auto_graph,1E2460,B,percent,Juros de rendimentos de dividendos,03060000
+Investimentos,auto_graph,1E2460,B,local_atm,Pensão,03070000
+Outros,inventory_2,403A3A,B,,,,,

@@ -165,53 +165,52 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     );
 
     return MaterialApp(
-      title: 'Parsa',
-      key: ValueKey(refresh),
-      debugShowCheckedModeBanner: false,
-      locale: TranslationProvider.of(context).flutterLocale,
-      scrollBehavior: ScrollBehaviorOverride(),
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
-      navigatorObservers: [MainLayoutNavObserver()],
-      builder: (context, child) {
-        return Overlay(initialEntries: [
-          OverlayEntry(
-            builder: (context) => Stack(
-              children: [
-                Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeInOutCubicEmphasized,
-                      width: widget.introSeen
-                          ? getNavigationSidebarWidth(context)
-                          : 0,
-                      color: Theme.of(context).canvasColor,
-                    ),
-                    if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
-                      Container(
-                        width: 2,
-                        height: MediaQuery.of(context).size.height,
-                        color: Theme.of(context).dividerColor,
+        title: 'Parsa',
+        key: ValueKey(refresh),
+        debugShowCheckedModeBanner: false,
+        locale: TranslationProvider.of(context).flutterLocale,
+        scrollBehavior: ScrollBehaviorOverride(),
+        supportedLocales: AppLocaleUtils.supportedLocales,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        theme: lightTheme,
+        navigatorKey: navigatorKey,
+        navigatorObservers: [MainLayoutNavObserver()],
+        builder: (context, child) {
+          return Overlay(initialEntries: [
+            OverlayEntry(
+              builder: (context) => Stack(
+                children: [
+                  Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeInOutCubicEmphasized,
+                        width: widget.introSeen
+                            ? getNavigationSidebarWidth(context)
+                            : 0,
+                        color: Theme.of(context).canvasColor,
                       ),
-                    Expanded(child: child ?? const SizedBox.shrink()),
-                  ],
-                ),
-                if (widget.introSeen)
-                  NavigationSidebar(key: navigationSidebarKey)
-              ],
+                      if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
+                        Container(
+                          width: 2,
+                          height: MediaQuery.of(context).size.height,
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      Expanded(child: child ?? const SizedBox.shrink()),
+                    ],
+                  ),
+                  if (widget.introSeen)
+                    NavigationSidebar(key: navigationSidebarKey)
+                ],
+              ),
             ),
-          ),
-        ]);
-      },
-      home: widget.introSeen
-          ? (isLoggedIn
-              ? const TabsPage()
-              : Auth0Service(
-                  auth0: auth0)) // Show home if logged in, otherwise show login
-          : const IntroPage(),
-    );
+          ]);
+        },
+        home: (isLoggedIn
+            ? const TabsPage()
+            : Auth0Service(
+                auth0: auth0)) // Show home if logged in, otherwise show login
+
+        );
   }
 }
