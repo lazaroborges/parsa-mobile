@@ -12,7 +12,7 @@ CREATE TABLE transactions_temp (
   -- New column:
   type TEXT NOT NULL CHECK(type IN ('E', 'I', 'T')),
   
-  status TEXT CHECK(status IN ('voided', 'pending', 'reconciled', 'unreconciled')),
+  status TEXT CHECK(status IN ('voided', 'pending', 'reconciled', 'unreconciled', 'notconsidered')),
   categoryID TEXT REFERENCES categories(id) ON DELETE CASCADE ON UPDATE CASCADE,
   valueInDestiny REAL,
   receivingAccountID TEXT REFERENCES accounts(id) ON DELETE CASCADE ON UPDATE CASCADE,

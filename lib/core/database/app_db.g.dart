@@ -1512,7 +1512,7 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           $customConstraints:
-              'CHECK (status IN (\'voided\', \'pending\', \'reconciled\', \'unreconciled\'))')
+              'CHECK (status IN (\'voided\', \'pending\', \'reconciled\', \'unreconciled\', \'notconsidered\'))')
       .withConverter<TransactionStatus?>(Transactions.$converterstatusn);
   static const VerificationMeta _categoryIDMeta =
       const VerificationMeta('categoryID');

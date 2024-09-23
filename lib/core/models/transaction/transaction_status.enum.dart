@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
 enum TransactionStatus {
-  voided,
+  notconsidered,
   pending,
   reconciled,
-  unreconciled;
+  unreconciled,
+  voided;
 
   /// Get a list of statuses that are not in a set of statuses.
   ///
@@ -43,6 +44,8 @@ extension TransactionStatusExtension on TransactionStatus? {
   IconData get icon {
     if (this == null) return Icons.do_not_disturb_on_rounded;
 
+    if (this == TransactionStatus.notconsidered)
+      return Icons.do_not_disturb_on_rounded;
     if (this == TransactionStatus.voided) return Icons.cancel_rounded;
     if (this == TransactionStatus.pending) return Icons.hourglass_full_rounded;
     if (this == TransactionStatus.unreconciled) return Icons.cloud_off_rounded;
@@ -54,6 +57,8 @@ extension TransactionStatusExtension on TransactionStatus? {
   String displayName(BuildContext context) {
     final t = Translations.of(context);
 
+    if (this == TransactionStatus.notconsidered)
+      return t.transaction.status.notconsidered;
     if (this == TransactionStatus.voided) return t.transaction.status.voided;
     if (this == TransactionStatus.pending) return t.transaction.status.pending;
     if (this == TransactionStatus.unreconciled) {
@@ -75,6 +80,9 @@ extension TransactionStatusExtension on TransactionStatus? {
     if (this == TransactionStatus.pending) {
       return t.transaction.status.pending_descr;
     }
+    if (this == TransactionStatus.notconsidered) {
+      return t.transaction.status.notconsidered_descr;
+    }
     if (this == TransactionStatus.unreconciled) {
       return t.transaction.status.unreconciled_descr;
     }
@@ -86,6 +94,8 @@ extension TransactionStatusExtension on TransactionStatus? {
   }
 
   Color get color {
+    if (this == TransactionStatus.notconsidered)
+      return const Color.fromARGB(255, 221, 29, 29);
     if (this == TransactionStatus.voided) return Colors.red;
     if (this == TransactionStatus.pending) return Colors.amber;
     if (this == TransactionStatus.unreconciled) return Colors.orange;

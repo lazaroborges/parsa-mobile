@@ -38,6 +38,7 @@ import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -50,6 +51,7 @@ class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  bool isLoadingTransactions = true;
 
   @override
   void initState() {
@@ -60,7 +62,8 @@ class _DashboardPageState extends State<DashboardPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _apiLogin();
-    _fetchUserAccounts(); // Ensure this method is correctly named
+    _fetchUserAccounts();
+    _fetchUserTransactions();
   }
 
   Future<void> _apiLogin() async {
@@ -93,6 +96,23 @@ class _DashboardPageState extends State<DashboardPage> {
       print('--Error fetching user accounts: $e');
       setState(() {
         isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchUserTransactions() async {
+    setState(() {
+      isLoadingTransactions = true;
+    });
+    try {
+      await fetchUserTransactions(context);
+      setState(() {
+        isLoadingTransactions = false;
+      });
+    } catch (e) {
+      print('--Error fetching user transactions: $e');
+      setState(() {
+        isLoadingTransactions = false;
       });
     }
   }
@@ -197,7 +217,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                           if (userData != null &&
                                               userData!['first_name'] != null) {
                                             return Text(
-                                              userData!['first_name'],
+                                              userData!['first_name']
+                                                  .toString(),
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .titleSmall!

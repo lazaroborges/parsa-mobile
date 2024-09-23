@@ -107,7 +107,7 @@ class MoneyTransaction extends TransactionInDB {
   bool get isReversed {
     return type == TransactionType.E && value > 0 ||
         type == TransactionType.I && value < 0;
-  }
+  } // this is the equivalent of isConsidered in the Backend
 
   static IconData get reversedIcon {
     return Icons.shuffle_on_rounded;

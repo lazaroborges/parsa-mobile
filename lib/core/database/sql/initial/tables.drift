@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   -- Whether the transacton is an income, an expense or a transfer
   type ENUMNAME(TransactionType) NOT NULL CHECK(type IN ('E', 'I', 'T')),
   
-  status ENUMNAME(TransactionStatus) CHECK(status IN ('voided', 'pending', 'reconciled', 'unreconciled')),
+  status ENUMNAME(TransactionStatus) CHECK(status IN ('voided', 'pending', 'reconciled', 'unreconciled', 'notconsidered' )),
   categoryID TEXT REFERENCES categories(id) ON DELETE CASCADE ON UPDATE CASCADE,
   valueInDestiny REAL,
   receivingAccountID TEXT REFERENCES accounts(id) ON DELETE CASCADE ON UPDATE CASCADE,

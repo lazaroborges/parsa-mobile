@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 542
+/// Strings: 544
 ///
-/// Built on 2024-09-20 at 16:21 UTC
+/// Built on 2024-09-23 at 19:43 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -851,6 +851,8 @@ class _TranslationsTransactionStatusPt {
 	String get reconciled_descr => 'Esta transação já foi validada e corresponde a uma transação real do seu banco';
 	String get unreconciled => 'Não conciliada';
 	String get unreconciled_descr => 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
+	String get notconsidered => 'Desconsiderada';
+	String get notconsidered_descr => 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, estornos, etc.';
 	String get pending => 'Pendente';
 	String get pending_descr => 'Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights';
 	String get voided => 'Anulada';
@@ -1746,6 +1748,8 @@ extension on Translations {
 			case 'transaction.status.reconciled_descr': return 'Esta transação já foi validada e corresponde a uma transação real do seu banco';
 			case 'transaction.status.unreconciled': return 'Não conciliada';
 			case 'transaction.status.unreconciled_descr': return 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
+			case 'transaction.status.notconsidered': return 'Desconsiderada';
+			case 'transaction.status.notconsidered_descr': return 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, estornos, etc.';
 			case 'transaction.status.pending': return 'Pendente';
 			case 'transaction.status.pending_descr': return 'Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights';
 			case 'transaction.status.voided': return 'Anulada';

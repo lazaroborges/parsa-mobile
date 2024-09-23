@@ -340,6 +340,8 @@
       "reconciled.descr": "Esta transação já foi validada e corresponde a uma transação real do seu banco",
       "unreconciled": "Não conciliada",
       "unreconciled.descr": "Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa",
+      "notconsidered": "Desconsiderada",
+      "notconsidered.descr": "Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, estornos, etc.",
       "pending": "Pendente",
       "pending.descr": "Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights",
       "voided": "Anulada",
