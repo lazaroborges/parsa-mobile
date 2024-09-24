@@ -6,7 +6,7 @@ void main() {
     test('should compile', () {
       // The following test will fail if the i18n file is either not compiled
       // or there are compile-time errors.
-      expect(AppLocale.pt.build().general.account, 'Account');
+      expect(AppLocale.pt.build().general.account, 'Conta');
     });
   });
 }
