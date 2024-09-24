@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -25,12 +26,14 @@ class MoneyTransaction extends TransactionInDB {
 
   List<Tag> tags;
 
+  DateTime? lastUpdateTime;
+
   MoneyTransaction(
-      {required super.id,
-      required super.date,
-      required super.value,
-      required super.isHidden,
-      required super.type,
+      {required super.id, //
+      required super.date, //
+      required super.value, //
+      required super.isHidden, //
+      required super.type, //
       super.notes,
       super.title,
       super.status, // to not consider a transaction, use enum 'notconsidered' (same as !isConsidered in the Backend)

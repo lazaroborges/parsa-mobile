@@ -65,6 +65,21 @@ class CategoryService {
         .map((res) => res.firstOrNull);
   }
 
+  Stream<Category?> getCategoryByName(String name) {
+    return getCategories(predicate: (a, c) => a.name.equals(name), limit: 1)
+        .map((res) => res.firstOrNull)
+        .asyncExpand((category) async* {
+      if (category == null) {
+        // If the category is not found, search for "Outros"
+        yield* getCategories(
+                predicate: (a, c) => a.name.equals("Outros"), limit: 1)
+            .map((res) => res.firstOrNull);
+      } else {
+        yield category;
+      }
+    });
+  }
+
   /// Get the `assets/sql/initial_categories.json` file and seed the user categories with its info, based
   /// on the current language of the device.
   ///

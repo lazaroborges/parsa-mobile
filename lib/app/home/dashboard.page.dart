@@ -65,7 +65,7 @@ class _DashboardPageState extends State<DashboardPage> {
     super.didChangeDependencies();
     _apiLogin();
     _fetchUserAccounts();
-    _fetchUserTransactions();
+    _fetchAndSyncTransactions();
   }
 
   Future<void> _apiLogin() async {
@@ -102,7 +102,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<void> _fetchUserTransactions() async {
+  Future<void> _fetchAndSyncTransactions() async {
     setState(() {
       isLoadingTransactions = true;
     });
