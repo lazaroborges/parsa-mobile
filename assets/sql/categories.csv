@@ -1,131 +1,118 @@
-names.pt;icon;color;type;subcategories.icon;subcategories.names.pt;subcategories.id
-Alimentação;shopping_cart;F4A900;E;dinner_dining;Comer fora;11010000
-Alimentação;shopping_cart;F4A900;E;nutrition;Mercado;10000000
-Alimentação;shopping_cart;F4A900;E;restaurant;Restaurantes;11010000
-Alimentação;shopping_cart;F4A900;E;delivery_dining;Delivery;11020000
-Benef�cios;work;4C9141;I;retirement;Aposentadoria / Benefício Previdenciário;1020000
-Benef�cios;work;4C9141;I;government;Auxílio Governamental;1040000
-Benef�cios;auto_graph;1E2460;B;local_atm;Pensão;3070000
-Compras;shopping_bag;3D642D;E;library_books;Papelaria;8080000
-Compras;shopping_bag;3D642D;E;computer;Eletrônicos;8020000
-Compras;shopping_bag;3D642D;E;checkroom;Roupas;8040000
-Compras;shopping_bag;3D642D;E;pets;Pet Shops e Veterinários;8030000
-Compras;shopping_bag;3D642D;E;shopping_cart_checkout;Compras online;8010000
-Compras;shopping_bag;3D642D;E;sports_bar;Artigos esportivos;8070000
-Compras;shopping_bag;3D642D;E;child_friendly;Artigos infantis;8050000
-Compras;shopping_bag;3D642D;E;book;Livraria;8060000
-Compras;shopping_bag;3D642D;I;cashback;Cashback;8090000
-Compras;shopping_bag;3D642D;E;shopping_cart_checkout;Compras;08000000
-Compras;shopping_bag;3D642D;E;shopping_cart_checkout;Compras online;08010000
-Compras;shopping_bag;3D642D;E;computer;Eletrônicos;08020000
-Compras;shopping_bag;3D642D;E;pets;Pet Shops e Veterinários;08030000
-Compras;shopping_bag;3D642D;E;checkroom;Roupas;08040000
-Compras;shopping_bag;3D642D;E;child_friendly;Artigos infantis;08050000
-Compras;shopping_bag;3D642D;E;book;Livraria;08060000
-Compras;shopping_bag;3D642D;E;sports_bar;Artigos esportivos;08070000
-Compras;shopping_bag;3D642D;E;library_books;Papelaria;08080000
-Compras;shopping_bag;3D642D;B;cashback;Cashback;08090000
-Contas;account_balance_wallet;781F19;E;receipt;Impostos;15000000
-Contas;account_balance_wallet;781F19;E;receipt_long;Impostos;15010000
-Contas;account_balance_wallet;781F19;E;money_off;Impostos;15020000
-Contas;account_balance_wallet;781F19;E;monetization_on;Impostos;15030000
-Contas;account_balance_wallet;781F19;E;credit_card;Pagamento Fatura do Cartão de Crédito;5100000
-Contas;account_balance_wallet;781F19;E;account_balance;Taxas Bancárias;16010000
-Contas;account_balance_wallet;781F19;E;atm;Taxas Bancárias;16020000
-Contas;account_balance_wallet;781F19;E;credit_card_off;Taxas de cartão de crédito;16030000
-Contas;account_balance_wallet;781F19;E;payments;Taxas Bancárias;2010000
-Contas;account_balance_wallet;781F19;E;percent;Juros;2020000
-Contas;account_balance_wallet;781F19;E;apartment;Financiamento imobiliário;2030001
-Contas;account_balance_wallet;781F19;E;directions_car;Financiamento de veículos;2030002
-Contas;account_balance_wallet;781F19;E;school;Empréstimos;2030003
-Contas;account_balance_wallet;781F19;E;account_balance_wallet;Emprestimos;2040000
-Contas;account_balance_wallet;781F19;E;gavel;Obrigações legais;6000000
-Contas;account_balance_wallet;781F19;E;balance;Saldo bloqueado;6010000
-Contas;account_balance_wallet;781F19;E;local_hospital;Plano de Saúde;200300000
-Contas;account_balance_wallet;781F19;E;home_repair_service;Seguros;200200000
-Contas;account_balance_wallet;781F19;E;car_repair;Seguros;200400000
-Contas;account_balance_wallet;781F19;E;family_restroom;Pensão alimentícia;6020000
-Contas;account_balance_wallet;000000;E;settings;Serviços;07000000
-Contas;account_balance_wallet;000000;E;call;Celular;07010002
-Educação;school;9688;E;class;Escola;7020003
-Educação;school;9688;E;school;Universidade;7020002
-Educação;school;9688;E;child_care;Creche;7020004
-Educação;school;9688;E;laptop;Cursos online;7020001
-Educação;school;9688;E;school;Educação;07020000
-Educação;school;9688;E;laptop;Cursos online;07020001
-Educação;school;9688;E;school;Mensalidade;07020002
-Educação;school;9688;E;class;Mensalidade;07020003
-Educação;school;9688;E;child_care;Mensalidade;07020004
-Renda Ativa;work;4C9141;I;business_center;Sal�rio;01000000
-Ganho de Capital;work;4C9141;I;business_center;Venda de Ativos;9000001
-Ganho de Capital;work;4C9141;I;home;Alugu�is;9000000
-Ganho de Capital;work;4C9141;I;business_center;Pro-labore;1030000
-Investimentos;auto_graph;1E2460;B;account_balance_wallet;Investimento automático;3010000
-Investimentos;auto_graph;1E2460;B;savings;Renda fixa;3020000
-Investimentos;auto_graph;1E2460;B;account_balance;Fundos multimercado;3030000
-Investimentos;auto_graph;1E2460;B;bar_chart;Renda variável;3040000
-Investimentos;auto_graph;1E2460;B;payments;Investimentos;3050000
-Investimentos;auto_graph;1E2460;B;percent;Dividendos;3060000
-Lazer;landscape;2A6478;E;celebration;Festas & Eventos;21000000
-Lazer;landscape;2A6478;E;museum;Pontos turísticos e eventos;7040002
-Lazer;landscape;2A6478;E;music_note;Festas & Eventos;9030000
-Lazer;landscape;2A6478;E;movie;Programas de TV e filmes;9020000
-Lazer;landscape;2A6478;E;stadium;Estádios e arenas;7040001
-Lazer;landscape;2A6478;E;museum;Museus e pontos turísticos;7040002
-Lazer;landscape;2A6478;E;theater_comedy;Cinema, Teatro e Concertos;7040000
-Lazer;landscape;2A6478;E;theater_comedy;Cinema, Teatro e Concertos;7040003
-Lazer;landscape;2A6478;E;casino;Jogos e apostas;14000000
-Lazer;landscape;2A6478;E;casino;Loteria;14010000
-Lazer;landscape;2A6478;E;casino;Apostas online;14020000
-Lazer;landscape;2A6478;E;flight;Viagens;12000000
-Lazer;landscape;2A6478;E;bed;Viagens;12020000
-Lazer;landscape;2A6478;E;military_tech;Viagens;12030000
-Lazer;landscape;2A6478;E;airport_shuttle;Viagens;12010000
-Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040000
-Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040001
-Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040002
-Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040003
-Lazer;landscape;2A6478;E;movie;Assinaturas e Conte�do Digital;09000000
-Lazer;landscape;2A6478;E;movie;Assinaturas e Conte�do Digital;09010000
-Lazer;landscape;2A6478;E;movie;Assinaturas e Conte�do Digital;09020000
-Lazer;landscape;2A6478;E;movie;Assinaturas e Conte�do Digital;09030000
-Moradia;home;4E5452;E;key;Aluguel;17010000
-Moradia;home;4E5452;E;water;Água;17020001
-Moradia;home;4E5452;E;bolt;Energia elétrica;17020002
-Moradia;home;4E5452;E;gas_meter;Gás;17020003
-Moradia;home;4E5452;E;language;Internet;7010001
-Moradia;home;4E5452;E;call;Telefone;7010002
-Moradia;home;4E5452;E;sprinkler;Produtos para o lar;17030000
-Moradia;home;4E5452;E;bed;Móveis e eletrodomésticos;17000000
-Moradia;home;4E5452;E;balcony;Impostos Residenciais;17040000
-Moradia;home;4E5452;E;phone_android;Telecomunicações;07010000
-Moradia;home;4E5452;E;language;Internet;07010001
-Moradia;home;4E5452;E;tv;TV;07010003
-Outros;redeem;BB4B4B;E;volunteer_activism;Presentes & Doações;13000000
-Outros;inventory_2;403A3A;B;inventory_2;Outros;99999999
-Presentes & Doações;redeem;BB4B4B;I;volunteer_activism;Presentes & Doações;13000000
-Renda Ativa;work;4C9141;I;payments;Renda não-recorrente;1050000
-Saúde;diversity_3;CC0605;E;medical_services;Dentista;18010000
-Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Cuidados pessoais;18000000
-Saúde e Bem-estar;diversity_3;CC0605;E;medication;Médico;18000000
-Saúde e Bem-estar;diversity_3;CC0605;E;fitness_center;Fitness;7030001
-Saúde e Bem-estar;diversity_3;CC0605;E;local_hospital;Hospitais, cl�nicas e laborat�rios;18000000
-Saúde e Bem-estar;diversity_3;CC0605;E;local_pharmacy;Farmácia;18020000
-Saúde e Bem-estar;diversity_3;CC0605;E;local_pharmacy;Hospitais, cl�nicas e laborat�rios;18040000
-Saúde e Bem-estar;diversity_3;CC0605;E;remove_red_eye;Ótica;18030000
-Saúde e Bem-estar;diversity_3;CC0605;E;fitness_center;Saúde e bem-estar;07030000
-Saúde e Bem-estar;diversity_3;CC0605;E;fitness_center;Prática de esportes;07030001
-Saúde e Bem-estar;diversity_3;CC0605;E;sports_bar;Prática de esportes;07030002
-Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Bem-estar;07030003
-Transporte;tram;84C3BE;E;train;Transporte público;19020000
-Transporte;tram;84C3BE;E;speed;Combustível;19050001
-Transporte;tram;84C3BE;E;receipt_long;Pedágios e estacionamento;19050003
-Transporte;tram;84C3BE;E;receipt;Impostos e seguro de carro;19050004
-Transporte;tram;84C3BE;E;car_repair;Manutenção;19050005
-Transporte;tram;84C3BE;E;taxi_alert;Táxi e transporte privado urbano;19010000
-Transporte;tram;84C3BE;E;directions_bus;Passagem de ônibus;12040000
-Transporte;tram;84C3BE;E;car_rental;Aluguel de veículos;19030000
-Transporte;tram;84C3BE;E;bike_scooter;Aluguel de bicicletas;19040000
-Transporte;tram;84C3BE;E;local_gas_station;Postos de gasolina;19050001
-Transporte;tram;84C3BE;E;parking;Estacionamentos;19050002
-Transporte;tram;84C3BE;E;gavel;Multas de trânsito;19050006
+names.pt;icon;color;type;subcategories.icon;subcategories.names.pt;subcategories.id;;
+Alimentação;shopping_cart;F4A900;E;nutrition;Mercado;10000000;;
+Alimentação;shopping_cart;F4A900;E;dinner_dining;Restaurantes e Bares;11010000;;
+Alimentação;shopping_cart;F4A900;E;delivery_dining;Delivery;11020000;;
+Benefícios;work;4C9141;I;retirement;Aposentadoria / Benefício Previdenciário;01020000;;
+Benefícios;work;4C9141;I;government;Auxílio Governamental;01040000;;
+Benefícios;work;1E2460;B;local_atm;Pensão;03070000;;
+Compras;shopping_bag;3D642D;E;shopping_cart_checkout;Compras;08000000;;
+Compras;shopping_bag;3D642D;E;shopping_cart_checkout;Compras online;08010000;;
+Compras;shopping_bag;3D642D;E;computer;Eletrônicos;08020000;;
+Compras;shopping_bag;3D642D;E;pets;Pet Shops e Veterinários;08030000;;
+Compras;shopping_bag;3D642D;E;checkroom;Roupas;08040000;;
+Compras;shopping_bag;3D642D;E;child_friendly;Artigos infantis;08050000;;
+Compras;shopping_bag;3D642D;E;book;Livraria;08060000;;
+Compras;shopping_bag;3D642D;E;sports_bar;Artigos esportivos;08070000;;
+Compras;shopping_bag;3D642D;E;library_books;Papelaria;08080000;;
+Compras;shopping_bag;3D642D;B;cashback;Cashback;08090000;;
+Compras;shopping_bag;3D642D;B;cashback;Cashback;08090000;;
+Contas;account_balance_wallet;781F19;E;receipt;Impostos;15000000;;
+Contas;account_balance_wallet;781F19;E;receipt_long;Impostos;15010000;;
+Contas;account_balance_wallet;781F19;E;money_off;Impostos;15020000;;
+Contas;account_balance_wallet;781F19;E;monetization_on;Impostos;15030000;;
+Contas;account_balance_wallet;781F19;E;account_balance;Taxas Bancárias;16010000;;
+Contas;account_balance_wallet;781F19;E;atm;Taxas Bancárias;16020000;;
+Contas;account_balance_wallet;781F19;E;credit_card_off;Taxas de cartão de crédito;16030000;;
+Contas;account_balance_wallet;781F19;E;home_repair_service;Seguros;200200000;;
+Contas;account_balance_wallet;781F19;E;local_hospital;Plano de Saúde;200300000;;
+Contas;account_balance_wallet;781F19;E;car_repair;Seguros;200400000;;
+Contas;account_balance_wallet;781F19;E;payments;Taxas Bancárias;02010000;;
+Contas;account_balance_wallet;781F19;E;percent;Juros;02020000;;
+Contas;account_balance_wallet;781F19;E;apartment;Financiamento imobiliário;02030001;;
+Contas;account_balance_wallet;781F19;E;directions_car;Financiamento de veículos;02030002;;
+Contas;account_balance_wallet;781F19;E;school;Empréstimos;02030003;;
+Contas;account_balance_wallet;781F19;E;account_balance_wallet;Emprestimos;02040000;;
+Contas;account_balance_wallet;781F19;E;credit_card;Pagamento Fatura do Cartão de Crédito;05100000;;
+Contas;account_balance_wallet;781F19;E;gavel;Obrigações legais;06000000;;
+Contas;account_balance_wallet;781F19;E;balance;Saldo bloqueado;06010000;;
+Contas;account_balance_wallet;781F19;E;family_restroom;Pensão alimentícia;06020000;;
+Contas;account_balance_wallet;000000;E;settings;Serviços;07000000;;
+Contas;account_balance_wallet;000000;E;call;Celular;07010002;;
+Educação;school;9688;E;school;Educação;07020000;;
+Educação;school;9688;E;laptop;Cursos online;07020001;;
+Educação;school;9688;E;school;Mensalidade;07020002;;
+Educação;school;9688;E;school;Universidade;07020002;;
+Educação;school;9688;E;class;Escola;07020003;;
+Educação;school;9688;E;class;Mensalidade;07020003;;
+Educação;school;9688;E;child_care;Creche;07020004;;
+Educação;school;9688;E;child_care;Mensalidade;07020004;;
+Ganho de Capital;work;4C9141;I;business_center;Pro-labore;01030000;;
+Ganho de Capital;work;4C9141;I;home;Aluguéis;09000000;;
+Ganho de Capital;work;4C9141;I;business_center;Venda de Ativos;09000001;;
+Investimentos;auto_graph;1E2460;B;account_balance_wallet;Investimento automático;03010000;;
+Investimentos;auto_graph;1E2460;B;savings;Renda fixa;03020000;;
+Investimentos;auto_graph;1E2460;B;account_balance;Fundos multimercado;03030000;;
+Investimentos;auto_graph;1E2460;B;bar_chart;Renda variável;03040000;;
+Investimentos;auto_graph;1E2460;B;payments;Investimentos;03050000;;
+Investimentos;auto_graph;1E2460;B;percent;Dividendos;03060000;;
+Lazer;landscape;2A6478;E;flight;Viagens;12000000;;
+Lazer;landscape;2A6478;E;airport_shuttle;Viagens;12010000;;
+Lazer;landscape;2A6478;E;bed;Viagens;12020000;;
+Lazer;landscape;2A6478;E;military_tech;Viagens;12030000;;
+Lazer;landscape;2A6478;E;casino;Jogos e apostas;14000000;;
+Lazer;landscape;2A6478;E;casino;Loteria;14010000;;
+Lazer;landscape;2A6478;E;casino;Apostas online;14020000;;
+Lazer;landscape;2A6478;E;celebration;Festas & Eventos;21000000;;
+Lazer;landscape;2A6478;E;theater_comedy;Cinema, Teatro e Concertos;07040000;;
+Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040000;;
+Lazer;landscape;2A6478;E;stadium;Estádios e arenas;07040001;;
+Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040001;;
+Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040002;;
+Lazer;landscape;2A6478;E;museum;Museus e pontos turísticos;07040002;;
+Lazer;landscape;2A6478;E;museum;Pontos turísticos e eventos;07040002;;
+Lazer;landscape;2A6478;E;theater_comedy;Cinema, Teatro e Concertos;07040003;;
+Lazer;landscape;2A6478;E;music_note;Eventos, Festas ou Ingressos;07040003;;
+Lazer;landscape;2A6478;E;movie;Assinaturas e Conteúdo Digital;09000000;;
+Lazer;landscape;2A6478;E;movie;Assinaturas e Conteúdo Digital;09010000;;
+Lazer;landscape;2A6478;E;movie;Assinaturas e Conteúdo Digital;09020000;;
+Lazer;landscape;2A6478;E;movie;Programas de TV e filmes;09020000;;
+Lazer;landscape;2A6478;E;movie;Assinaturas e Conteúdo Digital;09030000;;
+Lazer;landscape;2A6478;E;music_note;Festas & Eventos;09030000;;
+Moradia;home;4E5452;E;bed;Móveis e eletrodomésticos;17000000;;
+Moradia;home;4E5452;E;key;Aluguel;17010000;;
+Moradia;home;4E5452;E;water;Água;17020001;;
+Moradia;home;4E5452;E;bolt;Energia elétrica;17020002;;
+Moradia;home;4E5452;E;gas_meter;Gás;17020003;;
+Moradia;home;4E5452;E;sprinkler;Produtos para o lar;17030000;;
+Moradia;home;4E5452;E;balcony;Impostos Residenciais;17040000;;
+Moradia;home;4E5452;E;phone_android;Telecomunicações;07010000;;
+Moradia;home;4E5452;E;language;Internet;07010001;;
+Moradia;home;4E5452;E;language;Internet;07010001;;
+Moradia;home;4E5452;E;call;Telefone;07010002;;
+Moradia;home;4E5452;E;tv;TV;07010003;;
+Outros;inventory_2;BB4B4B;E;volunteer_activism;Presentes & Doações;13000000;;
+Outros;inventory_2;403A3A;B;inventory_2;Outros;99999999;;
+Presentes & Doações;redeem;BB4B4B;I;volunteer_activism;Presentes & Doações;13000000;;
+Renda Ativa;work;4C9141;I;business_center;Salário;01000000;;
+Renda Ativa;work;4C9141;I;payments;Renda não-recorrente;01050000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Sa�de e Bem-Estar;18000000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;medical_services;Profissional da Sa�de;18010000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;local_pharmacy;Farmácia;18020000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;remove_red_eye;Profissional de Sa�de;18030000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;local_pharmacy;Hospitais, clínicas e laboratórios;18040000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Bem-estar;07030000;;
+Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Bem-estar;07030001;;
+Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Bem-estar;07030001;;
+Saúde e Bem-estar;diversity_3;CC0605;E;self_care;Bem-estar;07030003;;
+Transporte;tram;84C3BE;E;directions_bus;Passagem de ônibus;12040000;;
+Transporte;tram;84C3BE;E;taxi_alert;Táxi e transporte privado urbano;19010000;;
+Transporte;tram;84C3BE;E;train;Transporte público;19020000;;
+Transporte;tram;84C3BE;E;car_rental;Aluguel de veículos;19030000;;
+Transporte;tram;84C3BE;E;bike_scooter;Aluguel de bicicletas;19040000;;
+Transporte;tram;84C3BE;E;speed;Combustível;19050001;;
+Transporte;tram;84C3BE;E;local_gas_station;Postos de gasolina;19050001;;
+Transporte;tram;84C3BE;E;parking;Estacionamentos;19050002;;
+Transporte;tram;84C3BE;E;receipt_long;Pedágios e estacionamento;19050003;;
+Transporte;tram;84C3BE;E;receipt;Impostos e seguro de carro;19050004;;
+Transporte;tram;84C3BE;E;car_repair;Manutenção;19050005;;
+Transporte;tram;84C3BE;E;gavel;Multas de trânsito;19050006;;

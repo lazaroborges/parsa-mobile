@@ -152,6 +152,7 @@
   { "id": "shopping_cart", "scope": "other" },
   { "id": "shopping_bag", "scope": "other" },
   { "id": "shopping_basket", "scope": "other" },
+  { "id": "school", "scope": "other" },
   { "id": "shop", "scope": "other" },
   { "id": "iron", "scope": "other" },
   { "id": "inventory_2", "scope": "other" },

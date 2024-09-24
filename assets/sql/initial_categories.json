@@ -7,12 +7,7 @@
     "color": "F4A900",
     "type": "E",
     "subcategories": [
-      {
-        "icon": "dinner_dining",
-        "names": {
-          "pt": "Comer fora"
-        }
-      },
+
       {
         "icon": "nutrition",
         "names": {
@@ -22,7 +17,7 @@
       {
         "icon": "restaurant",
         "names": {
-          "pt": "Restaurantes"
+          "pt": "Restaurantes e Bares"
         }
       },
       {
@@ -33,6 +28,110 @@
       }
     ]
   },
+
+
+  {
+    "names": {
+      "pt": "Moradia"
+    },
+    "icon": "home",
+    "color": "4E5452",
+    "type": "E",
+    "subcategories": [
+      {
+        "icon": "key",
+        "names": {
+          "pt": "Aluguel"
+        }
+      },
+      {
+        "icon": "water",
+        "names": {
+          "pt": "Água"
+        }
+      },
+      {
+        "icon": "bolt",
+        "names": {
+          "pt": "Energia elétrica"
+        }
+      },
+      {
+        "icon": "gas_meter",
+        "names": {
+          "pt": "Gás"
+        }
+      },
+      {
+        "icon": "language",
+        "names": {
+          "pt": "Internet"
+        }
+      },
+      {
+        "icon": "call",
+        "names": {
+          "pt": "Telefone"
+        }
+      },
+      {
+        "icon": "sprinkler",
+        "names": {
+          "pt": "Produtos para o lar"
+        }
+      },
+      {
+        "icon": "bed",
+        "names": {
+          "pt": "Móveis e eletrodomésticos"
+        }
+      },
+      {
+        "icon": "balcony",
+        "names": {
+          "pt": "Impostos Residenciais"
+        }
+      }
+    ]
+  },
+
+  {
+    "names": {
+      "pt": "Saúde e Bem-estar"
+    },
+    "icon": "local_pharmacy",
+    "color": "CC0605",
+    "type": "E",
+    "subcategories": [
+
+      {
+        "icon": "medication",
+        "names": {
+          "pt": "Profissional da Saúde"
+        }
+      },
+     
+      {
+        "icon": "local_hospital",
+        "names": {
+          "pt": "Hospitais, clínicas e laboratórios"
+        }
+      },
+      {
+        "icon": "local_pharmacy",
+        "names": {
+          "pt": "Farmácia"
+        }
+      },
+      {
+        "icon": "remove_red_eye",
+        "names": {
+          "pt": "Bem-estar"
+        }
+      }
+    ]
+  },
+
   {
     "names": {
       "pt": "Benefícios"
@@ -61,70 +160,7 @@
       }
     ]
   },
-    {
-    "names": {
-      "pt": "Compras"
-    },
-    "icon": "shopping_bag",
-    "color": "3D642D",
-    "type": "E",
-    "subcategories": [
-      {
-        "icon": "library_books",
-        "names": {
-          "pt": "Papelaria"
-        }
-      },
-      {
-        "icon": "computer",
-        "names": {
-          "pt": "Eletrônicos"
-        }
-      },
-      {
-        "icon": "checkroom",
-        "names": {
-          "pt": "Roupas"
-        }
-      },
-      {
-        "icon": "pets",
-        "names": {
-          "pt": "Pet Shops e Veterinários"
-        }
-      },
-      {
-        "icon": "shopping_cart_checkout",
-        "names": {
-          "pt": "Compras online"
-        }
-      },
-      {
-        "icon": "sports_bar",
-        "names": {
-          "pt": "Artigos esportivos"
-        }
-      },
-      {
-        "icon": "child_friendly",
-        "names": {
-          "pt": "Artigos infantis"
-        }
-      },
-      {
-        "icon": "book",
-        "names": {
-          "pt": "Livraria"
-        }
-      }, 
-{
-        "icon": "cashback",
-        "names": {
-          "pt": "Cashback"
-        }
-      }
-    ]
-  },
+
   
   {
     "names": {
@@ -430,133 +466,72 @@
       }
     ]
   },
-  {
+    {
     "names": {
-      "pt": "Moradia"
+      "pt": "Compras"
     },
-    "icon": "home",
-    "color": "4E5452",
+    "icon": "shopping_bag",
+    "color": "3D642D",
     "type": "E",
     "subcategories": [
       {
-        "icon": "key",
+        "icon": "library_books",
         "names": {
-          "pt": "Aluguel"
+          "pt": "Papelaria"
         }
       },
       {
-        "icon": "water",
+        "icon": "computer",
         "names": {
-          "pt": "Água"
+          "pt": "Eletrônicos"
         }
       },
       {
-        "icon": "bolt",
+        "icon": "checkroom",
         "names": {
-          "pt": "Energia elétrica"
+          "pt": "Roupas"
         }
       },
       {
-        "icon": "gas_meter",
+        "icon": "pets",
         "names": {
-          "pt": "Gás"
+          "pt": "Pet Shops e Veterinários"
         }
       },
       {
-        "icon": "language",
+        "icon": "shopping_cart_checkout",
         "names": {
-          "pt": "Internet"
+          "pt": "Compras online"
         }
       },
       {
-        "icon": "call",
+        "icon": "sports_bar",
         "names": {
-          "pt": "Telefone"
+          "pt": "Artigos esportivos"
         }
       },
       {
-        "icon": "sprinkler",
+        "icon": "child_friendly",
         "names": {
-          "pt": "Produtos para o lar"
+          "pt": "Artigos infantis"
         }
       },
       {
-        "icon": "bed",
+        "icon": "book",
         "names": {
-          "pt": "Móveis e eletrodomésticos"
+          "pt": "Livraria"
         }
-      },
-      {
-        "icon": "balcony",
+      }, 
+{
+        "icon": "cashback",
         "names": {
-          "pt": "Impostos Residenciais"
+          "pt": "Cashback"
         }
       }
     ]
   },
  
-  {
-    "names": {
-      "pt": "Outros"
-    },
-    "icon": "inventory_2",
-    "color": "403A3A",
-    "type": "B",
-    "subcategories": [
-      {
-        "icon": "inventory_2",
-        "names": {
-          "pt": "Despesa Não Classificada"
-        }
-      }
-    ]
-  },
-  {
-    "names": {
-      "pt": "Saúde e Bem-estar"
-    },
-    "icon": "diversity_3",
-    "color": "CC0605",
-    "type": "E",
-    "subcategories": [
-      {
-        "icon": "self_care",
-        "names": {
-          "pt": "Cuidados pessoais"
-        }
-      },
-      {
-        "icon": "medication",
-        "names": {
-          "pt": "Médico"
-        }
-      },
-      {
-        "icon": "fitness_center",
-        "names": {
-          "pt": "Fitness"
-        }
-      },
-      {
-        "icon": "local_hospital",
-        "names": {
-          "pt": "Hospitais, clínicas e laboratórios"
-        }
-      },
-      {
-        "icon": "local_pharmacy",
-        "names": {
-          "pt": "Farmácia"
-        }
-      },
-      {
-        "icon": "remove_red_eye",
-        "names": {
-          "pt": "Ótica"
-        }
-      }
-    ]
-  },
+
   {
     "names": {
       "pt": "Transporte"
@@ -635,6 +610,24 @@
         "icon": "gavel",
         "names": {
           "pt": "Multas de trânsito"
+        }
+      }
+    ]
+  }, 
+
+
+  {
+    "names": {
+      "pt": "Outros"
+    },
+    "icon": "inventory_2",
+    "color": "403A3A",
+    "type": "B",
+    "subcategories": [
+      {
+        "icon": "inventory_2",
+        "names": {
+          "pt": "Despesa Não Classificada"
         }
       }
     ]
