@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-import 'package:drift/drift.dart';
 
 // Import your local dependencies
 import 'package:parsa/core/database/app_db.dart';
@@ -65,7 +64,7 @@ Future<void> syncTransactions(String apiResponse) async {
     await insertTransactionsIntoDB(localTransactions);
 
     print('Transactions synced successfully.');
-  } catch (e, stackTrace) {
+  } catch (e) {
     // Consider logging the stackTrace as well for debugging
     print('Error syncing transactions: $e');
     // You might want to rethrow or handle the error appropriately based on your app's needs
