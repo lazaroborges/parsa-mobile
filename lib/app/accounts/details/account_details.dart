@@ -162,7 +162,8 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                               filters: TransactionFilters(
                                 status: TransactionStatus.notIn({
                                   TransactionStatus.pending,
-                                  TransactionStatus.voided
+                                  TransactionStatus.voided,
+                                  TransactionStatus.notconsidered
                                 }),
                                 accountsIDs: [widget.account.id],
                               ),

@@ -43,15 +43,29 @@ class TransactionService {
   }
 
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction) async {
-    final toReturn = await db
-        .into(db.transactions)
-        .insert(transaction, mode: InsertMode.insertOrReplace);
+    // Check if the transaction already exists
+    final existing = await (db.select(db.transactions)
+          ..where((t) => t.id.equals(transaction.id)))
+        .getSingleOrNull();
 
-    // To update the getAccountsData() function results
-    // TODO: Check why we need this. The function already listen to changes in the transactions table
-    db.markTablesUpdated([db.accounts]);
+    if (existing != null) {
+      print('Updating existing transaction: ${transaction.id}');
+    } else {
+      print('Inserting new transaction: ${transaction.id}');
+    }
 
-    return toReturn;
+    try {
+      final result = await db.into(db.transactions).insert(
+            transaction,
+            mode: InsertMode.insertOrReplace,
+          );
+      db.markTablesUpdated([db.accounts]);
+      return result;
+    } catch (e) {
+      print(
+          'Error during insertOrReplace for transaction ID: ${transaction.id}: $e');
+      rethrow;
+    }
   }
 
   Future<int> deleteTransaction(String transactionId) {

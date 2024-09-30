@@ -1,47 +1,55 @@
 import 'dart:convert';
+import 'package:drift/drift.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-
-// Import your local dependencies
-import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
+import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
-import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:parsa/core/database/app_db.dart';
 
 Future<void> fetchUserTransactions(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
-
   final credentials = await auth0.credentialsManager.credentials();
+  final lastSync = await getLastSyncTimestamp();
+
+  String url =
+      'https://naturally-creative-boxer.ngrok-free.app/api/transactions/';
+  if (lastSync != null) {
+    final formattedDate = lastSync.toUtc().toIso8601String();
+    url += '?updated_since=$formattedDate';
+  }
 
   final response = await http.get(
-    Uri.parse(
-        'https://naturally-creative-boxer.ngrok-free.app/api/transactions/'),
+    Uri.parse(url),
     headers: {
       'Authorization': 'Bearer ${credentials.accessToken}',
       'Content-Type': 'application/json',
     },
   );
 
-  await syncTransactions(
-      response.body); // Send the response to syncTransactions()
-
   if (response.statusCode == 200) {
+    await syncTransactions(response.body);
     var jsonResponse = json.decode(response.body);
-    int objectCount = jsonResponse.length; // Count the number of objects
-    print('Number of transactions: $objectCount');
-    return jsonResponse;
+    int objectCount = jsonResponse.length;
+    print('Number of transactions synced: $objectCount');
+
+    // Update the last sync timestamp
+    await updateLastSyncTimestamp(DateTime.now());
   } else {
     throw Exception('Failed to load user transactions');
   }
 }
 
-/// Synchronizes transactions by parsing, converting, and inserting them into the local database.
 Future<void> syncTransactions(String apiResponse) async {
   try {
     // Step 1: Parse the API response
@@ -60,30 +68,25 @@ Future<void> syncTransactions(String apiResponse) async {
       return;
     }
 
-    // Step 3: Insert into the database
+    // Step 3: Batch insert or update into the database
     await insertTransactionsIntoDB(localTransactions);
 
     print('Transactions synced successfully.');
   } catch (e) {
-    // Consider logging the stackTrace as well for debugging
     print('Error syncing transactions: $e');
-    // You might want to rethrow or handle the error appropriately based on your app's needs
-    // throw e;
+    // Handle the error as needed
   }
 }
 
-/// Parses the API response and returns a list of ApiTransaction objects.
 List<ApiTransaction> fetchAndParseTransactions(String responseBody) {
   try {
     final List<dynamic> parsed = json.decode(responseBody);
-
     return parsed.map((json) => ApiTransaction.fromJson(json)).toList();
   } catch (e) {
     throw Exception('Error parsing transactions: $e');
   }
 }
 
-/// Converts a list of ApiTransaction objects to MoneyTransaction instances.
 Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
     List<ApiTransaction> apiTransactions) async {
   List<MoneyTransaction> localTransactions = [];
@@ -97,7 +100,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
       if (currency == null) {
         print(
             'Currency not found for code: $currencyCode. Skipping transaction ID: ${apiTransaction.id}');
-        continue; // Skip this transaction
+        continue;
       }
 
       // Fetch account
@@ -107,7 +110,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
       if (accountInDB == null) {
         print(
             'Account not found for ID: ${apiTransaction.account}. Skipping transaction ID: ${apiTransaction.id}');
-        continue; // Skip this transaction
+        continue;
       }
 
       // Fetch category
@@ -117,7 +120,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
       if (categoryInDB == null) {
         print(
             'Category not found for name: ${apiTransaction.transactionCategory}. Skipping transaction ID: ${apiTransaction.id}');
-        continue; // Skip this transaction
+        continue;
       }
 
       // Map transaction type
@@ -125,7 +128,8 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
           _mapTransactionType(apiTransaction.transactionType);
 
       // Map transaction status
-      TransactionStatus status = _mapTransactionStatus(apiTransaction.status);
+      TransactionStatus status =
+          _mapTransactionStatus(apiTransaction.considered);
 
       // Create MoneyTransaction instance
       MoneyTransaction transaction = MoneyTransaction(
@@ -165,7 +169,6 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
   return localTransactions;
 }
 
-/// Maps the string transaction type from API to the TransactionType enum.
 TransactionType _mapTransactionType(String type) {
   switch (type.toLowerCase()) {
     case 'credit':
@@ -179,36 +182,45 @@ TransactionType _mapTransactionType(String type) {
   }
 }
 
-/// Maps the string transaction status from API to the TransactionStatus enum.
-TransactionStatus _mapTransactionStatus(String? status) {
-  switch (status?.toLowerCase()) {
-    case 'pending':
-      return TransactionStatus.pending;
-    case 'posted':
+TransactionStatus _mapTransactionStatus(bool? considered) {
+  switch (considered) {
+    case false:
+      return TransactionStatus.notconsidered;
+    case true:
       return TransactionStatus.reconciled;
     default:
       print(
-          'Unknown transaction status: $status. Defaulting to TransactionStatus.reconciled.');
+          'Unknown transaction status: $considered. Defaulting to TransactionStatus.reconciled.');
       return TransactionStatus.reconciled; // Default status
   }
 }
 
-/// Inserts a list of MoneyTransaction objects into the local database.
 Future<void> insertTransactionsIntoDB(
     List<MoneyTransaction> transactions) async {
-  for (final transaction in transactions) {
-    try {
-      await TransactionService.instance
-          .insertTransaction(transaction.toTransactionInDB());
-    } catch (e) {
-      print('Failed to insert transaction ID: ${transaction.id} into DB: $e');
-      // Depending on requirements, you might want to continue or halt
-      continue;
-    }
+  // Define the 'db' variable by accessing the AppDB singleton instance
+  final db = AppDB.instance;
+
+  final transactionInDBList =
+      transactions.map((tx) => tx.toTransactionInDB()).toList();
+
+  try {
+    await db.batch((batch) {
+      for (var transaction in transactionInDBList) {
+        batch.insert(
+          db.transactions,
+          transaction,
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+    print(
+        'Batch insert or update successful for ${transactions.length} transactions.');
+    db.markTablesUpdated([db.accounts]);
+  } catch (e) {
+    print('Failed to batch insert or update transactions: $e');
   }
 }
 
-/// Extension to convert MoneyTransaction to TransactionInDB.
 extension MoneyTransactionExtension on MoneyTransaction {
   TransactionInDB toTransactionInDB() {
     if (category == null) {
@@ -229,4 +241,19 @@ extension MoneyTransactionExtension on MoneyTransaction {
       // Ensure all non-nullable fields are provided
     );
   }
+}
+
+// Shared Preferences functions as defined earlier
+Future<DateTime?> getLastSyncTimestamp() async {
+  final prefs = await SharedPreferences.getInstance();
+  final timestamp = prefs.getString('last_sync_timestamp');
+  if (timestamp != null) {
+    return DateTime.parse(timestamp);
+  }
+  return null;
+}
+
+Future<void> updateLastSyncTimestamp(DateTime timestamp) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('last_sync_timestamp', timestamp.toIso8601String());
 }

@@ -30,12 +30,16 @@ enum TransactionStatus {
       return status
           .whereNot((element) => [
                 TransactionStatus.pending.index,
-                TransactionStatus.voided.index
+                TransactionStatus.voided.index,
+                TransactionStatus.notconsidered.index
               ].contains(element?.index))
           .toList();
     } else {
-      return TransactionStatus.notIn(
-          {TransactionStatus.pending, TransactionStatus.voided});
+      return TransactionStatus.notIn({
+        TransactionStatus.pending,
+        TransactionStatus.voided,
+        TransactionStatus.notconsidered
+      });
     }
   }
 }

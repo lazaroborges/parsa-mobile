@@ -61,11 +61,11 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   @override
-  void didChangeDependencies() {
+  Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
-    _apiLogin();
-    _fetchUserAccounts();
-    _fetchAndSyncTransactions();
+    await _apiLogin();
+    await _fetchUserAccounts();
+    await _fetchAndSyncTransactions();
   }
 
   Future<void> _apiLogin() async {

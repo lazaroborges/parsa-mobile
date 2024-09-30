@@ -341,7 +341,7 @@
       "unreconciled": "Não conciliada",
       "unreconciled.descr": "Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa",
       "notconsidered": "Desconsiderada",
-      "notconsidered.descr": "Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, estornos, pagamentos de faturas do cartão de crédito, etc.",
+      "notconsidered.descr": "Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.",
       "pending": "Pendente",
       "pending.descr": "Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights",
       "voided": "Anulada",
@@ -415,7 +415,7 @@
       "normal.descr": "Útil para registrar suas finanças do dia a dia. É a conta mais comum, permite adicionar despesas, receitas...",
       "saving": "Conta poupança",
       "saving.descr": "Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar", 
-      "credit": "Conta crédito",
+      "credit": "Cartão de crédito",
       "credit.descr": "Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc"
     },
     "FORM": {

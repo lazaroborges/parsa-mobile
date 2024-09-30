@@ -49,6 +49,8 @@ class ApiTransaction {
 
   final String? status;
 
+  final bool considered;
+
   ApiTransaction({
     required this.id,
     this.description,
@@ -60,6 +62,7 @@ class ApiTransaction {
     required this.transactionType,
     required this.transactionDate,
     this.status,
+    required this.considered,
   });
 
   /// Factory constructor for creating a new `ApiTransaction` instance from JSON.
