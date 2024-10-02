@@ -41,6 +41,7 @@ import '../../core/presentation/app_colors.dart';
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -622,6 +623,7 @@ class _DashboardPageState extends State<DashboardPage> {
 class _HorizontalScrollableAccountList extends StatelessWidget {
   const _HorizontalScrollableAccountList({
     required this.dateRangeService,
+    super.key,
   });
 
   final DatePeriodState dateRangeService;
@@ -636,28 +638,34 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: StreamBuilder(
+        child: StreamBuilder<List<Account>>(
           stream: AccountService.instance.getAccounts(),
           builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const CircularProgressIndicator();
+            }
+
+            final accounts = snapshot.data!;
+
             return Row(
               children: [
-                ...List.generate(snapshot.data?.length ?? 0, (index) {
-                  final account = snapshot.data!.elementAt(index);
-
+                ...accounts.map((account) {
                   return Card(
                     margin: const EdgeInsets.only(right: 8),
-                    color: Colors.transparent,
                     elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Tappable(
                       onTap: () => RouteUtils.pushRoute(
                         context,
                         AccountDetailsPage(
                           account: account,
                           accountIconHeroTag:
-                              'dashboard-page__account-icon-${account.id}',
+                              'dashboard-page__account-icon-${account.iconId}',
                         ),
                       ),
-                      bgColor: AppColors.of(context).light,
+                      bgColor: Colors.transparent,
                       borderRadius: 12,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -665,73 +673,78 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                           width: 250,
                           child: Column(
                             children: [
-                              Row(children: [
-                                Hero(
-                                  tag:
-                                      'dashboard-page__account-icon-${account.id}',
-                                  child: account.displayIcon(
-                                    context,
-                                    size: 28,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      account.name,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                              Row(
+                                children: [
+                                  Hero(
+                                    tag:
+                                        'dashboard-page__account-icon-${account.iconId}',
+                                    child: SvgPicture.asset(
+                                      'assets/icons/supported_selectable_icons/logos/financial_institutions/${account.iconId}.svg',
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.fill,
+                                      colorFilter: ColorFilter.mode(
+                                        Color(
+                                            int.parse('0xFF${account.color}')),
+                                        BlendMode.srcIn,
+                                      ),
+                                      // Ensure colors are not overridden
                                     ),
-                                    Text(
-                                      account.type.title(context),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelMedium!,
-                                    )
-                                  ],
-                                )
-                              ]),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        account.name,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium!
+                                            .copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                      Text(
+                                        account.type.title(context),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium!,
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
                               const Divider(height: 24),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
+                                  CurrencyDisplayer(
+                                    amountToConvert: account.balance,
+                                    currency: account.currency,
+                                    integerStyle: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
                                   StreamBuilder(
-                                      initialData: 0.0,
-                                      stream: AccountService.instance
-                                          .getAccountMoney(account: account),
-                                      builder: (context, snapshot) {
-                                        return CurrencyDisplayer(
-                                          amountToConvert: snapshot.data!,
-                                          currency: account.currency,
-                                          integerStyle: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge!
-                                              .copyWith(
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        );
-                                      }),
-                                  StreamBuilder(
-                                      initialData: 0.0,
-                                      stream: AccountService.instance
-                                          .getAccountsMoneyVariation(
-                                        accounts: [account],
-                                        startDate: dateRangeService.startDate,
-                                        endDate: dateRangeService.endDate,
-                                        convertToPreferredCurrency: false,
-                                      ),
-                                      builder: (context, snapshot) {
-                                        return TrendingValue(
-                                          percentage: snapshot.data!,
-                                          decimalDigits: 0,
-                                        );
-                                      }),
+                                    initialData: 0.0,
+                                    stream: AccountService.instance
+                                        .getAccountsMoneyVariation(
+                                      accounts: [account],
+                                      startDate: dateRangeService.startDate,
+                                      endDate: dateRangeService.endDate,
+                                    ),
+                                    builder: (context, snapshot) {
+                                      return TrendingValue(
+                                        percentage: snapshot.data!,
+                                        decimalDigits: 0,
+                                      );
+                                    },
+                                  ),
                                 ],
                               ),
                             ],
@@ -740,11 +753,10 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                       ),
                     ),
                   );
-                }),
+                }).toList(),
                 Opacity(
                   opacity: 0.6,
                   child: Tappable(
-                    //   bgColor: AppColors.of(context).light,
                     onTap: () {
                       RouteUtils.pushRoute(
                           context, const AccountConnectionModal());
@@ -764,7 +776,7 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         child: SizedBox(
                           width: 200,
-                          height: 127.3 - 32 - 2,
+                          height: 93.3, // 127.3 - 32 - 2
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,

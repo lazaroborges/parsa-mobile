@@ -153,6 +153,7 @@ class ApiAccount {
   final String connectorId;
   final String primaryColor;
   final double? balance;
+  final String iconId;
 
   ApiAccount({
     required this.accountId,
@@ -165,6 +166,7 @@ class ApiAccount {
     required this.profile,
     required this.connectorId,
     required this.primaryColor,
+    required this.iconId,
     this.balance,
   });
 
@@ -178,6 +180,7 @@ class ApiAccount {
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       profile: json['profile'],
+      iconId: json['connector_id'],
       connectorId: json['connector_id'],
       primaryColor: json['primary_color'],
       balance: json['balance'] != null ? double.parse(json['balance']) : null,

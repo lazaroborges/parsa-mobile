@@ -20,7 +20,6 @@ import 'package:parsa/core/database/app_db.dart';
 Future<void> fetchUserTransactions(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
   final credentials = await auth0.credentialsManager.credentials();
-  final lastSync = await getLastSyncTimestamp();
 
   String url =
       'https://naturally-creative-boxer.ngrok-free.app/api/transactions/';
