@@ -469,8 +469,10 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
           if (accounts.hasData) ...[
             StreamBuilder(
-              stream: accountService.getAccountsMoney(
-                  accountIds: accounts.data!.map((e) => e.id)),
+              stream: accountService.getAccountsMoneyWidget(
+                  accountIds: accounts.data!
+                      .map((e) => e.id)
+                      .toList()), // Convert to List<String>
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return CurrencyDisplayer(
@@ -505,6 +507,12 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 },
               ),
+            Switch(
+              onChanged: (value) {
+                print(value);
+              },
+              value: true,
+            ),
           ]
         ],
       ),
@@ -629,9 +637,7 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: StreamBuilder(
-          stream: AccountService.instance.getAccounts(
-            predicate: (acc, curr) => acc.closingDate.isNull(),
-          ),
+          stream: AccountService.instance.getAccounts(),
           builder: (context, snapshot) {
             return Row(
               children: [

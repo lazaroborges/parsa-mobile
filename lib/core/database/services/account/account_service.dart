@@ -16,7 +16,6 @@ class AccountService {
   static final AccountService instance = AccountService._(AppDB.instance);
 
   Future<int> insertAccount(AccountInDB account) {
-    // It also updates the account.
     return db
         .into(db.accounts)
         .insert(account, mode: InsertMode.insertOrReplace);
@@ -64,36 +63,12 @@ class AccountService {
                               FROM exchangeRates
                               WHERE currencyCode = er.currencyCode 
                               ${date != null ? 'AND  date <= ?' : ''}
-                        )
+                          )
             ORDER BY currencyCode
       )
       AS $columnName ON accounts.currencyId = excRate.currencyCode
     ''';
 
-  /// Get the amount of money that an account has in a certain period of time,
-  /// specified in the [date] param. If the [date] param is null, it will return
-  /// the money of the account right now.
-  ///
-  /// You can add filters for the transactions that will be taken into account to calculate
-  /// this balance, via the [trFilters] param.
-  ///
-  /// By default, the returned amount will be in the account currency.
-  ///
-  /// Example:
-  ///
-  /// ```dart
-  /// final account = Account(/*....*/)
-  ///
-  /// final moneyStream = getAccountMoney(
-  ///   account: account,
-  ///   date: DateTime.now(),
-  ///   convertToPreferredCurrency: true,
-  /// );
-  ///
-  /// moneyStream.listen((money) {
-  ///   print('Money: \$\${money.toStringAsFixed(2)}');
-  /// });
-  /// ```
   Stream<double> getAccountMoney({
     required Account account,
     DateTime? date,
@@ -108,16 +83,52 @@ class AccountService {
     );
   }
 
-  /// Get the amount of money that some accounts have in a certain period of time,
-  /// specified in the [date] param. If the [date] param is null, it will return
-  /// the money of the account right now.
-  ///
-  /// If the [accountIds] param is not specified, the function will return the money of
-  /// all the user accounts (closed or not).
-  ///
-  /// You can add filters for the transactions that will be taken into account to calculate
-  /// this balance, via the [trFilters] param. We will overwrite the accountsIds and the maxDate
-  /// param of this filter, based on the other params in this func.
+  Stream<double> getAccountsMoneyWidget({
+    List<String>? accountIds,
+    DateTime? date,
+    TransactionFilters trFilters = const TransactionFilters(),
+    bool convertToPreferredCurrency = true,
+  }) {
+    date ??= DateTime.now();
+
+    final balanceQuery = db
+        .customSelect(
+          """
+      SELECT COALESCE(SUM(
+        CASE 
+          WHEN accounts.type = 'credit' THEN -accounts.balance
+          ELSE accounts.balance
+        END
+        ${convertToPreferredCurrency ? ' * COALESCE(excRate.exchangeRate, 1)' : ''}
+      ), 0) AS total_balance
+      FROM accounts
+          ${convertToPreferredCurrency ? _joinAccountAndRate(date) : ''}
+          ${accountIds != null && accountIds.isNotEmpty ? 'WHERE accounts.id IN (${List.filled(accountIds.length, '?').join(', ')})' : ''} 
+      """,
+          readsFrom: {
+            db.accounts,
+            if (convertToPreferredCurrency) db.exchangeRates,
+          },
+          variables: [
+            if (convertToPreferredCurrency) Variable.withDateTime(date),
+            if (accountIds != null && accountIds.isNotEmpty)
+              for (final id in accountIds) Variable.withString(id),
+          ],
+        )
+        .watchSingleOrNull()
+        .map((res) {
+          if (res?.data != null) {
+            print('Total Balance: ${res!.data['total_balance']}');
+            return (res.data['total_balance'] as num).toDouble();
+          }
+
+          print('No data found for total balance.');
+          return 0.0;
+        });
+
+    return balanceQuery;
+  }
+
   Stream<double> getAccountsMoney({
     Iterable<String>? accountIds,
     DateTime? date,
@@ -126,23 +137,22 @@ class AccountService {
   }) {
     date ??= DateTime.now();
 
-    // Get the accounts initial balance (converted to the preferred currency if necessary)
     final initialBalanceQuery = db
         .customSelect(
           """
       SELECT COALESCE(SUM(accounts.iniValue ${convertToPreferredCurrency ? ' * COALESCE(excRate.exchangeRate, 1)' : ''} ), 0) AS balance
       FROM accounts
           ${convertToPreferredCurrency ? _joinAccountAndRate(date) : ''}
-          ${accountIds != null ? 'WHERE accounts.id IN (${List.filled(accountIds.length, '?').join(', ')})' : ''} 
+          ${accountIds != null && accountIds.isNotEmpty ? 'WHERE accounts.id IN (${List.filled(accountIds.length, '?').join(', ')})' : ''} 
       """,
           readsFrom: {
             db.accounts,
-            if (convertToPreferredCurrency) db.exchangeRates
+            if (convertToPreferredCurrency) db.exchangeRates,
           },
           variables: [
             if (convertToPreferredCurrency) Variable.withDateTime(date),
-            if (accountIds != null)
-              for (final id in accountIds) Variable.withString(id)
+            if (accountIds != null && accountIds.isNotEmpty)
+              for (final id in accountIds) Variable.withString(id),
           ],
         )
         .watchSingleOrNull()
@@ -154,7 +164,6 @@ class AccountService {
           return 0.0;
         });
 
-    // Sum the acount initial balance and the balance of the transactions
     return Rx.combineLatest([
       initialBalanceQuery,
       getAccountsBalance(
@@ -179,9 +188,6 @@ class AccountService {
         .map((event) => event.valueSum);
   }
 
-  /// Returns a stream of a double representing the variation in money for a list of accounts between two dates.
-  ///
-  /// If the user does not provide a value for endDate, the function sets it to the current date. If the user does not provide a value for startDate, the function sets it to the minimum date in the list of accounts.
   Stream<double> getAccountsMoneyVariation({
     required List<Account> accounts,
     DateTime? startDate,

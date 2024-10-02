@@ -24,10 +24,6 @@ Future<void> fetchUserTransactions(BuildContext context) async {
 
   String url =
       'https://naturally-creative-boxer.ngrok-free.app/api/transactions/';
-  if (lastSync != null) {
-    final formattedDate = lastSync.toUtc().toIso8601String();
-    url += '?updated_since=$formattedDate';
-  }
 
   final response = await http.get(
     Uri.parse(url),
@@ -42,9 +38,6 @@ Future<void> fetchUserTransactions(BuildContext context) async {
     var jsonResponse = json.decode(response.body);
     int objectCount = jsonResponse.length;
     print('Number of transactions synced: $objectCount');
-
-    // Update the last sync timestamp
-    await updateLastSyncTimestamp(DateTime.now());
   } else {
     throw Exception('Failed to load user transactions');
   }

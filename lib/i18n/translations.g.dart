@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 544
 ///
-/// Built on 2024-09-24 at 14:15 UTC
+/// Built on 2024-09-30 at 19:13 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -852,7 +852,7 @@ class _TranslationsTransactionStatusPt {
 	String get unreconciled => 'Não conciliada';
 	String get unreconciled_descr => 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 	String get notconsidered => 'Desconsiderada';
-	String get notconsidered_descr => 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, estornos, etc.';
+	String get notconsidered_descr => 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.';
 	String get pending => 'Pendente';
 	String get pending_descr => 'Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights';
 	String get voided => 'Anulada';
@@ -923,7 +923,7 @@ class _TranslationsAccountTypesPt {
 	String get normal_descr => 'Útil para registrar suas finanças do dia a dia. É a conta mais comum, permite adicionar despesas, receitas...';
 	String get saving => 'Conta poupança';
 	String get saving_descr => 'Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar';
-	String get credit => 'Conta crédito';
+	String get credit => 'Cartão de crédito';
 	String get credit_descr => 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
 }
 
@@ -1749,7 +1749,7 @@ extension on Translations {
 			case 'transaction.status.unreconciled': return 'Não conciliada';
 			case 'transaction.status.unreconciled_descr': return 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 			case 'transaction.status.notconsidered': return 'Desconsiderada';
-			case 'transaction.status.notconsidered_descr': return 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, estornos, etc.';
+			case 'transaction.status.notconsidered_descr': return 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.';
 			case 'transaction.status.pending': return 'Pendente';
 			case 'transaction.status.pending_descr': return 'Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights';
 			case 'transaction.status.voided': return 'Anulada';
@@ -1807,7 +1807,7 @@ extension on Translations {
 			case 'account.types.normal_descr': return 'Útil para registrar suas finanças do dia a dia. É a conta mais comum, permite adicionar despesas, receitas...';
 			case 'account.types.saving': return 'Conta poupança';
 			case 'account.types.saving_descr': return 'Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar';
-			case 'account.types.credit': return 'Conta crédito';
+			case 'account.types.credit': return 'Cartão de crédito';
 			case 'account.types.credit_descr': return 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
 			case 'account.form.name': return 'Nome da conta';
 			case 'account.form.name_placeholder': return 'Ex: Conta poupança';
