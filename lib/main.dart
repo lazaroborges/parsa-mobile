@@ -45,6 +45,7 @@ class MonekinAppEntryPoint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('------------------ APP ENTRY POINT ------------------');
+    globalAppContext = context;
 
     return StreamBuilder(
         stream: UserSettingService.instance.getSettings((p0) =>

@@ -19,3 +19,20 @@ class Auth0Provider extends InheritedWidget {
     return auth0 != oldWidget.auth0;
   }
 }
+
+// Global variable to hold the app-wide BuildContext
+BuildContext? globalAppContext;
+
+// Helper function to get the Auth0 instance from the global context
+Auth0 getAuth0Instance() {
+  if (globalAppContext == null) {
+    throw Exception('Global app context not set');
+  }
+
+  final auth0ProviderGlobal = Auth0Provider.of(globalAppContext!);
+  if (auth0ProviderGlobal == null) {
+    throw Exception('Auth0Provider not found in the widget tree');
+  }
+
+  return auth0ProviderGlobal.auth0;
+}
