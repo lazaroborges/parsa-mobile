@@ -627,9 +627,10 @@
     }
   },
   "SETTINGS": {
-    "title_long": "Apa",
-    "title_short": "Privacidade",
-    "description": "",
+    "logout": "Sair / Logout",
+    "title_long": "Preferências",
+    "title_short": "Preferências",
+    "description": "Configure o Parsa do seu jeito.",
     "edit_profile": "Editar perfil",
     "lang.section": "Idioma e textos",
     "lang.title": "Idioma do aplicativo",
@@ -660,8 +661,8 @@
     }
   },
   "MORE": {
-    "title": "Mais",
-    "title_long": "Mais ações",
+    "title": "Menu",
+    "title_long": "Menu e Preferências",
     "DATA": {
       "display": "Dados",
       "display.descr": "Exporte e importe seus dados para não perder nada",
@@ -672,8 +673,8 @@
       "delete-all-message2": "Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?"
     },
     "ABOUT_US": {
-      "display": "Informações do aplicativo",
-      "description": "Confira os termos e outras informações relevantes sobre o Parsa. Entre em contato com a comunidade relatando bugs, deixando sugestões...",
+      "display": "Informações",
+      "description": "Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ",
       "LEGAL": {
         "display": "Informações legais",
         "privacy": "Política de privacidade",

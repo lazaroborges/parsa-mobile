@@ -34,138 +34,159 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: Text(t.more.title_long),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // SettingCardItem(
-            //   isPrimary: true,
-            //   title: t.more.help_us.display,
-            //   subtitle: t.more.help_us.description,
-            //   icon: Icons.favorite_rounded,
-            //   mainAxis: Axis.horizontal,
-            //   onTap: () => RouteUtils.pushRoute(context, const HelpUsPage()),
-            // ),
-            const SizedBox(height: 8),
-            SettingCardItem(
-              title: t.settings.title_long,
-              subtitle: t.settings.description,
-              icon: Icons.palette_outlined,
-              mainAxis: Axis.horizontal,
-              onTap: () =>
-                  RouteUtils.pushRoute(context, const AdvancedSettingsPage()),
-            ),
-            const SizedBox(height: 8),
-            // SettingCardItem(
-            //   title: t.currencies.currency_manager,
-            //   subtitle: t.currencies.currency_manager_descr,
-            //   icon: Icons.currency_exchange,
-            //   mainAxis: Axis.horizontal,
-            //   onTap: () =>
-            //       RouteUtils.pushRoute(context, const CurrencyManagerPage()),
-            // ),
-            const SizedBox(height: 8),
-            SettingCardItem(
-              title: t.more.data.display,
-              subtitle: t.more.data.display_descr,
-              icon: Icons.storage_rounded,
-              mainAxis: Axis.horizontal,
-              onTap: () =>
-                  RouteUtils.pushRoute(context, const BackupSettingsPage()),
-            ),
-            const SizedBox(height: 8),
-            SettingCardItem(
-              title: t.more.about_us.display,
-              subtitle: t.more.about_us.description,
-              icon: Icons.info_outline_rounded,
-              mainAxis: Axis.horizontal,
-              onTap: () => RouteUtils.pushRoute(context, const AboutPage()),
-            ),
-            if (BreakPoint.of(context).isSmallerThan(BreakpointID.md)) ...[
-              const SizedBox(height: 8),
-              Row(
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                  top: 8, left: 16, right: 16, bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: SettingCardItem(
-                      title: t.stats.title,
-                      icon: Icons.area_chart_rounded,
-                      onTap: () =>
-                          RouteUtils.pushRoute(context, const StatsPage()),
-                    ),
+                  const SizedBox(height: 8),
+                  SettingCardItem(
+                    title: t.settings.title_long,
+                    subtitle: t.settings.description,
+                    icon: Icons.palette_outlined,
+                    mainAxis: Axis.horizontal,
+                    onTap: () => RouteUtils.pushRoute(
+                        context, const AdvancedSettingsPage()),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SettingCardItem(
-                      title: t.budgets.title,
-                      icon: Icons.pie_chart_rounded,
-                      onTap: () =>
-                          RouteUtils.pushRoute(context, const BudgetsPage()),
-                    ),
+                  const SizedBox(height: 8),
+                  SettingCardItem(
+                    title: t.more.data.display,
+                    subtitle: t.more.data.display_descr,
+                    icon: Icons.storage_rounded,
+                    mainAxis: Axis.horizontal,
+                    onTap: () => RouteUtils.pushRoute(
+                        context, const BackupSettingsPage()),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SettingCardItem(
-                      title: t.recurrent_transactions.title_short,
-                      icon: Icons.repeat_rounded,
-                      onTap: () => RouteUtils.pushRoute(
-                          context, const RecurrentTransactionPage()),
+                  const SizedBox(height: 8),
+                  SettingCardItem(
+                    title: t.more.about_us.display,
+                    subtitle: t.more.about_us.description,
+                    icon: Icons.info_outline_rounded,
+                    mainAxis: Axis.horizontal,
+                    onTap: () =>
+                        RouteUtils.pushRoute(context, const AboutPage()),
+                  ),
+                  if (BreakPoint.of(context)
+                      .isSmallerThan(BreakpointID.md)) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SettingCardItem(
+                            title: t.stats.title,
+                            icon: Icons.area_chart_rounded,
+                            onTap: () => RouteUtils.pushRoute(
+                                context, const StatsPage()),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SettingCardItem(
+                            title: t.budgets.title,
+                            icon: Icons.pie_chart_rounded,
+                            onTap: () => RouteUtils.pushRoute(
+                                context, const BudgetsPage()),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SettingCardItem(
+                            title: t.recurrent_transactions.title_short,
+                            icon: Icons.repeat_rounded,
+                            onTap: () => RouteUtils.pushRoute(
+                                context, const RecurrentTransactionPage()),
+                          ),
+                        ),
+                      ],
                     ),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SettingCardItem(
+                          title: t.tags.display(n: 10),
+                          icon: Icons.label_outline_rounded,
+                          onTap: () => RouteUtils.pushRoute(
+                              context, const TagListPage()),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: SettingCardItem(
+                          title: t.general.accounts,
+                          icon: Icons.account_balance_wallet_rounded,
+                          onTap: () => RouteUtils.pushRoute(
+                              context, const AllAccountsPage()),
+                        ),
+                      ),
+                      if (BreakPoint.of(context)
+                          .isLargerThan(BreakpointID.sm)) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SettingCardItem(
+                            title: t.recurrent_transactions.title_short,
+                            icon: Icons.repeat_rounded,
+                            onTap: () => RouteUtils.pushRoute(
+                                context, const RecurrentTransactionPage()),
+                          ),
+                        ),
+                      ]
+                    ],
                   ),
                 ],
               ),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                // Expanded(
-                //   child: SettingCardItem(
-                //     title: t.general.categories,
-                //     icon: Icons.category_rounded,
-                //     onTap: () => RouteUtils.pushRoute(
-                //         context, const CategoriesListPage()),
-                //   ),
-                // ),
-                // const SizedBox(width: 8),
-                Expanded(
-                  child: SettingCardItem(
-                    title: t.tags.display(n: 10),
-                    icon: Icons.label_outline_rounded,
-                    onTap: () =>
-                        RouteUtils.pushRoute(context, const TagListPage()),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SettingCardItem(
-                    title: t.general.accounts,
-                    icon: Icons.account_balance_wallet_rounded,
-                    onTap: () =>
-                        RouteUtils.pushRoute(context, const AllAccountsPage()),
-                  ),
-                ),
-                if (BreakPoint.of(context).isLargerThan(BreakpointID.sm)) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: SettingCardItem(
-                      title: t.recurrent_transactions.title_short,
-                      icon: Icons.repeat_rounded,
-                      onTap: () => RouteUtils.pushRoute(
-                          context, const RecurrentTransactionPage()),
+            ),
+          ),
+          // Logout button styled similarly to the other setting items
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white, // Background color
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black), // Black border
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: Material(
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => AuthMethods.logout(context, auth0),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical:
+                            16.0, // Adjust vertical padding for a button-like feel
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Center(
+                            child: Icon(Icons.logout, color: Colors.black),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Fazer logout',
+                            style: TextStyle(
+                              color: Colors.black, // White text to match style
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ]
-              ],
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: ElevatedButton(
-                onPressed: () => AuthMethods.logout(context, auth0),
-                child: const Text('Fazer logout'),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16), // Add some space from the bottom
+        ],
       ),
     );
   }

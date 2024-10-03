@@ -105,47 +105,47 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            createListSeparator(context, t.settings.lang_section),
-            ListTile(
-              title: Text(t.settings.lang_title),
-              leading: const Icon(Icons.language),
-              subtitle: Text(
-                appSupportedLocales
-                    .firstWhere((element) =>
-                        element.locale.languageTag ==
-                        LocaleSettings.currentLocale.languageTag)
-                    .label,
-              ),
-              onTap: () async {
-                final snackbarDisplayer =
-                    ScaffoldMessenger.of(context).showSnackBar;
+            // createListSeparator(context, t.settings.lang_section),
+            // ListTile(
+            //   title: Text(t.settings.lang_title),
+            //   leading: const Icon(Icons.language),
+            //   subtitle: Text(
+            //     appSupportedLocales
+            //         .firstWhere((element) =>
+            //             element.locale.languageTag ==
+            //             LocaleSettings.currentLocale.languageTag)
+            //         .label,
+            //   ),
+            //   onTap: () async {
+            //     final snackbarDisplayer =
+            //         ScaffoldMessenger.of(context).showSnackBar;
 
-                final newLang = await showLanguageSelectorBottomSheet(
-                  context,
-                  LanguageSelector(
-                      selectedLangTag:
-                          LocaleSettings.currentLocale.languageTag),
-                );
+            //     final newLang = await showLanguageSelectorBottomSheet(
+            //       context,
+            //       LanguageSelector(
+            //           selectedLangTag:
+            //               LocaleSettings.currentLocale.languageTag),
+            //     );
 
-                if (newLang == null) {
-                  return;
-                }
+            //     if (newLang == null) {
+            //       return;
+            //     }
 
-                LocaleSettings.setLocaleRaw(newLang,
-                    listenToDeviceLocale: true);
+            //     LocaleSettings.setLocaleRaw(newLang,
+            //         listenToDeviceLocale: true);
 
-                try {
-                  await UserSettingService.instance
-                      .setSetting(SettingKey.appLanguage, newLang);
-                } catch (e) {
-                  snackbarDisplayer(const SnackBar(
-                    content: Text(
-                        'There was an error persisting this setting on your device. Contact the developers for more information'),
-                  ));
-                }
-              },
-            ),
-            createListSeparator(context, t.settings.theme_and_colors),
+            //     try {
+            //       await UserSettingService.instance
+            //           .setSetting(SettingKey.appLanguage, newLang);
+            //     } catch (e) {
+            //       snackbarDisplayer(const SnackBar(
+            //         content: Text(
+            //             'There was an error persisting this setting on your device. Contact the developers for more information'),
+            //       ));
+            //     }
+            //   },
+            // ),
+            // // createListSeparator(context, t.settings.theme_and_colors),
             StreamBuilder(
                 stream: UserSettingService.instance
                     .getSetting(SettingKey.themeMode)

@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 544
+/// Strings: 545
 ///
-/// Built on 2024-10-03 at 15:21 UTC
+/// Built on 2024-10-03 at 15:43 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -540,9 +540,10 @@ class _TranslationsSettingsPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title_long => 'Apa';
-	String get title_short => 'Privacidade';
-	String get description => '';
+	String get logout => 'Sair / Logout';
+	String get title_long => 'Preferências';
+	String get title_short => 'Preferências';
+	String get description => 'Configure o Parsa do seu jeito.';
 	String get edit_profile => 'Editar perfil';
 	String get lang_section => 'Idioma e textos';
 	String get lang_title => 'Idioma do aplicativo';
@@ -572,8 +573,8 @@ class _TranslationsMorePt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Mais';
-	String get title_long => 'Mais ações';
+	String get title => 'Menu';
+	String get title_long => 'Menu e Preferências';
 	late final _TranslationsMoreDataPt data = _TranslationsMoreDataPt._(_root);
 	late final _TranslationsMoreAboutUsPt about_us = _TranslationsMoreAboutUsPt._(_root);
 	late final _TranslationsMoreHelpUsPt help_us = _TranslationsMoreHelpUsPt._(_root);
@@ -1153,8 +1154,8 @@ class _TranslationsMoreAboutUsPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get display => 'Informações do aplicativo';
-	String get description => 'Confira os termos e outras informações relevantes sobre o Parsa. Entre em contato com a comunidade relatando bugs, deixando sugestões...';
+	String get display => 'Informações';
+	String get description => 'Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ';
 	late final _TranslationsMoreAboutUsLegalPt legal = _TranslationsMoreAboutUsLegalPt._(_root);
 	late final _TranslationsMoreAboutUsProjectPt project = _TranslationsMoreAboutUsProjectPt._(_root);
 }
@@ -1976,9 +1977,10 @@ extension on Translations {
 			case 'backup.about.modify_date': return 'Última modificação';
 			case 'backup.about.last_backup': return 'Último backup';
 			case 'backup.about.size': return 'Tamanho';
-			case 'settings.title_long': return 'Apa';
-			case 'settings.title_short': return 'Privacidade';
-			case 'settings.description': return '';
+			case 'settings.logout': return 'Sair / Logout';
+			case 'settings.title_long': return 'Preferências';
+			case 'settings.title_short': return 'Preferências';
+			case 'settings.description': return 'Configure o Parsa do seu jeito.';
 			case 'settings.edit_profile': return 'Editar perfil';
 			case 'settings.lang_section': return 'Idioma e textos';
 			case 'settings.lang_title': return 'Idioma do aplicativo';
@@ -2005,8 +2007,8 @@ extension on Translations {
 			case 'settings.security.private_mode_descr': return 'Oculte todos os valores monetários';
 			case 'settings.security.private_mode_activated': return 'Modo privado ativado';
 			case 'settings.security.private_mode_deactivated': return 'Modo privado desativado';
-			case 'more.title': return 'Mais';
-			case 'more.title_long': return 'Mais ações';
+			case 'more.title': return 'Menu';
+			case 'more.title_long': return 'Menu e Preferências';
 			case 'more.data.display': return 'Dados';
 			case 'more.data.display_descr': return 'Exporte e importe seus dados para não perder nada';
 			case 'more.data.delete_all': return 'Excluir meus dados';
@@ -2014,8 +2016,8 @@ extension on Translations {
 			case 'more.data.delete_all_message1': return 'Tem certeza de que deseja continuar? Todos os seus dados serão excluídos permanentemente e não poderão ser recuperados';
 			case 'more.data.delete_all_header2': return 'Último passo ⚠️⚠️';
 			case 'more.data.delete_all_message2': return 'Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?';
-			case 'more.about_us.display': return 'Informações do aplicativo';
-			case 'more.about_us.description': return 'Confira os termos e outras informações relevantes sobre o Parsa. Entre em contato com a comunidade relatando bugs, deixando sugestões...';
+			case 'more.about_us.display': return 'Informações';
+			case 'more.about_us.description': return 'Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ';
 			case 'more.about_us.legal.display': return 'Informações legais';
 			case 'more.about_us.legal.privacy': return 'Política de privacidade';
 			case 'more.about_us.legal.terms': return 'Termos de uso';
