@@ -627,9 +627,9 @@
     }
   },
   "SETTINGS": {
-    "title_long": "Configurações e aparência",
-    "title_short": "Configurações",
-    "description": "Tema do aplicativo, textos e outras configurações gerais",
+    "title_long": "Apa",
+    "title_short": "Privacidade",
+    "description": "",
     "edit_profile": "Editar perfil",
     "lang.section": "Idioma e textos",
     "lang.title": "Idioma do aplicativo",

@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 544
 ///
-/// Built on 2024-09-30 at 19:13 UTC
+/// Built on 2024-10-03 at 15:21 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -540,9 +540,9 @@ class _TranslationsSettingsPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title_long => 'Configurações e aparência';
-	String get title_short => 'Configurações';
-	String get description => 'Tema do aplicativo, textos e outras configurações gerais';
+	String get title_long => 'Apa';
+	String get title_short => 'Privacidade';
+	String get description => '';
 	String get edit_profile => 'Editar perfil';
 	String get lang_section => 'Idioma e textos';
 	String get lang_title => 'Idioma do aplicativo';
@@ -1976,9 +1976,9 @@ extension on Translations {
 			case 'backup.about.modify_date': return 'Última modificação';
 			case 'backup.about.last_backup': return 'Último backup';
 			case 'backup.about.size': return 'Tamanho';
-			case 'settings.title_long': return 'Configurações e aparência';
-			case 'settings.title_short': return 'Configurações';
-			case 'settings.description': return 'Tema do aplicativo, textos e outras configurações gerais';
+			case 'settings.title_long': return 'Apa';
+			case 'settings.title_short': return 'Privacidade';
+			case 'settings.description': return '';
 			case 'settings.edit_profile': return 'Editar perfil';
 			case 'settings.lang_section': return 'Idioma e textos';
 			case 'settings.lang_title': return 'Idioma do aplicativo';

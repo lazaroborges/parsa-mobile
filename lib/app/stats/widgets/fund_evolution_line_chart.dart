@@ -107,24 +107,24 @@ class FundEvolutionLineChart extends StatelessWidget {
                           children: [
                             Text(t.stats.final_balance,
                                 style: const TextStyle(fontSize: 12)),
-                            StreamBuilder(
-                                stream: accountService.getAccountsMoney(
-                                  accountIds: accounts.map((e) => e.id),
-                                  trFilters: filters,
-                                  date: dateRange.endDate,
-                                ),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData) {
-                                    return const Skeleton(
-                                        width: 70, height: 40);
-                                  }
+                            // StreamBuilder(
+                            //     stream: accountService.getAccountsMoney(
+                            //       accountIds: accounts.map((e) => e.id),
+                            //       trFilters: filters,
+                            //       date: dateRange.endDate,
+                            //     ),
+                            //     // builder: (context, snapshot) {
+                            //     //   if (!snapshot.hasData) {
+                            //     //     return const Skeleton(
+                            //     //         width: 70, height: 40);
+                            //     //   }
 
-                                  return CurrencyDisplayer(
-                                      amountToConvert: snapshot.data!,
-                                      integerStyle: Theme.of(context)
-                                          .textTheme
-                                          .headlineSmall!);
-                                }),
+                            //       // return CurrencyDisplayer(
+                            //       //     amountToConvert: snapshot.data!,
+                            //       //     integerStyle: Theme.of(context)
+                            //       //         .textTheme
+                            //       //         .headlineSmall!);
+                            //     }),
                           ],
                         ),
                         Column(

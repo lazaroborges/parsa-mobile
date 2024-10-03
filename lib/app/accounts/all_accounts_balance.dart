@@ -172,90 +172,90 @@ class _AllAccountBalancePageState extends State<AllAccountBalancePage> {
                         shrinkWrap: true,
                       ),
               ),
-              const SizedBox(height: 16),
-              CardWithHeader(
-                title: t.stats.balance_by_currency,
-                bodyPadding: const EdgeInsets.symmetric(vertical: 4),
-                body: Builder(builder: (context) {
-                  final currenciesWithMoney = getCurrenciesWithMoney(accounts);
+              const SizedBox(height: 32),
+              //   CardWithHeader(
+              //     title: t.stats.balance_by_currency,
+              //     bodyPadding: const EdgeInsets.symmetric(vertical: 4),
+              //     body: Builder(builder: (context) {
+              //       final currenciesWithMoney = getCurrenciesWithMoney(accounts);
 
-                  if (currenciesWithMoney.isEmpty) {
-                    return emptyAccountsIndicator();
-                  }
+              //       if (currenciesWithMoney.isEmpty) {
+              //         return emptyAccountsIndicator();
+              //       }
 
-                  return ListView.separated(
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      final currencyWithMoney = currenciesWithMoney[index];
+              //       return ListView.separated(
+              //         physics: const NeverScrollableScrollPhysics(),
+              //         itemBuilder: (context, index) {
+              //           final currencyWithMoney = currenciesWithMoney[index];
 
-                      return ListTile(
-                        leading: StreamBuilder(
-                          stream: CurrencyService.instance.getCurrencyByCode(
-                              currencyWithMoney.currency.code),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const Skeleton(width: 42, height: 42);
-                            }
+              //           return ListTile(
+              //             leading: StreamBuilder(
+              //               stream: CurrencyService.instance.getCurrencyByCode(
+              //                   currencyWithMoney.currency.code),
+              //               builder: (context, snapshot) {
+              //                 if (!snapshot.hasData) {
+              //                   return const Skeleton(width: 42, height: 42);
+              //                 }
 
-                            final currency = snapshot.data!;
+              //                 final currency = snapshot.data!;
 
-                            return Container(
-                                clipBehavior: Clip.hardEdge,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                                child: currency.displayFlagIcon(size: 32));
-                          },
-                        ),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                StreamBuilder(
-                                    stream: CurrencyService.instance
-                                        .getCurrencyByCode(
-                                            currencyWithMoney.currency.code),
-                                    builder: (context, snapshot) {
-                                      if (!snapshot.hasData) {
-                                        return const Skeleton(
-                                            width: 42, height: 42);
-                                      }
+              //                 return Container(
+              //                     clipBehavior: Clip.hardEdge,
+              //                     decoration: BoxDecoration(
+              //                       borderRadius: BorderRadius.circular(100),
+              //                     ),
+              //                     child: currency.displayFlagIcon(size: 32));
+              //               },
+              //             ),
+              //             title: Column(
+              //               crossAxisAlignment: CrossAxisAlignment.start,
+              //               children: [
+              //                 Row(
+              //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //                   children: [
+              //                     StreamBuilder(
+              //                         stream: CurrencyService.instance
+              //                             .getCurrencyByCode(
+              //                                 currencyWithMoney.currency.code),
+              //                         builder: (context, snapshot) {
+              //                           if (!snapshot.hasData) {
+              //                             return const Skeleton(
+              //                                 width: 42, height: 42);
+              //                           }
 
-                                      final currency = snapshot.data!;
+              //                           final currency = snapshot.data!;
 
-                                      return Flexible(
-                                        child: Text(
-                                          currency.name,
-                                          softWrap: false,
-                                          overflow: TextOverflow.fade,
-                                        ),
-                                      );
-                                    }),
-                                const SizedBox(width: 6),
-                                CurrencyDisplayer(
-                                    amountToConvert: currencyWithMoney.money)
-                              ],
-                            ),
-                            AnimatedProgressBar(
-                                width: 6,
-                                value: min(
-                                    max(currencyWithMoney.money / totalMoney,
-                                        0),
-                                    1)),
-                          ],
-                        ),
-                      );
-                    },
-                    separatorBuilder: (context, index) {
-                      return const SizedBox.shrink();
-                    },
-                    itemCount: currenciesWithMoney.length,
-                    shrinkWrap: true,
-                  );
-                }),
-              ),
+              //                           return Flexible(
+              //                             child: Text(
+              //                               currency.name,
+              //                               softWrap: false,
+              //                               overflow: TextOverflow.fade,
+              //                             ),
+              //                           );
+              //                         }),
+              //                     const SizedBox(width: 6),
+              //                     CurrencyDisplayer(
+              //                         amountToConvert: currencyWithMoney.money)
+              //                   ],
+              //                 ),
+              //                 AnimatedProgressBar(
+              //                     width: 6,
+              //                     value: min(
+              //                         max(currencyWithMoney.money / totalMoney,
+              //                             0),
+              //                         1)),
+              //               ],
+              //             ),
+              //           );
+              //         },
+              //         separatorBuilder: (context, index) {
+              //           return const SizedBox.shrink();
+              //         },
+              //         itemCount: currenciesWithMoney.length,
+              //         shrinkWrap: true,
+              //       );
+              //     }),
+              //   ),
             ],
           );
         });

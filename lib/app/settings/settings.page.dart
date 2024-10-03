@@ -39,14 +39,14 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SettingCardItem(
-              isPrimary: true,
-              title: t.more.help_us.display,
-              subtitle: t.more.help_us.description,
-              icon: Icons.favorite_rounded,
-              mainAxis: Axis.horizontal,
-              onTap: () => RouteUtils.pushRoute(context, const HelpUsPage()),
-            ),
+            // SettingCardItem(
+            //   isPrimary: true,
+            //   title: t.more.help_us.display,
+            //   subtitle: t.more.help_us.description,
+            //   icon: Icons.favorite_rounded,
+            //   mainAxis: Axis.horizontal,
+            //   onTap: () => RouteUtils.pushRoute(context, const HelpUsPage()),
+            // ),
             const SizedBox(height: 8),
             SettingCardItem(
               title: t.settings.title_long,
@@ -57,14 +57,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   RouteUtils.pushRoute(context, const AdvancedSettingsPage()),
             ),
             const SizedBox(height: 8),
-            SettingCardItem(
-              title: t.currencies.currency_manager,
-              subtitle: t.currencies.currency_manager_descr,
-              icon: Icons.currency_exchange,
-              mainAxis: Axis.horizontal,
-              onTap: () =>
-                  RouteUtils.pushRoute(context, const CurrencyManagerPage()),
-            ),
+            // SettingCardItem(
+            //   title: t.currencies.currency_manager,
+            //   subtitle: t.currencies.currency_manager_descr,
+            //   icon: Icons.currency_exchange,
+            //   mainAxis: Axis.horizontal,
+            //   onTap: () =>
+            //       RouteUtils.pushRoute(context, const CurrencyManagerPage()),
+            // ),
             const SizedBox(height: 8),
             SettingCardItem(
               title: t.more.data.display,
@@ -118,15 +118,15 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
-                  child: SettingCardItem(
-                    title: t.general.categories,
-                    icon: Icons.category_rounded,
-                    onTap: () => RouteUtils.pushRoute(
-                        context, const CategoriesListPage()),
-                  ),
-                ),
-                const SizedBox(width: 8),
+                // Expanded(
+                //   child: SettingCardItem(
+                //     title: t.general.categories,
+                //     icon: Icons.category_rounded,
+                //     onTap: () => RouteUtils.pushRoute(
+                //         context, const CategoriesListPage()),
+                //   ),
+                // ),
+                // const SizedBox(width: 8),
                 Expanded(
                   child: SettingCardItem(
                     title: t.tags.display(n: 10),
