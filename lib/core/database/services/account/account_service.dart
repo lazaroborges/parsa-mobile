@@ -10,6 +10,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/core/api/delete_methods/delete_user_bank_account.dart';
 
 enum AccountDataFilter { income, expense, balance }
 
@@ -56,9 +57,28 @@ class AccountService {
     return db.update(db.accounts).replace(account);
   }
 
-  Future<int> deleteAccount(String accountId) {
-    return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
-        .go();
+  Future<int> deleteAccount(String accountId) async {
+    try {
+      // Retrieve the access token from your authentication service
+
+      final auth0 = getAuth0Instance();
+
+      // Retrieve the access token from the Auth0 instance
+      final credentials = await auth0.credentialsManager.credentials();
+      // Post the account to the API
+      bool isPosted = await DeleteUserBankAccount.deleteUser(
+          accountId, credentials.accessToken);
+
+      if (!isPosted) {
+        throw Exception('Failed to post account to the API.');
+      }
+
+      return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
+          .go();
+    } catch (e) {
+      print('Error inserting account: $e');
+      rethrow; // Propagate the error to be handled upstream if needed
+    }
   }
 
   Stream<List<Account>> getAccounts({
