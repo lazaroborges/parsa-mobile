@@ -508,12 +508,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 },
               ),
-            Switch(
-              onChanged: (value) {
-                print(value);
-              },
-              value: true,
-            ),
           ]
         ],
       ),
@@ -670,7 +664,7 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: SizedBox(
-                          width: 250,
+                          width: 240,
                           child: Column(
                             children: [
                               Row(
@@ -680,8 +674,8 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                         'dashboard-page__account-icon-${account.iconId}',
                                     child: SvgPicture.asset(
                                       'assets/icons/supported_selectable_icons/logos/financial_institutions/${account.iconId}.svg',
-                                      width: 40,
-                                      height: 40,
+                                      width: 60,
+                                      height: 60,
                                       fit: BoxFit.fill,
                                       colorFilter: ColorFilter.mode(
                                         Color(
@@ -691,13 +685,15 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                       // Ensure colors are not overridden
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 2),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        account.name,
+                                        account.name.length > 20
+                                            ? '${account.name.substring(0, 20)}'
+                                            : account.name,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleMedium!
