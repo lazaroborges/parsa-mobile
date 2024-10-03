@@ -651,7 +651,7 @@
     "accent-color": "Cor de destaque",
     "accent-color.descr": "Escolha a cor que o aplicativo usará para destacar certas partes da interface",
     "SECURITY": {
-      "title": "Segurança",
+      "title": "Privacidade",
       "private-mode-at-launch": "Modo privado ao iniciar",
       "private-mode-at-launch.descr": "Inicie o aplicativo no modo privado por padrão",
       "private-mode": "Modo privado",

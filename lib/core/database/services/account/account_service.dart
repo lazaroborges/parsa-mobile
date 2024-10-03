@@ -1,3 +1,4 @@
+import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:parsa/core/database/app_db.dart';
@@ -5,7 +6,10 @@ import 'package:parsa/core/database/services/transaction/transaction_service.dar
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:parsa/core/api/post_methods/post_user_account.dart';
+import 'package:parsa/core/services/auth/auth_service.dart';
 
 enum AccountDataFilter { income, expense, balance }
 
@@ -15,7 +19,34 @@ class AccountService {
   AccountService._(this.db);
   static final AccountService instance = AccountService._(AppDB.instance);
 
-  Future<int> insertAccount(AccountInDB account) {
+  /// Inserts an account after successfully posting it to the API.
+  Future<int> insertAccount(AccountInDB account) async {
+    try {
+      // Retrieve the access token from your authentication service
+
+      final auth0 = getAuth0Instance();
+
+      // Retrieve the access token from the Auth0 instance
+      final credentials = await auth0.credentialsManager.credentials();
+      // Post the account to the API
+      bool isPosted = await PostUserAccountService.postUserAccount(
+          account, credentials.accessToken);
+
+      if (!isPosted) {
+        throw Exception('Failed to post account to the API.');
+      }
+
+      // If the POST request is successful, insert into the local DB
+      return await db
+          .into(db.accounts)
+          .insert(account, mode: InsertMode.insertOrReplace);
+    } catch (e) {
+      print('Error inserting account: $e');
+      rethrow; // Propagate the error to be handled upstream if needed
+    }
+  }
+
+  Future<int> insertAccountAPI(AccountInDB account) {
     return db
         .into(db.accounts)
         .insert(account, mode: InsertMode.insertOrReplace);

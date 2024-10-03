@@ -130,7 +130,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
 
     if (_accountToEdit != null) {
       await accountService
-          .updateAccount(accountToSubmit)
+          .insertAccount(accountToSubmit)
           .then((value) => {navigateBack()});
     } else {
       await accountService

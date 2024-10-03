@@ -103,7 +103,7 @@ AccountType _mapAccountType(String type) {
 
 Future<void> insertAccountsIntoDB(List<Account> accounts) async {
   for (final account in accounts) {
-    await AccountService.instance.insertAccount(account.toAccountInDB());
+    await AccountService.instance.insertAccountAPI(account.toAccountInDB());
   }
 }
 
