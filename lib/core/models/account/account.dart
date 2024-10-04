@@ -150,6 +150,7 @@ class ApiAccount {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int profile;
+  final double iniValue;
   final String connectorId;
   final String primaryColor;
   final double? balance;
@@ -159,6 +160,7 @@ class ApiAccount {
     required this.accountId,
     required this.bankName,
     required this.accountType,
+    required this.iniValue,
     required this.number,
     required this.name,
     required this.createdAt,
@@ -172,18 +174,32 @@ class ApiAccount {
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
     return ApiAccount(
-      accountId: json['accountId'],
-      bankName: json['bank_name'],
-      accountType: json['account_type'],
-      number: json['number'],
-      name: json['name'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      profile: json['profile'],
-      iconId: json['connector_id'],
-      connectorId: json['connector_id'],
-      primaryColor: json['primary_color'],
-      balance: json['balance'] != null ? double.parse(json['balance']) : null,
+      accountId: json['accountId'] ??
+          'unknown-account', // Fallback for missing accountId
+      bankName:
+          json['bank_name'] ?? 'Unknown Bank', // Fallback for missing bank name
+      accountType:
+          json['account_type'] ?? 'normal', // Default to 'normal' if missing
+      number: json['number'] ?? '', // Handle null number
+      iniValue: json['iniValue'] != null
+          ? double.tryParse(json['iniValue'].toString()) ?? 0.0
+          : 0.0, // Safely parse iniValue
+      name: json['name'] ?? 'Parsa', // Fallback for missing name
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(), // Default to now if missing
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(), // Default to now if missing
+      profile: json['profile'] ?? 0, // Default to 0 if missing
+      iconId: json['connector_id'] ?? '1', // Fallback for missing iconId
+      connectorId:
+          json['connector_id'] ?? '1', // Fallback for missing connectorId
+      primaryColor:
+          json['primary_color'] ?? '1194F6', // Default to black if missing
+      balance: json['balance'] != null
+          ? double.tryParse(json['balance'].toString())
+          : null, // Safely parse balance
     );
   }
 }
