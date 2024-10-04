@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:parsa/app/layout/lazy_indexed_stack.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/core/api/api_login.dart';
+import 'package:parsa/core/api/fetch_user_accounts.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
 
 /// This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -14,6 +18,67 @@ class TabsPage extends StatefulWidget {
 
 class TabsPageState extends State<TabsPage> {
   MainMenuDestination? selectedDestination;
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
+  bool isLoadingTransactions = true;
+
+  // Initialization flag
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print('loaded init state');
+    // Remove the _initializeData call from here
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _initializeData();
+      _isInitialized = true; // Ensure this runs only once
+    }
+  }
+
+  Future<void> _initializeData() async {
+    await _fetchUserAccounts();
+    await _fetchAndSyncTransactions();
+  }
+
+  Future<void> _fetchUserAccounts() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      await fetchUserAccounts(context);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('--Error fetching user accounts: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchAndSyncTransactions() async {
+    setState(() {
+      isLoadingTransactions = true;
+    });
+    try {
+      await fetchUserTransactions(context);
+      setState(() {
+        isLoadingTransactions = false;
+      });
+    } catch (e) {
+      print('--Error fetching user transactions: $e');
+      setState(() {
+        isLoadingTransactions = false;
+      });
+    }
+  }
 
   void changePage(MainMenuDestination destination) {
     navigationSidebarKey.currentState?.setSelectedDestination(destination);

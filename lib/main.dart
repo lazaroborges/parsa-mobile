@@ -223,7 +223,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           ]);
         },
         home: (isLoggedIn
-            ? const TabsPage()
+            ? TabsPage()
             : Auth0Service(
                 auth0: auth0)) // Show home if logged in, otherwise show login
 

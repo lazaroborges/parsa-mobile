@@ -39,8 +39,6 @@ import 'package:parsa/core/api/api_login.dart'; // Import the fetchUserData func
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
 
-import 'package:parsa/core/api/fetch_user_accounts.dart';
-import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -65,8 +63,6 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     await _apiLogin();
-    await _fetchUserAccounts();
-    await _fetchAndSyncTransactions();
   }
 
   Future<void> _apiLogin() async {
@@ -80,42 +76,6 @@ class _DashboardPageState extends State<DashboardPage> {
       // Handle error
       setState(() {
         isLoading = false;
-      });
-    }
-  }
-
-  // Implement the _fetchUserAccounts method
-  Future<void> _fetchUserAccounts() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      await fetchUserAccounts(context);
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      // Handle error
-      print('--Error fetching user accounts: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _fetchAndSyncTransactions() async {
-    setState(() {
-      isLoadingTransactions = true;
-    });
-    try {
-      await fetchUserTransactions(context);
-      setState(() {
-        isLoadingTransactions = false;
-      });
-    } catch (e) {
-      print('--Error fetching user transactions: $e');
-      setState(() {
-        isLoadingTransactions = false;
       });
     }
   }
@@ -682,7 +642,6 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                             int.parse('0xFF${account.color}')),
                                         BlendMode.srcIn,
                                       ),
-                                      // Ensure colors are not overridden
                                     ),
                                   ),
                                   const SizedBox(width: 2),
@@ -726,21 +685,16 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
-                                  StreamBuilder(
-                                    initialData: 0.0,
-                                    stream: AccountService.instance
-                                        .getAccountsMoneyVariation(
-                                      accounts: [account],
-                                      startDate: dateRangeService.startDate,
-                                      endDate: dateRangeService.endDate,
+
+                                  SizedBox(
+                                    width: 16, // Set the desired width
+                                    child: SvgPicture.asset(
+                                      'assets/icons/supported_selectable_icons/logos/open/marca_open_finance.svg', // Update with your actual icon path
+                                      fit: BoxFit
+                                          .fitWidth, // Ensures the icon fills the box
                                     ),
-                                    builder: (context, snapshot) {
-                                      return TrendingValue(
-                                        percentage: snapshot.data!,
-                                        decimalDigits: 0,
-                                      );
-                                    },
                                   ),
+                                  // **Replacement Ends Here**
                                 ],
                               ),
                             ],
