@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/layout/lazy_indexed_stack.dart';
+import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
@@ -24,6 +25,7 @@ class TabsPageState extends State<TabsPage> {
 
   // Initialization flag
   bool _isInitialized = false;
+  bool isLoadingTags = true;
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class TabsPageState extends State<TabsPage> {
   Future<void> _initializeData() async {
     await _fetchUserAccounts();
     await _fetchAndSyncTransactions();
+    await _fetchUserTags();
   }
 
   Future<void> _fetchUserAccounts() async {
@@ -76,6 +79,23 @@ class TabsPageState extends State<TabsPage> {
       print('--Error fetching user transactions: $e');
       setState(() {
         isLoadingTransactions = false;
+      });
+    }
+  }
+
+  Future<void> _fetchUserTags() async {
+    setState(() {
+      isLoadingTags = true;
+    });
+    try {
+      await fetchUserTags(context);
+      setState(() {
+        isLoadingTags = false;
+      });
+    } catch (e) {
+      print('--Error fetching user tags: $e');
+      setState(() {
+        isLoadingTags = false;
       });
     }
   }

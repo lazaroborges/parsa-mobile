@@ -9,13 +9,9 @@ import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'package:parsa/core/database/app_db.dart';
 
 Future<void> fetchUserTransactions(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;

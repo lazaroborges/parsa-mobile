@@ -81,6 +81,24 @@ class TagService {
     }
   }
 
+  // Batch insert or replace tags
+  Future<void> batchInsertOrReplaceTags(List<TagInDB> tags) async {
+    await db.batch((batch) {
+      // Insert each tag in the batch
+      for (var tag in tags) {
+        batch.insert(
+          db.tags, // The table to insert into
+          tag, // The data to insert
+          mode: InsertMode.insertOrReplace, // Insert or replace mode
+        );
+      }
+    });
+  }
+
+  Future<int> insertTagFromAPI(TagInDB tag) {
+    return db.into(db.tags).insert(tag); // Single insert method
+  }
+
   Stream<List<Tag>> getTags({
     Expression<bool> Function(Tags)? filter,
     int? limit,
