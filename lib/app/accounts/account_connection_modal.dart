@@ -18,7 +18,7 @@ class AccountConnectionModal extends StatelessWidget {
       child: Container(
         width: MediaQuery.of(context).size.width, // Responsive width
         height: MediaQuery.of(context).size.height, // Responsive height
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(32),
         decoration: const BoxDecoration(
           color: Color(0xB20F1728), // Semi-transparent background
         ),
@@ -104,6 +104,7 @@ class AccountConnectionModal extends StatelessWidget {
                             icon: Icons
                                 .sync_alt_rounded, // Replace with appropriate icon
                             title: 'Automático',
+
                             description:
                                 'O Parsa sincroniza os dados da sua conta e categoriza as transações.',
                             onTap: () {
@@ -115,6 +116,15 @@ class AccountConnectionModal extends StatelessWidget {
                                 ),
                               );
                             },
+                            image: Container(
+                              alignment: Alignment.topRight,
+                              width: 150, // Adjust size as needed
+                              height: 40, // Adjust size as needed
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Image.asset(
+                                'assets/icons/supported_selectable_icons/logos/open/logo.png',
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           _buildOptionTile(
@@ -153,6 +163,7 @@ class AccountConnectionModal extends StatelessWidget {
     required String title,
     required String description,
     required VoidCallback onTap,
+    Widget? image, // Add an optional image parameter
   }) {
     final appColors = AppColors.of(context);
     final theme = Theme.of(context);
@@ -168,7 +179,7 @@ class AccountConnectionModal extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             side: const BorderSide(
               width: 1,
-              color: Color(0xFFCFD4DC),
+              color: Color.fromARGB(161, 37, 114, 237),
             ),
           ),
           shadows: [
@@ -186,7 +197,7 @@ class AccountConnectionModal extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: ShapeDecoration(
-                color: const Color(0xFFF4EBFF),
+                color: const Color.fromARGB(255, 255, 255, 255),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -197,28 +208,35 @@ class AccountConnectionModal extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // Option Text
+            // Option Text and Logo
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: appColors.onSurface,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: appColors.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF344053),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF344053),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
+                  if (image != null) image, // Conditionally include the image
                 ],
               ),
             ),

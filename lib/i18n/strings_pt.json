@@ -413,7 +413,7 @@
       "warning": "Uma vez escolhido o tipo de conta, ele não poderá ser alterado no futuro",
       "normal": "Conta corrente",
       "normal.descr": "Útil para registrar suas finanças do dia a dia. É a conta mais comum, permite adicionar despesas, receitas...",
-      "saving": "Conta poupança",
+      "saving": "Investimentos",
       "saving.descr": "Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar", 
       "credit": "Cartão de crédito",
       "credit.descr": "Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc"

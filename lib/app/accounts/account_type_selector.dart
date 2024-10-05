@@ -4,13 +4,13 @@ import 'package:parsa/core/models/account/account.dart';
 import '../../core/presentation/app_colors.dart';
 
 class AccountTypeSelector extends StatefulWidget {
-  const AccountTypeSelector(
-      {super.key,
-      required this.onSelected,
-      this.selectedType = AccountType.normal});
+  const AccountTypeSelector({
+    super.key,
+    required this.onSelected,
+    this.selectedType = AccountType.normal,
+  });
 
   final AccountType selectedType;
-
   final Function(AccountType) onSelected;
 
   @override
@@ -23,33 +23,33 @@ class _AccountTypeSelectorState extends State<AccountTypeSelector> {
   @override
   void initState() {
     super.initState();
-
     selectedItem = widget.selectedType;
   }
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        children: List.generate(
-          AccountType.values.length,
-          (index) {
-            final AccountType item = AccountType.values[index];
+    return Column(
+      // Each chip gets its own row in a vertical layout
+      children: List.generate(
+        AccountType.values.length,
+        (index) {
+          final AccountType item = AccountType.values[index];
 
-            return Flexible(
-              child: MonekinFilterChip(
-                accountType: item,
-                onPressed: () {
-                  setState(() {
-                    selectedItem = item;
-                    widget.onSelected(item);
-                  });
-                },
-                isSelected: item == selectedItem,
-              ),
-            );
-          },
-        ),
+          return Padding(
+            padding:
+                const EdgeInsets.only(bottom: 8.0), // Add spacing between rows
+            child: MonekinFilterChip(
+              accountType: item,
+              onPressed: () {
+                setState(() {
+                  selectedItem = item;
+                  widget.onSelected(item);
+                });
+              },
+              isSelected: item == selectedItem,
+            ),
+          );
+        },
       ),
     );
   }
@@ -65,51 +65,65 @@ class MonekinFilterChip extends StatelessWidget {
 
   final VoidCallback onPressed;
   final bool isSelected;
-
   final AccountType accountType;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            width: 1.25,
-            color:
-                isSelected ? AppColors.of(context).primary : Colors.transparent,
-          ),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          width: 1.25,
+          color:
+              isSelected ? AppColors.of(context).primary : Colors.transparent,
         ),
-        clipBehavior: Clip.hardEdge,
-        child: InkWell(
-          onTap: onPressed.call,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  accountType.icon,
-                  size: 28,
-                  color: isSelected
-                      ? AppColors.of(context).primary
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: onPressed.call,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            // Icon and text horizontally aligned within the row
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                accountType.icon,
+                size: 28,
+                color: isSelected
+                    ? AppColors.of(context).primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12), // Space between icon and text
+              Expanded(
+                // Ensure the text column takes up remaining space
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start, // Align text to the start
+                  children: [
+                    Text(
+                      accountType.title(context),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: isSelected
+                                ? AppColors.of(context).primary
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      accountType.description(context),
+                      softWrap: true, // Allow text to wrap to new lines
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w300,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 18),
-                Text(
-                  accountType.title(context),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isSelected
-                          ? AppColors.of(context).primary
-                          : Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-                Text(accountType.description(context),
-                    softWrap: true,
-                    style:
-                        TextStyle(fontWeight: FontWeight.w300, fontSize: 14)),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

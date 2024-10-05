@@ -270,7 +270,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   controller: _nameController,
                   decoration: InputDecoration(
                     labelText: '${t.account.form.name} *',
-                    hintText: 'Ex.: My account',
+                    hintText: 'Ex.: Carteira',
                   ),
                   validator: (value) => fieldValidator(value, isRequired: true),
                   autovalidateMode: AutovalidateMode.onUserInteraction,

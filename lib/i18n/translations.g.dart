@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 545
 ///
-/// Built on 2024-10-03 at 15:43 UTC
+/// Built on 2024-10-05 at 01:03 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -922,7 +922,7 @@ class _TranslationsAccountTypesPt {
 	String get warning => 'Uma vez escolhido o tipo de conta, ele não poderá ser alterado no futuro';
 	String get normal => 'Conta corrente';
 	String get normal_descr => 'Útil para registrar suas finanças do dia a dia. É a conta mais comum, permite adicionar despesas, receitas...';
-	String get saving => 'Conta poupança';
+	String get saving => 'Investimentos';
 	String get saving_descr => 'Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar';
 	String get credit => 'Cartão de crédito';
 	String get credit_descr => 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
@@ -941,7 +941,7 @@ class _TranslationsAccountFormPt {
 	String get notes_placeholder => 'Digite algumas notas/descrição sobre esta conta';
 	String get initial_balance => 'Saldo inicial';
 	String get current_balance => 'Saldo atual';
-	String get create => 'Criar conta';
+	String get create => 'Adicionar conta';
 	String get edit => 'Editar conta';
 	String get currency_not_found_warn => 'Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações';
 	String get already_exists => 'Já existe outra com o mesmo nome, por favor escreva outro';
@@ -1122,7 +1122,7 @@ class _TranslationsSettingsSecurityPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Segurança';
+	String get title => 'Privacidade';
 	String get private_mode_at_launch => 'Modo privado ao iniciar';
 	String get private_mode_at_launch_descr => 'Inicie o aplicativo no modo privado por padrão';
 	String get private_mode => 'Modo privado';
@@ -1806,7 +1806,7 @@ extension on Translations {
 			case 'account.types.warning': return 'Uma vez escolhido o tipo de conta, ele não poderá ser alterado no futuro';
 			case 'account.types.normal': return 'Conta corrente';
 			case 'account.types.normal_descr': return 'Útil para registrar suas finanças do dia a dia. É a conta mais comum, permite adicionar despesas, receitas...';
-			case 'account.types.saving': return 'Conta poupança';
+			case 'account.types.saving': return 'Investimentos';
 			case 'account.types.saving_descr': return 'Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar';
 			case 'account.types.credit': return 'Cartão de crédito';
 			case 'account.types.credit_descr': return 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
@@ -1816,7 +1816,7 @@ extension on Translations {
 			case 'account.form.notes_placeholder': return 'Digite algumas notas/descrição sobre esta conta';
 			case 'account.form.initial_balance': return 'Saldo inicial';
 			case 'account.form.current_balance': return 'Saldo atual';
-			case 'account.form.create': return 'Criar conta';
+			case 'account.form.create': return 'Adicionar conta';
 			case 'account.form.edit': return 'Editar conta';
 			case 'account.form.currency_not_found_warn': return 'Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações';
 			case 'account.form.already_exists': return 'Já existe outra com o mesmo nome, por favor escreva outro';
@@ -2000,7 +2000,7 @@ extension on Translations {
 			case 'settings.dynamic_colors_descr': return 'Use a cor de destaque do sistema sempre que possível';
 			case 'settings.accent_color': return 'Cor de destaque';
 			case 'settings.accent_color_descr': return 'Escolha a cor que o aplicativo usará para destacar certas partes da interface';
-			case 'settings.security.title': return 'Segurança';
+			case 'settings.security.title': return 'Privacidade';
 			case 'settings.security.private_mode_at_launch': return 'Modo privado ao iniciar';
 			case 'settings.security.private_mode_at_launch_descr': return 'Inicie o aplicativo no modo privado por padrão';
 			case 'settings.security.private_mode': return 'Modo privado';
