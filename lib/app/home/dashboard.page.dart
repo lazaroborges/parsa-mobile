@@ -637,11 +637,11 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                       width: 60,
                                       height: 60,
                                       fit: BoxFit.fill,
-                                      colorFilter: ColorFilter.mode(
-                                        Color(
-                                            int.parse('0xFF${account.color}')),
-                                        BlendMode.srcIn,
-                                      ),
+                                      //   // colorFilter: ColorFilter.mode(
+                                      //   //   Color(
+                                      //   //       int.parse('0xFF${account.color}')),
+                                      //   //   BlendMode.srcIn,
+                                      //   // ),
                                     ),
                                   ),
                                   const SizedBox(width: 2),
@@ -687,13 +687,9 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                   ),
 
                                   SizedBox(
-                                    width: 16, // Set the desired width
-                                    child: SvgPicture.asset(
-                                      'assets/icons/supported_selectable_icons/logos/open/marca_open_finance.svg', // Update with your actual icon path
-                                      fit: BoxFit
-                                          .fitWidth, // Ensures the icon fills the box
-                                    ),
-                                  ),
+                                      width: 105, // Set the desired width
+                                      child: Image.asset(
+                                          'assets/icons/supported_selectable_icons/logos/open/logo.png')),
                                   // **Replacement Ends Here**
                                 ],
                               ),

@@ -119,6 +119,7 @@ flutter:
     - assets/icons/supported_selectable_icons/logos/open/
     - assets/icons/supported_selectable_icons/logos/open/marca_positiva_open_finance.svg
     - assets/icons/supported_selectable_icons/logos/open/marca_open_finance.svg
+    - assets/icons/supported_selectable_icons/logos/open/logo.png
 
     - assets/icons/supported_selectable_icons/logos/financial_institutions/
     - assets/icons/supported_selectable_icons/logos/financial_institutions/611.svg
