@@ -20,6 +20,7 @@ import 'package:parsa/core/database/services/user-setting/private_mode_service.d
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
@@ -35,6 +36,7 @@ import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/services/finance_health_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/api/api_login.dart'; // Import the fetchUserData function
+import 'package:parsa/app/transactions/widgets/transaction_list.dart'; // Import the TransactionListComponent
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -285,6 +287,34 @@ class _DashboardPageState extends State<DashboardPage> {
 
           _HorizontalScrollableAccountList(
             dateRangeService: dateRangeService,
+          ),
+
+          // Move the TransactionListComponent here
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+            child: CardWithHeader(
+              title: t.home.last_transactions,
+              body: TransactionListComponent(
+                heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
+                filters: TransactionFilters(
+                  status: TransactionStatus.notIn({
+                    TransactionStatus.pending,
+                    TransactionStatus.voided,
+                    TransactionStatus.notconsidered
+                  }),
+                ),
+                limit: 10,
+                showGroupDivider: false,
+                prevPage: DashboardPage(),
+                onEmptyList: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    t.transaction.list.empty,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
           ),
 
           // ------------- STATS GENERAL CARDS --------------

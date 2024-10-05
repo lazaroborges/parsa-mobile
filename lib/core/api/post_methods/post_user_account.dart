@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/models/account/account.dart';
 
 class PostUserAccountService {
   static const String _apiEndpoint =

@@ -103,6 +103,7 @@ class AccountConnectionModal extends StatelessWidget {
                             context: context,
                             icon: Icons
                                 .sync_alt_rounded, // Replace with appropriate icon
+
                             title: 'Automático',
 
                             description:
@@ -117,10 +118,10 @@ class AccountConnectionModal extends StatelessWidget {
                               );
                             },
                             image: Container(
-                              alignment: Alignment.topRight,
-                              width: 150, // Adjust size as needed
-                              height: 40, // Adjust size as needed
-                              padding: const EdgeInsets.only(left: 10),
+                              width: 120, // Adjust size as needed
+                              height: 30, // Adjust size as needed
+                              padding: const EdgeInsets.only(
+                                  left: 5, right: 12, bottom: 2),
                               child: Image.asset(
                                 'assets/icons/supported_selectable_icons/logos/open/logo.png',
                               ),
@@ -210,33 +211,33 @@ class AccountConnectionModal extends StatelessWidget {
             const SizedBox(width: 16),
             // Option Text and Logo
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: appColors.onSurface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: appColors.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          description,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFF344053),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
+                      ),
+                      if (title == 'Automático' && image != null)
+                        image, // Conditionally include the image
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF344053),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                  if (image != null) image, // Conditionally include the image
                 ],
               ),
             ),
