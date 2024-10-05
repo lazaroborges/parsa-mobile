@@ -74,6 +74,8 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   material_design_icons_flutter: ^7.0.0
   shared_preferences: ^2.3.2
+  local_auth: ^2.3.0
+
 
 dev_dependencies:
   flutter_test:

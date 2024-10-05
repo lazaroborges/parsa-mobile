@@ -64,16 +64,32 @@ class AuthMethods {
       final isOnline = await _checkInternetConnection();
 
       if (isOnline) {
-        // If online, validate the token (or refresh it if necessary)
+        // If online, check if credentials are valid
         final hasValid =
             await auth0(context).credentialsManager.hasValidCredentials();
-        final isValid = await _validateToken(context, hasValid as String);
 
-        if (isValid) {
-          return true;
+        if (hasValid) {
+          // Retrieve credentials
+          final credentials =
+              await auth0(context).credentialsManager.credentials();
+          final accessToken = credentials.accessToken;
+
+          if (accessToken != null && accessToken.isNotEmpty) {
+            // Validate the token
+            final isValid = await _validateToken(context, accessToken);
+            if (isValid) {
+              return true;
+            } else {
+              // Token invalid, need to re-login
+              await logout(context, auth0(context));
+              return false;
+            }
+          } else {
+            // No access token found
+            return false;
+          }
         } else {
-          // Token invalid, need to re-login
-          await logout(context, auth0(context));
+          // No valid credentials
           return false;
         }
       } else {

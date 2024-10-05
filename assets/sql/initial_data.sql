@@ -3,7 +3,7 @@
 INSERT INTO userSettings VALUES 
 ('avatar', 'man'), 
 ('userName', 'User'), 
-('appLanguage', null), 
+('appLanguage', 'pt'), 
 ('privateModeAtLaunch', '0'), 
 ('accentColor', 'auto'), 
 ('amoledMode', '0'), 

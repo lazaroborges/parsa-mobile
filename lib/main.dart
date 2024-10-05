@@ -4,7 +4,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
-import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -17,6 +16,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
+import 'package:local_auth/local_auth.dart' as local_auth;
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,7 +107,16 @@ class MonekinAppEntryPoint extends StatelessWidget {
             child: StreamBuilder(
                 stream: AppDataService.instance
                     .getAppDataItem(AppDataKey.introSeen)
-                    .map((event) => event == '1'),
+                    .map((event) {
+                  if (event is String) {
+                    return event ==
+                        '1'; // If event is a string, check if it's '1'
+                  } else if (event is bool) {
+                    return event; // If event is already a boolean, return it directly
+                  } else {
+                    return false; // Default case, event is neither a string nor a bool
+                  }
+                }),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return Container();
@@ -143,21 +153,77 @@ class MaterialAppContainer extends StatefulWidget {
 
 class _MaterialAppContainerState extends State<MaterialAppContainer> {
   bool isLoggedIn = false;
-  bool isLoading = true; // Add loading state
+  bool isLoading = true;
+
+  final local_auth.LocalAuthentication auth = local_auth.LocalAuthentication();
 
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // Check if user is logged in
+    _checkLoginStatus();
   }
 
-  // Check if the user is logged in
+  // Existing _checkLoginStatus method
   Future<void> _checkLoginStatus() async {
     bool status = await AuthMethods.checkLoginStatus(context);
-    setState(() {
-      isLoggedIn = status;
-      isLoading = false;
-    });
+    print('STATUS: $status ${status.runtimeType}');
+    if (status) {
+      bool biometricSuccess = true;
+      // await _authenticateWithBiometrics();
+      if (biometricSuccess) {
+        setState(() {
+          isLoggedIn = true;
+          isLoading = false;
+        });
+      } else {
+        // Show an alert dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Authentication Failed'),
+            content: Text('Unable to authenticate using biometrics.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        isLoggedIn = status;
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<bool> _authenticateWithBiometrics() async {
+    bool canCheckBiometrics = await auth.canCheckBiometrics;
+    bool isDeviceSupported = await auth.isDeviceSupported();
+
+    if (!canCheckBiometrics || !isDeviceSupported) {
+      return false;
+    }
+
+    try {
+      bool authenticated = await auth.authenticate(
+        localizedReason: 'Please authenticate to access your account',
+        options: const local_auth.AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+      return authenticated;
+    } on PlatformException catch (e) {
+      print(e);
+      return false;
+    }
   }
 
   @override

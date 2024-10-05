@@ -58,7 +58,7 @@
 
 After a lot of research on the marketplaces I could not find any application that met all my needs. That is why I decided to start making my own app. After months of hard work, the first version was released on Google Play in October 2021. I decided to make it 100% Open Source shortly after, with the aim of increasing its user community, and that external developers could help and collaborate with me on the project. Since the day of its release, the app has been continuously improving and updating.
 
-### Tech Stack
+### Tech StackΩqwQWQ
 
 At the beggining the app was developed in Ionic and Angular. In 2023, in order to make our app better, we migrate the app to Flutter, which allow us to have a modern and scalable application for a large number of operating systems and platforms.
 

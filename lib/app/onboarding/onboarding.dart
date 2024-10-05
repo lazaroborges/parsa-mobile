@@ -32,8 +32,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
           TabsPage(key: tabsPageKey),
           withReplacement: true,
         );
-
-        refresh++;
       },
     );
   }

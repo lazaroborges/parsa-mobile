@@ -58,10 +58,9 @@ android {
 
     defaultConfig {
         applicationId "com.parsa.app"
-        targetSdkVersion 35
-        compileSdkVersion 35
+targetSdkVersion 35
 
-        manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
+    manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
         manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://auth.parsa-ai.com.br/android/com.app.parsa/callback"]
 
 
@@ -75,10 +74,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(System.getenv("KEYSTORE_FILE"))
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
         }
     }
 
