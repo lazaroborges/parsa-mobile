@@ -60,7 +60,7 @@ android {
         applicationId "com.parsa.app"
 targetSdkVersion 35
 
-    manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
+        manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
         manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://auth.parsa-ai.com.br/android/com.app.parsa/callback"]
 
 
@@ -84,11 +84,13 @@ targetSdkVersion 35
     buildTypes {
         release {
             // Run `flutter build appbundle --release` to build .
+
+manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
+        manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://auth.parsa-ai.com.br/android/com.app.parsa/callback"]
+
             minifyEnabled true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-signingConfig = signingConfigs.debug
-            signingConfig = signingConfigs.release
         }
     }
 }
@@ -99,4 +101,6 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.auth0.android:auth0:2.11.0'
+
 }
