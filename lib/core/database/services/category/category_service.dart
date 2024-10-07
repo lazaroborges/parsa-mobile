@@ -1,3 +1,5 @@
+// lib/core/database/services/category/category_service.dart
+
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -66,18 +68,17 @@ class CategoryService {
   }
 
   Stream<Category?> getCategoryByName(String name) {
-    return getCategories(predicate: (a, c) => a.name.equals(name), limit: 1)
-        .map((res) => res.firstOrNull)
-        .asyncExpand((category) async* {
-      if (category == null) {
-        // If the category is not found, search for "Outros"
-        yield* getCategories(
-                predicate: (a, c) => a.name.equals("Outros"), limit: 1)
-            .map((res) => res.firstOrNull);
-      } else {
-        yield category;
-      }
-    });
+    return getCategories(
+      predicate: (a, c) => a.name.equals(name),
+      orderBy: (catTable, parentCatTable) => OrderBy([
+        // Prioritize subcategories (where parentCategoryID is not null)
+        OrderingTerm(
+          expression: catTable.parentCategoryID.isNotNull(),
+          mode: OrderingMode.desc, // `true` values (subcategories) come first
+        ),
+      ]),
+      limit: 1, // Only need the first match
+    ).map((res) => res.firstOrNull);
   }
 
   /// Get the `assets/sql/initial_categories.json` file and seed the user categories with its info, based

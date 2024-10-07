@@ -1049,7 +1049,7 @@ class Categories extends Table with TableInfo<Categories, CategoryInDB> {
       'name', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      $customConstraints: 'UNIQUE NOT NULL');
+      $customConstraints: 'NOT NULL');
   static const VerificationMeta _iconIdMeta = const VerificationMeta('iconId');
   late final GeneratedColumn<String> iconId = GeneratedColumn<String>(
       'iconId', aliasedName, false,

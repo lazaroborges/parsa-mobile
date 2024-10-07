@@ -303,11 +303,11 @@ class _DashboardPageState extends State<DashboardPage> {
                     TransactionStatus.notconsidered
                   }),
                 ),
-                limit: 10,
+                limit: 5,
                 showGroupDivider: false,
                 prevPage: DashboardPage(),
                 onEmptyList: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     t.transaction.list.empty,
                     textAlign: TextAlign.center,

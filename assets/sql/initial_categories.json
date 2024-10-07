@@ -8,6 +8,21 @@
     "type": "E",
     "subcategories": [
 
+{
+        "icon": "nutrition",
+        "names": {
+          "pt": "Alimentação"
+        }
+      },
+
+
+{
+        "icon": "nutrition",
+        "names": {
+          "pt": "Mercado"
+        }
+      },
+
       {
         "icon": "nutrition",
         "names": {
@@ -107,6 +122,12 @@
       {
         "icon": "medication",
         "names": {
+          "pt": "Saúde e Bem-estar"
+        }
+      },
+      {
+        "icon": "medication",
+        "names": {
           "pt": "Profissional da Saúde"
         }
       },
@@ -140,6 +161,13 @@
     "color": "4C9141",
     "type": "I",
     "subcategories": [
+
+{
+        "icon": "retirement",
+        "names": {
+          "pt": "Benefícios"
+        }
+      },
       {
         "icon": "retirement",
         "names": {
@@ -170,6 +198,14 @@
     "color": "781F19",
     "type": "E",
     "subcategories": [
+      {
+        "icon": "receipt",
+        "names": {
+          "pt": "Contas"
+        }
+      },
+
+
       {
         "icon": "receipt",
         "names": {
@@ -279,6 +315,14 @@
     "color": "9688",
     "type": "E",
     "subcategories": [
+
+ {
+        "icon": "class",
+        "names": {
+          "pt": "Educação"
+        }
+      },
+
       {
         "icon": "class",
         "names": {
@@ -335,6 +379,13 @@
     "color": "4C9141",
     "type": "I",
     "subcategories": [
+
+      {
+        "icon": "work",
+        "names": {
+          "pt": "Ganho de Capital"
+        }
+      },
       {
         "icon": "business_center",
         "names": {
@@ -363,6 +414,12 @@
     "color": "1E2460",
     "type": "B",
     "subcategories": [
+      {
+        "icon": "auto_graph",
+        "names": {
+          "pt": "Investimentos"
+        }
+      },
       {
         "icon": "account_balance_wallet",
         "names": {
@@ -409,6 +466,12 @@
     "color": "2A6478",
     "type": "E",
     "subcategories": [
+      {
+        "icon": "landscape",
+        "names": {
+          "pt": "Lazer"
+        }
+      },
       {
         "icon": "celebration",
         "names": {
@@ -475,6 +538,12 @@
     "type": "E",
     "subcategories": [
       {
+        "icon": "shopping_bag",
+        "names": {
+          "pt": "Compras"
+        }
+      },
+      {
         "icon": "library_books",
         "names": {
           "pt": "Papelaria"
@@ -540,6 +609,13 @@
     "color": "84C3BE",
     "type": "E",
     "subcategories": [
+
+      {
+        "icon": "tram",
+        "names": {
+          "pt": "Transporte"
+        }
+      },
       {
         "icon": "train",
         "names": {
@@ -624,6 +700,12 @@
     "color": "403A3A",
     "type": "B",
     "subcategories": [
+{
+        "icon": "inventory_2",
+        "names": {
+          "pt": "Outros"
+        }
+      },
       {
         "icon": "inventory_2",
         "names": {

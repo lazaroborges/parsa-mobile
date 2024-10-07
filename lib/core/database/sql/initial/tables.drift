@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS categories (
     id TEXT NOT NULL PRIMARY KEY,
 
     -- The name of the category
-    name TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
 
     -- Id of the icon that represents this category
     iconId TEXT NOT NULL,

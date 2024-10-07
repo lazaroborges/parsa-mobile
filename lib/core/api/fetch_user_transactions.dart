@@ -1,3 +1,5 @@
+// path: lib/core/api/fetch_user_transactions.dart
+
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/widgets.dart';
@@ -131,7 +133,6 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         accountCurrency: currency,
         category: categoryInDB,
         status: status,
-        // Provide other required arguments with default values or null where appropriate
         valueInDestiny: null,
         locAddress: null,
         locLatitude: null,
@@ -225,13 +226,10 @@ extension MoneyTransactionExtension on MoneyTransaction {
       accountID: account.id,
       categoryID: category!.id,
       status: status,
-      // Include other required fields here...
-      // Ensure all non-nullable fields are provided
     );
   }
 }
 
-// Shared Preferences functions as defined earlier
 Future<DateTime?> getLastSyncTimestamp() async {
   final prefs = await SharedPreferences.getInstance();
   final timestamp = prefs.getString('last_sync_timestamp');
