@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 545
 ///
-/// Built on 2024-10-05 at 21:23 UTC
+/// Built on 2024-10-07 at 22:54 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -293,7 +293,7 @@ class _TranslationsStatsPt {
 	String get by_periods => 'Por períodos';
 	String get by_categories => 'Por categorias';
 	String get by_tags => 'Por tags';
-	String get distribution => 'Distribuição';
+	String get distribution => 'Categorias';
 	String get finance_health_resume => 'Resumo';
 	String get finance_health_breakdown => 'Detalhamento';
 }
@@ -1646,7 +1646,7 @@ extension on Translations {
 			case 'stats.by_periods': return 'Por períodos';
 			case 'stats.by_categories': return 'Por categorias';
 			case 'stats.by_tags': return 'Por tags';
-			case 'stats.distribution': return 'Distribuição';
+			case 'stats.distribution': return 'Categorias';
 			case 'stats.finance_health_resume': return 'Resumo';
 			case 'stats.finance_health_breakdown': return 'Detalhamento';
 			case 'icon_selector.name': return 'Nome:';

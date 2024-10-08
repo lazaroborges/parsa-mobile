@@ -10,8 +10,16 @@
   { "id": "train", "scope": "transport" },
   { "id": "electric_scooter", "scope": "transport" },
   { "id": "two_wheeler", "scope": "transport" },
+  { "id": "flight_takeoff", "scope": "transport" },
+  { "id": "pedal", "scope": "transport" },
+
+
   { "id": "local_taxi", "scope": "transport" },
   { "id": "payments", "scope": "money" },
+  { "id": "loan", "scope": "money" },
+  { "id": "candlestick", "scope": "money" },
+
+
   { "id": "savings", "scope": "money" },
   { "id": "credit_score", "scope": "money" },
   { "id": "credit_card", "scope": "money" },
@@ -101,6 +109,8 @@
   { "id": "bank_of_america", "scope": "logos/financial_institutions" },
   { "id": "git", "scope": "logos/financial_institutions" },
   { "id": "account_balance_wallet", "scope": "money" },
+  { "id": "pix", "scope": "money" },
+
   { "id": "wallet", "scope": "money" },
   { "id": "kitchen", "scope": "food" },
   { "id": "icecream", "scope": "food" },
@@ -109,6 +119,8 @@
   { "id": "lunch_dining", "scope": "food" },
   { "id": "local_pizza", "scope": "food" },
   { "id": "fastfood", "scope": "food" },
+  { "id": "delivery", "scope": "food" },
+
   { "id": "nutrition", "scope": "food" },
   { "id": "dentistry", "scope": "medical" },
   { "id": "tibia", "scope": "medical" },
@@ -119,6 +131,8 @@
   { "id": "monitor_weight", "scope": "medical" },
   { "id": "pill", "scope": "medical" },
   { "id": "medication", "scope": "medical" },
+  { "id": "spa", "scope": "medical" },
+
   { "id": "prescriptions", "scope": "medical" },
   { "id": "self_improvement", "scope": "medical" },
   { "id": "self_care", "scope": "medical" },
@@ -136,6 +150,7 @@
   { "id": "beach_access", "scope": "entertainment" },
   { "id": "paragliding", "scope": "entertainment" },
   { "id": "attractions", "scope": "entertainment" },
+  { "id": "stream", "scope": "entertainment" },
   { "id": "movie", "scope": "entertainment" },
   { "id": "museum", "scope": "entertainment" },
   { "id": "sports_bar", "scope": "entertainment" },
@@ -182,6 +197,8 @@
   { "id": "bed", "scope": "other" },
   { "id": "language", "scope": "other" },
   { "id": "military_tech", "scope": "other" },
+  { "id": "gas_station", "scope": "other" },
+
   { "id": "checkroom", "scope": "other" },
   { "id": "sprinkler", "scope": "other" },
   { "id": "water", "scope": "other" },

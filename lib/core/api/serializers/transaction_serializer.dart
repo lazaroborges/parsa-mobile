@@ -1,4 +1,3 @@
-// lib/core/api/serializers/transaction_serializer.dart
 import 'package:json_annotation/json_annotation.dart';
 
 part 'transaction_serializer.g.dart';

@@ -23,15 +23,12 @@ Future<void> fetchUserTags(BuildContext context) async {
     },
   );
 
-  print(response.body);
-
   if (response.statusCode == 200) {
     // Sync the fetched tags with the local database
     await syncTags(response.body);
 
     var jsonResponse = json.decode(response.body);
     int objectCount = jsonResponse.length;
-    print('Number of tags synced: $objectCount');
   } else {
     throw Exception('Failed to load user tags');
   }

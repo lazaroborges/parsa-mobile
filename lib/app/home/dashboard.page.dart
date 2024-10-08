@@ -15,6 +15,7 @@ import 'package:parsa/app/stats/widgets/balance_bar_chart_small.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/fund_evolution_line_chart.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -294,6 +295,9 @@ class _DashboardPageState extends State<DashboardPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
             child: CardWithHeader(
               title: t.home.last_transactions,
+              onHeaderButtonClick: () {
+                RouteUtils.pushRoute(context, TransactionsPage());
+              },
               body: TransactionListComponent(
                 heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
                 filters: TransactionFilters(

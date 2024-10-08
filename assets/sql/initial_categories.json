@@ -8,13 +8,6 @@
     "type": "E",
     "subcategories": [
 
-{
-        "icon": "nutrition",
-        "names": {
-          "pt": "Alimentação"
-        }
-      },
-
 
 {
         "icon": "nutrition",
@@ -24,19 +17,13 @@
       },
 
       {
-        "icon": "nutrition",
-        "names": {
-          "pt": "Mercado"
-        }
-      },
-      {
-        "icon": "restaurant",
+        "icon": "local_dining",
         "names": {
           "pt": "Restaurantes e Bares"
         }
       },
       {
-        "icon": "delivery_dining",
+        "icon": "delivery",
         "names": {
           "pt": "Delivery"
         }
@@ -72,7 +59,7 @@
         }
       },
       {
-        "icon": "gas_meter",
+        "icon": "speed",
         "names": {
           "pt": "Gás"
         }
@@ -102,7 +89,7 @@
         }
       },
       {
-        "icon": "balcony",
+        "icon": "home",
         "names": {
           "pt": "Impostos Residenciais"
         }
@@ -114,38 +101,32 @@
     "names": {
       "pt": "Saúde e Bem-estar"
     },
-    "icon": "local_pharmacy",
+    "icon": "spa",
     "color": "CC0605",
     "type": "E",
     "subcategories": [
 
       {
-        "icon": "medication",
-        "names": {
-          "pt": "Saúde e Bem-estar"
-        }
-      },
-      {
-        "icon": "medication",
+        "icon": "ecg_heart",
         "names": {
           "pt": "Profissional da Saúde"
         }
       },
      
       {
-        "icon": "local_hospital",
+        "icon": "prescriptions",
         "names": {
           "pt": "Hospitais, clínicas e laboratórios"
         }
       },
       {
-        "icon": "local_pharmacy",
+        "icon": "prescriptions",
         "names": {
           "pt": "Farmácia"
         }
       },
       {
-        "icon": "remove_red_eye",
+        "icon": "spa",
         "names": {
           "pt": "Bem-estar"
         }
@@ -157,31 +138,26 @@
     "names": {
       "pt": "Benefícios"
     },
-    "icon": "work",
+    "icon": "account_balance",
     "color": "4C9141",
     "type": "I",
     "subcategories": [
 
-{
-        "icon": "retirement",
-        "names": {
-          "pt": "Benefícios"
-        }
-      },
+
       {
-        "icon": "retirement",
+        "icon": "account_balance",
         "names": {
           "pt": "Aposentadoria / Benefício Previdenciário"
         }
       },
       {
-        "icon": "government",
+        "icon": "account_balance",
         "names": {
           "pt": "Auxílio Governamental"
         }
       }, 
 {
-        "icon": "local_atm",
+        "icon": "account_balance",
         "names": {
           "pt": "Pensão"
         }
@@ -198,13 +174,14 @@
     "color": "781F19",
     "type": "E",
     "subcategories": [
+
+
       {
-        "icon": "receipt",
+        "icon": "credit_score",
         "names": {
-          "pt": "Contas"
+          "pt": "Pagamento Fatura Cartão"
         }
       },
-
 
       {
         "icon": "receipt",
@@ -252,13 +229,13 @@
         }
       },
       {
-        "icon": "school",
+        "icon": "loan",
         "names": {
           "pt": "Empréstimos"
         }
       },
       {
-        "icon": "account_balance_wallet",
+        "icon": "loan",
         "names": {
           "pt": "Emprestimos"
         }
@@ -293,7 +270,7 @@
           "pt": "Pensão alimentícia"
         }
       },       {
-        "icon": "settings",
+        "icon": "receipt",
         "names": {
           "pt": "Serviços"
         }
@@ -301,7 +278,7 @@
       {
         "icon": "call",
         "names": {
-          "pt": "Celular"
+          "pt": "Serviços de Telecom"
         }
       }
     ]
@@ -312,7 +289,7 @@
       "pt": "Educação"
     },
     "icon": "school",
-    "color": "9688",
+    "color": "9a2ed9",
     "type": "E",
     "subcategories": [
 
@@ -324,7 +301,7 @@
       },
 
       {
-        "icon": "class",
+        "icon": "school",
         "names": {
           "pt": "Escola"
         }
@@ -375,17 +352,12 @@
     "names": {
       "pt": "Ganho de Capital"
     },
-    "icon": "work",
+    "icon": "candlestick",
     "color": "4C9141",
     "type": "I",
     "subcategories": [
 
-      {
-        "icon": "work",
-        "names": {
-          "pt": "Ganho de Capital"
-        }
-      },
+
       {
         "icon": "business_center",
         "names": {
@@ -414,12 +386,7 @@
     "color": "1E2460",
     "type": "B",
     "subcategories": [
-      {
-        "icon": "auto_graph",
-        "names": {
-          "pt": "Investimentos"
-        }
-      },
+
       {
         "icon": "account_balance_wallet",
         "names": {
@@ -466,10 +433,11 @@
     "color": "2A6478",
     "type": "E",
     "subcategories": [
-      {
+
+{
         "icon": "landscape",
         "names": {
-          "pt": "Lazer"
+          "pt": "Assinaturas Digitais"
         }
       },
       {
@@ -537,12 +505,7 @@
     "color": "3D642D",
     "type": "E",
     "subcategories": [
-      {
-        "icon": "shopping_bag",
-        "names": {
-          "pt": "Compras"
-        }
-      },
+
       {
         "icon": "library_books",
         "names": {
@@ -568,19 +531,19 @@
         }
       },
       {
-        "icon": "shopping_cart_checkout",
+        "icon": "shopping_cart",
         "names": {
           "pt": "Compras online"
         }
       },
       {
-        "icon": "sports_bar",
+        "icon": "shopping_bag",
         "names": {
           "pt": "Artigos esportivos"
         }
       },
       {
-        "icon": "child_friendly",
+        "icon": "shopping_bag",
         "names": {
           "pt": "Artigos infantis"
         }
@@ -609,11 +572,10 @@
     "color": "84C3BE",
     "type": "E",
     "subcategories": [
-
       {
-        "icon": "tram",
+        "icon": "specar_repair",
         "names": {
-          "pt": "Transporte"
+          "pt": "Despesas Veículo Particular"
         }
       },
       {
@@ -641,21 +603,33 @@
         }
       },
       {
+        "icon": "flight_takeoff",
+        "names": {
+          "pt": "Transporte Áereo"
+        }
+      },
+      {
         "icon": "car_repair",
         "names": {
           "pt": "Manutenção"
         }
       },
       {
-        "icon": "taxi_alert",
+        "icon": "local_taxi",
         "names": {
           "pt": "Táxi e transporte privado urbano"
         }
       },
-      {
-        "icon": "directions_bus",
+     {
+        "icon": "gas_station",
         "names": {
-          "pt": "Passagem de ônibus"
+          "pt": "Postos de gasolina"
+        }
+      },
+      {
+        "icon": "tram",
+        "names": {
+          "pt": "Transporte público"
         }
       },
       {
@@ -665,17 +639,12 @@
         }
       },
       {
-        "icon": "bike_scooter",
+        "icon": "pedal",
         "names": {
           "pt": "Aluguel de bicicletas"
         }
       },
-      {
-        "icon": "local_gas_station",
-        "names": {
-          "pt": "Postos de gasolina"
-        }
-      },
+ 
       {
         "icon": "parking",
         "names": {
@@ -700,12 +669,15 @@
     "color": "403A3A",
     "type": "B",
     "subcategories": [
+
 {
-        "icon": "inventory_2",
+        "icon": "pix",
         "names": {
-          "pt": "Outros"
+          "pt": "Transferência Bancária"
         }
       },
+
+
       {
         "icon": "inventory_2",
         "names": {

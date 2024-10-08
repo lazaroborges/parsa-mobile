@@ -83,6 +83,13 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
 
   for (final apiTransaction in apiTransactions) {
     try {
+      // Decode UTF-8 for fields that might contain special characters
+      final transactionCategory =
+          utf8.decode(apiTransaction.transactionCategory.runes.toList());
+      final description = apiTransaction.description != null
+          ? utf8.decode(apiTransaction.description!.runes.toList())
+          : 'No Description';
+
       // Fetch currency, default to 'BRL' if not provided
       final currencyCode = apiTransaction.currency ?? 'BRL';
       CurrencyInDB? currency =
@@ -105,11 +112,11 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
 
       // Fetch category
       CategoryInDB? categoryInDB = await CategoryService.instance
-          .getCategoryByName(apiTransaction.transactionCategory)
+          .getCategoryByName(transactionCategory)
           .first;
       if (categoryInDB == null) {
         print(
-            'Category not found for name: ${apiTransaction.transactionCategory}. Skipping transaction ID: ${apiTransaction.id}');
+            'Category not found for name: $transactionCategory. Skipping transaction ID: ${apiTransaction.id}');
         continue;
       }
 
@@ -124,7 +131,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
       // Create MoneyTransaction instance
       MoneyTransaction transaction = MoneyTransaction(
         id: apiTransaction.id,
-        title: apiTransaction.description ?? 'No Description',
+        title: description,
         value: apiTransaction.amount,
         isHidden: apiTransaction.notes?.isNotEmpty ?? false,
         type: type,
