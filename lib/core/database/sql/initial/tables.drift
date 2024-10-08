@@ -110,6 +110,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   -- Some description, notes or extra info about the transaction.
   notes TEXT,
 
+  isOpenFinance BOOLEAN NOT NULL DEFAULT 0,
+
   -- Whether the transacton is an income, an expense or a transfer
   type ENUMNAME(TransactionType) NOT NULL CHECK(type IN ('E', 'I', 'T')),
   

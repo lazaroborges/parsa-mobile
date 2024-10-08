@@ -132,6 +132,7 @@ class TransactionViewActionService {
           receivingAccountID: transaction.receivingAccountID,
           status: transaction.status,
           valueInDestiny: transaction.valueInDestiny,
+          isOpenFinance: transaction.isOpenFinance,
         ),
       )
           .then((value) {

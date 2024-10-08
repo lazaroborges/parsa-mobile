@@ -51,6 +51,8 @@ class ApiTransaction {
 
   final bool considered;
 
+  final bool isOpenFinance;
+
   ApiTransaction({
     required this.id,
     this.description,
@@ -63,6 +65,7 @@ class ApiTransaction {
     required this.transactionDate,
     this.status,
     required this.considered,
+    required this.isOpenFinance,
   });
 
   /// Factory constructor for creating a new `ApiTransaction` instance from JSON.

@@ -191,6 +191,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         intervalEach: recurrentRule.intervalEach,
         intervalPeriod: recurrentRule.intervalPeriod,
         endDate: recurrentRule.ruleRecurrentLimit?.endDate,
+        isOpenFinance: false,
         remainingTransactions:
             recurrentRule.ruleRecurrentLimit?.remainingIterations,
         valueInDestiny: transactionType.isTransfer &&

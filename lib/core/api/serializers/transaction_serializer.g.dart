@@ -20,6 +20,7 @@ ApiTransaction _$ApiTransactionFromJson(Map<String, dynamic> json) =>
           ApiTransaction._parseDate(json['transactionDate'] as String),
       status: json['status'] as String?,
       considered: json['considered'] as bool,
+      isOpenFinance: json['isOpenFinance'] as bool,
     );
 
 Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
@@ -35,4 +36,5 @@ Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
       'transactionDate': ApiTransaction._dateToJson(instance.transactionDate),
       'status': instance.status,
       'considered': instance.considered,
+      'isOpenFinance': instance.isOpenFinance,
     };

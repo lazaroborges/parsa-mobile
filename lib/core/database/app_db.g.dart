@@ -1498,6 +1498,14 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _isOpenFinanceMeta =
+      const VerificationMeta('isOpenFinance');
+  late final GeneratedColumn<bool> isOpenFinance = GeneratedColumn<bool>(
+      'isOpenFinance', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumnWithTypeConverter<TransactionType, String> type =
       GeneratedColumn<String>('type', aliasedName, false,
@@ -1605,6 +1613,7 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
         value,
         title,
         notes,
+        isOpenFinance,
         type,
         status,
         categoryID,
@@ -1659,6 +1668,12 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
     if (data.containsKey('notes')) {
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+    }
+    if (data.containsKey('isOpenFinance')) {
+      context.handle(
+          _isOpenFinanceMeta,
+          isOpenFinance.isAcceptableOrUnknown(
+              data['isOpenFinance']!, _isOpenFinanceMeta));
     }
     context.handle(_typeMeta, const VerificationResult.success());
     context.handle(_statusMeta, const VerificationResult.success());
@@ -1740,6 +1755,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           .read(DriftSqlType.string, data['${effectivePrefix}title']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      isOpenFinance: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}isOpenFinance'])!,
       type: Transactions.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
       status: Transactions.$converterstatusn.fromSql(attachedDatabase
@@ -1818,6 +1835,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
 
   /// Some description, notes or extra info about the transaction.
   final String? notes;
+  final bool isOpenFinance;
 
   /// Whether the transacton is an income, an expense or a transfer
   final TransactionType type;
@@ -1856,6 +1874,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       required this.value,
       this.title,
       this.notes,
+      required this.isOpenFinance,
       required this.type,
       this.status,
       this.categoryID,
@@ -1882,6 +1901,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['isOpenFinance'] = Variable<bool>(isOpenFinance);
     {
       map['type'] = Variable<String>(Transactions.$convertertype.toSql(type));
     }
@@ -1934,6 +1954,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           title == null && nullToAbsent ? const Value.absent() : Value(title),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      isOpenFinance: Value(isOpenFinance),
       type: Value(type),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
@@ -1981,6 +2002,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       value: serializer.fromJson<double>(json['value']),
       title: serializer.fromJson<String?>(json['title']),
       notes: serializer.fromJson<String?>(json['notes']),
+      isOpenFinance: serializer.fromJson<bool>(json['isOpenFinance']),
       type: Transactions.$convertertype
           .fromJson(serializer.fromJson<String>(json['type'])),
       status: Transactions.$converterstatusn
@@ -2011,6 +2033,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       'value': serializer.toJson<double>(value),
       'title': serializer.toJson<String?>(title),
       'notes': serializer.toJson<String?>(notes),
+      'isOpenFinance': serializer.toJson<bool>(isOpenFinance),
       'type':
           serializer.toJson<String>(Transactions.$convertertype.toJson(type)),
       'status': serializer
@@ -2037,6 +2060,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           double? value,
           Value<String?> title = const Value.absent(),
           Value<String?> notes = const Value.absent(),
+          bool? isOpenFinance,
           TransactionType? type,
           Value<TransactionStatus?> status = const Value.absent(),
           Value<String?> categoryID = const Value.absent(),
@@ -2057,6 +2081,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         value: value ?? this.value,
         title: title.present ? title.value : this.title,
         notes: notes.present ? notes.value : this.notes,
+        isOpenFinance: isOpenFinance ?? this.isOpenFinance,
         type: type ?? this.type,
         status: status.present ? status.value : this.status,
         categoryID: categoryID.present ? categoryID.value : this.categoryID,
@@ -2087,6 +2112,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       value: data.value.present ? data.value.value : this.value,
       title: data.title.present ? data.title.value : this.title,
       notes: data.notes.present ? data.notes.value : this.notes,
+      isOpenFinance: data.isOpenFinance.present
+          ? data.isOpenFinance.value
+          : this.isOpenFinance,
       type: data.type.present ? data.type.value : this.type,
       status: data.status.present ? data.status.value : this.status,
       categoryID:
@@ -2127,6 +2155,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           ..write('value: $value, ')
           ..write('title: $title, ')
           ..write('notes: $notes, ')
+          ..write('isOpenFinance: $isOpenFinance, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -2152,6 +2181,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       value,
       title,
       notes,
+      isOpenFinance,
       type,
       status,
       categoryID,
@@ -2175,6 +2205,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           other.value == this.value &&
           other.title == this.title &&
           other.notes == this.notes &&
+          other.isOpenFinance == this.isOpenFinance &&
           other.type == this.type &&
           other.status == this.status &&
           other.categoryID == this.categoryID &&
@@ -2197,6 +2228,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   final Value<double> value;
   final Value<String?> title;
   final Value<String?> notes;
+  final Value<bool> isOpenFinance;
   final Value<TransactionType> type;
   final Value<TransactionStatus?> status;
   final Value<String?> categoryID;
@@ -2218,6 +2250,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.value = const Value.absent(),
     this.title = const Value.absent(),
     this.notes = const Value.absent(),
+    this.isOpenFinance = const Value.absent(),
     this.type = const Value.absent(),
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2240,6 +2273,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     required double value,
     this.title = const Value.absent(),
     this.notes = const Value.absent(),
+    this.isOpenFinance = const Value.absent(),
     required TransactionType type,
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2266,6 +2300,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     Expression<double>? value,
     Expression<String>? title,
     Expression<String>? notes,
+    Expression<bool>? isOpenFinance,
     Expression<String>? type,
     Expression<String>? status,
     Expression<String>? categoryID,
@@ -2288,6 +2323,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       if (value != null) 'value': value,
       if (title != null) 'title': title,
       if (notes != null) 'notes': notes,
+      if (isOpenFinance != null) 'isOpenFinance': isOpenFinance,
       if (type != null) 'type': type,
       if (status != null) 'status': status,
       if (categoryID != null) 'categoryID': categoryID,
@@ -2313,6 +2349,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       Value<double>? value,
       Value<String?>? title,
       Value<String?>? notes,
+      Value<bool>? isOpenFinance,
       Value<TransactionType>? type,
       Value<TransactionStatus?>? status,
       Value<String?>? categoryID,
@@ -2334,6 +2371,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       value: value ?? this.value,
       title: title ?? this.title,
       notes: notes ?? this.notes,
+      isOpenFinance: isOpenFinance ?? this.isOpenFinance,
       type: type ?? this.type,
       status: status ?? this.status,
       categoryID: categoryID ?? this.categoryID,
@@ -2372,6 +2410,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
+    }
+    if (isOpenFinance.present) {
+      map['isOpenFinance'] = Variable<bool>(isOpenFinance.value);
     }
     if (type.present) {
       map['type'] =
@@ -2430,6 +2471,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
           ..write('value: $value, ')
           ..write('title: $title, ')
           ..write('notes: $notes, ')
+          ..write('isOpenFinance: $isOpenFinance, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -4629,6 +4671,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           type: Transactions.$convertertype.fromSql(row.read<String>('type')),
           notes: row.readNullable<String>('notes'),
           title: row.readNullable<String>('title'),
+          isOpenFinance: row.read<bool>('isOpenFinance'),
           status: NullAwareTypeConverter.wrapFromSql(
               Transactions.$converterstatus,
               row.readNullable<String>('status')),
@@ -5677,6 +5720,7 @@ typedef $TransactionsCreateCompanionBuilder = TransactionsCompanion Function({
   required double value,
   Value<String?> title,
   Value<String?> notes,
+  Value<bool> isOpenFinance,
   required TransactionType type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -5699,6 +5743,7 @@ typedef $TransactionsUpdateCompanionBuilder = TransactionsCompanion Function({
   Value<double> value,
   Value<String?> title,
   Value<String?> notes,
+  Value<bool> isOpenFinance,
   Value<TransactionType> type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -5738,6 +5783,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<double> value = const Value.absent(),
             Value<String?> title = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<bool> isOpenFinance = const Value.absent(),
             Value<TransactionType> type = const Value.absent(),
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -5760,6 +5806,7 @@ class $TransactionsTableManager extends RootTableManager<
             value: value,
             title: title,
             notes: notes,
+            isOpenFinance: isOpenFinance,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -5782,6 +5829,7 @@ class $TransactionsTableManager extends RootTableManager<
             required double value,
             Value<String?> title = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<bool> isOpenFinance = const Value.absent(),
             required TransactionType type,
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -5804,6 +5852,7 @@ class $TransactionsTableManager extends RootTableManager<
             value: value,
             title: title,
             notes: notes,
+            isOpenFinance: isOpenFinance,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -5847,6 +5896,11 @@ class $TransactionsFilterComposer
 
   ColumnFilters<String> get notes => $state.composableBuilder(
       column: $state.table.notes,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get isOpenFinance => $state.composableBuilder(
+      column: $state.table.isOpenFinance,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -5986,6 +6040,11 @@ class $TransactionsOrderingComposer
 
   ColumnOrderings<String> get notes => $state.composableBuilder(
       column: $state.table.notes,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get isOpenFinance => $state.composableBuilder(
+      column: $state.table.isOpenFinance,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

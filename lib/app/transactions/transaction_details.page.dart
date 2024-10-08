@@ -1,3 +1,6 @@
+// lib/app/transactions/transaction_details.page.dart
+// This is the Widget that shows the info of the files.
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
@@ -12,7 +15,6 @@ import 'package:parsa/core/models/supported-icon/supported_icon.dart';
 import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
-import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/core/presentation/widgets/monekin_quick_actions_buttons.dart';
@@ -544,7 +546,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                   icon: MoneyTransaction.reversedIcon,
                                   title: t.transaction.reversed.title),
                             CardWithHeader(
-                              title: 'Info',
+                              title: 'Informações da Transação',
                               body: LabelValueInfoTable(
                                 items: [
                                   LabelValueInfoItem(
@@ -646,110 +648,110 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                 body: Text(transaction.notes!),
                               )
                             ],
-                            StreamBuilder(
-                                stream: CurrencyService.instance
-                                    .getUserPreferredCurrency(),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData ||
-                                      snapshot.data!.code ==
-                                          transaction.account.currencyId) {
-                                    return Container();
-                                  }
+                            // StreamBuilder(
+                            //     stream: CurrencyService.instance
+                            //         .getUserPreferredCurrency(),
+                            //     builder: (context, snapshot) {
+                            //       if (!snapshot.hasData ||
+                            //           snapshot.data!.code ==
+                            //               transaction.account.currencyId) {
+                            //         return Container();
+                            //       }
 
-                                  final userCurrency = snapshot.data!;
+                            // final userCurrency = snapshot.data!;
 
-                                  return Container(
-                                    margin: const EdgeInsets.only(top: 16),
-                                    child: CardWithHeader(
-                                      title: t.transaction.form
-                                          .exchange_to_preferred_title(
-                                              currency: userCurrency.code),
-                                      body: Column(
-                                        children: [
-                                          StreamBuilder(
-                                              stream: ExchangeRateService
-                                                  .instance
-                                                  .getLastExchangeRateOf(
-                                                    currencyCode: transaction
-                                                        .account.currency.code,
-                                                    date: DateTime.now(),
-                                                  )
-                                                  .map((event) =>
-                                                      event?.exchangeRate ?? 1),
-                                              initialData: 1,
-                                              builder: (context, snapshot) {
-                                                return buildInfoListTile(
-                                                  title: t.general.today,
-                                                  subtitle: Row(
-                                                    children: [
-                                                      const Icon(
-                                                        Icons
-                                                            .currency_exchange_rounded,
-                                                        size: 12,
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                          '1 ${transaction.account.currency.code} = ${snapshot.data} ${userCurrency.code}')
-                                                    ],
-                                                  ),
-                                                  trailing: CurrencyDisplayer(
-                                                    currency: userCurrency,
-                                                    integerStyle:
-                                                        const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                    amountToConvert:
-                                                        snapshot.data! *
-                                                            transaction.value,
-                                                  ),
-                                                );
-                                              }),
-                                          StreamBuilder(
-                                              stream: ExchangeRateService
-                                                  .instance
-                                                  .getLastExchangeRateOf(
-                                                    currencyCode: transaction
-                                                        .account.currency.code,
-                                                    date: transaction.date,
-                                                  )
-                                                  .map((event) =>
-                                                      event?.exchangeRate ?? 1),
-                                              initialData: 1,
-                                              builder: (context, snapshot) {
-                                                return buildInfoListTile(
-                                                  title: t.transaction.form
-                                                      .exchange_to_preferred_in_date,
-                                                  subtitle: Row(
-                                                    children: [
-                                                      const Icon(
-                                                        Icons
-                                                            .currency_exchange_rounded,
-                                                        size: 12,
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                          '1 ${transaction.account.currency.code} = ${snapshot.data} ${userCurrency.code}')
-                                                    ],
-                                                  ),
-                                                  trailing: CurrencyDisplayer(
-                                                    currency: userCurrency,
-                                                    integerStyle:
-                                                        const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                    amountToConvert:
-                                                        snapshot.data! *
-                                                            transaction.value,
-                                                  ),
-                                                );
-                                              }),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
+                            // // return Container(
+                            // //   margin: const EdgeInsets.only(top: 16),
+                            // //   child: CardWithHeader(
+                            // //     title: t.transaction.form
+                            // //         .exchange_to_preferred_title(
+                            // //             currency: userCurrency.code),
+                            // //     body: Column(
+                            // //       children: [
+                            // //         StreamBuilder(
+                            // //             stream: ExchangeRateService
+                            // //                 .instance
+                            // //                 .getLastExchangeRateOf(
+                            // //                   currencyCode: transaction
+                            // //                       .account.currency.code,
+                            // //                   date: DateTime.now(),
+                            // //                 )
+                            // //                 .map((event) =>
+                            // //                     event?.exchangeRate ?? 1),
+                            // //             initialData: 1,
+                            // //             builder: (context, snapshot) {
+                            // //               return buildInfoListTile(
+                            // //                 title: t.general.today,
+                            // //                 subtitle: Row(
+                            // //                   children: [
+                            // //                     const Icon(
+                            // //                       Icons
+                            // //                           .currency_exchange_rounded,
+                            // //                       size: 12,
+                            // //                     ),
+                            // //                     const SizedBox(width: 4),
+                            // //                     Text(
+                            // //                         '1 ${transaction.account.currency.code} = ${snapshot.data} ${userCurrency.code}')
+                            // //                   ],
+                            // //                 ),
+                            // //                 trailing: CurrencyDisplayer(
+                            // //                   currency: userCurrency,
+                            // //                   integerStyle:
+                            // //                       const TextStyle(
+                            // //                     fontWeight:
+                            // //                         FontWeight.w700,
+                            // //                   ),
+                            // //                   amountToConvert:
+                            // //                       snapshot.data! *
+                            // //                           transaction.value,
+                            // //                 ),
+                            // //               );
+                            // //             }),
+                            // //         StreamBuilder(
+                            // //             stream: ExchangeRateService
+                            // //                 .instance
+                            // //                 .getLastExchangeRateOf(
+                            // //                   currencyCode: transaction
+                            // //                       .account.currency.code,
+                            // //                   date: transaction.date,
+                            // //                 )
+                            // //                 .map((event) =>
+                            // //                     event?.exchangeRate ?? 1),
+                            // //             initialData: 1,
+                            // //             builder: (context, snapshot) {
+                            // //               return buildInfoListTile(
+                            // //                 title: t.transaction.form
+                            // //                     .exchange_to_preferred_in_date,
+                            // //                 subtitle: Row(
+                            // //                   children: [
+                            // //                     const Icon(
+                            // //                       Icons
+                            // //                           .currency_exchange_rounded,
+                            // //                       size: 12,
+                            // //                     ),
+                            // //                     const SizedBox(width: 4),
+                            // //                     Text(
+                            // //                         '1 ${transaction.account.currency.code} = ${snapshot.data} ${userCurrency.code}')
+                            // //                   ],
+                            // //                 ),
+                            // //                 trailing: CurrencyDisplayer(
+                            // //                   currency: userCurrency,
+                            // //                   integerStyle:
+                            // //                       const TextStyle(
+                            // //                     fontWeight:
+                            // //                         FontWeight.w700,
+                            // //                   ),
+                            // //                   amountToConvert:
+                            // //                       snapshot.data! *
+                            // //                           transaction.value,
+                            // //                 ),
+                            // //               );
+                            // //             }),
+                            // //       ],
+                            // //     ),
+                            // //   ),
+                            // );
+                            // }),
                             const SizedBox(height: 16),
                             CardWithHeader(
                               title: t.general.quick_actions,

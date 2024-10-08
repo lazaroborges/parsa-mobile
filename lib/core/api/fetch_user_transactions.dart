@@ -120,6 +120,21 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         continue;
       }
 
+      // Fetch parent category if exists
+      CategoryInDB? parentCategoryInDB;
+      if (categoryInDB.parentCategoryID != null) {
+        parentCategoryInDB = await CategoryService.instance
+            .getCategoryById(categoryInDB.parentCategoryID!)
+            .first;
+        if (parentCategoryInDB == null) {
+          print(
+              'Parent category not found for ID: ${categoryInDB.parentCategoryID}. Skipping transaction ID: ${apiTransaction.id}');
+          continue;
+        }
+      }
+
+      // Determine if the category is a main category or a subcategory
+
       // Map transaction type
       TransactionType type =
           _mapTransactionType(apiTransaction.transactionType);
@@ -144,6 +159,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         locAddress: null,
         locLatitude: null,
         locLongitude: null,
+        isOpenFinance: apiTransaction.isOpenFinance,
         endDate: null,
         intervalEach: null,
         intervalPeriod: null,
@@ -233,6 +249,7 @@ extension MoneyTransactionExtension on MoneyTransaction {
       accountID: account.id,
       categoryID: category!.id,
       status: status,
+      isOpenFinance: isOpenFinance,
     );
   }
 }

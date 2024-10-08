@@ -258,6 +258,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
           accountID: accountID,
           value: trValue,
           isHidden: false,
+          isOpenFinance: false,
           categoryID: categoryID,
           notes: notesColumn == null || row[notesColumn!].toString().isEmpty
               ? null

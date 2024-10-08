@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -28,6 +27,8 @@ class MoneyTransaction extends TransactionInDB {
 
   DateTime? lastUpdateTime;
 
+  bool isOpenFinance;
+
   MoneyTransaction(
       {required super.id, //
       required super.date, //
@@ -36,6 +37,7 @@ class MoneyTransaction extends TransactionInDB {
       required super.type, //
       super.notes,
       super.title,
+      this.isOpenFinance = false, // Set default value to false
       super.status, // to not consider a transaction, use enum 'notconsidered' (same as !isConsidered in the Backend)
       super.valueInDestiny,
       super.locAddress,
@@ -76,6 +78,7 @@ class MoneyTransaction extends TransactionInDB {
           accountID: account.id,
           categoryID: category?.id,
           receivingAccountID: receivingAccount?.id,
+          isOpenFinance: isOpenFinance,
         );
 
   bool get isTransfer => type.isTransfer;
