@@ -6,6 +6,8 @@ import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:parsa/core/api/post_methods/post_user_transaction.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 
 import '../../../models/transaction/transaction_type.enum.dart';
 
@@ -43,18 +45,30 @@ class TransactionService {
   }
 
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction) async {
-    // Check if the transaction already exists
-    final existing = await (db.select(db.transactions)
-          ..where((t) => t.id.equals(transaction.id)))
-        .getSingleOrNull();
-
-    if (existing != null) {
-      print('Updating existing transaction: ${transaction.id}');
-    } else {
-      print('Inserting new transaction: ${transaction.id}');
-    }
-
     try {
+      // Retrieve the access token from your authentication service
+      final auth0 = getAuth0Instance();
+      final credentials = await auth0.credentialsManager.credentials();
+
+      // Post the transaction to the API
+      bool isPosted = await PostUserTransactionService.postUserTransaction(
+          transaction, credentials.accessToken);
+
+      if (!isPosted) {
+        throw Exception('Failed to post transaction to the API.');
+      }
+
+      // Check if the transaction already exists
+      final existing = await (db.select(db.transactions)
+            ..where((t) => t.id.equals(transaction.id)))
+          .getSingleOrNull();
+
+      if (existing != null) {
+        print('Updating existing transaction: ${transaction.id}');
+      } else {
+        print('Inserting new transaction: ${transaction.id}');
+      }
+
       final result = await db.into(db.transactions).insert(
             transaction,
             mode: InsertMode.insertOrReplace,

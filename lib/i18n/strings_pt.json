@@ -311,8 +311,8 @@
         "negative-transfer": "O valor monetário de uma transferência não pode ser negativo",
         "transfer-between-same-accounts": "A conta de origem e a conta de destino não podem ser a mesma"
       },
-      "title": "Título da transação",
-      "title.short": "Título",
+      "title": "Descrição da Transação",
+      "title.short": "Descrição",
       "value": "Valor da transação",
       "tap-to-see-more": "Toque para ver mais detalhes",
       "no-tags": "-- Sem tags --",

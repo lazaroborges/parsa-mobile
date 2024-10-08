@@ -213,7 +213,7 @@
       {
         "icon": "percent",
         "names": {
-          "pt": "Juros"
+          "pt": "Juros / Multas por Atraso"
         }
       },
       {
@@ -364,6 +364,7 @@
           "pt": "Venda de Ativos"
         }
       },
+
       {
         "icon": "home",
         "names": {
@@ -414,7 +415,7 @@
       {
         "icon": "payments",
         "names": {
-          "pt": "Investimentos "
+          "pt": "Investimentos"
         }
       },
       {

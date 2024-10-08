@@ -63,7 +63,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
 
   double transactionAmount = 0;
 
-  TransactionStatus? status;
+  TransactionStatus? status =
+      TransactionStatus.reconciled; // Default to reconciled
 
   String? title;
 
@@ -74,6 +75,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   List<Tag> get tags => moreInfo.tags;
 
   TransactionMoreInfo moreInfo = const TransactionMoreInfo();
+
+  bool _highlightTitle = false; // Add this state variable
 
   @override
   void initState() {
@@ -111,14 +114,35 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   }
 
   submitForm() {
+    final t = Translations.of(context);
+    final scMessenger = ScaffoldMessenger.of(context);
+
+    if (title == null || title!.isEmpty) {
+      scMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Dê um nome a sua transação'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      setState(() {
+        _highlightTitle = true; // Trigger the highlight
+      });
+
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        setState(() {
+          _highlightTitle = false; // Remove the highlight after 500 ms
+        });
+      });
+
+      return;
+    }
+
     if (transactionType.isIncomeOrExpense && selectedCategory == null ||
         transactionType.isTransfer && moreInfo.transferAccount == null) {
       _shakeKey.currentState?.shake();
       return;
     }
-
-    final t = Translations.of(context);
-    final scMessenger = ScaffoldMessenger.of(context);
 
     if (transactionAmount == 0) {
       scMessenger.showSnackBar(
@@ -710,7 +734,12 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
               moreInfo = modalRes;
             });
           }),
-          icon: const Icon(Icons.notes_rounded),
+          icon: Transform.rotate(
+            angle:
+                -45 * (3.1415926535897932 / 180), // Convert degrees to radians
+            child: const Icon(Icons.label),
+          ),
+          tooltip: 'Adicionar Tags',
         ),
       ],
     );
@@ -813,14 +842,19 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         ),
         alignment: Alignment.centerLeft,
       ),
-      child: Text(
-        title.notEmptyString ?? t.transaction.form.title,
-        softWrap: false,
-        overflow: TextOverflow.fade,
-        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              fontWeight:
-                  title.isNotNullNorEmpty ? FontWeight.w400 : FontWeight.w300,
-            ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        color:
+            _highlightTitle ? Colors.red.withOpacity(0.2) : Colors.transparent,
+        child: Text(
+          title.notEmptyString ?? t.transaction.form.title,
+          softWrap: false,
+          overflow: TextOverflow.fade,
+          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                fontWeight:
+                    title.isNotNullNorEmpty ? FontWeight.w400 : FontWeight.w300,
+              ),
+        ),
       ),
     );
   }
