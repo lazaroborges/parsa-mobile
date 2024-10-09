@@ -42,11 +42,18 @@ class TransactionStatusSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
 
+    // Define the statuses you want to exclude
+    final excludedStatuses = {
+      TransactionStatus.pending,
+      TransactionStatus.unreconciled,
+      TransactionStatus.voided
+    };
+
     return DraggableScrollableSheet(
       expand: false,
-      maxChildSize: 0.85,
-      minChildSize: 0.65,
-      initialChildSize: 0.85,
+      maxChildSize: 0.65,
+      minChildSize: 0.4,
+      initialChildSize: 0.50,
       builder: (context, sc) => ModalContainer(
         title: t.transaction.status.display_long,
         responseToKeyboard: false,
@@ -56,8 +63,10 @@ class TransactionStatusSelector extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Column(
             children: [
-              buildTransactionButton(context, null),
+              // Removed the null option
               ...TransactionStatus.values
+                  .where((e) => !excludedStatuses
+                      .contains(e)) // Filter out excluded statuses
                   .map((e) => buildTransactionButton(context, e))
             ],
           ),

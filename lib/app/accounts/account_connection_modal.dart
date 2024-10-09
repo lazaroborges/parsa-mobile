@@ -69,6 +69,7 @@ class AccountConnectionModal extends StatelessWidget {
                         children: [
                           const SizedBox(
                               width: 48), // Placeholder for alignment
+
                           Text(
                             'Criar conta',
                             style: theme.textTheme.titleLarge?.copyWith(
@@ -93,7 +94,7 @@ class AccountConnectionModal extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.left,
                       ),
                       const SizedBox(height: 16),
                       // Options
@@ -118,12 +119,14 @@ class AccountConnectionModal extends StatelessWidget {
                               );
                             },
                             image: Container(
-                              width: 120, // Adjust size as needed
-                              height: 30, // Adjust size as needed
+                              width: 100, // Adjust size as needed
+                              height: 25, // Adjust size as needed
                               padding: const EdgeInsets.only(
                                   left: 5, right: 12, bottom: 2),
                               child: Image.asset(
                                 'assets/icons/supported_selectable_icons/logos/open/logo.png',
+                                fit: BoxFit.contain,
+                                alignment: Alignment.centerLeft,
                               ),
                             ),
                           ),
@@ -195,12 +198,12 @@ class AccountConnectionModal extends StatelessWidget {
           children: [
             // Option Icon
             Container(
-              width: 40,
-              height: 40,
+              width: 20,
+              height: 20,
               decoration: ShapeDecoration(
                 color: const Color.fromARGB(255, 255, 255, 255),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: Icon(
@@ -215,7 +218,8 @@ class AccountConnectionModal extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment:
+                        MainAxisAlignment.start, // Align items to the start
                     children: [
                       Text(
                         title,
@@ -226,7 +230,12 @@ class AccountConnectionModal extends StatelessWidget {
                         ),
                       ),
                       if (title == 'Automático' && image != null)
-                        image, // Conditionally include the image
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left:
+                                  6.0), // Add some space between title and image
+                          child: image, // Conditionally include the image
+                        ),
                     ],
                   ),
                   const SizedBox(height: 4),

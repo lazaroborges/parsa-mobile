@@ -4,6 +4,7 @@ import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_transaction.dart';
@@ -37,42 +38,55 @@ class TransactionService {
 
   Future<int> insertTransaction(TransactionInDB transaction) async {
     final toReturn = await db.into(db.transactions).insert(transaction);
-
-    // To update the getAccountsData() function results
-    // TODO: Check why we need this. The function already listen to changes in the transactions table
     db.markTablesUpdated([db.accounts]);
+
     return toReturn;
   }
 
-  Future<int> insertOrUpdateTransaction(TransactionInDB transaction) async {
+  Future<int> insertOrUpdateTransaction(TransactionInDB transaction,
+      [List<Tag> tags = const []]) async {
     try {
-      // Retrieve the access token from your authentication service
       final auth0 = getAuth0Instance();
       final credentials = await auth0.credentialsManager.credentials();
 
-      // Post the transaction to the API
-      bool isPosted = await PostUserTransactionService.postUserTransaction(
-          transaction, credentials.accessToken);
-
-      if (!isPosted) {
-        throw Exception('Failed to post transaction to the API.');
-      }
-
-      // Check if the transaction already exists
       final existing = await (db.select(db.transactions)
             ..where((t) => t.id.equals(transaction.id)))
           .getSingleOrNull();
 
       if (existing != null) {
         print('Updating existing transaction: ${transaction.id}');
+
+        bool isPosted = await PostUserTransactionService.postUserTransaction(
+            transaction: transaction,
+            accessToken: credentials.accessToken,
+            tags: tags, // Add this line
+            method: 'PUT');
+
+        if (!isPosted) {
+          throw Exception('Failed to post transaction to the API.');
+        }
       } else {
         print('Inserting new transaction: ${transaction.id}');
+
+        bool isPosted = await PostUserTransactionService.postUserTransaction(
+            transaction: transaction,
+            accessToken: credentials.accessToken,
+            tags: tags, // Add this line
+            method: 'POST');
+
+        if (!isPosted) {
+          throw Exception('Failed to post transaction to the API.');
+        }
       }
 
       final result = await db.into(db.transactions).insert(
             transaction,
             mode: InsertMode.insertOrReplace,
           );
+
+      // Insert or update tags for the transaction
+      await _updateTransactionTags(transaction.id, tags);
+
       db.markTablesUpdated([db.accounts]);
       return result;
     } catch (e) {
@@ -82,10 +96,37 @@ class TransactionService {
     }
   }
 
-  Future<int> deleteTransaction(String transactionId) {
-    return (db.delete(db.transactions)
-          ..where((tbl) => tbl.id.equals(transactionId)))
+  Future<void> _updateTransactionTags(
+      String transactionId, List<Tag> tags) async {
+    // Delete existing tags for the transaction
+    await (db.delete(db.transactionTags)
+          ..where((tbl) => tbl.transactionID.equals(transactionId)))
         .go();
+
+    // Insert new tags
+    for (var tag in tags) {
+      await db
+          .into(db.transactionTags)
+          .insert(TransactionTag(transactionID: transactionId, tagID: tag.id));
+    }
+  }
+
+  Future<int> deleteTransaction(String transactionId) async {
+    final auth0 = getAuth0Instance();
+
+    // Retrieve the access token from the Auth0 instance
+    final credentials = await auth0.credentialsManager.credentials();
+    // Post the account to the API
+    bool isPut = await PostUserTransactionService.deleteUserTransaction(
+        transactionId, credentials.accessToken);
+
+    if (!isPut) {
+      throw Exception('Failed to post account to the API.');
+    } else {
+      return (db.delete(db.transactions)
+            ..where((tbl) => tbl.id.equals(transactionId)))
+          .go();
+    }
   }
 
   Stream<List<MoneyTransaction>> getTransactionsFromPredicate({

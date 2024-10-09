@@ -227,6 +227,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         receivingAccountID:
             transactionType.isTransfer ? moreInfo.transferAccount?.id : null,
       ),
+      tags,
     )
         .then((value) {
       final db = AppDB.instance;

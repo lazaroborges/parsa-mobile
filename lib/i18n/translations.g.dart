@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 545
 ///
-/// Built on 2024-10-07 at 22:54 UTC
+/// Built on 2024-10-08 at 22:20 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -809,8 +809,8 @@ class _TranslationsTransactionFormPt {
 
 	// Translations
 	late final _TranslationsTransactionFormValidatorsPt validators = _TranslationsTransactionFormValidatorsPt._(_root);
-	String get title => 'Título da transação';
-	String get title_short => 'Título';
+	String get title => 'Descrição da Transação';
+	String get title_short => 'Descrição';
 	String get value => 'Valor da transação';
 	String get tap_to_see_more => 'Toque para ver mais detalhes';
 	String get no_tags => '-- Sem tags --';
@@ -849,7 +849,7 @@ class _TranslationsTransactionStatusPt {
 	String get none => 'Sem status';
 	String get none_descr => 'Transação sem status específico';
 	String get reconciled => 'Conciliada';
-	String get reconciled_descr => 'Esta transação já foi validada e corresponde a uma transação real do seu banco';
+	String get reconciled_descr => 'Esta transação conta para seus insights e saldos.';
 	String get unreconciled => 'Não conciliada';
 	String get unreconciled_descr => 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 	String get notconsidered => 'Desconsiderada';
@@ -1724,8 +1724,8 @@ extension on Translations {
 			case 'transaction.form.validators.date_after_account_creation': return 'Você não pode criar uma transação cuja data seja anterior à data de criação da conta a que pertence';
 			case 'transaction.form.validators.negative_transfer': return 'O valor monetário de uma transferência não pode ser negativo';
 			case 'transaction.form.validators.transfer_between_same_accounts': return 'A conta de origem e a conta de destino não podem ser a mesma';
-			case 'transaction.form.title': return 'Título da transação';
-			case 'transaction.form.title_short': return 'Título';
+			case 'transaction.form.title': return 'Descrição da Transação';
+			case 'transaction.form.title_short': return 'Descrição';
 			case 'transaction.form.value': return 'Valor da transação';
 			case 'transaction.form.tap_to_see_more': return 'Toque para ver mais detalhes';
 			case 'transaction.form.no_tags': return '-- Sem tags --';
@@ -1746,7 +1746,7 @@ extension on Translations {
 			case 'transaction.status.none': return 'Sem status';
 			case 'transaction.status.none_descr': return 'Transação sem status específico';
 			case 'transaction.status.reconciled': return 'Conciliada';
-			case 'transaction.status.reconciled_descr': return 'Esta transação já foi validada e corresponde a uma transação real do seu banco';
+			case 'transaction.status.reconciled_descr': return 'Esta transação conta para seus insights e saldos.';
 			case 'transaction.status.unreconciled': return 'Não conciliada';
 			case 'transaction.status.unreconciled_descr': return 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 			case 'transaction.status.notconsidered': return 'Desconsiderada';
