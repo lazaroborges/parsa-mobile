@@ -80,6 +80,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       iban: apiAccount.number.isNotEmpty ? apiAccount.number : null,
       swift: null, // Set if applicable
       color: apiAccount.primaryColor,
+      isOpenFinance: apiAccount.isOpenFinance,
     );
 
     localAccounts.add(account);
@@ -127,6 +128,7 @@ extension AccountExtension on Account {
       iban: iban,
       swift: swift,
       color: color,
+      isOpenFinance: isOpenFinance,
     );
   }
 }

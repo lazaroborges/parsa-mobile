@@ -22,6 +22,7 @@ import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_di
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/presentation/widgets/parsa_quick_actions_buttons.dart';
 
 class AccountDetailsPage extends StatefulWidget {
   const AccountDetailsPage({
@@ -185,8 +186,19 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                           const SizedBox(height: 16),
                           CardWithHeader(
                             title: t.general.quick_actions,
-                            body: MonekinQuickActionsButton(
-                                actions: accountDetailsActions),
+                            body: account.isOpenFinance
+                                ? ParsaQuickActionsButtons(
+                                    onDisconnect: () {
+                                      // Implement disconnect logic here
+                                      print('Disconnect pressed');
+                                    },
+                                    onDelete: () {
+                                      // Implement delete logic here
+                                      print('Delete pressed');
+                                    },
+                                  )
+                                : MonekinQuickActionsButton(
+                                    actions: accountDetailsActions),
                           ),
                         ],
                       ),

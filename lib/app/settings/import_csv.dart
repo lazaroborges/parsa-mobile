@@ -219,6 +219,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
             balance: 0,
             lastUpdateTime: DateTime.now(),
             connectorID: '1',
+            isOpenFinance: false,
           ));
         }
 

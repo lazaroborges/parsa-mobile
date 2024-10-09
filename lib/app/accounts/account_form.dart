@@ -107,6 +107,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
       swift: _swiftController.text.isEmpty ? null : _swiftController.text,
       balance: newBalance,
       lastUpdateTime: DateTime.now(),
+      isOpenFinance: false,
       connectorID:
           _accountToEdit?.connectorID ?? '1', // Assign a valid connectorID
     );

@@ -64,7 +64,9 @@ CREATE TABLE IF NOT EXISTS accounts (
     -- New fields
     balance REAL NOT NULL DEFAULT 0,
     last_update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    connectorID TEXT NOT NULL DEFAULT '1'
+    connectorID TEXT NOT NULL DEFAULT '1',
+    isOpenFinance BOOLEAN NOT NULL DEFAULT 0
+
 ) AS AccountInDB;
 
 CREATE TABLE IF NOT EXISTS categories (

@@ -433,6 +433,19 @@
       "iban": "Número de Conta",
       "swift": "Agencia"
     },
+    "DISCONNECT": {
+      "title": "Desconectar",
+      "warning-header": "Desconectar conta?",
+      "warning-text": "Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Suas transações ainda permanecerão guardadas no Parsa.",
+      "success": "Conta desconectada com sucesso"
+    },
+    "DELETE-OPENFINANCE": {
+      "title": "Deletar conta",
+      "warning-header": "Deletar?",
+      "warning-text": "Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização das transações e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?",
+      "success": "Conta deletada com sucesso"
+    },
+
     "DELETE": {
       "warning-header": "Excluir conta?",
       "warning-text": "Essa ação excluirá essa conta e todas as suas transações",

@@ -1,0 +1,47 @@
+{
+    "names": {
+      "pt": "Investimentos"
+    },
+    "icon": "auto_graph",
+    "color": "1E2460",
+    "type": "T",
+    "subcategories": [
+
+      {
+        "icon": "account_balance_wallet",
+        "names": {
+          "pt": "Investimento automático"
+        }
+      },
+      {
+        "icon": "savings",
+        "names": {
+          "pt": "Renda fixa"
+        }
+      },
+      {
+        "icon": "account_balance",
+        "names": {
+          "pt": "Fundos multimercado"
+        }
+      },
+      {
+        "icon": "bar_chart",
+        "names": {
+          "pt": "Renda variável"
+        }
+      },
+      {
+        "icon": "payments",
+        "names": {
+          "pt": "Investimentos"
+        }
+      },
+      {
+        "icon": "percent",
+        "names": {
+          "pt": "Dividendos"
+        }
+      }
+    ]
+  },

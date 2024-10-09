@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 545
+/// Strings: 553
 ///
-/// Built on 2024-10-08 at 22:20 UTC
+/// Built on 2024-10-09 at 20:29 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -340,10 +340,10 @@ class _TranslationsTransactionPt {
 	String get duplicate_success => 'Transação clonada com sucesso';
 	String get delete => 'Excluir transação';
 	String get delete_warning_message => 'Essa ação é irreversível. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
-	String get delete_success => 'Transação excluída corretamente';
-	String get delete_multiple => 'Excluir transações';
+	String get delete_success => 'Transação excluída com sucesso.';
+	String get delete_multiple => 'Excluir com sucesso';
 	String delete_multiple_warning_message({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
-	String delete_multiple_success({required Object x}) => '${x} transações excluídas corretamente';
+	String delete_multiple_success({required Object x}) => '${x} transações excluídas com sucesso';
 	String get details => 'Detalhes do movimento';
 	late final _TranslationsTransactionNextPaymentsPt next_payments = _TranslationsTransactionNextPaymentsPt._(_root);
 	late final _TranslationsTransactionListPt list = _TranslationsTransactionListPt._(_root);
@@ -405,6 +405,8 @@ class _TranslationsAccountPt {
 	String get no_accounts => 'Nenhuma transação encontrada para exibir aqui. Adicione uma transação clicando no botão \'+\' na parte inferior';
 	late final _TranslationsAccountTypesPt types = _TranslationsAccountTypesPt._(_root);
 	late final _TranslationsAccountFormPt form = _TranslationsAccountFormPt._(_root);
+	late final _TranslationsAccountDisconnectPt disconnect = _TranslationsAccountDisconnectPt._(_root);
+	late final _TranslationsAccountDeleteOpenfinancePt delete_openfinance = _TranslationsAccountDeleteOpenfinancePt._(_root);
 	late final _TranslationsAccountDeletePt delete = _TranslationsAccountDeletePt._(_root);
 	late final _TranslationsAccountClosePt close = _TranslationsAccountClosePt._(_root);
 	late final _TranslationsAccountSelectPt select = _TranslationsAccountSelectPt._(_root);
@@ -442,22 +444,22 @@ class _TranslationsTagsPt {
 
 	// Translations
 	String display({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
-		one: 'Etiqueta',
-		other: 'Etiquetas',
+		one: 'Tag',
+		other: 'Tags',
 	);
 	late final _TranslationsTagsFormPt form = _TranslationsTagsFormPt._(_root);
-	String get empty_list => 'Você ainda não criou nenhuma etiqueta. Etiquetas e categorias são uma ótima maneira de categorizar seus movimentos';
-	String get without_tags => 'Sem etiquetas';
-	String get select => 'Selecionar etiquetas';
-	String get add => 'Adicionar etiqueta';
-	String get create => 'Criar etiqueta';
-	String get create_success => 'Etiqueta criada com sucesso';
-	String get already_exists => 'Este nome de etiqueta já existe. Talvez você queira editá-lo';
-	String get edit => 'Editar etiqueta';
-	String get edit_success => 'Etiqueta editada com sucesso';
-	String get delete_success => 'Etiqueta excluída com sucesso';
-	String get delete_warning_header => 'Excluir etiqueta?';
-	String get delete_warning_message => 'Essa ação não excluirá as transações que possuem essa etiqueta.';
+	String get empty_list => 'Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar seus movimentos';
+	String get without_tags => 'Sem tags';
+	String get select => 'Selecionar tags';
+	String get add => 'Adicionar tag';
+	String get create => 'Criar tag';
+	String get create_success => 'Tag criada com sucesso';
+	String get already_exists => 'Este nome de tag já existe. Talvez você queira editá-lo';
+	String get edit => 'Editar tag';
+	String get edit_success => 'Tag editada com sucesso';
+	String get delete_success => 'Tag excluída com sucesso';
+	String get delete_warning_header => 'Excluir tag?';
+	String get delete_warning_message => 'Essa ação não excluirá as transações que possuem essa tag.';
 }
 
 // Path: categories
@@ -469,11 +471,11 @@ class _TranslationsCategoriesPt {
 	// Translations
 	String get unknown => 'Categoria desconhecida';
 	String get create => 'Criar categoria';
-	String get create_success => 'Categoria criada corretamente';
+	String get create_success => 'Categoria criada com sucesso.';
 	String get new_category => 'Nova categoria';
 	String get already_exists => 'O nome desta categoria já existe. Talvez você queira editá-la';
 	String get edit => 'Editar categoria';
-	String get edit_success => 'Categoria editada corretamente';
+	String get edit_success => 'Categoria editada com sucesso.';
 	String get name => 'Nome da categoria';
 	String get type => 'Tipo de categoria';
 	String get both_types => 'Ambos os tipos';
@@ -488,7 +490,7 @@ class _TranslationsCategoriesPt {
 	String merge_warning1({required Object x, required Object from, required Object destiny}) => 'Todas as transações (${x}) associadas à categoria <b>${from}</b> serão movidas para a categoria <b>${destiny}</b>';
 	String merge_warning2({required Object from}) => 'A categoria <b>${from}</b> será excluída de forma irreversível.';
 	String get merge_success => 'Categoria mesclada com sucesso';
-	String get delete_success => 'Categoria excluída corretamente';
+	String get delete_success => 'Categoria excluída com sucesso.';
 	String get delete_warning_header => 'Excluir categoria?';
 	String delete_warning_message({required Object x}) => 'Essa ação excluirá de forma irreversível todas as transações <b>(${x})</b> relacionadas a esta categoria.';
 	late final _TranslationsCategoriesSelectPt select = _TranslationsCategoriesSelectPt._(_root);
@@ -848,9 +850,9 @@ class _TranslationsTransactionStatusPt {
 	String tr_status({required Object status}) => 'Transação ${status}';
 	String get none => 'Sem status';
 	String get none_descr => 'Transação sem status específico';
-	String get reconciled => 'Conciliada';
+	String get reconciled => 'Considerada';
 	String get reconciled_descr => 'Esta transação conta para seus insights e saldos.';
-	String get unreconciled => 'Não conciliada';
+	String get unreconciled => 'Não considerada';
 	String get unreconciled_descr => 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 	String get notconsidered => 'Desconsiderada';
 	String get notconsidered_descr => 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.';
@@ -950,6 +952,32 @@ class _TranslationsAccountFormPt {
 	String get swift => 'Agencia';
 }
 
+// Path: account.disconnect
+class _TranslationsAccountDisconnectPt {
+	_TranslationsAccountDisconnectPt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Desconectar';
+	String get warning_header => 'Desconectar conta?';
+	String get warning_text => 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Suas transações ainda permanecerão guardadas no Parsa.';
+	String get success => 'Conta desconectada com sucesso';
+}
+
+// Path: account.delete_openfinance
+class _TranslationsAccountDeleteOpenfinancePt {
+	_TranslationsAccountDeleteOpenfinancePt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Deletar conta';
+	String get warning_header => 'Deletar?';
+	String get warning_text => 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização das transações e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
+	String get success => 'Conta deletada com sucesso';
+}
+
 // Path: account.delete
 class _TranslationsAccountDeletePt {
 	_TranslationsAccountDeletePt._(this._root);
@@ -1012,7 +1040,7 @@ class _TranslationsTagsFormPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get name => 'Nome da etiqueta';
+	String get name => 'Nome da tag';
 	String get description => 'Descrição';
 }
 
@@ -1682,10 +1710,10 @@ extension on Translations {
 			case 'transaction.duplicate_success': return 'Transação clonada com sucesso';
 			case 'transaction.delete': return 'Excluir transação';
 			case 'transaction.delete_warning_message': return 'Essa ação é irreversível. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
-			case 'transaction.delete_success': return 'Transação excluída corretamente';
-			case 'transaction.delete_multiple': return 'Excluir transações';
+			case 'transaction.delete_success': return 'Transação excluída com sucesso.';
+			case 'transaction.delete_multiple': return 'Excluir com sucesso';
 			case 'transaction.delete_multiple_warning_message': return ({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
-			case 'transaction.delete_multiple_success': return ({required Object x}) => '${x} transações excluídas corretamente';
+			case 'transaction.delete_multiple_success': return ({required Object x}) => '${x} transações excluídas com sucesso';
 			case 'transaction.details': return 'Detalhes do movimento';
 			case 'transaction.next_payments.accept': return 'Aceitar';
 			case 'transaction.next_payments.skip': return 'Pular';
@@ -1745,9 +1773,9 @@ extension on Translations {
 			case 'transaction.status.tr_status': return ({required Object status}) => 'Transação ${status}';
 			case 'transaction.status.none': return 'Sem status';
 			case 'transaction.status.none_descr': return 'Transação sem status específico';
-			case 'transaction.status.reconciled': return 'Conciliada';
+			case 'transaction.status.reconciled': return 'Considerada';
 			case 'transaction.status.reconciled_descr': return 'Esta transação conta para seus insights e saldos.';
-			case 'transaction.status.unreconciled': return 'Não conciliada';
+			case 'transaction.status.unreconciled': return 'Não considerada';
 			case 'transaction.status.unreconciled_descr': return 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 			case 'transaction.status.notconsidered': return 'Desconsiderada';
 			case 'transaction.status.notconsidered_descr': return 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.';
@@ -1823,6 +1851,14 @@ extension on Translations {
 			case 'account.form.tr_before_opening_date': return 'Existem transações nesta conta com uma data anterior à data de abertura';
 			case 'account.form.iban': return 'Número de Conta';
 			case 'account.form.swift': return 'Agencia';
+			case 'account.disconnect.title': return 'Desconectar';
+			case 'account.disconnect.warning_header': return 'Desconectar conta?';
+			case 'account.disconnect.warning_text': return 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Suas transações ainda permanecerão guardadas no Parsa.';
+			case 'account.disconnect.success': return 'Conta desconectada com sucesso';
+			case 'account.delete_openfinance.title': return 'Deletar conta';
+			case 'account.delete_openfinance.warning_header': return 'Deletar?';
+			case 'account.delete_openfinance.warning_text': return 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização das transações e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
+			case 'account.delete_openfinance.success': return 'Conta deletada com sucesso';
 			case 'account.delete.warning_header': return 'Excluir conta?';
 			case 'account.delete.warning_text': return 'Essa ação excluirá essa conta e todas as suas transações';
 			case 'account.delete.success': return 'Conta excluída com sucesso';
@@ -1857,30 +1893,30 @@ extension on Translations {
 			case 'currencies.select_a_currency': return 'Selecione uma moeda';
 			case 'currencies.search': return 'Pesquise por nome ou código da moeda';
 			case 'tags.display': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
-				one: 'Etiqueta',
-				other: 'Etiquetas',
+				one: 'Tag',
+				other: 'Tags',
 			);
-			case 'tags.form.name': return 'Nome da etiqueta';
+			case 'tags.form.name': return 'Nome da tag';
 			case 'tags.form.description': return 'Descrição';
-			case 'tags.empty_list': return 'Você ainda não criou nenhuma etiqueta. Etiquetas e categorias são uma ótima maneira de categorizar seus movimentos';
-			case 'tags.without_tags': return 'Sem etiquetas';
-			case 'tags.select': return 'Selecionar etiquetas';
-			case 'tags.add': return 'Adicionar etiqueta';
-			case 'tags.create': return 'Criar etiqueta';
-			case 'tags.create_success': return 'Etiqueta criada com sucesso';
-			case 'tags.already_exists': return 'Este nome de etiqueta já existe. Talvez você queira editá-lo';
-			case 'tags.edit': return 'Editar etiqueta';
-			case 'tags.edit_success': return 'Etiqueta editada com sucesso';
-			case 'tags.delete_success': return 'Etiqueta excluída com sucesso';
-			case 'tags.delete_warning_header': return 'Excluir etiqueta?';
-			case 'tags.delete_warning_message': return 'Essa ação não excluirá as transações que possuem essa etiqueta.';
+			case 'tags.empty_list': return 'Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar seus movimentos';
+			case 'tags.without_tags': return 'Sem tags';
+			case 'tags.select': return 'Selecionar tags';
+			case 'tags.add': return 'Adicionar tag';
+			case 'tags.create': return 'Criar tag';
+			case 'tags.create_success': return 'Tag criada com sucesso';
+			case 'tags.already_exists': return 'Este nome de tag já existe. Talvez você queira editá-lo';
+			case 'tags.edit': return 'Editar tag';
+			case 'tags.edit_success': return 'Tag editada com sucesso';
+			case 'tags.delete_success': return 'Tag excluída com sucesso';
+			case 'tags.delete_warning_header': return 'Excluir tag?';
+			case 'tags.delete_warning_message': return 'Essa ação não excluirá as transações que possuem essa tag.';
 			case 'categories.unknown': return 'Categoria desconhecida';
 			case 'categories.create': return 'Criar categoria';
-			case 'categories.create_success': return 'Categoria criada corretamente';
+			case 'categories.create_success': return 'Categoria criada com sucesso.';
 			case 'categories.new_category': return 'Nova categoria';
 			case 'categories.already_exists': return 'O nome desta categoria já existe. Talvez você queira editá-la';
 			case 'categories.edit': return 'Editar categoria';
-			case 'categories.edit_success': return 'Categoria editada corretamente';
+			case 'categories.edit_success': return 'Categoria editada com sucesso.';
 			case 'categories.name': return 'Nome da categoria';
 			case 'categories.type': return 'Tipo de categoria';
 			case 'categories.both_types': return 'Ambos os tipos';
@@ -1895,7 +1931,7 @@ extension on Translations {
 			case 'categories.merge_warning1': return ({required Object x, required Object from, required Object destiny}) => 'Todas as transações (${x}) associadas à categoria <b>${from}</b> serão movidas para a categoria <b>${destiny}</b>';
 			case 'categories.merge_warning2': return ({required Object from}) => 'A categoria <b>${from}</b> será excluída de forma irreversível.';
 			case 'categories.merge_success': return 'Categoria mesclada com sucesso';
-			case 'categories.delete_success': return 'Categoria excluída corretamente';
+			case 'categories.delete_success': return 'Categoria excluída com sucesso.';
 			case 'categories.delete_warning_header': return 'Excluir categoria?';
 			case 'categories.delete_warning_message': return ({required Object x}) => 'Essa ação excluirá de forma irreversível todas as transações <b>(${x})</b> relacionadas a esta categoria.';
 			case 'categories.select.title': return 'Selecione categorias';

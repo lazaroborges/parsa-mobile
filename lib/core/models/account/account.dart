@@ -73,6 +73,7 @@ class Account extends AccountInDB {
     required super.balance,
     required super.lastUpdateTime,
     required super.connectorID,
+    required super.isOpenFinance,
     super.closingDate,
     super.description,
     super.iban,
@@ -138,6 +139,7 @@ class Account extends AccountInDB {
         balance: account.balance, // Add this line
         lastUpdateTime: account.lastUpdateTime,
         connectorID: account.connectorID,
+        isOpenFinance: account.isOpenFinance,
       );
 }
 
@@ -155,6 +157,7 @@ class ApiAccount {
   final String primaryColor;
   final double? balance;
   final String iconId;
+  final bool isOpenFinance;
 
   ApiAccount({
     required this.accountId,
@@ -170,6 +173,7 @@ class ApiAccount {
     required this.primaryColor,
     required this.iconId,
     this.balance,
+    required this.isOpenFinance,
   });
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
@@ -200,6 +204,8 @@ class ApiAccount {
       balance: json['balance'] != null
           ? double.tryParse(json['balance'].toString())
           : null, // Safely parse balance
+      isOpenFinance:
+          json['isOpenFinance'] ?? false, // Default to false if missing
     );
   }
 }

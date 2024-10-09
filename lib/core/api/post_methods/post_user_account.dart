@@ -29,6 +29,7 @@ class PostUserAccountService {
         'balance': account.balance,
         'lastUpdateTime': account.lastUpdateTime.toIso8601String(),
         'connectorID': account.connectorID,
+        'isOpenFinance': account.isOpenFinance,
       };
 
       // Send POST request to the API

@@ -356,6 +356,14 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
       requiredDuringInsert: false,
       $customConstraints: 'NOT NULL DEFAULT \'1\'',
       defaultValue: const CustomExpression('\'1\''));
+  static const VerificationMeta _isOpenFinanceMeta =
+      const VerificationMeta('isOpenFinance');
+  late final GeneratedColumn<bool> isOpenFinance = GeneratedColumn<bool>(
+      'isOpenFinance', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -373,7 +381,8 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
         swift,
         balance,
         lastUpdateTime,
-        connectorID
+        connectorID,
+        isOpenFinance
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -471,6 +480,12 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           connectorID.isAcceptableOrUnknown(
               data['connectorID']!, _connectorIDMeta));
     }
+    if (data.containsKey('isOpenFinance')) {
+      context.handle(
+          _isOpenFinanceMeta,
+          isOpenFinance.isAcceptableOrUnknown(
+              data['isOpenFinance']!, _isOpenFinanceMeta));
+    }
     return context;
   }
 
@@ -512,6 +527,8 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           DriftSqlType.dateTime, data['${effectivePrefix}last_update_time'])!,
       connectorID: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}connectorID'])!,
+      isOpenFinance: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}isOpenFinance'])!,
     );
   }
 
@@ -558,6 +575,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
   final double balance;
   final DateTime lastUpdateTime;
   final String connectorID;
+  final bool isOpenFinance;
   const AccountInDB(
       {required this.id,
       required this.name,
@@ -574,7 +592,8 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       this.swift,
       required this.balance,
       required this.lastUpdateTime,
-      required this.connectorID});
+      required this.connectorID,
+      required this.isOpenFinance});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -606,6 +625,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
     map['balance'] = Variable<double>(balance);
     map['last_update_time'] = Variable<DateTime>(lastUpdateTime);
     map['connectorID'] = Variable<String>(connectorID);
+    map['isOpenFinance'] = Variable<bool>(isOpenFinance);
     return map;
   }
 
@@ -633,6 +653,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       balance: Value(balance),
       lastUpdateTime: Value(lastUpdateTime),
       connectorID: Value(connectorID),
+      isOpenFinance: Value(isOpenFinance),
     );
   }
 
@@ -657,6 +678,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       balance: serializer.fromJson<double>(json['balance']),
       lastUpdateTime: serializer.fromJson<DateTime>(json['last_update_time']),
       connectorID: serializer.fromJson<String>(json['connectorID']),
+      isOpenFinance: serializer.fromJson<bool>(json['isOpenFinance']),
     );
   }
   @override
@@ -679,6 +701,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       'balance': serializer.toJson<double>(balance),
       'last_update_time': serializer.toJson<DateTime>(lastUpdateTime),
       'connectorID': serializer.toJson<String>(connectorID),
+      'isOpenFinance': serializer.toJson<bool>(isOpenFinance),
     };
   }
 
@@ -698,7 +721,8 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           Value<String?> swift = const Value.absent(),
           double? balance,
           DateTime? lastUpdateTime,
-          String? connectorID}) =>
+          String? connectorID,
+          bool? isOpenFinance}) =>
       AccountInDB(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -716,6 +740,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
         balance: balance ?? this.balance,
         lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
         connectorID: connectorID ?? this.connectorID,
+        isOpenFinance: isOpenFinance ?? this.isOpenFinance,
       );
   AccountInDB copyWithCompanion(AccountsCompanion data) {
     return AccountInDB(
@@ -743,6 +768,9 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           : this.lastUpdateTime,
       connectorID:
           data.connectorID.present ? data.connectorID.value : this.connectorID,
+      isOpenFinance: data.isOpenFinance.present
+          ? data.isOpenFinance.value
+          : this.isOpenFinance,
     );
   }
 
@@ -764,7 +792,8 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           ..write('swift: $swift, ')
           ..write('balance: $balance, ')
           ..write('lastUpdateTime: $lastUpdateTime, ')
-          ..write('connectorID: $connectorID')
+          ..write('connectorID: $connectorID, ')
+          ..write('isOpenFinance: $isOpenFinance')
           ..write(')'))
         .toString();
   }
@@ -786,7 +815,8 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       swift,
       balance,
       lastUpdateTime,
-      connectorID);
+      connectorID,
+      isOpenFinance);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -806,7 +836,8 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           other.swift == this.swift &&
           other.balance == this.balance &&
           other.lastUpdateTime == this.lastUpdateTime &&
-          other.connectorID == this.connectorID);
+          other.connectorID == this.connectorID &&
+          other.isOpenFinance == this.isOpenFinance);
 }
 
 class AccountsCompanion extends UpdateCompanion<AccountInDB> {
@@ -826,6 +857,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
   final Value<double> balance;
   final Value<DateTime> lastUpdateTime;
   final Value<String> connectorID;
+  final Value<bool> isOpenFinance;
   final Value<int> rowid;
   const AccountsCompanion({
     this.id = const Value.absent(),
@@ -844,6 +876,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     this.balance = const Value.absent(),
     this.lastUpdateTime = const Value.absent(),
     this.connectorID = const Value.absent(),
+    this.isOpenFinance = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AccountsCompanion.insert({
@@ -863,6 +896,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     this.balance = const Value.absent(),
     this.lastUpdateTime = const Value.absent(),
     this.connectorID = const Value.absent(),
+    this.isOpenFinance = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name),
@@ -889,6 +923,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     Expression<double>? balance,
     Expression<DateTime>? lastUpdateTime,
     Expression<String>? connectorID,
+    Expression<bool>? isOpenFinance,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -908,6 +943,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       if (balance != null) 'balance': balance,
       if (lastUpdateTime != null) 'last_update_time': lastUpdateTime,
       if (connectorID != null) 'connectorID': connectorID,
+      if (isOpenFinance != null) 'isOpenFinance': isOpenFinance,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -929,6 +965,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       Value<double>? balance,
       Value<DateTime>? lastUpdateTime,
       Value<String>? connectorID,
+      Value<bool>? isOpenFinance,
       Value<int>? rowid}) {
     return AccountsCompanion(
       id: id ?? this.id,
@@ -947,6 +984,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       balance: balance ?? this.balance,
       lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
       connectorID: connectorID ?? this.connectorID,
+      isOpenFinance: isOpenFinance ?? this.isOpenFinance,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1002,6 +1040,9 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     if (connectorID.present) {
       map['connectorID'] = Variable<String>(connectorID.value);
     }
+    if (isOpenFinance.present) {
+      map['isOpenFinance'] = Variable<bool>(isOpenFinance.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1027,6 +1068,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
           ..write('balance: $balance, ')
           ..write('lastUpdateTime: $lastUpdateTime, ')
           ..write('connectorID: $connectorID, ')
+          ..write('isOpenFinance: $isOpenFinance, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4594,6 +4636,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           balance: row.read<double>('balance'),
           lastUpdateTime: row.read<DateTime>('last_update_time'),
           connectorID: row.read<String>('connectorID'),
+          isOpenFinance: row.read<bool>('isOpenFinance'),
           closingDate: row.readNullable<DateTime>('closingDate'),
           description: row.readNullable<String>('description'),
           iban: row.readNullable<String>('iban'),
@@ -4646,7 +4689,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         startIndex: $arrayStartIndex);
     $arrayStartIndex += generatedlimit.amountOfVariables;
     return customSelect(
-        'SELECT t.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","receivingAccountCurrency"."code" AS "nested_2.code", "receivingAccountCurrency"."symbol" AS "nested_2.symbol", "receivingAccountCurrency"."name" AS "nested_2.name","ra"."id" AS "nested_3.id", "ra"."name" AS "nested_3.name", "ra"."iniValue" AS "nested_3.iniValue", "ra"."date" AS "nested_3.date", "ra"."description" AS "nested_3.description", "ra"."type" AS "nested_3.type", "ra"."iconId" AS "nested_3.iconId", "ra"."displayOrder" AS "nested_3.displayOrder", "ra"."color" AS "nested_3.color", "ra"."closingDate" AS "nested_3.closingDate", "ra"."currencyId" AS "nested_3.currencyId", "ra"."iban" AS "nested_3.iban", "ra"."swift" AS "nested_3.swift", "ra"."balance" AS "nested_3.balance", "ra"."last_update_time" AS "nested_3.last_update_time", "ra"."connectorID" AS "nested_3.connectorID","c"."id" AS "nested_4.id", "c"."name" AS "nested_4.name", "c"."iconId" AS "nested_4.iconId", "c"."color" AS "nested_4.color", "c"."displayOrder" AS "nested_4.displayOrder", "c"."type" AS "nested_4.type", "c"."parentCategoryID" AS "nested_4.parentCategoryID","pc"."id" AS "nested_5.id", "pc"."name" AS "nested_5.name", "pc"."iconId" AS "nested_5.iconId", "pc"."color" AS "nested_5.color", "pc"."displayOrder" AS "nested_5.displayOrder", "pc"."type" AS "nested_5.type", "pc"."parentCategoryID" AS "nested_5.parentCategoryID", t.value * COALESCE(excRate.exchangeRate, 1) AS currentValueInPreferredCurrency, t.valueInDestiny * COALESCE(excRateOfDestiny.exchangeRate, 1) AS currentValueInDestinyInPreferredCurrency, t.id AS "\$n_0" FROM transactions AS t INNER JOIN accounts AS a ON t.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN accounts AS ra ON t.receivingAccountID = ra.id LEFT JOIN currencies AS receivingAccountCurrency ON ra.currencyId = receivingAccountCurrency.code LEFT JOIN categories AS c ON t.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRate ON a.currencyId = excRate.currencyCode LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRateOfDestiny ON ra.currencyId = excRateOfDestiny.currencyCode WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
+        'SELECT t.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID", "a"."isOpenFinance" AS "nested_0.isOpenFinance","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","receivingAccountCurrency"."code" AS "nested_2.code", "receivingAccountCurrency"."symbol" AS "nested_2.symbol", "receivingAccountCurrency"."name" AS "nested_2.name","ra"."id" AS "nested_3.id", "ra"."name" AS "nested_3.name", "ra"."iniValue" AS "nested_3.iniValue", "ra"."date" AS "nested_3.date", "ra"."description" AS "nested_3.description", "ra"."type" AS "nested_3.type", "ra"."iconId" AS "nested_3.iconId", "ra"."displayOrder" AS "nested_3.displayOrder", "ra"."color" AS "nested_3.color", "ra"."closingDate" AS "nested_3.closingDate", "ra"."currencyId" AS "nested_3.currencyId", "ra"."iban" AS "nested_3.iban", "ra"."swift" AS "nested_3.swift", "ra"."balance" AS "nested_3.balance", "ra"."last_update_time" AS "nested_3.last_update_time", "ra"."connectorID" AS "nested_3.connectorID", "ra"."isOpenFinance" AS "nested_3.isOpenFinance","c"."id" AS "nested_4.id", "c"."name" AS "nested_4.name", "c"."iconId" AS "nested_4.iconId", "c"."color" AS "nested_4.color", "c"."displayOrder" AS "nested_4.displayOrder", "c"."type" AS "nested_4.type", "c"."parentCategoryID" AS "nested_4.parentCategoryID","pc"."id" AS "nested_5.id", "pc"."name" AS "nested_5.name", "pc"."iconId" AS "nested_5.iconId", "pc"."color" AS "nested_5.color", "pc"."displayOrder" AS "nested_5.displayOrder", "pc"."type" AS "nested_5.type", "pc"."parentCategoryID" AS "nested_5.parentCategoryID", t.value * COALESCE(excRate.exchangeRate, 1) AS currentValueInPreferredCurrency, t.valueInDestiny * COALESCE(excRateOfDestiny.exchangeRate, 1) AS currentValueInDestinyInPreferredCurrency, t.id AS "\$n_0" FROM transactions AS t INNER JOIN accounts AS a ON t.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN accounts AS ra ON t.receivingAccountID = ra.id LEFT JOIN currencies AS receivingAccountCurrency ON ra.currencyId = receivingAccountCurrency.code LEFT JOIN categories AS c ON t.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRate ON a.currencyId = excRate.currencyCode LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRateOfDestiny ON ra.currencyId = excRateOfDestiny.currencyCode WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
         variables: [
           ...generatedpredicate.introducedVariables,
           ...generatedorderBy.introducedVariables,
@@ -5218,6 +5261,7 @@ typedef $AccountsCreateCompanionBuilder = AccountsCompanion Function({
   Value<double> balance,
   Value<DateTime> lastUpdateTime,
   Value<String> connectorID,
+  Value<bool> isOpenFinance,
   Value<int> rowid,
 });
 typedef $AccountsUpdateCompanionBuilder = AccountsCompanion Function({
@@ -5237,6 +5281,7 @@ typedef $AccountsUpdateCompanionBuilder = AccountsCompanion Function({
   Value<double> balance,
   Value<DateTime> lastUpdateTime,
   Value<String> connectorID,
+  Value<bool> isOpenFinance,
   Value<int> rowid,
 });
 
@@ -5271,6 +5316,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<double> balance = const Value.absent(),
             Value<DateTime> lastUpdateTime = const Value.absent(),
             Value<String> connectorID = const Value.absent(),
+            Value<bool> isOpenFinance = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AccountsCompanion(
@@ -5290,6 +5336,7 @@ class $AccountsTableManager extends RootTableManager<
             balance: balance,
             lastUpdateTime: lastUpdateTime,
             connectorID: connectorID,
+            isOpenFinance: isOpenFinance,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -5309,6 +5356,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<double> balance = const Value.absent(),
             Value<DateTime> lastUpdateTime = const Value.absent(),
             Value<String> connectorID = const Value.absent(),
+            Value<bool> isOpenFinance = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AccountsCompanion.insert(
@@ -5328,6 +5376,7 @@ class $AccountsTableManager extends RootTableManager<
             balance: balance,
             lastUpdateTime: lastUpdateTime,
             connectorID: connectorID,
+            isOpenFinance: isOpenFinance,
             rowid: rowid,
           ),
         ));
@@ -5409,6 +5458,11 @@ class $AccountsFilterComposer extends FilterComposer<_$AppDB, Accounts> {
 
   ColumnFilters<String> get connectorID => $state.composableBuilder(
       column: $state.table.connectorID,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get isOpenFinance => $state.composableBuilder(
+      column: $state.table.isOpenFinance,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -5512,6 +5566,11 @@ class $AccountsOrderingComposer extends OrderingComposer<_$AppDB, Accounts> {
 
   ColumnOrderings<String> get connectorID => $state.composableBuilder(
       column: $state.table.connectorID,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get isOpenFinance => $state.composableBuilder(
+      column: $state.table.isOpenFinance,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
