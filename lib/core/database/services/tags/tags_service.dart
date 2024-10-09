@@ -99,6 +99,11 @@ class TagService {
     return db.into(db.tags).insert(tag); // Single insert method
   }
 
+  Stream<TagInDB?> getTagById(String tagId) {
+    return (db.select(db.tags)..where((tbl) => tbl.id.equals(tagId)))
+        .watchSingleOrNull();
+  }
+
   Stream<List<Tag>> getTags({
     Expression<bool> Function(Tags)? filter,
     int? limit,

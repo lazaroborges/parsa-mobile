@@ -44,9 +44,14 @@ class TabsPageState extends State<TabsPage> {
   }
 
   Future<void> _initializeData() async {
-    await _fetchUserAccounts();
+    // Run _fetchUserAccounts and _fetchUserTags in parallel
+    await Future.wait([
+      _fetchUserAccounts(),
+      _fetchUserTags(),
+    ]);
+
+    // Wait for _fetchAndSyncTransactions after the above operations complete
     await _fetchAndSyncTransactions();
-    await _fetchUserTags();
   }
 
   Future<void> _fetchUserAccounts() async {

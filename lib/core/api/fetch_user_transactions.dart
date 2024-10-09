@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
+import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,6 +50,13 @@ Future<void> syncTransactions(String apiResponse) async {
       print('No transactions to sync.');
       return;
     }
+
+    // Ensure all tags exist
+    Set<String> allTagIds = {};
+    for (var apiTransaction in apiTransactions) {
+      allTagIds.addAll(apiTransaction.tags);
+    }
+    await ensureTagsExist(allTagIds.toList());
 
     // Step 2: Convert to local MoneyTransaction instances
     List<MoneyTransaction> localTransactions =
@@ -143,6 +151,18 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
       TransactionStatus status =
           _mapTransactionStatus(apiTransaction.considered);
 
+      // Fetch tags from API transaction
+      List<TagInDB> tagsInDB = [];
+      for (final tagId in apiTransaction.tags) {
+        // Fetch tag by ID
+        TagInDB? tagInDB = await TagService.instance.getTagById(tagId).first;
+        if (tagInDB == null) {
+          print('Tag not found for ID: $tagId. Skipping this tag.');
+          continue;
+        }
+        tagsInDB.add(tagInDB);
+      }
+
       // Create MoneyTransaction instance
       MoneyTransaction transaction = MoneyTransaction(
         id: apiTransaction.id,
@@ -167,7 +187,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         receivingAccount: null,
         currentValueInPreferredCurrency:
             apiTransaction.amount, // Adjust as needed
-        tags: [],
+        tags: tagsInDB, // Add this line
       );
 
       localTransactions.add(transaction);
@@ -209,7 +229,6 @@ TransactionStatus _mapTransactionStatus(bool? considered) {
 
 Future<void> insertTransactionsIntoDB(
     List<MoneyTransaction> transactions) async {
-  // Define the 'db' variable by accessing the AppDB singleton instance
   final db = AppDB.instance;
 
   final transactionInDBList =
@@ -217,17 +236,30 @@ Future<void> insertTransactionsIntoDB(
 
   try {
     await db.batch((batch) {
-      for (var transaction in transactionInDBList) {
+      for (var transaction in transactions) {
+        // Insert or replace transaction
         batch.insert(
           db.transactions,
-          transaction,
+          transaction.toTransactionInDB(),
           mode: InsertMode.insertOrReplace,
         );
+
+        // Insert transaction-tag associations
+        for (var tag in transaction.tags) {
+          batch.insert(
+            db.transactionTags,
+            TransactionTag(
+              transactionID: transaction.id,
+              tagID: tag.id,
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
       }
     });
     print(
         'Batch insert or update successful for ${transactions.length} transactions.');
-    db.markTablesUpdated([db.accounts]);
+    db.markTablesUpdated([db.transactions, db.transactionTags]);
   } catch (e) {
     print('Failed to batch insert or update transactions: $e');
   }
@@ -266,4 +298,16 @@ Future<DateTime?> getLastSyncTimestamp() async {
 Future<void> updateLastSyncTimestamp(DateTime timestamp) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('last_sync_timestamp', timestamp.toIso8601String());
+}
+
+Future<void> ensureTagsExist(List<String> tagIds) async {
+  for (final tagId in tagIds) {
+    TagInDB? tagInDB = await TagService.instance.getTagById(tagId).first;
+    if (tagInDB == null) {
+      // Optionally, fetch tag details from the API or create a placeholder
+      // For simplicity, we'll create a placeholder tag
+
+      print('Created placeholder for missing tag ID: $tagId');
+    }
+  }
 }

@@ -21,6 +21,7 @@ ApiTransaction _$ApiTransactionFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String?,
       considered: json['considered'] as bool,
       isOpenFinance: json['isOpenFinance'] as bool,
+      tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
@@ -37,4 +38,5 @@ Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
       'status': instance.status,
       'considered': instance.considered,
       'isOpenFinance': instance.isOpenFinance,
+      'tags': instance.tags,
     };
