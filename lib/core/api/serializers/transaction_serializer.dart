@@ -55,6 +55,14 @@ class ApiTransaction {
 
   final List<String> tags; // Add this line
 
+  @JsonKey(name: 'payment_method')
+  final String? paymentMethod;
+
+  final bool? manipulated;
+
+  @JsonKey(name: 'lastUpdateDateParsa')
+  final DateTime? lastUpdateTime;
+
   ApiTransaction({
     required this.id,
     this.description,
@@ -69,6 +77,9 @@ class ApiTransaction {
     required this.considered,
     required this.isOpenFinance,
     required this.tags,
+    this.paymentMethod,
+    this.manipulated,
+    this.lastUpdateTime,
   });
 
   /// Factory constructor for creating a new `ApiTransaction` instance from JSON.

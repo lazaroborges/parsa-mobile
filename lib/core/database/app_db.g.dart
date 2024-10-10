@@ -1514,6 +1514,13 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       type: DriftSqlType.dateTime,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
+  static const VerificationMeta _lastUpdateTimeMeta =
+      const VerificationMeta('lastUpdateTime');
+  late final GeneratedColumn<DateTime> lastUpdateTime =
+      GeneratedColumn<DateTime>('lastUpdateTime', aliasedName, true,
+          type: DriftSqlType.dateTime,
+          requiredDuringInsert: false,
+          $customConstraints: '');
   static const VerificationMeta _accountIDMeta =
       const VerificationMeta('accountID');
   late final GeneratedColumn<String> accountID = GeneratedColumn<String>(
@@ -1548,6 +1555,21 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       requiredDuringInsert: false,
       $customConstraints: 'NOT NULL DEFAULT 0',
       defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _manipulatedMeta =
+      const VerificationMeta('manipulated');
+  late final GeneratedColumn<bool> manipulated = GeneratedColumn<bool>(
+      'manipulated', aliasedName, true,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _paymentMethodMeta =
+      const VerificationMeta('paymentMethod');
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+      'payment_method', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumnWithTypeConverter<TransactionType, String> type =
       GeneratedColumn<String>('type', aliasedName, false,
@@ -1651,11 +1673,14 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
   List<GeneratedColumn> get $columns => [
         id,
         date,
+        lastUpdateTime,
         accountID,
         value,
         title,
         notes,
         isOpenFinance,
+        manipulated,
+        paymentMethod,
         type,
         status,
         categoryID,
@@ -1691,6 +1716,12 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
     } else if (isInserting) {
       context.missing(_dateMeta);
     }
+    if (data.containsKey('lastUpdateTime')) {
+      context.handle(
+          _lastUpdateTimeMeta,
+          lastUpdateTime.isAcceptableOrUnknown(
+              data['lastUpdateTime']!, _lastUpdateTimeMeta));
+    }
     if (data.containsKey('accountID')) {
       context.handle(_accountIDMeta,
           accountID.isAcceptableOrUnknown(data['accountID']!, _accountIDMeta));
@@ -1716,6 +1747,18 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           _isOpenFinanceMeta,
           isOpenFinance.isAcceptableOrUnknown(
               data['isOpenFinance']!, _isOpenFinanceMeta));
+    }
+    if (data.containsKey('manipulated')) {
+      context.handle(
+          _manipulatedMeta,
+          manipulated.isAcceptableOrUnknown(
+              data['manipulated']!, _manipulatedMeta));
+    }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+          _paymentMethodMeta,
+          paymentMethod.isAcceptableOrUnknown(
+              data['payment_method']!, _paymentMethodMeta));
     }
     context.handle(_typeMeta, const VerificationResult.success());
     context.handle(_statusMeta, const VerificationResult.success());
@@ -1789,6 +1832,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
+      lastUpdateTime: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}lastUpdateTime']),
       accountID: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}accountID'])!,
       value: attachedDatabase.typeMapping
@@ -1799,6 +1844,10 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
       isOpenFinance: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}isOpenFinance'])!,
+      manipulated: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}manipulated']),
+      paymentMethod: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payment_method']),
       type: Transactions.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
       status: Transactions.$converterstatusn.fromSql(attachedDatabase
@@ -1867,6 +1916,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
 
   /// Date on which the payment of this transaction was made
   final DateTime date;
+  final DateTime? lastUpdateTime;
   final String accountID;
 
   /// Monetary amount related to this transaction, in the currency of its account
@@ -1878,6 +1928,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
   /// Some description, notes or extra info about the transaction.
   final String? notes;
   final bool isOpenFinance;
+  final bool? manipulated;
+  final String? paymentMethod;
 
   /// Whether the transacton is an income, an expense or a transfer
   final TransactionType type;
@@ -1912,11 +1964,14 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
   const TransactionInDB(
       {required this.id,
       required this.date,
+      this.lastUpdateTime,
       required this.accountID,
       required this.value,
       this.title,
       this.notes,
       required this.isOpenFinance,
+      this.manipulated,
+      this.paymentMethod,
       required this.type,
       this.status,
       this.categoryID,
@@ -1935,6 +1990,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['date'] = Variable<DateTime>(date);
+    if (!nullToAbsent || lastUpdateTime != null) {
+      map['lastUpdateTime'] = Variable<DateTime>(lastUpdateTime);
+    }
     map['accountID'] = Variable<String>(accountID);
     map['value'] = Variable<double>(value);
     if (!nullToAbsent || title != null) {
@@ -1944,6 +2002,12 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       map['notes'] = Variable<String>(notes);
     }
     map['isOpenFinance'] = Variable<bool>(isOpenFinance);
+    if (!nullToAbsent || manipulated != null) {
+      map['manipulated'] = Variable<bool>(manipulated);
+    }
+    if (!nullToAbsent || paymentMethod != null) {
+      map['payment_method'] = Variable<String>(paymentMethod);
+    }
     {
       map['type'] = Variable<String>(Transactions.$convertertype.toSql(type));
     }
@@ -1990,6 +2054,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     return TransactionsCompanion(
       id: Value(id),
       date: Value(date),
+      lastUpdateTime: lastUpdateTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUpdateTime),
       accountID: Value(accountID),
       value: Value(value),
       title:
@@ -1997,6 +2064,12 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       isOpenFinance: Value(isOpenFinance),
+      manipulated: manipulated == null && nullToAbsent
+          ? const Value.absent()
+          : Value(manipulated),
+      paymentMethod: paymentMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentMethod),
       type: Value(type),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
@@ -2040,11 +2113,14 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     return TransactionInDB(
       id: serializer.fromJson<String>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
+      lastUpdateTime: serializer.fromJson<DateTime?>(json['lastUpdateTime']),
       accountID: serializer.fromJson<String>(json['accountID']),
       value: serializer.fromJson<double>(json['value']),
       title: serializer.fromJson<String?>(json['title']),
       notes: serializer.fromJson<String?>(json['notes']),
       isOpenFinance: serializer.fromJson<bool>(json['isOpenFinance']),
+      manipulated: serializer.fromJson<bool?>(json['manipulated']),
+      paymentMethod: serializer.fromJson<String?>(json['payment_method']),
       type: Transactions.$convertertype
           .fromJson(serializer.fromJson<String>(json['type'])),
       status: Transactions.$converterstatusn
@@ -2071,11 +2147,14 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'date': serializer.toJson<DateTime>(date),
+      'lastUpdateTime': serializer.toJson<DateTime?>(lastUpdateTime),
       'accountID': serializer.toJson<String>(accountID),
       'value': serializer.toJson<double>(value),
       'title': serializer.toJson<String?>(title),
       'notes': serializer.toJson<String?>(notes),
       'isOpenFinance': serializer.toJson<bool>(isOpenFinance),
+      'manipulated': serializer.toJson<bool?>(manipulated),
+      'payment_method': serializer.toJson<String?>(paymentMethod),
       'type':
           serializer.toJson<String>(Transactions.$convertertype.toJson(type)),
       'status': serializer
@@ -2098,11 +2177,14 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
   TransactionInDB copyWith(
           {String? id,
           DateTime? date,
+          Value<DateTime?> lastUpdateTime = const Value.absent(),
           String? accountID,
           double? value,
           Value<String?> title = const Value.absent(),
           Value<String?> notes = const Value.absent(),
           bool? isOpenFinance,
+          Value<bool?> manipulated = const Value.absent(),
+          Value<String?> paymentMethod = const Value.absent(),
           TransactionType? type,
           Value<TransactionStatus?> status = const Value.absent(),
           Value<String?> categoryID = const Value.absent(),
@@ -2119,11 +2201,16 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       TransactionInDB(
         id: id ?? this.id,
         date: date ?? this.date,
+        lastUpdateTime:
+            lastUpdateTime.present ? lastUpdateTime.value : this.lastUpdateTime,
         accountID: accountID ?? this.accountID,
         value: value ?? this.value,
         title: title.present ? title.value : this.title,
         notes: notes.present ? notes.value : this.notes,
         isOpenFinance: isOpenFinance ?? this.isOpenFinance,
+        manipulated: manipulated.present ? manipulated.value : this.manipulated,
+        paymentMethod:
+            paymentMethod.present ? paymentMethod.value : this.paymentMethod,
         type: type ?? this.type,
         status: status.present ? status.value : this.status,
         categoryID: categoryID.present ? categoryID.value : this.categoryID,
@@ -2150,6 +2237,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     return TransactionInDB(
       id: data.id.present ? data.id.value : this.id,
       date: data.date.present ? data.date.value : this.date,
+      lastUpdateTime: data.lastUpdateTime.present
+          ? data.lastUpdateTime.value
+          : this.lastUpdateTime,
       accountID: data.accountID.present ? data.accountID.value : this.accountID,
       value: data.value.present ? data.value.value : this.value,
       title: data.title.present ? data.title.value : this.title,
@@ -2157,6 +2247,11 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       isOpenFinance: data.isOpenFinance.present
           ? data.isOpenFinance.value
           : this.isOpenFinance,
+      manipulated:
+          data.manipulated.present ? data.manipulated.value : this.manipulated,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
       type: data.type.present ? data.type.value : this.type,
       status: data.status.present ? data.status.value : this.status,
       categoryID:
@@ -2193,11 +2288,14 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     return (StringBuffer('TransactionInDB(')
           ..write('id: $id, ')
           ..write('date: $date, ')
+          ..write('lastUpdateTime: $lastUpdateTime, ')
           ..write('accountID: $accountID, ')
           ..write('value: $value, ')
           ..write('title: $title, ')
           ..write('notes: $notes, ')
           ..write('isOpenFinance: $isOpenFinance, ')
+          ..write('manipulated: $manipulated, ')
+          ..write('paymentMethod: $paymentMethod, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -2216,38 +2314,45 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      date,
-      accountID,
-      value,
-      title,
-      notes,
-      isOpenFinance,
-      type,
-      status,
-      categoryID,
-      valueInDestiny,
-      receivingAccountID,
-      isHidden,
-      locLatitude,
-      locLongitude,
-      locAddress,
-      intervalPeriod,
-      intervalEach,
-      endDate,
-      remainingTransactions);
+  int get hashCode => Object.hashAll([
+        id,
+        date,
+        lastUpdateTime,
+        accountID,
+        value,
+        title,
+        notes,
+        isOpenFinance,
+        manipulated,
+        paymentMethod,
+        type,
+        status,
+        categoryID,
+        valueInDestiny,
+        receivingAccountID,
+        isHidden,
+        locLatitude,
+        locLongitude,
+        locAddress,
+        intervalPeriod,
+        intervalEach,
+        endDate,
+        remainingTransactions
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TransactionInDB &&
           other.id == this.id &&
           other.date == this.date &&
+          other.lastUpdateTime == this.lastUpdateTime &&
           other.accountID == this.accountID &&
           other.value == this.value &&
           other.title == this.title &&
           other.notes == this.notes &&
           other.isOpenFinance == this.isOpenFinance &&
+          other.manipulated == this.manipulated &&
+          other.paymentMethod == this.paymentMethod &&
           other.type == this.type &&
           other.status == this.status &&
           other.categoryID == this.categoryID &&
@@ -2266,11 +2371,14 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
 class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   final Value<String> id;
   final Value<DateTime> date;
+  final Value<DateTime?> lastUpdateTime;
   final Value<String> accountID;
   final Value<double> value;
   final Value<String?> title;
   final Value<String?> notes;
   final Value<bool> isOpenFinance;
+  final Value<bool?> manipulated;
+  final Value<String?> paymentMethod;
   final Value<TransactionType> type;
   final Value<TransactionStatus?> status;
   final Value<String?> categoryID;
@@ -2288,11 +2396,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   const TransactionsCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
+    this.lastUpdateTime = const Value.absent(),
     this.accountID = const Value.absent(),
     this.value = const Value.absent(),
     this.title = const Value.absent(),
     this.notes = const Value.absent(),
     this.isOpenFinance = const Value.absent(),
+    this.manipulated = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
     this.type = const Value.absent(),
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2311,11 +2422,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   TransactionsCompanion.insert({
     required String id,
     required DateTime date,
+    this.lastUpdateTime = const Value.absent(),
     required String accountID,
     required double value,
     this.title = const Value.absent(),
     this.notes = const Value.absent(),
     this.isOpenFinance = const Value.absent(),
+    this.manipulated = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
     required TransactionType type,
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2338,11 +2452,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   static Insertable<TransactionInDB> custom({
     Expression<String>? id,
     Expression<DateTime>? date,
+    Expression<DateTime>? lastUpdateTime,
     Expression<String>? accountID,
     Expression<double>? value,
     Expression<String>? title,
     Expression<String>? notes,
     Expression<bool>? isOpenFinance,
+    Expression<bool>? manipulated,
+    Expression<String>? paymentMethod,
     Expression<String>? type,
     Expression<String>? status,
     Expression<String>? categoryID,
@@ -2361,11 +2478,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (date != null) 'date': date,
+      if (lastUpdateTime != null) 'lastUpdateTime': lastUpdateTime,
       if (accountID != null) 'accountID': accountID,
       if (value != null) 'value': value,
       if (title != null) 'title': title,
       if (notes != null) 'notes': notes,
       if (isOpenFinance != null) 'isOpenFinance': isOpenFinance,
+      if (manipulated != null) 'manipulated': manipulated,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
       if (type != null) 'type': type,
       if (status != null) 'status': status,
       if (categoryID != null) 'categoryID': categoryID,
@@ -2387,11 +2507,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   TransactionsCompanion copyWith(
       {Value<String>? id,
       Value<DateTime>? date,
+      Value<DateTime?>? lastUpdateTime,
       Value<String>? accountID,
       Value<double>? value,
       Value<String?>? title,
       Value<String?>? notes,
       Value<bool>? isOpenFinance,
+      Value<bool?>? manipulated,
+      Value<String?>? paymentMethod,
       Value<TransactionType>? type,
       Value<TransactionStatus?>? status,
       Value<String?>? categoryID,
@@ -2409,11 +2532,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     return TransactionsCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
+      lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
       accountID: accountID ?? this.accountID,
       value: value ?? this.value,
       title: title ?? this.title,
       notes: notes ?? this.notes,
       isOpenFinance: isOpenFinance ?? this.isOpenFinance,
+      manipulated: manipulated ?? this.manipulated,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       type: type ?? this.type,
       status: status ?? this.status,
       categoryID: categoryID ?? this.categoryID,
@@ -2441,6 +2567,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     if (date.present) {
       map['date'] = Variable<DateTime>(date.value);
     }
+    if (lastUpdateTime.present) {
+      map['lastUpdateTime'] = Variable<DateTime>(lastUpdateTime.value);
+    }
     if (accountID.present) {
       map['accountID'] = Variable<String>(accountID.value);
     }
@@ -2455,6 +2584,12 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     }
     if (isOpenFinance.present) {
       map['isOpenFinance'] = Variable<bool>(isOpenFinance.value);
+    }
+    if (manipulated.present) {
+      map['manipulated'] = Variable<bool>(manipulated.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
     }
     if (type.present) {
       map['type'] =
@@ -2509,11 +2644,14 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     return (StringBuffer('TransactionsCompanion(')
           ..write('id: $id, ')
           ..write('date: $date, ')
+          ..write('lastUpdateTime: $lastUpdateTime, ')
           ..write('accountID: $accountID, ')
           ..write('value: $value, ')
           ..write('title: $title, ')
           ..write('notes: $notes, ')
           ..write('isOpenFinance: $isOpenFinance, ')
+          ..write('manipulated: $manipulated, ')
+          ..write('paymentMethod: $paymentMethod, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -4722,6 +4860,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           locAddress: row.readNullable<String>('locAddress'),
           locLatitude: row.readNullable<double>('locLatitude'),
           locLongitude: row.readNullable<double>('locLongitude'),
+          manipulated: row.readNullable<bool>('manipulated'),
           account: await accounts.mapFromRow(row, tablePrefix: 'nested_0'),
           receivingAccount:
               await accounts.mapFromRowOrNull(row, tablePrefix: 'nested_3'),
@@ -4753,6 +4892,8 @@ abstract class _$AppDB extends GeneratedDatabase {
               Transactions.$converterintervalPeriod,
               row.readNullable<String>('intervalPeriod')),
           remainingTransactions: row.readNullable<int>('remainingTransactions'),
+          lastUpdateTime: row.readNullable<DateTime>('lastUpdateTime'),
+          paymentMethod: row.readNullable<String>('payment_method'),
         ));
   }
 
@@ -5775,11 +5916,14 @@ class $CategoriesOrderingComposer
 typedef $TransactionsCreateCompanionBuilder = TransactionsCompanion Function({
   required String id,
   required DateTime date,
+  Value<DateTime?> lastUpdateTime,
   required String accountID,
   required double value,
   Value<String?> title,
   Value<String?> notes,
   Value<bool> isOpenFinance,
+  Value<bool?> manipulated,
+  Value<String?> paymentMethod,
   required TransactionType type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -5798,11 +5942,14 @@ typedef $TransactionsCreateCompanionBuilder = TransactionsCompanion Function({
 typedef $TransactionsUpdateCompanionBuilder = TransactionsCompanion Function({
   Value<String> id,
   Value<DateTime> date,
+  Value<DateTime?> lastUpdateTime,
   Value<String> accountID,
   Value<double> value,
   Value<String?> title,
   Value<String?> notes,
   Value<bool> isOpenFinance,
+  Value<bool?> manipulated,
+  Value<String?> paymentMethod,
   Value<TransactionType> type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -5838,11 +5985,14 @@ class $TransactionsTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> date = const Value.absent(),
+            Value<DateTime?> lastUpdateTime = const Value.absent(),
             Value<String> accountID = const Value.absent(),
             Value<double> value = const Value.absent(),
             Value<String?> title = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<bool> isOpenFinance = const Value.absent(),
+            Value<bool?> manipulated = const Value.absent(),
+            Value<String?> paymentMethod = const Value.absent(),
             Value<TransactionType> type = const Value.absent(),
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -5861,11 +6011,14 @@ class $TransactionsTableManager extends RootTableManager<
               TransactionsCompanion(
             id: id,
             date: date,
+            lastUpdateTime: lastUpdateTime,
             accountID: accountID,
             value: value,
             title: title,
             notes: notes,
             isOpenFinance: isOpenFinance,
+            manipulated: manipulated,
+            paymentMethod: paymentMethod,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -5884,11 +6037,14 @@ class $TransactionsTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required DateTime date,
+            Value<DateTime?> lastUpdateTime = const Value.absent(),
             required String accountID,
             required double value,
             Value<String?> title = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<bool> isOpenFinance = const Value.absent(),
+            Value<bool?> manipulated = const Value.absent(),
+            Value<String?> paymentMethod = const Value.absent(),
             required TransactionType type,
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -5907,11 +6063,14 @@ class $TransactionsTableManager extends RootTableManager<
               TransactionsCompanion.insert(
             id: id,
             date: date,
+            lastUpdateTime: lastUpdateTime,
             accountID: accountID,
             value: value,
             title: title,
             notes: notes,
             isOpenFinance: isOpenFinance,
+            manipulated: manipulated,
+            paymentMethod: paymentMethod,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -5943,6 +6102,11 @@ class $TransactionsFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<DateTime> get lastUpdateTime => $state.composableBuilder(
+      column: $state.table.lastUpdateTime,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ColumnFilters<double> get value => $state.composableBuilder(
       column: $state.table.value,
       builder: (column, joinBuilders) =>
@@ -5960,6 +6124,16 @@ class $TransactionsFilterComposer
 
   ColumnFilters<bool> get isOpenFinance => $state.composableBuilder(
       column: $state.table.isOpenFinance,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get manipulated => $state.composableBuilder(
+      column: $state.table.manipulated,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get paymentMethod => $state.composableBuilder(
+      column: $state.table.paymentMethod,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6087,6 +6261,11 @@ class $TransactionsOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<DateTime> get lastUpdateTime => $state.composableBuilder(
+      column: $state.table.lastUpdateTime,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   ColumnOrderings<double> get value => $state.composableBuilder(
       column: $state.table.value,
       builder: (column, joinBuilders) =>
@@ -6104,6 +6283,16 @@ class $TransactionsOrderingComposer
 
   ColumnOrderings<bool> get isOpenFinance => $state.composableBuilder(
       column: $state.table.isOpenFinance,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get manipulated => $state.composableBuilder(
+      column: $state.table.manipulated,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get paymentMethod => $state.composableBuilder(
+      column: $state.table.paymentMethod,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

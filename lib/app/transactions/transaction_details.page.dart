@@ -546,7 +546,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                   icon: MoneyTransaction.reversedIcon,
                                   title: t.transaction.reversed.title),
                             CardWithHeader(
-                              title: 'Informações da Transação',
+                              title: t.transaction.title,
                               body: LabelValueInfoTable(
                                 items: [
                                   LabelValueInfoItem(
@@ -584,69 +584,91 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         label: t.transfer.form.to),
                                   LabelValueInfoItem(
                                     value: Text(
-                                      DateFormat.yMMMMd()
-                                          .format(transaction.date),
+                                      '${DateFormat.yMMMMd().format(transaction.date)} ${DateFormat.Hm().format(transaction.date)}',
                                       softWrap: false,
                                       overflow: TextOverflow.fade,
                                     ),
-                                    label: t.general.time.date,
+                                    label: t.general.time
+                                        .datetime, // Assuming you have a combined label
                                   ),
-                                  LabelValueInfoItem(
-                                    value: Text(
-                                      DateFormat.Hm().format(transaction.date),
-                                      softWrap: false,
-                                      overflow: TextOverflow.fade,
+                                  if (transaction.notes !=
+                                      null) // Add description if it exists
+                                    LabelValueInfoItem(
+                                      value: Text(transaction.notes!),
+                                      label: t.transaction.form.description,
                                     ),
-                                    label: t.general.time.time,
+                                  if (transaction.paymentMethod != null)
+                                    LabelValueInfoItem(
+                                      value: Text(transaction.paymentMethod!),
+                                      label: t.transaction.payment_method,
+                                    ),
+                                  if (transaction.manipulated != null)
+                                    LabelValueInfoItem(
+                                      value: Text(
+                                          transaction.manipulated ?? false
+                                              ? t.transaction.yes
+                                              : t.transaction.no),
+                                      label: t.transaction.manipulated,
+                                    ),
+                                  LabelValueInfoItem(
+                                    value: Text(DateFormat.yMMMd()
+                                        .add_Hm()
+                                        .format(transaction.lastUpdateTime ??
+                                            DateTime.now())),
+                                    label: t.transaction.last_update,
                                   ),
                                 ],
                               ),
                             ),
-                            if (transaction.tags.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              CardWithHeader(
-                                title: t.tags.display(n: 2),
-                                bodyPadding: const EdgeInsets.all(12),
-                                body: Wrap(
-                                  spacing: 6,
-                                  runSpacing: 0,
-                                  children: List.generate(
-                                      transaction.tags.length, (index) {
-                                    final tag = transaction.tags[index];
+                            // Always show the Tag card
+                            const SizedBox(height: 16),
+                            CardWithHeader(
+                              title: t.tags.display(n: 2),
+                              bodyPadding: const EdgeInsets.all(12),
+                              body: Wrap(
+                                spacing: 6,
+                                runSpacing: 0,
+                                children: transaction.tags.isNotEmpty
+                                    ? List.generate(transaction.tags.length,
+                                        (index) {
+                                        final tag = transaction.tags[index];
 
-                                    return Chip(
-                                      backgroundColor:
-                                          tag.colorData.lighten(0.8),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                        side: const BorderSide(
-                                          width: 0,
-                                          color: Colors.transparent,
-                                          style: BorderStyle.none,
-                                        ),
-                                      ),
-                                      elevation: 0,
-                                      label: Text(
-                                        tag.name,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelMedium!
-                                            .copyWith(color: tag.colorData),
-                                      ),
-                                      avatar:
-                                          Icon(Tag.icon, color: tag.colorData),
-                                    );
-                                  }),
-                                ),
+                                        return Chip(
+                                          backgroundColor:
+                                              tag.colorData.lighten(0.8),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            side: const BorderSide(
+                                              width: 0,
+                                              color: Colors.transparent,
+                                              style: BorderStyle.none,
+                                            ),
+                                          ),
+                                          elevation: 0,
+                                          label: Text(
+                                            tag.name,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium!
+                                                .copyWith(color: tag.colorData),
+                                          ),
+                                          avatar: Icon(Tag.icon,
+                                              color: tag.colorData),
+                                        );
+                                      })
+                                    : [
+                                        Text(t.tags.no_tags)
+                                      ], // Display a message if no tags are present
                               ),
-                            ],
+                            ),
                             if (transaction.notes != null) ...[
                               const SizedBox(height: 16),
-                              CardWithHeader(
-                                title: t.transaction.form.description,
-                                bodyPadding: const EdgeInsets.all(16),
-                                body: Text(transaction.notes!),
-                              )
+                              // CardWithHeader(
+                              //   title: t.transaction.form.description,
+                              //   bodyPadding: const EdgeInsets.all(16),
+                              //   body: Text(transaction.notes!),
+                              // )
                             ],
                             // StreamBuilder(
                             //     stream: CurrencyService.instance
@@ -753,11 +775,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             // );
                             // }),
                             const SizedBox(height: 16),
-                            CardWithHeader(
-                              title: t.general.quick_actions,
-                              body: MonekinQuickActionsButton(
-                                  actions: transactionDetailsActions),
-                            ),
+                            // Only show quick actions if isOpenFinance is false
+                            if (!transaction.isOpenFinance) ...[
+                              const SizedBox(height: 16),
+                              CardWithHeader(
+                                title: t.general.quick_actions,
+                                body: MonekinQuickActionsButton(
+                                    actions: transactionDetailsActions),
+                              ),
+                            ],
                           ],
                         ),
                       ),

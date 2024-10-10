@@ -22,6 +22,11 @@ ApiTransaction _$ApiTransactionFromJson(Map<String, dynamic> json) =>
       considered: json['considered'] as bool,
       isOpenFinance: json['isOpenFinance'] as bool,
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+      paymentMethod: json['payment_method'] as String?,
+      manipulated: json['manipulated'] as bool?,
+      lastUpdateTime: json['lastUpdateDateParsa'] == null
+          ? null
+          : DateTime.parse(json['lastUpdateDateParsa'] as String),
     );
 
 Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
@@ -39,4 +44,7 @@ Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
       'considered': instance.considered,
       'isOpenFinance': instance.isOpenFinance,
       'tags': instance.tags,
+      'payment_method': instance.paymentMethod,
+      'manipulated': instance.manipulated,
+      'lastUpdateDateParsa': instance.lastUpdateTime?.toIso8601String(),
     };

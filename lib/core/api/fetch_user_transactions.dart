@@ -32,6 +32,10 @@ Future<void> fetchUserTransactions(BuildContext context) async {
   );
 
   if (response.statusCode == 200) {
+    for (final account in json.decode(response.body)) {
+      print("ACOUNT ${account}");
+    }
+
     await syncTransactions(response.body);
     var jsonResponse = json.decode(response.body);
     int objectCount = jsonResponse.length;
@@ -175,6 +179,10 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         accountCurrency: currency,
         category: categoryInDB,
         status: status,
+        notes: apiTransaction.notes,
+        manipulated: apiTransaction.manipulated,
+        paymentMethod: apiTransaction.paymentMethod,
+        lastUpdateTime: apiTransaction.lastUpdateTime,
         valueInDestiny: null,
         locAddress: null,
         locLatitude: null,
@@ -282,6 +290,10 @@ extension MoneyTransactionExtension on MoneyTransaction {
       categoryID: category!.id,
       status: status,
       isOpenFinance: isOpenFinance,
+      manipulated: manipulated,
+      paymentMethod: paymentMethod,
+      lastUpdateTime: lastUpdateTime,
+      notes: notes,
     );
   }
 }
@@ -306,8 +318,6 @@ Future<void> ensureTagsExist(List<String> tagIds) async {
     if (tagInDB == null) {
       // Optionally, fetch tag details from the API or create a placeholder
       // For simplicity, we'll create a placeholder tag
-
-      print('Created placeholder for missing tag ID: $tagId');
     }
   }
 }

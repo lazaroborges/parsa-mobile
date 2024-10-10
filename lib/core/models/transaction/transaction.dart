@@ -25,8 +25,6 @@ class MoneyTransaction extends TransactionInDB {
 
   List<Tag> tags;
 
-  DateTime? lastUpdateTime;
-
   bool isOpenFinance;
 
   MoneyTransaction(
@@ -35,6 +33,7 @@ class MoneyTransaction extends TransactionInDB {
       required super.value, //
       required super.isHidden, //
       required super.type, //
+
       super.notes,
       super.title,
       this.isOpenFinance = false, // Set default value to false
@@ -43,6 +42,7 @@ class MoneyTransaction extends TransactionInDB {
       super.locAddress,
       super.locLatitude,
       super.locLongitude,
+      super.manipulated,
       required AccountInDB account,
       AccountInDB? receivingAccount,
       required CurrencyInDB accountCurrency,
@@ -55,7 +55,9 @@ class MoneyTransaction extends TransactionInDB {
       super.endDate,
       super.intervalEach,
       super.intervalPeriod,
-      super.remainingTransactions})
+      super.remainingTransactions,
+      super.lastUpdateTime,
+      super.paymentMethod})
       : category =
             category != null ? Category.fromDB(category, parentCategory) : null,
         account = Account.fromDB(account, accountCurrency),

@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 555
+/// Strings: 565
 ///
-/// Built on 2024-10-10 at 16:31 UTC
+/// Built on 2024-10-10 at 21:51 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -326,6 +326,15 @@ class _TranslationsTransactionPt {
 		one: 'Transações',
 		other: 'Transações',
 	);
+	String get title => 'Info';
+	String get source => 'Origem';
+	String get openfinance_source => 'OpenFinance';
+	String get manual_source => 'Manual';
+	String get manipulated => 'Modificada pelo usuário';
+	String get yes => 'Sim';
+	String get no => 'Não';
+	String get last_update => 'Última atualização';
+	String get payment_method => 'Forma de pagamento';
 	String get create => 'Nova transação';
 	String get new_income => 'Nova receita';
 	String get new_expense => 'Nova despesa';
@@ -394,7 +403,7 @@ class _TranslationsAccountPt {
 	// Translations
 	String get details => 'Detalhes da conta';
 	String get date => 'Data de abertura';
-	String get date_sync => 'Data de sincronização';
+	String get date_sync => 'Conta sincronizada desde';
 	String get close_date => 'Data de fechamento';
 	String get disconnection_date => 'Data de desconexão';
 	String get reopen => 'Reabrir conta';
@@ -462,6 +471,7 @@ class _TranslationsTagsPt {
 	String get delete_success => 'Tag excluída com sucesso';
 	String get delete_warning_header => 'Excluir tag?';
 	String get delete_warning_message => 'Essa ação não excluirá as transações que possuem essa tag.';
+	String get no_tags => 'Transação sem tags.';
 }
 
 // Path: categories
@@ -831,10 +841,10 @@ class _TranslationsTransactionReversedPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Transação inversa';
-	String get title_short => 'Trans. inversa';
-	String get description_for_expenses => 'Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.';
-	String get description_for_incomes => 'Apesar de ser uma transação de receita, ela tem um valor negativo. Esses tipos de transações podem ser usados para anular ou corrigir uma receita que foi registrada incorretamente, para refletir um retorno ou reembolso de dinheiro ou para registrar o pagamento de dívidas.';
+	String get title => 'AINDA NÃO FUNCIONA Transação inversa';
+	String get title_short => 'AINDA NÃO FUNCIONA Trans. inversa';
+	String get description_for_expenses => 'AINDA NÃO FUNCIONA Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.';
+	String get description_for_incomes => 'AINDA NÃO FUNCIONA Apesar de ser uma transação de receita, ela tem um valor negativo. Esses tipos de transações podem ser usados para anular ou corrigir uma receita que foi registrada incorretamente, para refletir um retorno ou reembolso de dinheiro ou para registrar o pagamento de dívidas.';
 }
 
 // Path: transaction.status
@@ -1698,6 +1708,15 @@ extension on Translations {
 				one: 'Transações',
 				other: 'Transações',
 			);
+			case 'transaction.title': return 'Info';
+			case 'transaction.source': return 'Origem';
+			case 'transaction.openfinance_source': return 'OpenFinance';
+			case 'transaction.manual_source': return 'Manual';
+			case 'transaction.manipulated': return 'Modificada pelo usuário';
+			case 'transaction.yes': return 'Sim';
+			case 'transaction.no': return 'Não';
+			case 'transaction.last_update': return 'Última atualização';
+			case 'transaction.payment_method': return 'Forma de pagamento';
 			case 'transaction.create': return 'Nova transação';
 			case 'transaction.new_income': return 'Nova receita';
 			case 'transaction.new_expense': return 'Nova despesa';
@@ -1763,10 +1782,10 @@ extension on Translations {
 			case 'transaction.form.description_info': return 'Toque aqui para inserir uma descrição mais detalhada sobre esta transação';
 			case 'transaction.form.exchange_to_preferred_title': return ({required Object currency}) => 'Taxa de câmbio para ${currency}';
 			case 'transaction.form.exchange_to_preferred_in_date': return 'Na data da transação';
-			case 'transaction.reversed.title': return 'Transação inversa';
-			case 'transaction.reversed.title_short': return 'Trans. inversa';
-			case 'transaction.reversed.description_for_expenses': return 'Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.';
-			case 'transaction.reversed.description_for_incomes': return 'Apesar de ser uma transação de receita, ela tem um valor negativo. Esses tipos de transações podem ser usados para anular ou corrigir uma receita que foi registrada incorretamente, para refletir um retorno ou reembolso de dinheiro ou para registrar o pagamento de dívidas.';
+			case 'transaction.reversed.title': return 'AINDA NÃO FUNCIONA Transação inversa';
+			case 'transaction.reversed.title_short': return 'AINDA NÃO FUNCIONA Trans. inversa';
+			case 'transaction.reversed.description_for_expenses': return 'AINDA NÃO FUNCIONA Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.';
+			case 'transaction.reversed.description_for_incomes': return 'AINDA NÃO FUNCIONA Apesar de ser uma transação de receita, ela tem um valor negativo. Esses tipos de transações podem ser usados para anular ou corrigir uma receita que foi registrada incorretamente, para refletir um retorno ou reembolso de dinheiro ou para registrar o pagamento de dívidas.';
 			case 'transaction.status.display': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 				one: 'Status',
 				other: 'Status',
@@ -1823,7 +1842,7 @@ extension on Translations {
 			case 'recurrent_transactions.details.delete_message': return 'Esta ação é irreversível e não afetará as transações que você já confirmou/pagou';
 			case 'account.details': return 'Detalhes da conta';
 			case 'account.date': return 'Data de abertura';
-			case 'account.date_sync': return 'Data de sincronização';
+			case 'account.date_sync': return 'Conta sincronizada desde';
 			case 'account.close_date': return 'Data de fechamento';
 			case 'account.disconnection_date': return 'Data de desconexão';
 			case 'account.reopen': return 'Reabrir conta';
@@ -1914,6 +1933,7 @@ extension on Translations {
 			case 'tags.delete_success': return 'Tag excluída com sucesso';
 			case 'tags.delete_warning_header': return 'Excluir tag?';
 			case 'tags.delete_warning_message': return 'Essa ação não excluirá as transações que possuem essa tag.';
+			case 'tags.no_tags': return 'Transação sem tags.';
 			case 'categories.unknown': return 'Categoria desconhecida';
 			case 'categories.create': return 'Criar categoria';
 			case 'categories.create_success': return 'Categoria criada com sucesso.';

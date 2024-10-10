@@ -276,29 +276,37 @@ class _CategoryPickerState extends State<CategoryPicker> {
       heightFactor: 1,
       child: Wrap(
         runAlignment: WrapAlignment.center,
-        runSpacing: 20, // Vertical space
-        spacing: 16, // Horizontal space
+        runSpacing: 20,
+        spacing: 16,
         children: snapshot.data!.map((category) {
-          return CategoryButtonSelector(
-            label: category.name,
-            maxTextSize: 48 * 1.25,
-            iconWidget: IconDisplayer.fromCategory(
-              context,
-              category: category,
-              borderRadius: 99999,
-              size: 38,
-              isOutline: selectedCategory?.id == category.id ||
-                  selectedCategory?.parentCategoryID == category.id,
-              onTap: () {
+          return GestureDetector(
+            onDoubleTap: () {
+              setState(() {
                 selectedCategory = category;
-                HapticFeedback.lightImpact();
+              });
+              Navigator.pop(context, selectedCategory);
+            },
+            child: CategoryButtonSelector(
+              label: category.name,
+              maxTextSize: 48 * 1.25,
+              iconWidget: IconDisplayer.fromCategory(
+                context,
+                category: category,
+                borderRadius: 99999,
+                size: 38,
+                isOutline: selectedCategory?.id == category.id ||
+                    selectedCategory?.parentCategoryID == category.id,
+                onTap: () {
+                  selectedCategory = category;
+                  HapticFeedback.lightImpact();
 
-                if (searchContoller.text.isNotNullNorEmpty) {
-                  searchContoller.text = '';
-                }
+                  if (searchContoller.text.isNotNullNorEmpty) {
+                    searchContoller.text = '';
+                  }
 
-                setState(() {});
-              },
+                  setState(() {});
+                },
+              ),
             ),
           );
         }).toList(),

@@ -30,6 +30,7 @@ import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_di
 import 'package:parsa/core/utils/date_time_picker.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/app/tags/tags_selector.modal.dart';
 
 import 'widgets/account_or_category_selector.dart';
 
@@ -95,7 +96,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           .getAccounts(
               predicate: (acc, curr) => AppDB.instance.buildExpr([
                     acc.type.equalsValue(AccountType.saving).not(),
-                    acc.closingDate.isNull()
+                    acc.closingDate.isNull(),
+                    acc.isOpenFinance.equals(false) // Add this line
                   ]),
               limit: transactionType.isTransfer ? 2 : 1)
           .first
@@ -394,13 +396,23 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
 
   Future<List<Account>?> showAccountSelector(Account? account) {
     return showAccountSelectorBottomSheet(
-        context,
-        AccountSelectorModal(
-          allowMultiSelection: false,
-          filterSavingAccounts: transactionType.isIncomeOrExpense,
-          includeArchivedAccounts: false,
-          selectedAccounts: [if (account != null) account],
-        ));
+      context,
+      AccountSelectorModal(
+        allowMultiSelection: false,
+        filterSavingAccounts: transactionType.isIncomeOrExpense,
+        includeArchivedAccounts: false,
+        selectedAccounts: [if (account != null) account],
+      ),
+    ).then((_) {
+      return AccountService.instance
+          .getAccounts(
+            predicate: (acc, curr) => AppDB.instance.buildExpr([
+              acc.isOpenFinance.equals(false), // Add this line
+              // Add any other necessary conditions here
+            ]),
+          )
+          .first;
+    });
   }
 
   Future<void> selectCategory() async {
@@ -721,24 +733,28 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         }),
         const SizedBox(width: 6),
         IconButton.outlined(
-          onPressed: () => showTransactionMoreInfoModal(
+          onPressed: () => showTagListModal(
             context,
-            data: moreInfo.copyWith(
-              valueInDestiny: transactionType.isTransfer
-                  ? moreInfo.valueInDestiny ?? transactionAmount
-                  : null,
+            modal: TagSelector(
+              selectedTags: moreInfo.tags,
+              allowEmptySubmit: true,
+              includeNullTag: false,
             ),
-          ).then((modalRes) {
-            if (modalRes == null) return;
-
-            setState(() {
-              moreInfo = modalRes;
-            });
+          ).then((selectedTags) {
+            if (selectedTags != null) {
+              setState(() {
+                moreInfo = moreInfo.copyWith(tags: selectedTags.cast<Tag>());
+              });
+            }
           }),
           icon: Transform.rotate(
-            angle:
-                -45 * (3.1415926535897932 / 180), // Convert degrees to radians
-            child: const Icon(Icons.label),
+            angle: -45 * (3.1415926535897932 / 180),
+            child: Icon(
+              Icons.label,
+              color: moreInfo.tags.isNotEmpty
+                  ? Theme.of(context).primaryColor
+                  : null,
+            ),
           ),
           tooltip: 'Adicionar Tags',
         ),
@@ -803,15 +819,17 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         const SizedBox(width: 4),
         TextButton(
           style: buttonStyle,
-          onPressed: () {
-            showIntervalSelectoHelpDialog(context,
-                selectedRecurrentRule: recurrentRule,
-                onRecurrentRuleSelected: (res) {
-              setState(() {
-                recurrentRule = res;
-              });
-            });
-          },
+          onPressed: null,
+
+// () {
+//             showIntervalSelectoHelpDialog(context, TODO return the Recurrent Rules
+//                 selectedRecurrentRule: recurrentRule,
+//                 onRecurrentRuleSelected: (res) {
+//               setState(() {
+//                 recurrentRule = res;
+//               });
+//             });
+//           },
           child:
               Icon(recurrentRule.isRecurrent ? Icons.repeat : Icons.repeat_one),
         )

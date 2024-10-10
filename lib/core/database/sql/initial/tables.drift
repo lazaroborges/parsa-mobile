@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   
   -- Date on which the payment of this transaction was made
   date DATETIME NOT NULL,
+  lastUpdateTime DATETIME,
 
   accountID TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE ON UPDATE CASCADE,
   
@@ -113,6 +114,10 @@ CREATE TABLE IF NOT EXISTS transactions (
   notes TEXT,
 
   isOpenFinance BOOLEAN NOT NULL DEFAULT 0,
+
+  manipulated BOOLEAN DEFAULT 0,
+
+  payment_method TEXT, 
 
   -- Whether the transacton is an income, an expense or a transfer
   type ENUMNAME(TransactionType) NOT NULL CHECK(type IN ('E', 'I', 'T')),

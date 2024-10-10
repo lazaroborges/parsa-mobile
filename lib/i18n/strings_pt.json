@@ -247,6 +247,15 @@
       "one": "Transações",
       "other": "Transações"
     },
+    "title": "Info",
+    "source": "Origem",
+    "openfinance-source": "OpenFinance",
+    "manual-source": "Manual",
+    "manipulated": "Modificada pelo usuário",
+    "yes": "Sim",
+    "no": "Não",
+    "last-update": "Última atualização",
+    "payment-method": "Forma de pagamento",
     "create": "Nova transação",
     "new.income": "Nova receita",
     "new.expense": "Nova despesa",
@@ -322,10 +331,10 @@
       "exchange-to-preferred-in-date": "Na data da transação"
     },
     "REVERSED": {
-      "title": "Transação inversa",
-      "title.short": "Trans. inversa",
-      "description-for-expenses": "Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.",
-      "description-for-incomes": "Apesar de ser uma transação de receita, ela tem um valor negativo. Esses tipos de transações podem ser usados para anular ou corrigir uma receita que foi registrada incorretamente, para refletir um retorno ou reembolso de dinheiro ou para registrar o pagamento de dívidas."
+      "title": "AINDA NÃO FUNCIONA Transação inversa",
+      "title.short": "AINDA NÃO FUNCIONA Trans. inversa",
+      "description-for-expenses": "AINDA NÃO FUNCIONA Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.",
+      "description-for-incomes": "AINDA NÃO FUNCIONA Apesar de ser uma transação de receita, ela tem um valor negativo. Esses tipos de transações podem ser usados para anular ou corrigir uma receita que foi registrada incorretamente, para refletir um retorno ou reembolso de dinheiro ou para registrar o pagamento de dívidas."
     },
     "STATUS": {
       "display": {
@@ -399,7 +408,7 @@
   "ACCOUNT": {
     "details": "Detalhes da conta",
     "date": "Data de abertura",
-    "date_sync": "Data de sincronização",
+    "date_sync": "Conta sincronizada desde",
     "close_date": "Data de fechamento",
     "disconnection_date": "Data de desconexão",
     "reopen": "Reabrir conta",
@@ -512,7 +521,8 @@
     "edit.success": "Tag editada com sucesso",
     "delete.success": "Tag excluída com sucesso",
     "delete-warning-header": "Excluir tag?",
-    "delete-warning-message": "Essa ação não excluirá as transações que possuem essa tag."
+    "delete-warning-message": "Essa ação não excluirá as transações que possuem essa tag.",
+    "no-tags": "Transação sem tags."
   },
   "CATEGORIES": {
     "unknown": "Categoria desconhecida",

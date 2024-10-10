@@ -109,6 +109,7 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
               stream: AccountService.instance.getAccounts(
                 predicate: (acc, curr) => AppDB.instance.buildExpr([
                   acc.name.contains(searchValue),
+                  acc.isOpenFinance.equals(false), // Add this line
                   if (widget.filterSavingAccounts)
                     acc.type.equalsValue(AccountType.saving).not(),
                   if (!widget.includeArchivedAccounts) acc.closingDate.isNull()
