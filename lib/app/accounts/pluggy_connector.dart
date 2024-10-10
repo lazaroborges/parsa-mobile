@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_pluggy_connect/flutter_pluggy_connect.dart';
 import 'package:http/http.dart' as http;
+import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 
 class PluggyConnectorPage extends StatefulWidget {
@@ -72,15 +73,22 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
             onSuccess: (data) {
               print('Success');
               print(jsonEncode(data));
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const TabsPage()),
+              );
             },
             onClose: () {
               print('Closed');
-              Navigator.pop(
-                  context); // Close the PluggyConnect widget and return to the previous screen
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const TabsPage()),
+              );
             },
             onError: (error) {
               print('Error');
               print(jsonEncode(error));
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const TabsPage()),
+              );
             },
             onOpen: () {
               print('Opened');

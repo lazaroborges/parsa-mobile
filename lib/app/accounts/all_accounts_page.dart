@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
@@ -47,7 +48,8 @@ class _AllAccountsPageState extends State<AllAccountsPage> {
         heroTag: UniqueKey(),
         icon: const Icon(Icons.add_rounded),
         label: Text(t.account.form.create),
-        onPressed: () => RouteUtils.pushRoute(context, const AccountFormPage()),
+        onPressed: () =>
+            RouteUtils.pushRoute(context, const AccountConnectionModal()),
       ),
       body: Column(
         children: [

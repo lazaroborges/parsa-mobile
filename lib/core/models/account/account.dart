@@ -158,6 +158,7 @@ class ApiAccount {
   final double? balance;
   final String iconId;
   final bool isOpenFinance;
+  final DateTime? closedAt;
 
   ApiAccount({
     required this.accountId,
@@ -174,6 +175,7 @@ class ApiAccount {
     required this.iconId,
     this.balance,
     required this.isOpenFinance,
+    this.closedAt,
   });
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
@@ -206,6 +208,9 @@ class ApiAccount {
           : null, // Safely parse balance
       isOpenFinance:
           json['isOpenFinance'] ?? false, // Default to false if missing
+      closedAt: json['closed_at'] != null
+          ? DateTime.parse(json['closed_at'])
+          : null, // Safely parse closedAt
     );
   }
 }

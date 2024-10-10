@@ -27,7 +27,10 @@ class AppDB extends _$AppDB {
     required this.dbName,
     required this.inMemory,
     required this.logStatements,
-  }) : super(openConnection(dbName, logStatements: logStatements));
+  }) : super(openConnection(dbName, logStatements: logStatements)) {
+    customStatement('PRAGMA foreign_keys = ON');
+    customStatement("PRAGMA timezone = 'America/Sao_Paulo'");
+  }
 
   static final AppDB instance = AppDB._(
     dbName: 'database.db',

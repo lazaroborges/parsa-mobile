@@ -425,7 +425,7 @@
       "notes.placeholder": "Digite algumas notas/descrição sobre esta conta",
       "initial-balance": "Saldo inicial",
       "current-balance": "Saldo atual",
-      "create": "Adicionar conta",
+      "create": "Criar conta",
       "edit": "Editar conta",
       "currency-not-found-warn": "Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações",
       "already-exists": "Já existe outra com o mesmo nome, por favor escreva outro",

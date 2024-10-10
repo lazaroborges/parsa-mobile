@@ -139,34 +139,36 @@ abstract class AccountDetailsActions {
     );
   }
 
-  static deleteAccountWithAlertAndSnackBar(
+  static Future<void> deleteAccountWithAlertAndSnackBar(
     BuildContext context, {
     required String accountId,
     required bool navigateBack,
-  }) {
+  }) async {
     final scaffold = ScaffoldMessenger.of(context);
+    final t = Translations.of(context);
 
-    confirmDialog(
+    final isConfirmed = await confirmDialog(
       context,
       dialogTitle: t.account.delete.warning_header,
       contentParagraphs: [Text(t.account.delete.warning_text)],
       confirmationText: t.general.continue_text,
       showCancelButton: true,
       icon: Icons.delete,
-    ).then((isConfirmed) {
-      if (isConfirmed != true) return;
+    );
 
-      AccountService.instance.deleteAccount(accountId).then((value) {
-        if (navigateBack) {
-          Navigator.pop(context);
-        }
+    if (isConfirmed != true) return;
 
-        scaffold
-            .showSnackBar(SnackBar(content: Text(t.account.delete.success)));
-      }).catchError((err) {
-        scaffold.showSnackBar(SnackBar(content: Text('$err')));
-      });
-    });
+    try {
+      await AccountService.instance.deleteAccountFromLocalDB(accountId);
+
+      if (navigateBack) {
+        Navigator.of(context).pop();
+      }
+
+      scaffold.showSnackBar(SnackBar(content: Text(t.account.delete.success)));
+    } catch (err) {
+      scaffold.showSnackBar(SnackBar(content: Text('$err')));
+    }
   }
 
   static Future<void> disconnectAccount(
@@ -242,7 +244,7 @@ abstract class AccountDetailsActions {
 
       if (success) {
         // Delete the account from the local database
-        await AccountService.instance.deleteAccount(accountId);
+        await AccountService.instance.deleteAccountFromLocalDB(accountId);
 
         if (navigateBack) {
           Navigator.pop(context);

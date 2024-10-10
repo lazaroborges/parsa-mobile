@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 553
 ///
-/// Built on 2024-10-09 at 20:29 UTC
+/// Built on 2024-10-10 at 12:45 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -943,7 +943,7 @@ class _TranslationsAccountFormPt {
 	String get notes_placeholder => 'Digite algumas notas/descrição sobre esta conta';
 	String get initial_balance => 'Saldo inicial';
 	String get current_balance => 'Saldo atual';
-	String get create => 'Adicionar conta';
+	String get create => 'Criar conta';
 	String get edit => 'Editar conta';
 	String get currency_not_found_warn => 'Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações';
 	String get already_exists => 'Já existe outra com o mesmo nome, por favor escreva outro';
@@ -961,7 +961,7 @@ class _TranslationsAccountDisconnectPt {
 	// Translations
 	String get title => 'Desconectar';
 	String get warning_header => 'Desconectar conta?';
-	String get warning_text => 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Suas transações ainda permanecerão guardadas no Parsa.';
+	String get warning_text => 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Esta ação afetará também outros produtos do mesmo banco. Suas transações ainda permanecerão guardadas no Parsa.';
 	String get success => 'Conta desconectada com sucesso';
 }
 
@@ -1844,7 +1844,7 @@ extension on Translations {
 			case 'account.form.notes_placeholder': return 'Digite algumas notas/descrição sobre esta conta';
 			case 'account.form.initial_balance': return 'Saldo inicial';
 			case 'account.form.current_balance': return 'Saldo atual';
-			case 'account.form.create': return 'Adicionar conta';
+			case 'account.form.create': return 'Criar conta';
 			case 'account.form.edit': return 'Editar conta';
 			case 'account.form.currency_not_found_warn': return 'Você não tem informações sobre taxas de câmbio para esta moeda. 1.0 será usado como a taxa de câmbio padrão. Você pode modificar isso nas configurações';
 			case 'account.form.already_exists': return 'Já existe outra com o mesmo nome, por favor escreva outro';
@@ -1853,7 +1853,7 @@ extension on Translations {
 			case 'account.form.swift': return 'Agencia';
 			case 'account.disconnect.title': return 'Desconectar';
 			case 'account.disconnect.warning_header': return 'Desconectar conta?';
-			case 'account.disconnect.warning_text': return 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Suas transações ainda permanecerão guardadas no Parsa.';
+			case 'account.disconnect.warning_text': return 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Esta ação afetará também outros produtos do mesmo banco. Suas transações ainda permanecerão guardadas no Parsa.';
 			case 'account.disconnect.success': return 'Conta desconectada com sucesso';
 			case 'account.delete_openfinance.title': return 'Deletar conta';
 			case 'account.delete_openfinance.warning_header': return 'Deletar?';

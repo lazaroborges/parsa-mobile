@@ -55,6 +55,11 @@ class AccountService {
     return db.update(db.accounts).replace(account);
   }
 
+  Future<int> deleteAccountFromLocalDB(String accountId) {
+    return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
+        .go();
+  }
+
   Future<int> deleteAccount(String accountId) async {
     try {
       // Retrieve the access token from your authentication service

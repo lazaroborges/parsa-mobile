@@ -68,6 +68,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       name: apiAccount.name,
       iniValue: apiAccount.balance ?? 0.0,
       date: apiAccount.createdAt,
+
       type: _mapAccountType(apiAccount.accountType),
       displayOrder: 10, // Default or based on your logic
       iconId: apiAccount.connectorId, // Define based on your logic
@@ -75,7 +76,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       balance: apiAccount.balance ?? 0.0,
       lastUpdateTime: apiAccount.updatedAt,
       connectorID: apiAccount.connectorId,
-      closingDate: null, // Set if applicable
+      closingDate: apiAccount.closedAt, // Set if applicable
       description: null, // Set if applicable
       iban: apiAccount.number.isNotEmpty ? apiAccount.number : null,
       swift: null, // Set if applicable
@@ -103,9 +104,32 @@ AccountType _mapAccountType(String type) {
 }
 
 Future<void> insertAccountsIntoDB(List<Account> accounts) async {
-  for (final account in accounts) {
-    await AccountService.instance.insertAccountAPI(account.toAccountInDB());
+  final db = AppDB.instance;
+  final accountService = AccountService.instance;
+
+  // Get all existing account IDs from the database
+  final existingAccountIds =
+      await db.select(db.accounts).map((a) => a.id).get();
+
+  // Get all account IDs from the API response
+  final apiAccountIds = accounts.map((a) => a.id).toSet();
+
+  // Find account IDs that are in the database but not in the API response
+  final accountIdsToDelete =
+      existingAccountIds.where((id) => !apiAccountIds.contains(id));
+
+  // Delete accounts that are not in the API response from the local database
+  for (final idToDelete in accountIdsToDelete) {
+    accountService.deleteAccountFromLocalDB(idToDelete);
   }
+
+  // Insert or update accounts from the API
+  for (final account in accounts) {
+    await accountService.insertAccountAPI(account.toAccountInDB());
+  }
+
+  // Mark the accounts table as updated
+  db.markTablesUpdated([db.accounts]);
 }
 
 // Extension to convert Account to AccountInDB
