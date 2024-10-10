@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 553
+/// Strings: 555
 ///
-/// Built on 2024-10-10 at 12:45 UTC
+/// Built on 2024-10-10 at 16:31 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -394,7 +394,9 @@ class _TranslationsAccountPt {
 	// Translations
 	String get details => 'Detalhes da conta';
 	String get date => 'Data de abertura';
+	String get date_sync => 'Data de sincronização';
 	String get close_date => 'Data de fechamento';
+	String get disconnection_date => 'Data de desconexão';
 	String get reopen => 'Reabrir conta';
 	String get reopen_short => 'Reabrir';
 	String get reopen_descr => 'Tem certeza de que deseja reabrir esta conta?';
@@ -1821,7 +1823,9 @@ extension on Translations {
 			case 'recurrent_transactions.details.delete_message': return 'Esta ação é irreversível e não afetará as transações que você já confirmou/pagou';
 			case 'account.details': return 'Detalhes da conta';
 			case 'account.date': return 'Data de abertura';
+			case 'account.date_sync': return 'Data de sincronização';
 			case 'account.close_date': return 'Data de fechamento';
+			case 'account.disconnection_date': return 'Data de desconexão';
 			case 'account.reopen': return 'Reabrir conta';
 			case 'account.reopen_short': return 'Reabrir';
 			case 'account.reopen_descr': return 'Tem certeza de que deseja reabrir esta conta?';

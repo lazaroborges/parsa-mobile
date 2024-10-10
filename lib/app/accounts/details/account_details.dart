@@ -107,22 +107,35 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                         children: [
                           CardWithHeader(
                             title: 'Info',
+                            leadingIcon: account.isOpenFinance
+                                ? Image.asset(
+                                    'assets/icons/supported_selectable_icons/logos/open/logo.png',
+                                    width: 85,
+                                    height: 24,
+                                  )
+                                : null,
                             body: LabelValueInfoList(items: [
                               LabelValueInfoListItem(
                                 value: Text(
-                                  DateFormat.yMMMMEEEEd()
-                                      .add_Hm()
-                                      .format(account.date),
+                                  DateFormat('dd/MM/yyyy HH:mm', 'pt_BR')
+                                      .format(
+                                    account.date.toLocal(),
+                                  ),
                                 ),
-                                label: t.account.date,
+                                label: account.isOpenFinance
+                                    ? t.account.date_sync
+                                    : t.account.date,
                               ),
                               if (account.isClosed) ...[
                                 LabelValueInfoListItem(
-                                  label: t.account.close_date,
+                                  label: account.isOpenFinance
+                                      ? t.account.disconnection_date
+                                      : t.account.close_date,
                                   value: Text(
-                                    DateFormat.yMMMMEEEEd()
-                                        .add_Hm()
-                                        .format(account.closingDate!),
+                                    DateFormat('dd/MM/yyyy HH:mm', 'pt_BR')
+                                        .format(
+                                      account.date.toLocal(),
+                                    ),
                                   ),
                                 ),
                               ],

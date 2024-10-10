@@ -21,8 +21,11 @@ import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
+  tz.initializeTimeZones();
+
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 

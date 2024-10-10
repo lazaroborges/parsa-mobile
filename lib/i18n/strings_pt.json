@@ -399,7 +399,9 @@
   "ACCOUNT": {
     "details": "Detalhes da conta",
     "date": "Data de abertura",
+    "date_sync": "Data de sincronização",
     "close_date": "Data de fechamento",
+    "disconnection_date": "Data de desconexão",
     "reopen": "Reabrir conta",
     "reopen.short": "Reabrir",
     "reopen.descr": "Tem certeza de que deseja reabrir esta conta?",

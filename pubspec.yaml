@@ -75,6 +75,7 @@ dependencies:
   material_design_icons_flutter: ^7.0.0
   shared_preferences: ^2.3.2
   local_auth: ^2.3.0
+  timezone: ^0.9.4
 
 
 dev_dependencies:
