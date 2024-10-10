@@ -243,6 +243,9 @@ abstract class AccountDetailsActions {
           accountId, accessToken);
 
       if (success) {
+        //print the response body:
+        print(success);
+
         // Delete the account from the local database
         await AccountService.instance.deleteAccountFromLocalDB(accountId);
 

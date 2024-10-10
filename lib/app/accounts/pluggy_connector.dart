@@ -32,11 +32,6 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
 
     final credentials = await auth0.credentialsManager.credentials();
 
-    print('Expires at: ${credentials.expiresAt}');
-    print('Scopes: ${credentials.scopes}');
-    print('Token Type: ${credentials.tokenType}');
-    print('User: ${credentials.user}');
-
     final response = await http.get(
       Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/auth/'),
       headers: {
@@ -44,8 +39,6 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
         'Content-Type': 'application/json',
       },
     );
-
-    print(response.body);
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
