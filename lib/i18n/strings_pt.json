@@ -436,7 +436,7 @@
     "DISCONNECT": {
       "title": "Desconectar",
       "warning-header": "Desconectar conta?",
-      "warning-text": "Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Suas transações ainda permanecerão guardadas no Parsa.",
+      "warning-text": "Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Esta ação afetará também outros produtos do mesmo banco. Suas transações ainda permanecerão guardadas no Parsa.",
       "success": "Conta desconectada com sucesso"
     },
     "DELETE-OPENFINANCE": {

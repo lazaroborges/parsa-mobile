@@ -57,4 +57,42 @@ class PostUserAccountService {
       return false;
     }
   }
+
+  static Future<bool> disconnectAccount(
+      String accountId, String accessToken) async {
+    return await _postAccountAction(accountId, accessToken, 'disconnect');
+  }
+
+  static Future<bool> deleteOpenFinanceAccount(
+      String accountId, String accessToken) async {
+    return await _postAccountAction(accountId, accessToken, 'delete');
+  }
+
+  static Future<bool> _postAccountAction(
+      String accountId, String accessToken, String action) async {
+    final url = Uri.parse(
+        'https://naturally-creative-boxer.ngrok-free.app/api/account-insert/actions/$action/');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'accountId': accountId}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Failed to $action account. Status Code: ${response.statusCode}, Body: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error ${action}ing account: $e');
+      return false;
+    }
+  }
 }

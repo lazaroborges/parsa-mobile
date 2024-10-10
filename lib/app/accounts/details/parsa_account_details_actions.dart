@@ -7,14 +7,12 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/core/api/post_methods/post_user_account.dart';
 
 import '../../../core/models/transaction/transaction_type.enum.dart';
 
-abstract class AccountDetailsActions {
+abstract class ParsaAccountDetailsActions {
   static List<ListTileActionItem> getAccountDetailsActions(
     BuildContext context, {
     required Account account,
@@ -167,94 +165,5 @@ abstract class AccountDetailsActions {
         scaffold.showSnackBar(SnackBar(content: Text('$err')));
       });
     });
-  }
-
-  static Future<void> disconnectAccount(
-    BuildContext context,
-    Account account,
-  ) async {
-    final t = Translations.of(context);
-    final scaffold = ScaffoldMessenger.of(context);
-
-    final isConfirmed = await confirmDialog(
-      context,
-      dialogTitle: t.account.disconnect.warning_header,
-      contentParagraphs: [Text(t.account.disconnect.warning_text)],
-      confirmationText: t.general.continue_text,
-      showCancelButton: true,
-      icon: Icons.link_off,
-    );
-
-    if (isConfirmed != true) return;
-
-    try {
-      final auth0 = getAuth0Instance();
-
-      final credentials = await auth0.credentialsManager.credentials();
-      final accessToken = credentials.accessToken;
-
-      final success = await PostUserAccountService.disconnectAccount(
-          account.id, accessToken);
-
-      if (success) {
-        // Close the account in the local database
-        await AccountService.instance.updateAccount(
-          account.copyWith(
-            closingDate: drift.Value(DateTime.now()),
-          ),
-        );
-        scaffold.showSnackBar(
-            SnackBar(content: Text(t.account.disconnect.success)));
-      } else {
-        throw Exception('Failed to disconnect account');
-      }
-    } catch (err) {
-      scaffold.showSnackBar(SnackBar(content: Text('$err')));
-    }
-  }
-
-  static Future<void> deleteOpenFinanceAccount(
-    BuildContext context,
-    String accountId,
-    bool navigateBack,
-  ) async {
-    final t = Translations.of(context);
-    final scaffold = ScaffoldMessenger.of(context);
-
-    final isConfirmed = await confirmDialog(
-      context,
-      dialogTitle: t.account.delete_openfinance.warning_header,
-      contentParagraphs: [Text(t.account.delete_openfinance.warning_text)],
-      confirmationText: t.general.continue_text,
-      showCancelButton: true,
-      icon: Icons.delete,
-    );
-
-    if (isConfirmed != true) return;
-
-    try {
-      final auth0 = getAuth0Instance();
-
-      final credentials = await auth0.credentialsManager.credentials();
-      final accessToken = credentials.accessToken;
-      final success = await PostUserAccountService.deleteOpenFinanceAccount(
-          accountId, accessToken);
-
-      if (success) {
-        // Delete the account from the local database
-        await AccountService.instance.deleteAccount(accountId);
-
-        if (navigateBack) {
-          Navigator.pop(context);
-        }
-
-        scaffold.showSnackBar(
-            SnackBar(content: Text(t.account.delete_openfinance.success)));
-      } else {
-        throw Exception('Failed to delete account');
-      }
-    } catch (err) {
-      scaffold.showSnackBar(SnackBar(content: Text('$err')));
-    }
   }
 }

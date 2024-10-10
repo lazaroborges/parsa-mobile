@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:parsa/app/accounts/details/account_details_actions.dart';
+import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/utils/list_tile_action_item.dart';
 
 class ParsaQuickActionsButtons extends StatelessWidget {
   const ParsaQuickActionsButtons({
     super.key,
-    required this.onDisconnect,
-    required this.onDelete,
+    required this.account,
+    required this.navigateBackOnDelete,
   });
 
-  final VoidCallback onDisconnect;
-  final VoidCallback onDelete;
+  final Account account;
+  final bool navigateBackOnDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -26,22 +29,17 @@ class ParsaQuickActionsButtons extends StatelessWidget {
             context,
             Icons.link_off,
             t.account.disconnect.title,
-            () => _showWarningDialog(
-              context,
-              t.account.disconnect.warning_header,
-              t.account.disconnect.warning_text,
-              onDisconnect,
-            ),
+            () => AccountDetailsActions.disconnectAccount(context, account),
+            isDisconnectAction: true,
           ),
           _buildActionButton(
             context,
             Icons.delete,
             t.account.delete_openfinance.title,
-            () => _showWarningDialog(
+            () => AccountDetailsActions.deleteOpenFinanceAccount(
               context,
-              t.account.delete_openfinance.warning_header,
-              t.account.delete_openfinance.warning_text,
-              onDelete,
+              account.id,
+              navigateBackOnDelete,
             ),
             isDeleteAction: true,
           ),
@@ -50,48 +48,37 @@ class ParsaQuickActionsButtons extends StatelessWidget {
     );
   }
 
-  Future<void> _showWarningDialog(
-    BuildContext context,
-    String title,
-    String content,
-    VoidCallback onConfirm,
-  ) async {
-    final t = Translations.of(context);
-    final result = await confirmDialog(
-      context,
-      dialogTitle: title,
-      contentParagraphs: [Text(content)],
-      confirmationText: t.general.continue_text,
-      showCancelButton: true,
-      icon: Icons.warning_rounded,
-    );
-
-    if (result == true) {
-      onConfirm();
-    }
-  }
-
   Widget _buildActionButton(
     BuildContext context,
     IconData icon,
     String label,
     VoidCallback onPressed, {
     bool isDeleteAction = false,
+    bool isDisconnectAction = false,
   }) {
     final color = isDeleteAction
         ? Theme.of(context).colorScheme.error
-        : Theme.of(context).primaryColor;
+        : isDisconnectAction
+            ? Colors.yellow[700] // Stronger yellow color
+            : Theme.of(context).primaryColor;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         CircleAvatar(
-          backgroundColor: color.withOpacity(0.15),
+          backgroundColor: color!.withOpacity(0.15),
           radius: 24,
           child: IconButton(
             onPressed: onPressed,
             color: color,
-            icon: Icon(icon, size: 32),
+            icon: Transform.rotate(
+              angle: isDisconnectAction ? -45 * (3.14159 / 180) : 0,
+              child: Icon(
+                icon,
+                size: 32,
+                weight: isDisconnectAction ? 900 : 500, // Bold for disconnect
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 4),

@@ -9,7 +9,6 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
-import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/api/delete_methods/delete_user_bank_account.dart';
 
 enum AccountDataFilter { income, expense, balance }

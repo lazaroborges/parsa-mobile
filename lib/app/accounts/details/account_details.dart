@@ -188,14 +188,8 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                             title: t.general.quick_actions,
                             body: account.isOpenFinance
                                 ? ParsaQuickActionsButtons(
-                                    onDisconnect: () {
-                                      // Implement disconnect logic here
-                                      print('Disconnect pressed');
-                                    },
-                                    onDelete: () {
-                                      // Implement delete logic here
-                                      print('Delete pressed');
-                                    },
+                                    account: account,
+                                    navigateBackOnDelete: true,
                                   )
                                 : MonekinQuickActionsButton(
                                     actions: accountDetailsActions),
