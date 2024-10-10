@@ -47,5 +47,28 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>O Parsa usa sua biometria para proteger suas contas.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.parsa.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.parsa.app</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.parsa.app</string> <!-- Replace with your bundle identifier -->
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>myapp</string> <!-- Your custom scheme -->
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
