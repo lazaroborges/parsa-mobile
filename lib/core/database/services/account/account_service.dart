@@ -1,4 +1,3 @@
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:parsa/core/database/app_db.dart';

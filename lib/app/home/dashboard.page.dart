@@ -719,12 +719,15 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
-
-                                  SizedBox(
-                                      width: 105, // Set the desired width
+                                  if (account.isOpenFinance == true)
+                                    SizedBox(
+                                      width: 105,
                                       child: Image.asset(
-                                          'assets/icons/supported_selectable_icons/logos/open/logo.png')),
-                                  // **Replacement Ends Here**
+                                        'assets/icons/supported_selectable_icons/logos/open/logo.png',
+                                      ),
+                                    )
+                                  else
+                                    const SizedBox(width: 105),
                                 ],
                               ),
                             ],
