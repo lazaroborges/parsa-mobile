@@ -37,7 +37,7 @@
       "pt": "Moradia"
     },
     "icon": "home",
-    "color": "4E5452",
+    "color": "2A6478",
     "type": "E",
     "subcategories": [
       {
@@ -64,12 +64,7 @@
           "pt": "Gás"
         }
       },
-      {
-        "icon": "language",
-        "names": {
-          "pt": "Internet"
-        }
-      },
+
       {
         "icon": "call",
         "names": {
@@ -139,7 +134,7 @@
       "pt": "Benefícios"
     },
     "icon": "account_balance",
-    "color": "4C9141",
+    "color": "2196F3",
     "type": "I",
     "subcategories": [
 
@@ -190,12 +185,6 @@
         }
       },
 
-      {
-        "icon": "credit_card",
-        "names": {
-          "pt": "Pagamento Fatura do Cartão de Crédito"
-        }
-      },
       {
         "icon": "account_balance",
         "names": {
@@ -331,11 +320,11 @@
       "pt": "Renda Ativa"
     },
     "icon": "work",
-    "color": "4C9141",
+    "color": "2A6478",
     "type": "I",
     "subcategories": [
       {
-        "icon": "business_center",
+        "icon": "work",
         "names": {
           "pt": "Salário"
         }
@@ -390,7 +379,7 @@
     "subcategories": [
 
 {
-        "icon": "landscape",
+        "icon": "headphones",
         "names": {
           "pt": "Assinaturas Digitais"
         }
@@ -408,12 +397,6 @@
         }
       },
 
-      {
-        "icon": "movie",
-        "names": {
-          "pt": "Programas de TV e filmes"
-        }
-      },
       {
         "icon": "stadium",
         "names": {

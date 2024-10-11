@@ -13,7 +13,6 @@ class CardWithHeader extends StatelessWidget {
     this.onHeaderButtonClick,
     this.headerButtonIcon = Icons.arrow_forward_ios_rounded,
     this.bodyPadding = const EdgeInsets.all(0),
-    this.leadingIcon,
   });
 
   final Widget body;
@@ -25,8 +24,6 @@ class CardWithHeader extends StatelessWidget {
   final EdgeInsets bodyPadding;
 
   final void Function()? onHeaderButtonClick;
-
-  final Widget? leadingIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +56,11 @@ class CardWithHeader extends StatelessWidget {
         children: [
           Container(
             clipBehavior: Clip.hardEdge,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            padding: EdgeInsets.fromLTRB(
+                16,
+                onHeaderButtonClick != null ? 2 : iconSize - 6,
+                2,
+                onHeaderButtonClick != null ? 2 : iconSize - 6),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
@@ -70,32 +71,16 @@ class CardWithHeader extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (leadingIcon != null) ...[
-                        const Spacer(),
-                        const SizedBox(width: 8),
-                        leadingIcon!,
-                        const SizedBox(width: 8),
-                      ],
-                    ],
-                  ),
-                ),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
                 if (onHeaderButtonClick != null)
                   IconButton(
                     onPressed: onHeaderButtonClick,
                     iconSize: iconSize,
                     color: AppColors.of(context).primary,
                     icon: Icon(headerButtonIcon),
-                  ),
+                  )
               ],
             ),
           ),
@@ -107,7 +92,7 @@ class CardWithHeader extends StatelessWidget {
               padding: bodyPadding,
               child: body,
             ),
-          ),
+          )
         ],
       ),
     );

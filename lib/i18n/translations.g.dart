@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 565
 ///
-/// Built on 2024-10-10 at 21:51 UTC
+/// Built on 2024-10-11 at 13:42 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -886,12 +886,12 @@ class _TranslationsTransactionTypesPt {
 		other: 'Tipos de transações',
 	);
 	String income({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
-		one: 'Receitas',
-		other: 'Receitas',
+		one: 'Entradas',
+		other: 'Entradas',
 	);
 	String expense({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
-		one: 'Despesas',
-		other: 'Despesas',
+		one: 'Saídas',
+		other: 'Saídas',
 	);
 	String transfer({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 		one: 'Transferência',
@@ -1809,12 +1809,12 @@ extension on Translations {
 				other: 'Tipos de transações',
 			);
 			case 'transaction.types.income': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
-				one: 'Receitas',
-				other: 'Receitas',
+				one: 'Entradas',
+				other: 'Entradas',
 			);
 			case 'transaction.types.expense': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
-				one: 'Despesas',
-				other: 'Despesas',
+				one: 'Saídas',
+				other: 'Saídas',
 			);
 			case 'transaction.types.transfer': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 				one: 'Transferência',

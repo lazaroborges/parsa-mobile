@@ -362,12 +362,12 @@
         "other": "Tipos de transações"
       },
       "income": {
-        "one": "Receitas",
-        "other": "Receitas"
+        "one": "Entradas",
+        "other": "Entradas"
       },
       "expense": {
-        "one": "Despesas",
-        "other": "Despesas"
+        "one": "Saídas",
+        "other": "Saídas"
       },
       "transfer": {
         "one": "Transferência",

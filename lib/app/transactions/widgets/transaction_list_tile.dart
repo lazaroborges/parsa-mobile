@@ -151,7 +151,7 @@ class TransactionListTile extends StatelessWidget {
                           secondaryText =
                               DateFormat.yMMMd().format(transaction.date);
                         } else {
-                          secondaryText = transaction.notes ?? '';
+                          secondaryText = transaction.paymentMethod ?? '';
                         }
                       }
 

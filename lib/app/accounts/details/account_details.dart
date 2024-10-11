@@ -107,13 +107,6 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                         children: [
                           CardWithHeader(
                             title: 'Info',
-                            leadingIcon: account.isOpenFinance
-                                ? Image.asset(
-                                    'assets/icons/supported_selectable_icons/logos/open/logo.png',
-                                    width: 85,
-                                    height: 24,
-                                  )
-                                : null,
                             body: LabelValueInfoList(items: [
                               LabelValueInfoListItem(
                                 value: Text(
