@@ -12,6 +12,8 @@ import './../../../models/account/account.dart';
 import './../../services/user-setting/user_setting_service.dart';
 import './../../services/app-data/app_data_service.dart';
 
+PRAGMA encoding = "UTF-8";
+
 CREATE TABLE IF NOT EXISTS currencies (
     -- ISO 4217 currency code. Identifies a currency uniquely ([see more](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes))
     code TEXT NOT NULL PRIMARY KEY,

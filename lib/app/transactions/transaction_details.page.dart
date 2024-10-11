@@ -11,6 +11,7 @@ import 'package:parsa/core/database/services/exchange-rate/exchange_rate_service
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/extensions/string.extension.dart';
+import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/supported-icon/supported_icon.dart';
 import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
@@ -24,6 +25,7 @@ import 'package:parsa/core/utils/constants.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/app/categories/selectors/category_picker.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -61,6 +63,39 @@ class TransactionDetailsPage extends StatefulWidget {
 }
 
 class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
+  void updateCategory(BuildContext context, MoneyTransaction transaction) {
+    showCategoryPickerModal(
+      context,
+      modal: CategoryPicker(
+        selectedCategory: transaction.category,
+        categoryType: [
+          CategoryType.B,
+          if (transaction.type == TransactionType.E) CategoryType.E,
+          if (transaction.type == TransactionType.I) CategoryType.I,
+        ],
+      ),
+    ).then((selectedCategory) {
+      if (selectedCategory != null) {
+        TransactionService.instance
+            .insertOrUpdateTransaction(
+          transaction.copyWith(
+            categoryID: drift.Value(selectedCategory.id),
+          ),
+        )
+            .then((value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.transaction.edit_success)),
+          );
+          setState(() {}); // Refresh the UI
+        }).catchError((error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        });
+      }
+    });
+  }
+
   List<ListTileActionItem> _getPayActions(
     BuildContext context,
     MoneyTransaction transaction,
@@ -563,12 +598,16 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                   ),
                                   if (transaction.isIncomeOrExpense)
                                     LabelValueInfoItem(
-                                      value: buildInfoTileWithIconAndColor(
-                                        icon: transaction.category!.icon,
-                                        color: ColorHex.get(
-                                                transaction.category!.color)
-                                            .lighten(0.5),
-                                        data: transaction.category!.name,
+                                      value: GestureDetector(
+                                        onTap: () => updateCategory(
+                                            context, transaction),
+                                        child: buildInfoTileWithIconAndColor(
+                                          icon: transaction.category!.icon,
+                                          color: ColorHex.get(
+                                                  transaction.category!.color)
+                                              .lighten(0.5),
+                                          data: transaction.category!.name,
+                                        ),
                                       ),
                                       label: t.general.category,
                                     ),

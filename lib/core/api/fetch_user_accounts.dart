@@ -65,9 +65,11 @@ Future<List<Account>> convertApiAccountsToLocal(
         .getCurrencyByCode('BRL')
         .first) as CurrencyInDB;
 
+    final name = utf8.decode(apiAccount.name.runes.toList());
+
     Account account = Account(
       id: apiAccount.accountId,
-      name: apiAccount.name,
+      name: name,
       iniValue: apiAccount.balance ?? 0.0,
       date: apiAccount.createdAt,
 

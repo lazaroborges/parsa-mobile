@@ -30,6 +30,7 @@ class AppDB extends _$AppDB {
   }) : super(openConnection(dbName, logStatements: logStatements)) {
     customStatement('PRAGMA foreign_keys = ON');
     customStatement("PRAGMA timezone = 'America/Sao_Paulo'");
+    customStatement('PRAGMA encoding = "UTF-8"');
   }
 
   static final AppDB instance = AppDB._(

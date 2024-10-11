@@ -32,10 +32,6 @@ Future<void> fetchUserTransactions(BuildContext context) async {
   );
 
   if (response.statusCode == 200) {
-    for (final account in json.decode(response.body)) {
-      print("ACOUNT ${account}");
-    }
-
     await syncTransactions(response.body);
     var jsonResponse = json.decode(response.body);
     int objectCount = jsonResponse.length;
@@ -100,7 +96,13 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
           utf8.decode(apiTransaction.transactionCategory.runes.toList());
       final description = apiTransaction.description != null
           ? utf8.decode(apiTransaction.description!.runes.toList())
-          : 'No Description';
+          : 'Outros';
+      final paymentMethod = apiTransaction.paymentMethod != null
+          ? utf8.decode(apiTransaction.paymentMethod!.runes.toList())
+          : null;
+      final notes = apiTransaction.notes != null
+          ? utf8.decode(apiTransaction.notes!.runes.toList())
+          : null;
 
       // Fetch currency, default to 'BRL' if not provided
       final currencyCode = apiTransaction.currency ?? 'BRL';
@@ -179,9 +181,9 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         accountCurrency: currency,
         category: categoryInDB,
         status: status,
-        notes: apiTransaction.notes,
+        notes: notes,
         manipulated: apiTransaction.manipulated,
-        paymentMethod: apiTransaction.paymentMethod,
+        paymentMethod: paymentMethod,
         lastUpdateTime: apiTransaction.lastUpdateTime,
         valueInDestiny: null,
         locAddress: null,
