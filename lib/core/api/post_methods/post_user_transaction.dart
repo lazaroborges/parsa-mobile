@@ -33,7 +33,7 @@ class PostUserTransactionService {
       'amount': transaction.value,
       'notes': transaction.notes ?? '',
       'description': transaction.title ?? '',
-      'status': transaction.status.toString().split('.').last,
+      'considered': transaction.status.toString().split('.').last,
       'account': transaction.accountID,
       'categoryName': categoryName,
       'receivingAccountID': transaction.receivingAccountID,

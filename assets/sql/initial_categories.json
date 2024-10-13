@@ -107,7 +107,12 @@
           "pt": "Profissional da Saúde"
         }
       },
-     
+           {
+        "icon": "prescriptions",
+        "names": {
+          "pt": "Plano de Saúde"
+        }
+      },
       {
         "icon": "prescriptions",
         "names": {
@@ -193,26 +198,26 @@
       },
 
       {
-        "icon": "credit_card_off",
+        "icon": "credit_card",
         "names": {
           "pt": "Taxas de cartão de crédito"
         }
       },
 
       {
-        "icon": "percent",
+        "icon": "receipt_long",
         "names": {
           "pt": "Juros / Multas por Atraso"
         }
       },
       {
-        "icon": "apartment",
+        "icon": "home",
         "names": {
           "pt": "Financiamento imobiliário"
         }
       },
       {
-        "icon": "directions_car",
+        "icon": "car_rental",
         "names": {
           "pt": "Financiamento de veículos"
         }
@@ -223,38 +228,28 @@
           "pt": "Empréstimos"
         }
       },
+  
       {
-        "icon": "loan",
-        "names": {
-          "pt": "Emprestimos"
-        }
-      },
-      {
-        "icon": "gavel",
+        "icon": "receipt",
         "names": {
           "pt": "Obrigações legais"
         }
       },
       {
-        "icon": "balance",
+        "icon": "receipt",
         "names": {
           "pt": "Saldo bloqueado"
         }
       },
+
       {
-        "icon": "local_hospital",
-        "names": {
-          "pt": "Plano de Saúde"
-        }
-      },
-      {
-        "icon": "home_repair_service",
+        "icon": "home",
         "names": {
           "pt": "Seguros"
         }
       },
       {
-        "icon": "family_restroom",
+        "icon": "receipt",
         "names": {
           "pt": "Pensão alimentícia"
         }
@@ -283,7 +278,7 @@
     "subcategories": [
 
  {
-        "icon": "class",
+        "icon": "library_books",
         "names": {
           "pt": "Educação"
         }
@@ -302,13 +297,13 @@
         }
       },
       {
-        "icon": "child_care",
+        "icon": "library_books",
         "names": {
           "pt": "Creche"
         }
       },
       {
-        "icon": "laptop",
+        "icon": "library_books",
         "names": {
           "pt": "Cursos online"
         }
@@ -398,7 +393,7 @@
       },
 
       {
-        "icon": "stadium",
+        "icon": "sports_soccer",
         "names": {
           "pt": "Estádios e arenas"
         }
@@ -410,17 +405,12 @@
         }
       },
       {
-        "icon": "theater_comedy",
+        "icon": "movie",
         "names": {
           "pt": "Cinema, Teatro e Concertos"
         }
       },
-      {
-        "icon": "casino",
-        "names": {
-          "pt": "Jogos e apostas"
-        }
-      },
+
       {
         "icon": "casino",
         "names": {
@@ -487,13 +477,13 @@
         }
       },
       {
-        "icon": "book",
+        "icon": "library_books",
         "names": {
           "pt": "Livraria"
         }
       }, 
 {
-        "icon": "cashback",
+        "icon": "savings",
         "names": {
           "pt": "Cashback"
         }
@@ -584,13 +574,13 @@
       },
  
       {
-        "icon": "parking",
+        "icon": "receipt",
         "names": {
           "pt": "Estacionamentos"
         }
       },
       {
-        "icon": "gavel",
+        "icon": "receipt_long",
         "names": {
           "pt": "Multas de trânsito"
         }

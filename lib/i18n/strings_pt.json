@@ -179,7 +179,7 @@
       "descr": {
         "insufficient_data": "Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!",
         "very_good": "Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa",
-        "good": "Ótimo! Sua saúde financeira está boa. Visite a aba de análise para ver como economizar ainda mais!",
+        "good": "Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais!",
         "normal": "Sua saúde financeira está mais ou menos na média do restante da população para este período",
         "bad": "Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças",
         "very_bad": "Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças"
@@ -249,9 +249,12 @@
     },
     "title": "Info",
     "source": "Origem",
-    "openfinance-source": "OpenFinance",
+    "openfinance-source": "Open Finance",
     "manual-source": "Manual",
     "manipulated": "Modificada pelo usuário",
+    "synch-method": "Sincronizada",
+    "synch-auto": "Automaticamente (Open Finance)",
+    "synch-manual": "Manualmente",
     "yes": "Sim",
     "no": "Não",
     "last-update": "Última atualização",
@@ -330,6 +333,10 @@
       "exchange-to-preferred-title": "Taxa de câmbio para {{ currency }}",
       "exchange-to-preferred-in-date": "Na data da transação"
     },
+    "NOTES": {
+      "title": "Descrição da Transação",
+      "title.short": "Insira informações adicionais sobre a transação."
+    },
     "REVERSED": {
       "title": "AINDA NÃO FUNCIONA Transação inversa",
       "title.short": "AINDA NÃO FUNCIONA Trans. inversa",
@@ -350,7 +357,7 @@
       "unreconciled": "Não considerada",
       "unreconciled.descr": "Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa",
       "notconsidered": "Desconsiderada",
-      "notconsidered.descr": "Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.",
+      "notconsidered.descr": "Esta transação não conta para seus insights e saldos.",
       "pending": "Pendente",
       "pending.descr": "Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights",
       "voided": "Anulada",

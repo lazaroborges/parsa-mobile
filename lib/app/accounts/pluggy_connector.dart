@@ -47,7 +47,8 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
             responseBody['connect_token'].toString(); // Ensure it's a String
       });
     } else {
-      print('Failed to fetch connect token');
+      print(
+          'Failed to fetch connect token: ${response.statusCode} ${response.body}');
     }
   }
 

@@ -26,6 +26,8 @@ import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/categories/selectors/category_picker.dart';
+import 'package:parsa/app/transactions/form/dialogs/transaction_notes_modal.dart';
+import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -80,6 +82,32 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             .insertOrUpdateTransaction(
           transaction.copyWith(
             categoryID: drift.Value(selectedCategory.id),
+          ),
+        )
+            .then((value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.transaction.edit_success)),
+          );
+          setState(() {}); // Refresh the UI
+        }).catchError((error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        });
+      }
+    });
+  }
+
+  void updateNotes(BuildContext context, MoneyTransaction transaction) {
+    showTransactionNotesModal(
+      context,
+      initialNotes: transaction.notes,
+    ).then((newNotes) {
+      if (newNotes != null) {
+        TransactionService.instance
+            .insertOrUpdateTransaction(
+          transaction.copyWith(
+            notes: drift.Value(newNotes),
           ),
         )
             .then((value) {
@@ -398,50 +426,54 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     required Widget body,
     required IconData? icon,
     required String title,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      clipBehavior: Clip.hardEdge,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: color.withOpacity(0.125),
-        border: Border.all(
-          width: 1,
-          color: color,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.of(context).shadowColorLight,
-            blurRadius: 12,
-            offset: const Offset(0, 0),
-            spreadRadius: 4,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        clipBehavior: Clip.hardEdge,
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: color.withOpacity(0.125),
+          border: Border.all(
+            width: 1,
+            color: color,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 26,
-                  color: color,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.of(context).shadowColorLight,
+              blurRadius: 12,
+              offset: const Offset(0, 0),
+              spreadRadius: 4,
             ),
-          ),
-          body
-        ],
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 26,
+                    color: color,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            body
+          ],
+        ),
       ),
     );
   }
@@ -461,63 +493,90 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
         : transaction.status!.color;
 
     return translucentCard(
-        color: color,
-        body: Padding(
-          padding: EdgeInsets.all(showRecurrencyStatus ? 0 : 12),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(showRecurrencyStatus ? 12 : 0),
-                child: Text(
-                  showRecurrencyStatus
-                      ? t.recurrent_transactions.details.descr
-                      : transaction.status!.description(context),
-                ),
+      color: color,
+      body: Padding(
+        padding: EdgeInsets.all(showRecurrencyStatus ? 0 : 12),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(showRecurrencyStatus ? 12 : 0),
+              child: Text(
+                showRecurrencyStatus
+                    ? t.recurrent_transactions.details.descr
+                    : transaction.status!.description(context),
               ),
-              if (transaction.recurrentInfo.isRecurrent) ...[
-                //const SizedBox(height: 12),
-                Column(
-                  children: transaction
-                      .getNextDatesOfRecurrency(limit: 3)
-                      .mapIndexed((index, e) => Column(
-                            children: [
-                              cardPay(
-                                date: e,
-                                transaction: transaction,
-                                isNext: index == 0,
-                              ),
-                              if (index == 2) const SizedBox(height: 8),
-                            ],
-                          ))
-                      .toList(),
-                )
-              ],
-              if (transaction.status == TransactionStatus.pending) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: color.darken(0.2),
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () => showPayModal(context, transaction),
-                    child:
-                        Text(t.transaction.next_payments.accept_dialog_title),
-                  ),
-                )
-              ]
+            ),
+            if (transaction.recurrentInfo.isRecurrent) ...[
+              //const SizedBox(height: 12),
+              Column(
+                children: transaction
+                    .getNextDatesOfRecurrency(limit: 3)
+                    .mapIndexed((index, e) => Column(
+                          children: [
+                            cardPay(
+                              date: e,
+                              transaction: transaction,
+                              isNext: index == 0,
+                            ),
+                            if (index == 2) const SizedBox(height: 8),
+                          ],
+                        ))
+                    .toList(),
+              )
             ],
-          ),
+            if (transaction.status == TransactionStatus.pending) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: color.darken(0.2),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => showPayModal(context, transaction),
+                  child: Text(t.transaction.next_payments.accept_dialog_title),
+                ),
+              )
+            ]
+          ],
         ),
-        icon: showRecurrencyStatus
-            ? Icons.repeat_rounded
-            : transaction.status?.icon,
-        title: showRecurrencyStatus
-            ? t.recurrent_transactions.details.title
-            : t.transaction.status
-                .tr_status(status: transaction.status!.displayName(context))
-                .capitalize());
+      ),
+      icon: showRecurrencyStatus
+          ? Icons.repeat_rounded
+          : transaction.status?.icon,
+      title: showRecurrencyStatus
+          ? t.recurrent_transactions.details.title
+          : t.transaction.status
+              .tr_status(status: transaction.status!.displayName(context))
+              .capitalize(),
+      onTap: showRecurrencyStatus
+          ? null
+          : () {
+              showTransactioStatusModal(
+                context,
+                initialStatus: transaction.status,
+              ).then((modalRes) {
+                if (modalRes != null && modalRes.result != null) {
+                  TransactionService.instance
+                      .insertOrUpdateTransaction(
+                    transaction.copyWith(
+                      status: drift.Value(modalRes.result),
+                    ),
+                  )
+                      .then((value) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(t.transaction.edit_success)),
+                    );
+                    setState(() {}); // Refresh the UI
+                  }).catchError((error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error.toString())),
+                    );
+                  });
+                }
+              });
+            },
+    );
   }
 
   @override
@@ -551,6 +610,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                   delegate: _TransactionDetailHeader(
                     heroTag: widget.heroTag,
                     transaction: transaction,
+                    updateCategory: updateCategory,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -630,12 +690,25 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                     label: t.general.time
                                         .datetime, // Assuming you have a combined label
                                   ),
-                                  if (transaction.notes !=
-                                      null) // Add description if it exists
-                                    LabelValueInfoItem(
-                                      value: Text(transaction.notes!),
-                                      label: t.transaction.form.description,
+                                  LabelValueInfoItem(
+                                    value: GestureDetector(
+                                      onTap: () =>
+                                          updateNotes(context, transaction),
+                                      child: Text(
+                                        transaction.notes ??
+                                            t.transaction.form.title,
+                                        style: TextStyle(
+                                          color: transaction.notes == null
+                                              ? Colors.grey
+                                              : null,
+                                          fontStyle: transaction.notes == null
+                                              ? FontStyle.italic
+                                              : null,
+                                        ),
+                                      ),
                                     ),
+                                    label: t.transaction.form.description,
+                                  ),
                                   if (transaction.paymentMethod != null)
                                     LabelValueInfoItem(
                                       value: Text(transaction.paymentMethod!),
@@ -655,6 +728,14 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         .format(transaction.lastUpdateTime ??
                                             DateTime.now())),
                                     label: t.transaction.last_update,
+                                  ),
+                                  LabelValueInfoItem(
+                                    value: Text(
+                                      transaction.isOpenFinance
+                                          ? t.transaction.synch_auto
+                                          : t.transaction.synch_manual,
+                                    ),
+                                    label: t.transaction.synch_method,
                                   ),
                                 ],
                               ),
@@ -884,10 +965,12 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
   const _TransactionDetailHeader({
     required this.transaction,
     required this.heroTag,
+    required this.updateCategory,
   });
 
   final MoneyTransaction transaction;
   final Object? heroTag;
+  final Function(BuildContext, MoneyTransaction) updateCategory;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlap) {
@@ -978,11 +1061,14 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
             ),
           ),
           const SizedBox(width: 24),
-          Hero(
-            tag: heroTag ?? UniqueKey(),
-            child: transaction.getDisplayIcon(
-              context,
-              size: 42 - shrinkPercent * 16,
+          GestureDetector(
+            onTap: () => updateCategory(context, transaction),
+            child: Hero(
+              tag: heroTag ?? UniqueKey(),
+              child: transaction.getDisplayIcon(
+                context,
+                size: 42 - shrinkPercent * 16,
+              ),
             ),
           ),
         ],

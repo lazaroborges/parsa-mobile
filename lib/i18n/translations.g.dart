@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 565
+/// Strings: 570
 ///
-/// Built on 2024-10-11 at 13:42 UTC
+/// Built on 2024-10-13 at 12:40 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -328,9 +328,12 @@ class _TranslationsTransactionPt {
 	);
 	String get title => 'Info';
 	String get source => 'Origem';
-	String get openfinance_source => 'OpenFinance';
+	String get openfinance_source => 'Open Finance';
 	String get manual_source => 'Manual';
 	String get manipulated => 'Modificada pelo usuário';
+	String get synch_method => 'Sincronizada';
+	String get synch_auto => 'Automaticamente (Open Finance)';
+	String get synch_manual => 'Manualmente';
 	String get yes => 'Sim';
 	String get no => 'Não';
 	String get last_update => 'Última atualização';
@@ -358,6 +361,7 @@ class _TranslationsTransactionPt {
 	late final _TranslationsTransactionListPt list = _TranslationsTransactionListPt._(_root);
 	late final _TranslationsTransactionFiltersPt filters = _TranslationsTransactionFiltersPt._(_root);
 	late final _TranslationsTransactionFormPt form = _TranslationsTransactionFormPt._(_root);
+	late final _TranslationsTransactionNotesPt notes = _TranslationsTransactionNotesPt._(_root);
 	late final _TranslationsTransactionReversedPt reversed = _TranslationsTransactionReversedPt._(_root);
 	late final _TranslationsTransactionStatusPt status = _TranslationsTransactionStatusPt._(_root);
 	late final _TranslationsTransactionTypesPt types = _TranslationsTransactionTypesPt._(_root);
@@ -834,6 +838,17 @@ class _TranslationsTransactionFormPt {
 	String get exchange_to_preferred_in_date => 'Na data da transação';
 }
 
+// Path: transaction.notes
+class _TranslationsTransactionNotesPt {
+	_TranslationsTransactionNotesPt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Descrição da Transação';
+	String get title_short => 'Insira informações adicionais sobre a transação.';
+}
+
 // Path: transaction.reversed
 class _TranslationsTransactionReversedPt {
 	_TranslationsTransactionReversedPt._(this._root);
@@ -867,7 +882,7 @@ class _TranslationsTransactionStatusPt {
 	String get unreconciled => 'Não considerada';
 	String get unreconciled_descr => 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 	String get notconsidered => 'Desconsiderada';
-	String get notconsidered_descr => 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.';
+	String get notconsidered_descr => 'Esta transação não conta para seus insights e saldos.';
 	String get pending => 'Pendente';
 	String get pending_descr => 'Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights';
 	String get voided => 'Anulada';
@@ -1329,7 +1344,7 @@ class _TranslationsFinancialHealthReviewDescrPt {
 	// Translations
 	String get insufficient_data => 'Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!';
 	String get very_good => 'Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa';
-	String get good => 'Ótimo! Sua saúde financeira está boa. Visite a aba de análise para ver como economizar ainda mais!';
+	String get good => 'Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais!';
 	String get normal => 'Sua saúde financeira está mais ou menos na média do restante da população para este período';
 	String get bad => 'Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças';
 	String get very_bad => 'Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças';
@@ -1656,7 +1671,7 @@ extension on Translations {
 			};
 			case 'financial_health.review.descr.insufficient_data': return 'Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!';
 			case 'financial_health.review.descr.very_good': return 'Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa';
-			case 'financial_health.review.descr.good': return 'Ótimo! Sua saúde financeira está boa. Visite a aba de análise para ver como economizar ainda mais!';
+			case 'financial_health.review.descr.good': return 'Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais!';
 			case 'financial_health.review.descr.normal': return 'Sua saúde financeira está mais ou menos na média do restante da população para este período';
 			case 'financial_health.review.descr.bad': return 'Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças';
 			case 'financial_health.review.descr.very_bad': return 'Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças';
@@ -1710,9 +1725,12 @@ extension on Translations {
 			);
 			case 'transaction.title': return 'Info';
 			case 'transaction.source': return 'Origem';
-			case 'transaction.openfinance_source': return 'OpenFinance';
+			case 'transaction.openfinance_source': return 'Open Finance';
 			case 'transaction.manual_source': return 'Manual';
 			case 'transaction.manipulated': return 'Modificada pelo usuário';
+			case 'transaction.synch_method': return 'Sincronizada';
+			case 'transaction.synch_auto': return 'Automaticamente (Open Finance)';
+			case 'transaction.synch_manual': return 'Manualmente';
 			case 'transaction.yes': return 'Sim';
 			case 'transaction.no': return 'Não';
 			case 'transaction.last_update': return 'Última atualização';
@@ -1782,6 +1800,8 @@ extension on Translations {
 			case 'transaction.form.description_info': return 'Toque aqui para inserir uma descrição mais detalhada sobre esta transação';
 			case 'transaction.form.exchange_to_preferred_title': return ({required Object currency}) => 'Taxa de câmbio para ${currency}';
 			case 'transaction.form.exchange_to_preferred_in_date': return 'Na data da transação';
+			case 'transaction.notes.title': return 'Descrição da Transação';
+			case 'transaction.notes.title_short': return 'Insira informações adicionais sobre a transação.';
 			case 'transaction.reversed.title': return 'AINDA NÃO FUNCIONA Transação inversa';
 			case 'transaction.reversed.title_short': return 'AINDA NÃO FUNCIONA Trans. inversa';
 			case 'transaction.reversed.description_for_expenses': return 'AINDA NÃO FUNCIONA Apesar de ser uma transação de despesa, ela tem um valor positivo. Esses tipos de transações podem ser usados para representar o retorno de uma despesa previamente registrada, como um reembolso ou o pagamento de uma dívida.';
@@ -1799,7 +1819,7 @@ extension on Translations {
 			case 'transaction.status.unreconciled': return 'Não considerada';
 			case 'transaction.status.unreconciled_descr': return 'Esta transação ainda não foi validada e, portanto, ainda não aparece em suas contas bancárias reais. No entanto, ela conta para o cálculo de saldos e insights no Parsa';
 			case 'transaction.status.notconsidered': return 'Desconsiderada';
-			case 'transaction.status.notconsidered_descr': return 'Esta transação não será considerada no cálculo de saldos e insights. Possíveis motivos incluem transferências do mesmo titular, pagamentos de faturas do cartão de crédito, estornos, pagamentos de faturas do cartão de crédito, etc.';
+			case 'transaction.status.notconsidered_descr': return 'Esta transação não conta para seus insights e saldos.';
 			case 'transaction.status.pending': return 'Pendente';
 			case 'transaction.status.pending_descr': return 'Esta transação está pendente e, portanto, não será considerada no cálculo de saldos e insights';
 			case 'transaction.status.voided': return 'Anulada';
