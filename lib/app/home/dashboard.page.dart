@@ -43,6 +43,7 @@ import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -616,6 +617,19 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
 
   final DatePeriodState dateRangeService;
 
+  Future<String> _getIconPath(String iconId) async {
+    print('assets/png_icons/$iconId.png');
+    final defaultPath = 'assets/png_icons/$iconId.png';
+    final iconPath = 'assets/png_icons/1.png';
+
+    try {
+      await rootBundle.load(defaultPath);
+      return defaultPath;
+    } catch (_) {
+      return iconPath;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -666,13 +680,22 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                   Hero(
                                     tag:
                                         'dashboard-page__account-icon-${account.iconId}',
-                                    child: Image.asset(
-                                      //                                       'assets/png_icons/${account.iconId}.png',
-
-                                      'assets/png_icons/${account.iconId}.png',
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.contain,
+                                    child: FutureBuilder<String>(
+                                      future: _getIconPath(account.iconId),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.done) {
+                                          return Image.asset(
+                                            snapshot.data!,
+                                            width: 60,
+                                            height: 60,
+                                            fit: BoxFit.contain,
+                                          );
+                                        } else {
+                                          return const SizedBox(
+                                              width: 60, height: 60);
+                                        }
+                                      },
                                     ),
                                   ),
                                   const SizedBox(width: 2),
