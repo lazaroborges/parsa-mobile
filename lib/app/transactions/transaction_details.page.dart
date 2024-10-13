@@ -29,6 +29,7 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/categories/selectors/category_picker.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_notes_modal.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
+import 'package:parsa/app/transactions/form/dialogs/transaction_title_modal.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -139,6 +140,32 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             .insertOrUpdateTransaction(
           transaction.copyWith(),
           selectedTags.cast<Tag>(),
+        )
+            .then((value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.transaction.edit_success)),
+          );
+          setState(() {}); // Refresh the UI
+        }).catchError((error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        });
+      }
+    });
+  }
+
+  void updateTitle(BuildContext context, MoneyTransaction transaction) {
+    showTransactionTitleModal(
+      context,
+      initialTitle: transaction.title,
+    ).then((newTitle) {
+      if (newTitle != null) {
+        TransactionService.instance
+            .insertOrUpdateTransaction(
+          transaction.copyWith(
+            title: drift.Value(newTitle),
+          ),
         )
             .then((value) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -641,6 +668,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     heroTag: widget.heroTag,
                     transaction: transaction,
                     updateCategory: updateCategory,
+                    updateTitle: updateTitle,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -674,6 +702,25 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                               title: t.transaction.title,
                               body: LabelValueInfoTable(
                                 items: [
+                                  LabelValueInfoItem(
+                                    value: GestureDetector(
+                                      onTap: () =>
+                                          updateTitle(context, transaction),
+                                      child: Text(
+                                        transaction.title ??
+                                            t.transaction.form.title,
+                                        style: TextStyle(
+                                          color: transaction.title == null
+                                              ? Colors.grey
+                                              : null,
+                                          fontStyle: transaction.title == null
+                                              ? FontStyle.italic
+                                              : null,
+                                        ),
+                                      ),
+                                    ),
+                                    label: t.transaction.form.title,
+                                  ),
                                   LabelValueInfoItem(
                                     value: buildInfoTileWithIconAndColor(
                                       icon: transaction.account.icon,
@@ -997,11 +1044,13 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
     required this.transaction,
     required this.heroTag,
     required this.updateCategory,
+    required this.updateTitle,
   });
 
   final MoneyTransaction transaction;
   final Object? heroTag;
   final Function(BuildContext, MoneyTransaction) updateCategory;
+  final Function(BuildContext, MoneyTransaction) updateTitle;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlap) {
@@ -1039,13 +1088,17 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                     currency: transaction.account.currency,
                   ),
                 ),
-                Text(
-                  transaction.displayName(context),
-                  softWrap: true,
-                  overflow: TextOverflow.fade,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                GestureDetector(
+                  // Wrap the title in a GestureDetector
+                  onTap: () => updateTitle(context, transaction),
+                  child: Text(
+                    transaction.displayName(context),
+                    softWrap: true,
+                    overflow: TextOverflow.fade,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 if (transaction.recurrentInfo.isNoRecurrent)
