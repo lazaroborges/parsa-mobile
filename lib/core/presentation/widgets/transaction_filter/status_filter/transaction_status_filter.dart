@@ -9,6 +9,7 @@ class TransactionStatusFilter extends StatelessWidget {
     this.onSelected,
     required this.selectedStatuses,
     required this.allowMultipleSelection,
+    required this.statusesToDisplay,
   });
 
   final void Function(TransactionStatus? statusSelected, bool value)?
@@ -16,6 +17,7 @@ class TransactionStatusFilter extends StatelessWidget {
 
   final List<TransactionStatus?> selectedStatuses;
   final bool allowMultipleSelection;
+  final List<TransactionStatus?> statusesToDisplay;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class TransactionStatusFilter extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              for (final statusItem in [null, ...TransactionStatus.values]) ...[
+              for (final statusItem in statusesToDisplay) ...[
                 TransactionStatusFilterChip(
                   isSelected: selectedStatuses.contains(statusItem),
                   status: statusItem,

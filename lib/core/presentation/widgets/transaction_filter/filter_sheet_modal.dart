@@ -471,18 +471,36 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                   const SizedBox(height: 16),
                   TransactionStatusFilter(
                     selectedStatuses: filtersToReturn.status ??
-                        [null, ...TransactionStatus.values],
+                        [
+                          null,
+                          TransactionStatus.reconciled,
+                          TransactionStatus.notconsidered
+                        ],
                     allowMultipleSelection: true,
+                    statusesToDisplay: [
+                      TransactionStatus.reconciled,
+                      TransactionStatus.notconsidered,
+                      null
+                    ],
                     onSelected: (statusSelected, value) {
                       var newListToAssign = filtersToReturn.status;
 
                       if (newListToAssign == null) {
                         if (statusSelected != null) {
-                          newListToAssign =
-                              TransactionStatus.notIn({statusSelected});
+                          newListToAssign = [
+                            null,
+                            TransactionStatus.reconciled,
+                            TransactionStatus.notconsidered
+                          ]
+                              .where((status) => status != statusSelected)
+                              .toList();
                         } else {
-                          newListToAssign = TransactionStatus.notIn({},
-                              includeNullStatus: value);
+                          newListToAssign = value
+                              ? [null]
+                              : [
+                                  TransactionStatus.reconciled,
+                                  TransactionStatus.notconsidered
+                                ];
                         }
                       } else if (value) {
                         newListToAssign.add(statusSelected);
@@ -491,8 +509,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             element?.index == statusSelected?.index);
                       }
 
-                      if (newListToAssign.length ==
-                          TransactionStatus.values.length + 1) {
+                      if (newListToAssign.length == 3) {
                         newListToAssign = null;
                       }
 

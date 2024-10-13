@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:parsa/app/tags/tags_selector.modal.dart';
 import 'package:parsa/app/transactions/label_value_info_table.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/services/exchange-rate/exchange_rate_service.dart';
@@ -109,6 +110,35 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
           transaction.copyWith(
             notes: drift.Value(newNotes),
           ),
+        )
+            .then((value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.transaction.edit_success)),
+          );
+          setState(() {}); // Refresh the UI
+        }).catchError((error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        });
+      }
+    });
+  }
+
+  void updateTags(BuildContext context, MoneyTransaction transaction) {
+    showTagListModal(
+      context,
+      modal: TagSelector(
+        selectedTags: transaction.tags,
+        allowEmptySubmit: true,
+        includeNullTag: false,
+      ),
+    ).then((selectedTags) {
+      if (selectedTags != null) {
+        TransactionService.instance
+            .insertOrUpdateTransaction(
+          transaction.copyWith(),
+          selectedTags.cast<Tag>(),
         )
             .then((value) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -745,41 +775,42 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             CardWithHeader(
                               title: t.tags.display(n: 2),
                               bodyPadding: const EdgeInsets.all(12),
-                              body: Wrap(
-                                spacing: 6,
-                                runSpacing: 0,
-                                children: transaction.tags.isNotEmpty
-                                    ? List.generate(transaction.tags.length,
-                                        (index) {
-                                        final tag = transaction.tags[index];
-
-                                        return Chip(
-                                          backgroundColor:
-                                              tag.colorData.lighten(0.8),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                            side: const BorderSide(
-                                              width: 0,
-                                              color: Colors.transparent,
-                                              style: BorderStyle.none,
+                              body: GestureDetector(
+                                onTap: () => updateTags(context, transaction),
+                                child: Wrap(
+                                  spacing: 6,
+                                  runSpacing: 0,
+                                  children: transaction.tags.isNotEmpty
+                                      ? List.generate(transaction.tags.length,
+                                          (index) {
+                                          final tag = transaction.tags[index];
+                                          return Chip(
+                                            backgroundColor:
+                                                tag.colorData.lighten(0.8),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              side: const BorderSide(
+                                                width: 0,
+                                                color: Colors.transparent,
+                                                style: BorderStyle.none,
+                                              ),
                                             ),
-                                          ),
-                                          elevation: 0,
-                                          label: Text(
-                                            tag.name,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelMedium!
-                                                .copyWith(color: tag.colorData),
-                                          ),
-                                          avatar: Icon(Tag.icon,
-                                              color: tag.colorData),
-                                        );
-                                      })
-                                    : [
-                                        Text(t.tags.no_tags)
-                                      ], // Display a message if no tags are present
+                                            elevation: 0,
+                                            label: Text(
+                                              tag.name,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium!
+                                                  .copyWith(
+                                                      color: tag.colorData),
+                                            ),
+                                            avatar: Icon(Tag.icon,
+                                                color: tag.colorData),
+                                          );
+                                        })
+                                      : [Text(t.tags.no_tags)],
+                                ),
                               ),
                             ),
                             if (transaction.notes != null) ...[
