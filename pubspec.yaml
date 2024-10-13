@@ -124,9 +124,9 @@ flutter:
 
     - assets/icons/supported_selectable_icons/logos/financial_institutions/
     - assets/icons/supported_selectable_icons/logos/financial_institutions/611.svg
-    - assets/icons/supported_selectable_icons/logos/financial_institutions/bank_of_america.svg
     - assets/sql/
     - assets/sql/migrations/
+    - assets/png_icons/
     - .env
 
   fonts:

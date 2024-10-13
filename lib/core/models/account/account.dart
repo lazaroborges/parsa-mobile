@@ -14,24 +14,28 @@ enum AccountType {
   credit,
 
   /// This type of accounts can not have transactions. You only can add and withdraw money from it from other accounts
-  saving;
+
+  saving,
+
+  wallet;
 
   IconData get icon {
     if (this == normal) {
-      return Icons.wallet;
+      return Icons.account_balance;
     } else if (this == saving) {
       return Icons.savings;
     }
     if (this == credit) {
       return Icons.credit_card;
     }
-
-    return Icons.question_mark;
+    if (this == wallet) {
+      return Icons.wallet;
+    }
+    return Icons.account_circle;
   }
 
   String title(BuildContext context) {
     final t = Translations.of(context);
-
     if (this == normal) {
       return t.account.types.normal;
     } else if (this == saving) {
@@ -39,6 +43,9 @@ enum AccountType {
     }
     if (this == credit) {
       return t.account.types.credit;
+    }
+    if (this == wallet) {
+      return t.account.types.wallet;
     }
 
     return '';
@@ -54,6 +61,9 @@ enum AccountType {
     }
     if (this == credit) {
       return t.account.types.credit_descr;
+    }
+    if (this == wallet) {
+      return t.account.types.wallet_descr;
     }
 
     return '';

@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 570
+/// Strings: 572
 ///
-/// Built on 2024-10-13 at 12:40 UTC
+/// Built on 2024-10-13 at 18:35 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -955,6 +955,8 @@ class _TranslationsAccountTypesPt {
 	String get saving_descr => 'Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar';
 	String get credit => 'Cartão de crédito';
 	String get credit_descr => 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
+	String get wallet => 'Carteira';
+	String get wallet_descr => 'Para controlar dinheiro físico. Usuários Premium terão saques automaticamente creditados nesta conta.';
 }
 
 // Path: account.form
@@ -1001,7 +1003,7 @@ class _TranslationsAccountDeleteOpenfinancePt {
 	// Translations
 	String get title => 'Deletar conta';
 	String get warning_header => 'Deletar?';
-	String get warning_text => 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização das transações e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
+	String get warning_text => 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
 	String get success => 'Conta deletada com sucesso';
 }
 
@@ -1881,6 +1883,8 @@ extension on Translations {
 			case 'account.types.saving_descr': return 'Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar';
 			case 'account.types.credit': return 'Cartão de crédito';
 			case 'account.types.credit_descr': return 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
+			case 'account.types.wallet': return 'Carteira';
+			case 'account.types.wallet_descr': return 'Para controlar dinheiro físico. Usuários Premium terão saques automaticamente creditados nesta conta.';
 			case 'account.form.name': return 'Nome da conta';
 			case 'account.form.name_placeholder': return 'Ex: Conta poupança';
 			case 'account.form.notes': return 'Notas';
@@ -1900,7 +1904,7 @@ extension on Translations {
 			case 'account.disconnect.success': return 'Conta desconectada com sucesso';
 			case 'account.delete_openfinance.title': return 'Deletar conta';
 			case 'account.delete_openfinance.warning_header': return 'Deletar?';
-			case 'account.delete_openfinance.warning_text': return 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização das transações e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
+			case 'account.delete_openfinance.warning_text': return 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
 			case 'account.delete_openfinance.success': return 'Conta deletada com sucesso';
 			case 'account.delete.warning_header': return 'Excluir conta?';
 			case 'account.delete.warning_text': return 'Essa ação excluirá essa conta e todas as suas transações';

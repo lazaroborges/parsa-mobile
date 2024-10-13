@@ -760,7 +760,10 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         label: t.transfer.form.to),
                                   LabelValueInfoItem(
                                     value: Text(
-                                      '${DateFormat.yMMMMd().format(transaction.date)} ${DateFormat.Hm().format(transaction.date)}',
+                                      DateFormat('dd/MM/yyyy HH:mm', 'pt_BR')
+                                          .format(
+                                        transaction.date.toLocal(),
+                                      ),
                                       softWrap: false,
                                       overflow: TextOverflow.fade,
                                     ),
@@ -800,10 +803,14 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       label: t.transaction.manipulated,
                                     ),
                                   LabelValueInfoItem(
-                                    value: Text(DateFormat.yMMMd()
-                                        .add_Hm()
-                                        .format(transaction.lastUpdateTime ??
-                                            DateTime.now())),
+                                    value: Text(
+                                      DateFormat('dd/MM/yyyy HH:mm', 'pt_BR')
+                                          .format(
+                                        (transaction.lastUpdateTime ??
+                                                DateTime.now())
+                                            .toLocal(),
+                                      ),
+                                    ),
                                     label: t.transaction.last_update,
                                   ),
                                   LabelValueInfoItem(
@@ -1118,10 +1125,16 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                     child: shrinkPercent > 0.3
                         ? const SizedBox.shrink()
                         : Text(
-                            transaction.date.year == currentYear
-                                ? DateFormat.MMMMEEEEd()
-                                    .format(transaction.date)
-                                : DateFormat.yMMMEd().format(transaction.date),
+                            DateFormat("EEEE, d 'de' MMMM 'às' HH:mm", 'pt_BR')
+                                .format(transaction.date.toLocal()),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withOpacity(0.7),
+                            ),
                           ),
                   )
                 else

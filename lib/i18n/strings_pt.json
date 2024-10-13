@@ -434,7 +434,9 @@
       "saving": "Investimentos",
       "saving.descr": "Você só poderá adicionar e retirar dinheiro dela a partir de outras contas. Perfeito para começar a economizar", 
       "credit": "Cartão de crédito",
-      "credit.descr": "Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc"
+      "credit.descr": "Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc",
+      "wallet": "Carteira",
+      "wallet.descr": "Para controlar dinheiro físico (eca!). Usuários Premium terão saques automaticamente creditados nesta conta."
     },
     "FORM": {
       "name": "Nome da conta",
@@ -460,7 +462,7 @@
     "DELETE-OPENFINANCE": {
       "title": "Deletar conta",
       "warning-header": "Deletar?",
-      "warning-text": "Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização das transações e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?",
+      "warning-text": "Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?",
       "success": "Conta deletada com sucesso"
     },
 

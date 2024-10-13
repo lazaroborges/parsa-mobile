@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     date DATETIME NOT NULL,
 
     description TEXT,
-    type ENUMNAME(AccountType) NOT NULL CHECK(type IN ('normal', 'saving', 'credit')),
+    type ENUMNAME(AccountType) NOT NULL CHECK(type IN ('normal', 'saving', 'credit', 'wallet')),
 
     iconId TEXT NOT NULL,
 

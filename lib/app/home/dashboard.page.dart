@@ -220,35 +220,35 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           ),
                         ),
-                        ActionChip(
-                          label: Text(dateRangeService.getText(context)),
-                          backgroundColor:
-                              AppColors.of(context).primaryContainer,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            side: BorderSide(
-                              style: BorderStyle.none,
-                              color: AppColors.of(context).onPrimary,
-                            ),
-                          ),
-                          onPressed: () {
-                            openDatePeriodModal(
-                              context,
-                              DatePeriodModal(
-                                initialDatePeriod: dateRangeService.datePeriod,
-                              ),
-                            ).then((value) {
-                              if (value == null) return;
+                        // ActionChip(
+                        //   label: Text(dateRangeService.getText(context)),
+                        //   backgroundColor:
+                        //       AppColors.of(context).primaryContainer,
+                        //   shape: RoundedRectangleBorder(
+                        //     borderRadius: BorderRadius.circular(8.0),
+                        //     side: BorderSide(
+                        //       style: BorderStyle.none,
+                        //       color: AppColors.of(context).onPrimary,
+                        //     ),
+                        //   ),
+                        //   onPressed: () {
+                        //     openDatePeriodModal(
+                        //       context,
+                        //       DatePeriodModal(
+                        //         initialDatePeriod: dateRangeService.datePeriod,
+                        //       ),
+                        //     ).then((value) {
+                        //       if (value == null) return;
 
-                              setState(() {
-                                dateRangeService = dateRangeService.copyWith(
-                                  periodModifier: 0,
-                                  datePeriod: value,
-                                );
-                              });
-                            });
-                          },
-                        ),
+                        //       setState(() {
+                        //         dateRangeService = dateRangeService.copyWith(
+                        //           periodModifier: 0,
+                        //           datePeriod: value,
+                        //         );
+                        //       });
+                        //     });
+                        //   },
+                        // ),
                       ],
                     ),
                     const Divider(height: 16),
@@ -666,16 +666,13 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                   Hero(
                                     tag:
                                         'dashboard-page__account-icon-${account.iconId}',
-                                    child: SvgPicture.asset(
-                                      'assets/icons/supported_selectable_icons/logos/financial_institutions/${account.iconId}.svg',
+                                    child: Image.asset(
+                                      //                                       'assets/png_icons/${account.iconId}.png',
+
+                                      'assets/png_icons/${account.iconId}.png',
                                       width: 60,
                                       height: 60,
-                                      fit: BoxFit.fill,
-                                      //   // colorFilter: ColorFilter.mode(
-                                      //   //   Color(
-                                      //   //       int.parse('0xFF${account.color}')),
-                                      //   //   BlendMode.srcIn,
-                                      //   // ),
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
                                   const SizedBox(width: 2),

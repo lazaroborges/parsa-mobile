@@ -284,7 +284,7 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           type: DriftSqlType.string,
           requiredDuringInsert: true,
           $customConstraints:
-              'NOT NULL CHECK (type IN (\'normal\', \'saving\', \'credit\'))')
+              'NOT NULL CHECK (type IN (\'normal\', \'saving\', \'credit\', \'wallet\'))')
       .withConverter<AccountType>(Accounts.$convertertype);
   static const VerificationMeta _iconIdMeta = const VerificationMeta('iconId');
   late final GeneratedColumn<String> iconId = GeneratedColumn<String>(

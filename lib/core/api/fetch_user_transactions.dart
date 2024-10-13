@@ -129,9 +129,16 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
           .getCategoryByName(transactionCategory)
           .first;
       if (categoryInDB == null) {
+        // Try to fetch the "Outros" category
+        categoryInDB =
+            await CategoryService.instance.getCategoryByName("Outros").first;
+        if (categoryInDB == null) {
+          print(
+              'Category not found for name: $transactionCategory and default "Outros" category not found. Skipping transaction ID: ${apiTransaction.id}');
+          continue;
+        }
         print(
-            'Category not found for name: $transactionCategory. Skipping transaction ID: ${apiTransaction.id}');
-        continue;
+            'Category not found for name: $transactionCategory. Using default "Outros" category for transaction ID: ${apiTransaction.id}');
       }
 
       // Fetch parent category if exists
