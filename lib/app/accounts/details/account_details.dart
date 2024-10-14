@@ -244,64 +244,59 @@ class _AccountDetailHeader extends SliverPersistentHeaderDelegate {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              if (account.isOpenFinance) ...[
+                Image.asset(
+                  'assets/icons/supported_selectable_icons/logos/open/logo.png',
+                  width: 105,
+                  height: 24,
+                ),
+                const SizedBox(height: 8),
+              ],
               Text(account.name),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 100),
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                      fontSize: 32 - shrinkPercent * 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                child: CurrencyDisplayer(
+                  amountToConvert: account.balance,
+                  currency: account.currency,
+                ),
+              ),
               StreamBuilder(
-                  initialData: 0.0,
-                  stream:
-                      AccountService.instance.getAccountMoney(account: account),
-                  builder: (context, snapshot) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 100),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(
-                                fontSize: 32 - shrinkPercent * 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                          child: CurrencyDisplayer(
-                            amountToConvert: snapshot.data!,
-                            currency: account.currency,
-                          ),
-                        ),
-                        StreamBuilder(
-                          stream: ExchangeRateService.instance
-                              .calculateExchangeRateToPreferredCurrency(
-                            amount: snapshot.data!,
-                            fromCurrency: account.currency.code,
-                          ),
-                          builder: (context, currencySnapshot) {
-                            if (currencySnapshot.connectionState ==
-                                    ConnectionState.waiting ||
-                                currencySnapshot.data != 0 &&
-                                    currencySnapshot.data! == snapshot.data ||
-                                snapshot.data! == 0) {
-                              return Container();
-                            }
+                stream: ExchangeRateService.instance
+                    .calculateExchangeRateToPreferredCurrency(
+                  amount: account.balance,
+                  fromCurrency: account.currency.code,
+                ),
+                builder: (context, currencySnapshot) {
+                  if (currencySnapshot.connectionState ==
+                          ConnectionState.waiting ||
+                      currencySnapshot.data != 0 &&
+                          currencySnapshot.data! == account.balance ||
+                      account.balance == 0) {
+                    return Container();
+                  }
 
-                            return Row(
-                              children: [
-                                Text(
-                                  String.fromCharCode(Icons
-                                      .currency_exchange_rounded.codePoint),
-                                  style: TextStyle(
-                                    fontFamily: Icons
-                                        .currency_exchange_rounded.fontFamily,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                CurrencyDisplayer(
-                                    amountToConvert: currencySnapshot.data!),
-                              ],
-                            );
-                          },
-                        )
-                      ],
-                    );
-                  }),
+                  return Row(
+                    children: [
+                      Text(
+                        String.fromCharCode(
+                            Icons.currency_exchange_rounded.codePoint),
+                        style: TextStyle(
+                          fontFamily:
+                              Icons.currency_exchange_rounded.fontFamily,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      CurrencyDisplayer(
+                        amountToConvert: currencySnapshot.data!,
+                      ),
+                    ],
+                  );
+                },
+              )
             ],
           ),
           Hero(

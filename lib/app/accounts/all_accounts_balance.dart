@@ -152,15 +152,23 @@ class _AllAccountBalancePageState extends State<AllAccountBalancePage> {
                                     ),
                                     const SizedBox(width: 6),
                                     CurrencyDisplayer(
-                                        amountToConvert: accountWithMoney.money)
+                                      amountToConvert:
+                                          accountWithMoney.account.balance,
+                                      currency:
+                                          accountWithMoney.account.currency,
+                                    )
                                   ],
                                 ),
                                 AnimatedProgressBar(
-                                    width: 6,
-                                    value: min(
-                                        max(accountWithMoney.money / totalMoney,
-                                            0),
-                                        1)),
+                                  width: 6,
+                                  value: min(
+                                    max(
+                                        accountWithMoney.account.balance /
+                                            totalMoney,
+                                        0),
+                                    1,
+                                  ),
+                                ),
                               ],
                             ),
                           );

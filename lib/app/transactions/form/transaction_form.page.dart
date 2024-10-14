@@ -319,11 +319,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                           mainColor: AppColors.of(context).primary,
                         ),
                     onClick: () async {
-                      final modalRes = await showAccountSelector(fromAccount!);
-
-                      if (modalRes != null && modalRes.isNotEmpty) {
+                      final selectedAccount =
+                          await showAccountSelector(fromAccount);
+                      if (selectedAccount != null) {
                         setState(() {
-                          fromAccount = modalRes.first;
+                          fromAccount = selectedAccount;
                         });
                       }
                     }),
@@ -353,13 +353,13 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                               mainColor: AppColors.of(context).primary,
                             ),
                         onClick: () async {
-                          final modalRes = await showAccountSelector(
+                          final selectedAccount = await showAccountSelector(
                               moreInfo.transferAccount);
-
-                          if (modalRes != null && modalRes.isNotEmpty) {
-                            moreInfo = moreInfo.copyWith(
-                                transferAccount: modalRes.first);
-                            setState(() {});
+                          if (selectedAccount != null) {
+                            setState(() {
+                              moreInfo = moreInfo.copyWith(
+                                  transferAccount: selectedAccount);
+                            });
                           }
                         }),
                   ),
@@ -394,8 +394,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     );
   }
 
-  Future<List<Account>?> showAccountSelector(Account? account) {
-    return showAccountSelectorBottomSheet(
+  Future<Account?> showAccountSelector(Account? account) async {
+    final selectedAccounts = await showAccountSelectorBottomSheet(
       context,
       AccountSelectorModal(
         allowMultiSelection: false,
@@ -403,16 +403,13 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         includeArchivedAccounts: false,
         selectedAccounts: [if (account != null) account],
       ),
-    ).then((_) {
-      return AccountService.instance
-          .getAccounts(
-            predicate: (acc, curr) => AppDB.instance.buildExpr([
-              acc.isOpenFinance.equals(false), // Add this line
-              // Add any other necessary conditions here
-            ]),
-          )
-          .first;
-    });
+    );
+
+    if (selectedAccounts != null && selectedAccounts.isNotEmpty) {
+      return selectedAccounts.first;
+    }
+
+    return null;
   }
 
   Future<void> selectCategory() async {

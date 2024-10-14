@@ -618,7 +618,6 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
   final DatePeriodState dateRangeService;
 
   Future<String> _getIconPath(String iconId) async {
-    print('assets/png_icons/$iconId.png');
     final defaultPath = 'assets/png_icons/$iconId.png';
     final iconPath = 'assets/png_icons/1.png';
 
@@ -663,12 +662,11 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                         context,
                         AccountDetailsPage(
                           account: account,
-                          accountIconHeroTag:
-                              'dashboard-page__account-icon-${account.iconId}',
+                          accountIconHeroTag: null, // Remove Hero tag
                         ),
                       ),
                       bgColor: Colors.transparent,
-                      borderRadius: 12,
+                      borderRadius: 24,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: SizedBox(
@@ -677,26 +675,22 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Hero(
-                                    tag:
-                                        'dashboard-page__account-icon-${account.iconId}',
-                                    child: FutureBuilder<String>(
-                                      future: _getIconPath(account.iconId),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.done) {
-                                          return Image.asset(
-                                            snapshot.data!,
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.contain,
-                                          );
-                                        } else {
-                                          return const SizedBox(
-                                              width: 60, height: 60);
-                                        }
-                                      },
-                                    ),
+                                  FutureBuilder<String>(
+                                    future: _getIconPath(account.iconId),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.done) {
+                                        return Image.asset(
+                                          snapshot.data!,
+                                          width: 45,
+                                          height: 45,
+                                          fit: BoxFit.contain,
+                                        );
+                                      } else {
+                                        return const SizedBox(
+                                            width: 60, height: 60);
+                                      }
+                                    },
                                   ),
                                   const SizedBox(width: 2),
                                   Column(
