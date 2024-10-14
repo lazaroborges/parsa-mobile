@@ -142,6 +142,13 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
 
     if (transactionType.isIncomeOrExpense && selectedCategory == null ||
         transactionType.isTransfer && moreInfo.transferAccount == null) {
+      if (transactionType.isTransfer && moreInfo.transferAccount == null) {
+        scMessenger.showSnackBar(
+          SnackBar(content: Text(t.transfer.form.to)),
+        );
+        _shakeKey.currentState?.shake();
+        return;
+      }
       _shakeKey.currentState?.shake();
       return;
     }

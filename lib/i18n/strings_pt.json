@@ -624,8 +624,8 @@
       "select-other-file": "Selecionar outro arquivo",
       "tap-to-select-file": "Toque para selecionar um arquivo",
       "MANUAL-IMPORT": {
-        "title": "Importação manual",
-        "descr": "Importe transações de um arquivo .csv manualmente",
+        "title": "Importar histórico manualmente",
+        "descr": "Importe transações de um arquivo .csv manualmente. Se você estiver usando sincronização do Open Finance, por favor não inclua transações do período de sincronização para evitar duplicidade.",
         "defaultAccount": "Conta padrão",
         "removeDefaultAccount": "Remover conta padrão",
         "defaultCategory": "Categoria padrão",
@@ -711,7 +711,7 @@
       "description": "Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ",
       "LEGAL": {
         "display": "Informações legais",
-        "privacy": "Política de privacidade",
+        "privacy": "Política de Privacidade e LGPD",
         "terms": "Termos de uso",
         "licenses": "Licenças"
       },
@@ -736,7 +736,7 @@
       "donate.descr": "Com sua doação, você ajudará o aplicativo a continuar recebendo melhorias. Que melhor maneira de agradecer pelo trabalho feito do que me convidar para um café?",
       "donate.success": "Doação realizada. Muito obrigado pela sua contribuição! ❤️",
       "donate.err": "Oops! Parece que houve um erro ao receber seu pagamento",
-      "report": "Relatar bugs, deixar sugestões..."
+      "report": "Entre em contato."
     }
   }
 }

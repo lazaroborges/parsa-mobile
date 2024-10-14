@@ -45,6 +45,8 @@ class TransactionService {
 
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction,
       [List<Tag> tags = const []]) async {
+    print('Inserting or updating transaction: ${transaction}');
+
     try {
       final auth0 = getAuth0Instance();
       final credentials = await auth0.credentialsManager.credentials();

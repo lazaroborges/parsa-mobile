@@ -41,6 +41,7 @@ class PostUserTransactionService {
       'tags': tags.map((tag) => tag.id).toList(), // Add this line
     };
 
+    print("TRANSACTION JSON: $transactionJson");
     try {
       // Send POST request to the API
       final response = method == 'POST'

@@ -196,7 +196,7 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
       return const LinearProgressIndicator();
     }
 
-    final allAccounts = snapshot.data!;
+    final allAccounts = snapshot.data ?? [];
 
     if (allAccounts.isEmpty) {
       return Padding(
@@ -226,7 +226,9 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
                 value: account.id,
                 title: Text(account.name),
                 secondary: account.displayIcon(context),
-                groupValue: selectedAccounts.firstOrNull?.id,
+                groupValue: selectedAccounts.isNotEmpty
+                    ? selectedAccounts.first.id
+                    : null,
                 onChanged: (value) {
                   setState(() {
                     selectedAccounts = [account];

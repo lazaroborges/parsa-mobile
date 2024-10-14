@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 572
 ///
-/// Built on 2024-10-13 at 18:35 UTC
+/// Built on 2024-10-14 at 17:16 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -956,7 +956,7 @@ class _TranslationsAccountTypesPt {
 	String get credit => 'Cartão de crédito';
 	String get credit_descr => 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
 	String get wallet => 'Carteira';
-	String get wallet_descr => 'Para controlar dinheiro físico. Usuários Premium terão saques automaticamente creditados nesta conta.';
+	String get wallet_descr => 'Para controlar dinheiro físico (eca!). Usuários Premium terão saques automaticamente creditados nesta conta.';
 }
 
 // Path: account.form
@@ -1237,7 +1237,7 @@ class _TranslationsMoreHelpUsPt {
 	String get donate_descr => 'Com sua doação, você ajudará o aplicativo a continuar recebendo melhorias. Que melhor maneira de agradecer pelo trabalho feito do que me convidar para um café?';
 	String get donate_success => 'Doação realizada. Muito obrigado pela sua contribuição! ❤️';
 	String get donate_err => 'Oops! Parece que houve um erro ao receber seu pagamento';
-	String get report => 'Relatar bugs, deixar sugestões...';
+	String get report => 'Entre em contato.';
 }
 
 // Path: general.time.ranges
@@ -1409,8 +1409,8 @@ class _TranslationsBackupImportManualImportPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Importação manual';
-	String get descr => 'Importe transações de um arquivo .csv manualmente';
+	String get title => 'Importar histórico manualmente';
+	String get descr => 'Importe transações de um arquivo .csv manualmente. Se você estiver usando sincronização do Open Finance, por favor não inclua transações do período de sincronização para evitar duplicidade.';
 	String get default_account => 'Conta padrão';
 	String get remove_default_account => 'Remover conta padrão';
 	String get default_category => 'Categoria padrão';
@@ -1442,7 +1442,7 @@ class _TranslationsMoreAboutUsLegalPt {
 
 	// Translations
 	String get display => 'Informações legais';
-	String get privacy => 'Política de privacidade';
+	String get privacy => 'Política de Privacidade e LGPD';
 	String get terms => 'Termos de uso';
 	String get licenses => 'Licenças';
 }
@@ -1884,7 +1884,7 @@ extension on Translations {
 			case 'account.types.credit': return 'Cartão de crédito';
 			case 'account.types.credit_descr': return 'Conta que simula uma conta corrente, porém com um saldo negativo. Útil para simular compras parceladas, empréstimos, financiamentos, etc';
 			case 'account.types.wallet': return 'Carteira';
-			case 'account.types.wallet_descr': return 'Para controlar dinheiro físico. Usuários Premium terão saques automaticamente creditados nesta conta.';
+			case 'account.types.wallet_descr': return 'Para controlar dinheiro físico (eca!). Usuários Premium terão saques automaticamente creditados nesta conta.';
 			case 'account.form.name': return 'Nome da conta';
 			case 'account.form.name_placeholder': return 'Ex: Conta poupança';
 			case 'account.form.notes': return 'Notas';
@@ -2034,8 +2034,8 @@ extension on Translations {
 			case 'backup.import.restore_backup_warn_title': return 'Sobrescrever todos os dados';
 			case 'backup.import.select_other_file': return 'Selecionar outro arquivo';
 			case 'backup.import.tap_to_select_file': return 'Toque para selecionar um arquivo';
-			case 'backup.import.manual_import.title': return 'Importação manual';
-			case 'backup.import.manual_import.descr': return 'Importe transações de um arquivo .csv manualmente';
+			case 'backup.import.manual_import.title': return 'Importar histórico manualmente';
+			case 'backup.import.manual_import.descr': return 'Importe transações de um arquivo .csv manualmente. Se você estiver usando sincronização do Open Finance, por favor não inclua transações do período de sincronização para evitar duplicidade.';
 			case 'backup.import.manual_import.default_account': return 'Conta padrão';
 			case 'backup.import.manual_import.remove_default_account': return 'Remover conta padrão';
 			case 'backup.import.manual_import.default_category': return 'Categoria padrão';
@@ -2103,7 +2103,7 @@ extension on Translations {
 			case 'more.about_us.display': return 'Informações';
 			case 'more.about_us.description': return 'Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ';
 			case 'more.about_us.legal.display': return 'Informações legais';
-			case 'more.about_us.legal.privacy': return 'Política de privacidade';
+			case 'more.about_us.legal.privacy': return 'Política de Privacidade e LGPD';
 			case 'more.about_us.legal.terms': return 'Termos de uso';
 			case 'more.about_us.legal.licenses': return 'Licenças';
 			case 'more.about_us.project.display': return 'Projeto';
@@ -2123,7 +2123,7 @@ extension on Translations {
 			case 'more.help_us.donate_descr': return 'Com sua doação, você ajudará o aplicativo a continuar recebendo melhorias. Que melhor maneira de agradecer pelo trabalho feito do que me convidar para um café?';
 			case 'more.help_us.donate_success': return 'Doação realizada. Muito obrigado pela sua contribuição! ❤️';
 			case 'more.help_us.donate_err': return 'Oops! Parece que houve um erro ao receber seu pagamento';
-			case 'more.help_us.report': return 'Relatar bugs, deixar sugestões...';
+			case 'more.help_us.report': return 'Entre em contato.';
 			default: return null;
 		}
 	}

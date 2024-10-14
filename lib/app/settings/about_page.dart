@@ -86,37 +86,37 @@ class AboutPage extends StatelessWidget {
               ),
             ),
             createListSeparator(context, t.more.about_us.project.display),
-            buildLinkItem(
-              t.more.about_us.project.contributors,
-              subtitle: t.more.about_us.project.contributors_descr,
-              onTap: () {
-                openExternalURL(context,
-                    'https://github.com/enrique-lozano/Monekin/graphs/contributors');
-              },
-            ),
-            buildLinkItem(
-              t.more.help_us.report,
-              onTap: () {
-                openExternalURL(context,
-                    'https://github.com/enrique-lozano/Monekin/issues/new/choose');
-              },
-            ),
+            // buildLinkItem(
+            //   t.more.about_us.project.contributors,
+            //   subtitle: t.more.about_us.project.contributors_descr,
+            //   onTap: () {
+            //     openExternalURL(context,
+            //         'https://github.com/enrique-lozano/Monekin/graphs/contributors');
+            //   },
+            // ),
+            // buildLinkItem(
+            //   t.more.help_us.report,
+            //   onTap: () {
+            //     openExternalURL(context,
+            //         'https://github.com/enrique-lozano/Monekin/issues/new/choose');
+            //   },
+            // ),
             buildLinkItem(t.more.about_us.project.contact, onTap: () {
-              openExternalURL(context, 'mailto:lozin.technologies@gmail.com');
+              openExternalURL(context, 'mailto:lazaro@parsa-ai.com.br');
             }),
             createListSeparator(context, t.more.about_us.legal.display),
             buildLinkItem(
               t.more.about_us.legal.terms,
               onTap: () {
                 openExternalURL(context,
-                    'https://github.com/enrique-lozano/Monekin/blob/main/docs/TERMS_OF_USE.md');
+                    'https://www.parsa-ai.com.br/termos-e-condi%C3%A7%C3%B5es-de-servi%C3%A7o');
               },
             ),
             buildLinkItem(
               t.more.about_us.legal.privacy,
               onTap: () {
                 openExternalURL(context,
-                    'https://github.com/enrique-lozano/Monekin/blob/main/docs/PRIVACY_POLICY.md');
+                    'https://www.parsa-ai.com.br/pol%C3%ADtica-de-privacidade');
               },
             ),
             buildLinkItem(
