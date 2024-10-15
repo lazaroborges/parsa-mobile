@@ -159,7 +159,7 @@ abstract class AccountDetailsActions {
     if (isConfirmed != true) return;
 
     try {
-      await AccountService.instance.deleteAccountFromLocalDB(accountId);
+      await AccountService.instance.deleteAccount(accountId);
 
       if (navigateBack) {
         Navigator.of(context).pop();

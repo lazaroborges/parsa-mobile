@@ -277,13 +277,13 @@
     "delete.multiple": "Excluir com sucesso",
     "delete.multiple.warning-message": "Essa ação é irreversível e removerá {{ x }} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados",
     "delete.multiple.success": "{{x}} transações excluídas com sucesso",
-    "details": "Detalhes do movimento",
+    "details": "Detalhes da transação",
     "NEXT-PAYMENTS": {
       "accept": "Aceitar",
       "skip": "Pular",
       "skip.success": "Transação pulada com sucesso",
       "skip-dialog.title": "Pular transação",
-      "skip-dialog.msg": "Essa ação é irreversível. Vamos mover a data do próximo movimento para {{date}}",
+      "skip-dialog.msg": "Essa ação é irreversível. Vamos mover a data da próxima transação para {{date}}",
       "accept-today": "Aceitar hoje",
       "accept-in-required-date": "Aceitar na data requerida ({{date}})",
       "accept-dialog.title": "Aceitar transação",
@@ -406,8 +406,8 @@
     "total-expense.descr": "* Sem considerar a data de início e término de cada recorrência",
     "DETAILS": {
       "title": "Transação recorrente",
-      "descr": "Os próximos movimentos para esta transação estão listados abaixo. Você pode aceitar o primeiro movimento ou pular este movimento",
-      "last-payment-info": "Este movimento é o último da regra recorrente, então essa regra será automaticamente excluída ao confirmar esta ação",
+      "descr": "As próximas transações para esta operação estão listadas abaixo. Você pode aceitar a primeira transação ou optar por ignorá-la",
+      "last-payment-info": "Esta transação é a última da regra recorrente, portanto, a regra será automaticamente excluída ao confirmar esta ação",
       "delete-header": "Excluir transação recorrente",
       "delete-message": "Esta ação é irreversível e não afetará as transações que você já confirmou/pagou"
     }
@@ -519,7 +519,7 @@
       "name": "Nome da tag",
       "description": "Descrição"
     },
-    "empty-list": "Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar seus movimentos",
+    "empty-list": "Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar suas transações",
     "without-tags": "Sem tags",
     "select": "Selecionar tags",
     "add": "Adicionar tag",
@@ -716,7 +716,8 @@
         "licenses": "Licenças"
       },
       "PROJECT": {
-        "display": "Projeto",
+        "about-us": "Sobre o Parsa",
+        "display": "Sobre",
         "contributors": "Colaboradores",
         "contributors.descr": "Todos os desenvolvedores que ajudaram o Parsa a crescer",
         "contact": "Entre em contato"

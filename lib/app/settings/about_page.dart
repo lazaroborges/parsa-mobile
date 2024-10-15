@@ -94,13 +94,12 @@ class AboutPage extends StatelessWidget {
             //         'https://github.com/enrique-lozano/Monekin/graphs/contributors');
             //   },
             // ),
-            // buildLinkItem(
-            //   t.more.help_us.report,
-            //   onTap: () {
-            //     openExternalURL(context,
-            //         'https://github.com/enrique-lozano/Monekin/issues/new/choose');
-            //   },
-            // ),
+            buildLinkItem(
+              t.more.about_us.project.about_us,
+              onTap: () {
+                openExternalURL(context, 'https://www.parsa-ai.com.br/');
+              },
+            ),
             buildLinkItem(t.more.about_us.project.contact, onTap: () {
               openExternalURL(context, 'mailto:lazaro@parsa-ai.com.br');
             }),

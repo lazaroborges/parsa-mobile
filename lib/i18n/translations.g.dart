@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 572
+/// Strings: 573
 ///
-/// Built on 2024-10-14 at 17:16 UTC
+/// Built on 2024-10-14 at 17:20 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1454,7 +1454,8 @@ class _TranslationsMoreAboutUsProjectPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get display => 'Projeto';
+	String get about_us => 'Sobre o Parsa';
+	String get display => 'Sobre';
 	String get contributors => 'Colaboradores';
 	String get contributors_descr => 'Todos os desenvolvedores que ajudaram o Parsa a crescer';
 	String get contact => 'Entre em contato';
@@ -2106,7 +2107,8 @@ extension on Translations {
 			case 'more.about_us.legal.privacy': return 'Política de Privacidade e LGPD';
 			case 'more.about_us.legal.terms': return 'Termos de uso';
 			case 'more.about_us.legal.licenses': return 'Licenças';
-			case 'more.about_us.project.display': return 'Projeto';
+			case 'more.about_us.project.about_us': return 'Sobre o Parsa';
+			case 'more.about_us.project.display': return 'Sobre';
 			case 'more.about_us.project.contributors': return 'Colaboradores';
 			case 'more.about_us.project.contributors_descr': return 'Todos os desenvolvedores que ajudaram o Parsa a crescer';
 			case 'more.about_us.project.contact': return 'Entre em contato';
