@@ -178,11 +178,11 @@
       },
       "descr": {
         "insufficient_data": "Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!",
-        "very_good": "Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa",
-        "good": "Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais!",
-        "normal": "Sua saúde financeira está mais ou menos na média do restante da população para este período",
-        "bad": "Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças",
-        "very_bad": "Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças"
+        "very_good": "Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa. (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).",
+        "good": "Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais! (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).",
+        "normal": "Sua saúde financeira está mais ou menos na média do restante da população para este período (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).",
+        "bad": "Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças. (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).",
+        "very_bad": "Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira)."
       }
     },
     "monthsWithoutIncome": {
@@ -328,7 +328,7 @@
       "value": "Valor da transação",
       "tap-to-see-more": "Toque para ver mais detalhes",
       "no-tags": "-- Sem tags --",
-      "description": "Descrição",
+      "description": "Comentários",
       "description-info": "Toque aqui para inserir uma descrição mais detalhada sobre esta transação",
       "exchange-to-preferred-title": "Taxa de câmbio para {{ currency }}",
       "exchange-to-preferred-in-date": "Na data da transação"

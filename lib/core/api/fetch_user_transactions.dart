@@ -78,10 +78,26 @@ Future<void> syncTransactions(String apiResponse) async {
 
 List<ApiTransaction> fetchAndParseTransactions(String responseBody) {
   try {
+
     final List<dynamic> parsed = json.decode(responseBody);
-    return parsed.map((json) => ApiTransaction.fromJson(json)).toList();
+
+    List<ApiTransaction> transactions = [];
+    for (var i = 0; i < parsed.length; i++) {
+      try {
+        var transaction = ApiTransaction.fromJson(parsed[i]);
+        transactions.add(transaction);
+      } catch (e) {
+        print('Error parsing transaction at index $i: $e');
+        print('Problematic JSON:');
+        print(json.encode(parsed[i]));
+      }
+    }
+
+    print('Successfully parsed ${transactions.length} transactions');
+    return transactions;
   } catch (e) {
-    throw Exception('Error parsing transactions: $e');
+    print('Error in fetchAndParseTransactions: $e');
+    rethrow;
   }
 }
 

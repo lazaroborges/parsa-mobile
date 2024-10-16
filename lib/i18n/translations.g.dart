@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 573
 ///
-/// Built on 2024-10-14 at 17:20 UTC
+/// Built on 2024-10-16 at 00:30 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -356,7 +356,7 @@ class _TranslationsTransactionPt {
 	String get delete_multiple => 'Excluir com sucesso';
 	String delete_multiple_warning_message({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
 	String delete_multiple_success({required Object x}) => '${x} transações excluídas com sucesso';
-	String get details => 'Detalhes do movimento';
+	String get details => 'Detalhes da transação';
 	late final _TranslationsTransactionNextPaymentsPt next_payments = _TranslationsTransactionNextPaymentsPt._(_root);
 	late final _TranslationsTransactionListPt list = _TranslationsTransactionListPt._(_root);
 	late final _TranslationsTransactionFiltersPt filters = _TranslationsTransactionFiltersPt._(_root);
@@ -463,7 +463,7 @@ class _TranslationsTagsPt {
 		other: 'Tags',
 	);
 	late final _TranslationsTagsFormPt form = _TranslationsTagsFormPt._(_root);
-	String get empty_list => 'Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar seus movimentos';
+	String get empty_list => 'Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar suas transações';
 	String get without_tags => 'Sem tags';
 	String get select => 'Selecionar tags';
 	String get add => 'Adicionar tag';
@@ -773,7 +773,7 @@ class _TranslationsTransactionNextPaymentsPt {
 	String get skip => 'Pular';
 	String get skip_success => 'Transação pulada com sucesso';
 	String get skip_dialog_title => 'Pular transação';
-	String skip_dialog_msg({required Object date}) => 'Essa ação é irreversível. Vamos mover a data do próximo movimento para ${date}';
+	String skip_dialog_msg({required Object date}) => 'Essa ação é irreversível. Vamos mover a data da próxima transação para ${date}';
 	String get accept_today => 'Aceitar hoje';
 	String accept_in_required_date({required Object date}) => 'Aceitar na data requerida (${date})';
 	String get accept_dialog_title => 'Aceitar transação';
@@ -832,7 +832,7 @@ class _TranslationsTransactionFormPt {
 	String get value => 'Valor da transação';
 	String get tap_to_see_more => 'Toque para ver mais detalhes';
 	String get no_tags => '-- Sem tags --';
-	String get description => 'Descrição';
+	String get description => 'Comentários';
 	String get description_info => 'Toque aqui para inserir uma descrição mais detalhada sobre esta transação';
 	String exchange_to_preferred_title({required Object currency}) => 'Taxa de câmbio para ${currency}';
 	String get exchange_to_preferred_in_date => 'Na data da transação';
@@ -934,8 +934,8 @@ class _TranslationsRecurrentTransactionsDetailsPt {
 
 	// Translations
 	String get title => 'Transação recorrente';
-	String get descr => 'Os próximos movimentos para esta transação estão listados abaixo. Você pode aceitar o primeiro movimento ou pular este movimento';
-	String get last_payment_info => 'Este movimento é o último da regra recorrente, então essa regra será automaticamente excluída ao confirmar esta ação';
+	String get descr => 'As próximas transações para esta operação estão listadas abaixo. Você pode aceitar a primeira transação ou optar por ignorá-la';
+	String get last_payment_info => 'Esta transação é a última da regra recorrente, portanto, a regra será automaticamente excluída ao confirmar esta ação';
 	String get delete_header => 'Excluir transação recorrente';
 	String get delete_message => 'Esta ação é irreversível e não afetará as transações que você já confirmou/pagou';
 }
@@ -1345,11 +1345,11 @@ class _TranslationsFinancialHealthReviewDescrPt {
 
 	// Translations
 	String get insufficient_data => 'Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!';
-	String get very_good => 'Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa';
-	String get good => 'Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais!';
-	String get normal => 'Sua saúde financeira está mais ou menos na média do restante da população para este período';
-	String get bad => 'Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças';
-	String get very_bad => 'Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças';
+	String get very_good => 'Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa. (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+	String get good => 'Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais! (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+	String get normal => 'Sua saúde financeira está mais ou menos na média do restante da população para este período (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+	String get bad => 'Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças. (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+	String get very_bad => 'Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
 }
 
 // Path: financial_health.savings_percentage.text
@@ -1673,11 +1673,11 @@ extension on Translations {
 				}
 			};
 			case 'financial_health.review.descr.insufficient_data': return 'Você não possui atividade financeira no período para que possamos calcular sua saúde financeira. Conecte uma conta bancária agora mesmo para começar a monitorar suas finanças!';
-			case 'financial_health.review.descr.very_good': return 'Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa';
-			case 'financial_health.review.descr.good': return 'Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais!';
-			case 'financial_health.review.descr.normal': return 'Sua saúde financeira está mais ou menos na média do restante da população para este período';
-			case 'financial_health.review.descr.bad': return 'Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças';
-			case 'financial_health.review.descr.very_bad': return 'Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças';
+			case 'financial_health.review.descr.very_good': return 'Parabéns! Sua saúde financeira está excelente. Esperamos que continue em sua boa fase e continue aprendendo com o Parsa. (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+			case 'financial_health.review.descr.good': return 'Ótimo! Sua saúde financeira está boa. Visite a aba de Insights para ver como economizar ainda mais! (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+			case 'financial_health.review.descr.normal': return 'Sua saúde financeira está mais ou menos na média do restante da população para este período (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+			case 'financial_health.review.descr.bad': return 'Parece que sua situação financeira ainda não é das melhores. Explore o restante dos gráficos para aprender mais sobre suas finanças. (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
+			case 'financial_health.review.descr.very_bad': return 'Hmm, sua saúde financeira está muito abaixo do esperado. Explore o restante dos gráficos para aprender mais sobre suas finanças (Este recurso ainda é experimental e não deve ser considerado como uma ferramenta de decisão financeira).';
 			case 'financial_health.months_without_income.title': return 'Taxa de sobrevivência';
 			case 'financial_health.months_without_income.subtitle': return 'Dado seu saldo, tempo que você poderia viver sem renda';
 			case 'financial_health.months_without_income.text_zero': return 'Você não conseguiria sobreviver um mês sem renda neste ritmo de despesas!';
@@ -1756,12 +1756,12 @@ extension on Translations {
 			case 'transaction.delete_multiple': return 'Excluir com sucesso';
 			case 'transaction.delete_multiple_warning_message': return ({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
 			case 'transaction.delete_multiple_success': return ({required Object x}) => '${x} transações excluídas com sucesso';
-			case 'transaction.details': return 'Detalhes do movimento';
+			case 'transaction.details': return 'Detalhes da transação';
 			case 'transaction.next_payments.accept': return 'Aceitar';
 			case 'transaction.next_payments.skip': return 'Pular';
 			case 'transaction.next_payments.skip_success': return 'Transação pulada com sucesso';
 			case 'transaction.next_payments.skip_dialog_title': return 'Pular transação';
-			case 'transaction.next_payments.skip_dialog_msg': return ({required Object date}) => 'Essa ação é irreversível. Vamos mover a data do próximo movimento para ${date}';
+			case 'transaction.next_payments.skip_dialog_msg': return ({required Object date}) => 'Essa ação é irreversível. Vamos mover a data da próxima transação para ${date}';
 			case 'transaction.next_payments.accept_today': return 'Aceitar hoje';
 			case 'transaction.next_payments.accept_in_required_date': return ({required Object date}) => 'Aceitar na data requerida (${date})';
 			case 'transaction.next_payments.accept_dialog_title': return 'Aceitar transação';
@@ -1799,7 +1799,7 @@ extension on Translations {
 			case 'transaction.form.value': return 'Valor da transação';
 			case 'transaction.form.tap_to_see_more': return 'Toque para ver mais detalhes';
 			case 'transaction.form.no_tags': return '-- Sem tags --';
-			case 'transaction.form.description': return 'Descrição';
+			case 'transaction.form.description': return 'Comentários';
 			case 'transaction.form.description_info': return 'Toque aqui para inserir uma descrição mais detalhada sobre esta transação';
 			case 'transaction.form.exchange_to_preferred_title': return ({required Object currency}) => 'Taxa de câmbio para ${currency}';
 			case 'transaction.form.exchange_to_preferred_in_date': return 'Na data da transação';
@@ -1859,8 +1859,8 @@ extension on Translations {
 			case 'recurrent_transactions.total_expense_title': return 'Despesa total por período';
 			case 'recurrent_transactions.total_expense_descr': return '* Sem considerar a data de início e término de cada recorrência';
 			case 'recurrent_transactions.details.title': return 'Transação recorrente';
-			case 'recurrent_transactions.details.descr': return 'Os próximos movimentos para esta transação estão listados abaixo. Você pode aceitar o primeiro movimento ou pular este movimento';
-			case 'recurrent_transactions.details.last_payment_info': return 'Este movimento é o último da regra recorrente, então essa regra será automaticamente excluída ao confirmar esta ação';
+			case 'recurrent_transactions.details.descr': return 'As próximas transações para esta operação estão listadas abaixo. Você pode aceitar a primeira transação ou optar por ignorá-la';
+			case 'recurrent_transactions.details.last_payment_info': return 'Esta transação é a última da regra recorrente, portanto, a regra será automaticamente excluída ao confirmar esta ação';
 			case 'recurrent_transactions.details.delete_header': return 'Excluir transação recorrente';
 			case 'recurrent_transactions.details.delete_message': return 'Esta ação é irreversível e não afetará as transações que você já confirmou/pagou';
 			case 'account.details': return 'Detalhes da conta';
@@ -1946,7 +1946,7 @@ extension on Translations {
 			);
 			case 'tags.form.name': return 'Nome da tag';
 			case 'tags.form.description': return 'Descrição';
-			case 'tags.empty_list': return 'Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar seus movimentos';
+			case 'tags.empty_list': return 'Você ainda não criou nenhuma tag. Tags e categorias são uma ótima maneira de categorizar suas transações';
 			case 'tags.without_tags': return 'Sem tags';
 			case 'tags.select': return 'Selecionar tags';
 			case 'tags.add': return 'Adicionar tag';
