@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:parsa/app/transactions/transaction_details.page.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/models/date-utils/periodicity.dart';
@@ -72,6 +73,9 @@ class TransactionListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize date formatting for Brazilian Portuguese
+    initializeDateFormatting('pt_BR', null);
+
     return ListTile(
       title: Row(
         mainAxisSize: MainAxisSize.max,
@@ -148,8 +152,8 @@ class TransactionListTile extends StatelessWidget {
                       if (!(transaction.recurrentInfo.isRecurrent &&
                           periodicityInfo != null)) {
                         if (showDate) {
-                          secondaryText =
-                              DateFormat.yMMMd().format(transaction.date);
+                          // Use this single line to format the date
+                          secondaryText = DateFormat("d 'de' MMMM 'de' yyyy", 'pt_BR').format(transaction.date.toLocal());
                         } else {
                           secondaryText = transaction.paymentMethod ?? '';
                         }
