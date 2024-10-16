@@ -165,7 +165,7 @@ class _TransactionListComponentState extends State<TransactionListComponent> {
 
                 if (index == 0) {
                   if (!widget.showGroupDivider) return Container();
-                  return dateSeparator(context, transactions[0].date);
+                  return dateSeparator(context, transactions[0].date.toLocal());
                 }
 
                 final transaction = transactions[index - 1];
@@ -200,15 +200,22 @@ class _TransactionListComponentState extends State<TransactionListComponent> {
 
                 if (!widget.showGroupDivider ||
                     index >= 1 &&
-                        DateUtils.isSameDay(transactions[index - 1].date,
-                            transactions[index].date)) {
+                        isSameDay(transactions[index - 1].date.toLocal(),
+                            transactions[index].date.toLocal())) {
                   // Separator between transactions in the same group
                   return Container();
                 }
 
                 // Group separator
-                return dateSeparator(context, transactions[index].date);
+                return dateSeparator(context, transactions[index].date.toLocal());
               });
         });
   }
+}
+
+// Helper function to check if two dates are the same day
+bool isSameDay(DateTime date1, DateTime date2) {
+  return date1.year == date2.year &&
+      date1.month == date2.month &&
+      date1.day == date2.day;
 }

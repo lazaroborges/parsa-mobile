@@ -202,7 +202,7 @@ class TransactionListTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (showTime) Text(DateFormat.Hm().format(transaction.date)),
+            if (showTime) Text(DateFormat.Hm().format(transaction.date.toLocal())),
             if (periodicityInfo != null &&
                 transaction.recurrentInfo.isRecurrent)
               Text.rich(

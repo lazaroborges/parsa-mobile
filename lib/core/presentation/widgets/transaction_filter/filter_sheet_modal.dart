@@ -306,8 +306,9 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             dateFormat: DateFormat.yMMMd(),
                             onDateSelected: (DateTime value) {
                               setState(() {
-                                filtersToReturn =
-                                    filtersToReturn.copyWith(minDate: value);
+                                filtersToReturn = filtersToReturn.copyWith(
+                                  minDate: value.toLocal(),
+                                );
                               });
                             },
                           ),
@@ -325,8 +326,9 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             dateFormat: DateFormat.yMMMd(),
                             onDateSelected: (DateTime value) {
                               setState(() {
-                                filtersToReturn =
-                                    filtersToReturn.copyWith(maxDate: value);
+                                filtersToReturn = filtersToReturn.copyWith(
+                                  maxDate: value.toLocal(),
+                                );
                               });
                             },
                           ),
