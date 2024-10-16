@@ -299,23 +299,25 @@ class _DashboardPageState extends State<DashboardPage> {
               onHeaderButtonClick: () {
                 RouteUtils.pushRoute(context, TransactionsPage());
               },
-              body: TransactionListComponent(
-                heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
-                filters: TransactionFilters(
-                  status: TransactionStatus.notIn({
-                    TransactionStatus.pending,
-                    TransactionStatus.voided,
-                    TransactionStatus.notconsidered
-                  }),
-                ),
-                limit: 5,
-                showGroupDivider: false,
-                prevPage: DashboardPage(),
-                onEmptyList: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    t.transaction.list.empty,
-                    textAlign: TextAlign.center,
+              body: DashboardTransactionList(
+                child: TransactionListComponent(
+                  heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
+                  filters: TransactionFilters(
+                    status: TransactionStatus.notIn({
+                      TransactionStatus.pending,
+                      TransactionStatus.voided,
+                      TransactionStatus.notconsidered
+                    }),
+                  ),
+                  limit: 5,
+                  showGroupDivider: false,
+                  prevPage: DashboardPage(),
+                  onEmptyList: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      t.transaction.list.empty,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
               ),
@@ -811,4 +813,23 @@ class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size(0.0, 0.0);
+}
+
+class DashboardTransactionList extends StatelessWidget {
+  final TransactionListComponent child;
+
+  const DashboardTransactionList({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TransactionListComponent(
+      heroTagBuilder: child.heroTagBuilder,
+      filters: child.filters,
+      limit: child.limit,
+      showGroupDivider: child.showGroupDivider,
+      prevPage: child.prevPage,
+      onLongPress: (_) {}, // This effectively disables the long press action
+      onEmptyList: child.onEmptyList,
+    );
+  }
 }
