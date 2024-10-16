@@ -119,6 +119,15 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                                     ? t.account.date_sync
                                     : t.account.date,
                               ),
+                              LabelValueInfoListItem(
+                                value: Text(
+                                  DateFormat('dd/MM/yyyy HH:mm', 'pt_BR')
+                                      .format(
+                                    account.lastUpdateTime.toLocal(),
+                                  ),
+                                ),
+                                label: t.account.last_update,
+                              ),
                               if (account.isClosed) ...[
                                 LabelValueInfoListItem(
                                   label: account.isOpenFinance

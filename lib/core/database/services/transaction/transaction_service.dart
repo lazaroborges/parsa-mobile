@@ -114,6 +114,18 @@ class TransactionService {
   }
 
   Future<int> deleteTransaction(String transactionId) async {
+
+
+       
+    final transaction = await getTransactionById(transactionId).first;
+    
+    if (transaction == null) {
+      throw Exception('Transaction not found');
+    }
+
+    if (transaction.isOpenFinance) {
+      throw Exception('Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, utilize a opção "Desconsiderada" dentro do card da transação.');
+    }
     final auth0 = getAuth0Instance();
 
     // Retrieve the access token from the Auth0 instance

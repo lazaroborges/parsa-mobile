@@ -257,6 +257,7 @@
     "synch-manual": "Manualmente",
     "yes": "Sim",
     "no": "Não",
+    "delete_openfinance_error": "Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção 'Desconsiderada' dentro do card da transação.",
     "last-update": "Última atualização",
     "payment-method": "Forma de pagamento",
     "create": "Nova transação",
@@ -425,6 +426,7 @@
     "n_transactions": "Número de transações",
     "add_money": "Adicionar dinheiro",
     "withdraw_money": "Retirar dinheiro",
+    "last_update": "Última atualização",
     "no-accounts": "Nenhuma transação encontrada para exibir aqui. Adicione uma transação clicando no botão '+' na parte inferior",
     "TYPES": {
       "title": "Tipo de conta",

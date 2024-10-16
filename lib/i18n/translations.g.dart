@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 573
+/// Strings: 575
 ///
-/// Built on 2024-10-16 at 00:30 UTC
+/// Built on 2024-10-16 at 20:22 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -336,6 +336,7 @@ class _TranslationsTransactionPt {
 	String get synch_manual => 'Manualmente';
 	String get yes => 'Sim';
 	String get no => 'Não';
+	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 	String get last_update => 'Última atualização';
 	String get payment_method => 'Forma de pagamento';
 	String get create => 'Nova transação';
@@ -417,6 +418,7 @@ class _TranslationsAccountPt {
 	String get n_transactions => 'Número de transações';
 	String get add_money => 'Adicionar dinheiro';
 	String get withdraw_money => 'Retirar dinheiro';
+	String get last_update => 'Última atualização';
 	String get no_accounts => 'Nenhuma transação encontrada para exibir aqui. Adicione uma transação clicando no botão \'+\' na parte inferior';
 	late final _TranslationsAccountTypesPt types = _TranslationsAccountTypesPt._(_root);
 	late final _TranslationsAccountFormPt form = _TranslationsAccountFormPt._(_root);
@@ -1736,6 +1738,7 @@ extension on Translations {
 			case 'transaction.synch_manual': return 'Manualmente';
 			case 'transaction.yes': return 'Sim';
 			case 'transaction.no': return 'Não';
+			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 			case 'transaction.last_update': return 'Última atualização';
 			case 'transaction.payment_method': return 'Forma de pagamento';
 			case 'transaction.create': return 'Nova transação';
@@ -1875,6 +1878,7 @@ extension on Translations {
 			case 'account.n_transactions': return 'Número de transações';
 			case 'account.add_money': return 'Adicionar dinheiro';
 			case 'account.withdraw_money': return 'Retirar dinheiro';
+			case 'account.last_update': return 'Última atualização';
 			case 'account.no_accounts': return 'Nenhuma transação encontrada para exibir aqui. Adicione uma transação clicando no botão \'+\' na parte inferior';
 			case 'account.types.title': return 'Tipo de conta';
 			case 'account.types.warning': return 'Uma vez escolhido o tipo de conta, ele não poderá ser alterado no futuro';
