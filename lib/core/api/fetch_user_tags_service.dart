@@ -7,13 +7,14 @@ import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 
 import 'package:parsa/core/api/serializers/tags_serializer.dart';
+import 'package:parsa/main.dart';
 
 Future<void> fetchUserTags(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
   final credentials = await auth0.credentialsManager.credentials();
 
   // URL for fetching user tags
-  String url = 'https://naturally-creative-boxer.ngrok-free.app/api/tags/';
+  String url = '$apiEndpoint/api/tags/';
 
   final response = await http.get(
     Uri.parse(url),

@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/database/app_db.dart';
+import 'package:parsa/main.dart';
+
 
 class PostUserAccountService {
-  static const String _apiEndpoint =
-      'https://naturally-creative-boxer.ngrok-free.app/api/account-insert/';
+  static String get _apiEndpoint => '$apiEndpoint/api/account-insert/';
 
   /// Serializes the [account] and sends it to the API.
   /// Returns [true] if the operation is successful (HTTP 200), otherwise [false].
@@ -71,7 +72,7 @@ class PostUserAccountService {
   static Future<bool> _postAccountAction(
       String accountId, String accessToken, String action) async {
     final url = Uri.parse(
-        'https://naturally-creative-boxer.ngrok-free.app/api/account-insert/actions/$action/');
+        '$apiEndpoint/api/account-insert/actions/$action/');
 
     try {
       final response = await http.post(

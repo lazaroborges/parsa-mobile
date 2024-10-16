@@ -4,6 +4,7 @@ import 'package:flutter_pluggy_connect/flutter_pluggy_connect.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/main.dart';
 
 class PluggyConnectorPage extends StatefulWidget {
   const PluggyConnectorPage({super.key});
@@ -33,7 +34,7 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
     final credentials = await auth0.credentialsManager.credentials();
 
     final response = await http.get(
-      Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/auth/'),
+      Uri.parse('$apiEndpoint/api/auth/'),
       headers: {
         'Authorization': 'Bearer ${credentials.accessToken}',
         'Content-Type': 'application/json',

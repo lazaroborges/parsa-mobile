@@ -15,13 +15,14 @@ import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
+import 'package:parsa/main.dart';
 
 Future<void> fetchUserTransactions(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
   final credentials = await auth0.credentialsManager.credentials();
 
   String url =
-      'https://naturally-creative-boxer.ngrok-free.app/api/transactions/';
+      '$apiEndpoint/api/transactions/';
 
   final response = await http.get(
     Uri.parse(url),
@@ -78,26 +79,13 @@ Future<void> syncTransactions(String apiResponse) async {
 
 List<ApiTransaction> fetchAndParseTransactions(String responseBody) {
   try {
-
     final List<dynamic> parsed = json.decode(responseBody);
 
-    List<ApiTransaction> transactions = [];
-    for (var i = 0; i < parsed.length; i++) {
-      try {
-        var transaction = ApiTransaction.fromJson(parsed[i]);
-        transactions.add(transaction);
-      } catch (e) {
-        print('Error parsing transaction at index $i: $e');
-        print('Problematic JSON:');
-        print(json.encode(parsed[i]));
-      }
-    }
 
-    print('Successfully parsed ${transactions.length} transactions');
-    return transactions;
+
+    return parsed.map((json) => ApiTransaction.fromJson(json)).toList();
   } catch (e) {
-    print('Error in fetchAndParseTransactions: $e');
-    rethrow;
+    throw Exception('Error parsing transactions: $e');
   }
 }
 

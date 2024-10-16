@@ -23,11 +23,15 @@ import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
+String apiEndpoint = '';
+
 void main() async {
   tz.initializeTimeZones();
 
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+
+  apiEndpoint = dotenv.env['API_ENDPOINT'] ?? 'https://default-api-endpoint.com';
 
   final auth0 = Auth0(
     dotenv.env['AUTH0_DOMAIN']!,

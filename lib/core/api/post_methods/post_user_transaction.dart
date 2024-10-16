@@ -4,10 +4,10 @@ import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/tags/tag.dart';
+import 'package:parsa/main.dart';
 
 class PostUserTransactionService {
-  static const String _apiEndpoint =
-      'https://naturally-creative-boxer.ngrok-free.app/api/transaction-insert/';
+  static String get _apiEndpoint => '$apiEndpoint/api/transaction-insert/';
 
   static Future<bool> postUserTransaction(
       {required TransactionInDB transaction,
@@ -87,8 +87,7 @@ class PostUserTransactionService {
 
       // Send DELETE request with the body
       final response = await http.delete(
-        Uri.parse(
-            'https://naturally-creative-boxer.ngrok-free.app/api/transaction-insert/'),
+        Uri.parse(_apiEndpoint),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',

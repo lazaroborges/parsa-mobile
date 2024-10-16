@@ -6,6 +6,7 @@ import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/app_db.dart';
+import 'package:parsa/main.dart';
 
 Future<void> fetchUserAccounts(BuildContext context) async {
   final auth0 = Auth0Provider.of(context)!.auth0;
@@ -13,7 +14,7 @@ Future<void> fetchUserAccounts(BuildContext context) async {
   final credentials = await auth0.credentialsManager.credentials();
 
   final response = await http.get(
-    Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/accounts/'),
+    Uri.parse('$apiEndpoint/api/accounts/'),
     headers: {
       'Authorization': 'Bearer ${credentials.accessToken}',
       'Content-Type': 'application/json',

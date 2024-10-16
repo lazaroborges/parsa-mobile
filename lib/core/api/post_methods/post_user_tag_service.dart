@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/tags/tag.dart';
+import 'package:parsa/main.dart';
 
 class PostUserTagService {
-  static const String _apiEndpoint =
-      'https://naturally-creative-boxer.ngrok-free.app/api/insert-user-tags/';
+  static String get _apiEndpoint => '$apiEndpoint/api/insert-user-tags/';
 
   /// Serializes the [account] and sends it to the API.
   /// Returns [true] if the operation is successful (HTTP 200), otherwise [false].

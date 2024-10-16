@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/models/account/account.dart';
+import 'package:parsa/main.dart';
 
 class DeleteUserBankAccount {
-  static const String _apiEndpoint =
-      'https://naturally-creative-boxer.ngrok-free.app/api/delete-bank-account/';
+  static String get _apiEndpoint => '$apiEndpoint/api/delete-bank-account/';
 
   /// Serializes the [account] and sends it to the API.
   /// Returns [true] if the operation is successful (HTTP 200), otherwise [false].
