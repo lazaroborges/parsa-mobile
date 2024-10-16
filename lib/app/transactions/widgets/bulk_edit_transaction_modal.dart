@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:parsa/app/categories/selectors/category_picker.dart';
+import 'package:parsa/app/tags/tags_selector.modal.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/category/category.dart';
+import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/presentation/widgets/dates/outlinedButtonStacked.dart';
 import 'package:parsa/core/presentation/widgets/modal_container.dart';
@@ -32,6 +34,8 @@ class BulkEditTransactionModal extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
+            // Commented out edit dates option
+            /*
             _buildSelectOption(
               text: t.transaction.list.bulk_edit.dates,
               iconData: Icons.calendar_month,
@@ -54,6 +58,7 @@ class BulkEditTransactionModal extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
+            */
             _buildSelectOption(
               text: t.transaction.list.bulk_edit.categories,
               iconData: Icons.category_rounded,
@@ -98,6 +103,35 @@ class BulkEditTransactionModal extends StatelessWidget {
                             .insertOrUpdateTransaction(e.copyWith(
                           status: Value(modalRes.result),
                         )),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildSelectOption(
+              text: t.tags.display(n: 2),
+              iconData: Icons.label_rounded,
+              onTap: () {
+                showTagListModal(
+                  context,
+                  modal: TagSelector(
+                    selectedTags: [],
+                    allowEmptySubmit: true,
+                    includeNullTag: false,
+                  ),
+                ).then(
+                  (selectedTags) {
+                    if (selectedTags == null) {
+                      return;
+                    }
+
+                    performUpdates(
+                      context,
+                      futures: transactionsToEdit.map(
+                        (e) => TransactionService.instance
+                            .insertOrUpdateTransaction(e, selectedTags.cast<Tag>()),
                       ),
                     );
                   },
