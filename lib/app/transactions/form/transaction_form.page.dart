@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:parsa/app/accounts/account_selector.dart';
+import 'package:parsa/app/accounts/account_selector_form.dart';
 import 'package:parsa/app/categories/selectors/category_picker.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_more_info.modal.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
@@ -404,7 +404,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   Future<Account?> showAccountSelector(Account? account) async {
     final selectedAccounts = await showAccountSelectorBottomSheet(
       context,
-      AccountSelectorModal(
+      AccountSelectorModalForm(
         allowMultiSelection: false,
         filterSavingAccounts: transactionType.isIncomeOrExpense,
         includeArchivedAccounts: false,

@@ -12,7 +12,7 @@ import 'package:parsa/core/presentation/widgets/scrollable_with_bottom_gradient.
 import 'package:parsa/i18n/translations.g.dart';
 
 Future<List<Account>?> showAccountSelectorBottomSheet(
-    BuildContext context, AccountSelectorModal accountSelector) {
+    BuildContext context, AccountSelectorModalForm accountSelector) {
   return showModalBottomSheet<List<Account>>(
     context: context,
     showDragHandle: true,
@@ -23,8 +23,8 @@ Future<List<Account>?> showAccountSelectorBottomSheet(
   );
 }
 
-class AccountSelectorModal extends StatefulWidget {
-  const AccountSelectorModal({
+class AccountSelectorModalForm extends StatefulWidget {
+  const AccountSelectorModalForm({
     super.key,
     required this.allowMultiSelection,
     required this.filterSavingAccounts,
@@ -39,10 +39,10 @@ class AccountSelectorModal extends StatefulWidget {
   final List<Account> selectedAccounts;
 
   @override
-  State<AccountSelectorModal> createState() => _AccountSelectorModalState();
+  State<AccountSelectorModalForm> createState() => _AccountSelectorModalState();
 }
 
-class _AccountSelectorModalState extends State<AccountSelectorModal> {
+class _AccountSelectorModalState extends State<AccountSelectorModalForm> {
   late List<Account> selectedAccounts;
 
   String searchValue = '';
@@ -109,6 +109,7 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
               stream: AccountService.instance.getAccounts(
                 predicate: (acc, curr) => AppDB.instance.buildExpr([
                   acc.name.contains(searchValue),
+                  acc.isOpenFinance.equals(false), // Add this line
                   if (widget.filterSavingAccounts)
                     acc.type.equalsValue(AccountType.saving).not(),
                   if (!widget.includeArchivedAccounts) acc.closingDate.isNull()
@@ -195,7 +196,7 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
       return const LinearProgressIndicator();
     }
 
-    final allAccounts = snapshot.data!;
+    final allAccounts = snapshot.data ?? [];
 
     if (allAccounts.isEmpty) {
       return Padding(
@@ -225,7 +226,9 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
                 value: account.id,
                 title: Text(account.name),
                 secondary: account.displayIcon(context),
-                groupValue: selectedAccounts.firstOrNull?.id,
+                groupValue: selectedAccounts.isNotEmpty
+                    ? selectedAccounts.first.id
+                    : null,
                 onChanged: (value) {
                   setState(() {
                     selectedAccounts = [account];

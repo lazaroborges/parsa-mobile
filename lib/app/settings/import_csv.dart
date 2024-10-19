@@ -3,7 +3,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:parsa/app/accounts/account_selector.dart';
+import 'package:parsa/app/accounts/account_selector_form.dart';
 import 'package:parsa/app/categories/selectors/category_picker.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/database/app_db.dart';
@@ -483,7 +483,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
                     onClick: () async {
                       final modalRes = await showAccountSelectorBottomSheet(
                           context,
-                          AccountSelectorModal(
+                          AccountSelectorModalForm(
                             allowMultiSelection: false,
                             filterSavingAccounts: true,
                             selectedAccounts: [
