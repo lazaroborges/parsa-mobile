@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/app/settings/about_page.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();

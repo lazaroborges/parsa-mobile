@@ -257,13 +257,13 @@
     "synch-manual": "Manualmente",
     "yes": "Sim",
     "no": "Não",
-    "delete_openfinance_error": "Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção 'Desconsiderada' dentro do card da transação.",
+    "delete_openfinance_error": "Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção 'Desconsiderada' dentro do card da transação.",
     "last-update": "Última atualização",
     "payment-method": "Forma de pagamento",
     "create": "Nova transação",
     "new.income": "Nova receita",
     "new.expense": "Nova despesa",
-    "new.success": "Transa��ão criada com sucesso",
+    "new.success": "Transaão criada com sucesso",
     "edit": "Editar transação",
     "edit.success": "Transação editada com sucesso",
     "edit.multiple": "Editar transações",
@@ -486,6 +486,11 @@
       "one": "Selecione uma conta",
       "all": "Todas as contas",
       "multiple": "Selecionar contas"
+    },
+    "CONNECTION_ERRORS": {
+      "limit_reached": "Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.",
+      "daily_limit_reached": "O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.",
+      "default-message": "Não foi possível conectar no momento. Tente novamente mais tarde."
     }
   },
   "CURRENCIES": {

@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 578
+/// Strings: 581
 ///
-/// Built on 2024-10-19 at 19:56 UTC
+/// Built on 2024-10-19 at 21:41 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -337,13 +337,13 @@ class _TranslationsTransactionPt {
 	String get synch_manual => 'Manualmente';
 	String get yes => 'Sim';
 	String get no => 'Não';
-	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
+	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 	String get last_update => 'Última atualização';
 	String get payment_method => 'Forma de pagamento';
 	String get create => 'Nova transação';
 	String get new_income => 'Nova receita';
 	String get new_expense => 'Nova despesa';
-	String get new_success => 'Transa��ão criada com sucesso';
+	String get new_success => 'Transaão criada com sucesso';
 	String get edit => 'Editar transação';
 	String get edit_success => 'Transação editada com sucesso';
 	String get edit_multiple => 'Editar transações';
@@ -428,6 +428,7 @@ class _TranslationsAccountPt {
 	late final _TranslationsAccountDeletePt delete = _TranslationsAccountDeletePt._(_root);
 	late final _TranslationsAccountClosePt close = _TranslationsAccountClosePt._(_root);
 	late final _TranslationsAccountSelectPt select = _TranslationsAccountSelectPt._(_root);
+	late final _TranslationsAccountConnectionErrorsPt connection_errors = _TranslationsAccountConnectionErrorsPt._(_root);
 }
 
 // Path: currencies
@@ -1060,6 +1061,18 @@ class _TranslationsAccountSelectPt {
 	String get one => 'Selecione uma conta';
 	String get all => 'Todas as contas';
 	String get multiple => 'Selecionar contas';
+}
+
+// Path: account.connection_errors
+class _TranslationsAccountConnectionErrorsPt {
+	_TranslationsAccountConnectionErrorsPt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get limit_reached => 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
+	String get daily_limit_reached => 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
+	String get default_message => 'Não foi possível conectar no momento. Tente novamente mais tarde.';
 }
 
 // Path: currencies.form
@@ -1751,13 +1764,13 @@ extension on Translations {
 			case 'transaction.synch_manual': return 'Manualmente';
 			case 'transaction.yes': return 'Sim';
 			case 'transaction.no': return 'Não';
-			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
+			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 			case 'transaction.last_update': return 'Última atualização';
 			case 'transaction.payment_method': return 'Forma de pagamento';
 			case 'transaction.create': return 'Nova transação';
 			case 'transaction.new_income': return 'Nova receita';
 			case 'transaction.new_expense': return 'Nova despesa';
-			case 'transaction.new_success': return 'Transa��ão criada com sucesso';
+			case 'transaction.new_success': return 'Transaão criada com sucesso';
 			case 'transaction.edit': return 'Editar transação';
 			case 'transaction.edit_success': return 'Transação editada com sucesso';
 			case 'transaction.edit_multiple': return 'Editar transações';
@@ -1937,6 +1950,9 @@ extension on Translations {
 			case 'account.select.one': return 'Selecione uma conta';
 			case 'account.select.all': return 'Todas as contas';
 			case 'account.select.multiple': return 'Selecionar contas';
+			case 'account.connection_errors.limit_reached': return 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
+			case 'account.connection_errors.daily_limit_reached': return 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
+			case 'account.connection_errors.default_message': return 'Não foi possível conectar no momento. Tente novamente mais tarde.';
 			case 'currencies.currency_converter': return 'Conversor de moedas';
 			case 'currencies.currency': return 'Moeda';
 			case 'currencies.currency_manager': return 'Gerenciador de moedas';

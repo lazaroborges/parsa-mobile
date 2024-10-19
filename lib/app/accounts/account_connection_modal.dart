@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
+import 'package:parsa/core/utils/check_items_availability.dart';
 import 'pluggy_connector.dart';
 import 'account_form.dart';
 
@@ -109,14 +110,28 @@ class AccountConnectionModal extends StatelessWidget {
 
                             description:
                                 'O Parsa sincroniza os dados da sua conta e categoriza as transações.',
-                            onTap: () {
-                              Navigator.pop(context); // Close the modal
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PluggyConnectorPage(),
-                                ),
-                              );
+                            onTap: () async {
+                              // Check Pluggy availability
+                              String? errorMessage = await checkItemAvailability(context);
+                              
+                              if (errorMessage == null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PluggyConnectorPage(),
+                                  ),
+                                );
+                              } else {
+                                // Close the modal first
+                                Navigator.pop(context);
+                                
+                                // Show the error message in a SnackBar
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorMessage),
+                                  ),
+                                );
+                              }
                             },
                             image: Container(
                               width: 100, // Adjust size as needed
