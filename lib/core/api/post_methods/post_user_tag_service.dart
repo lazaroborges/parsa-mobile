@@ -17,7 +17,7 @@ class PostUserTagService {
       final Map<String, dynamic> tagJson = {
         'id': tag.id,
         'name': tag.name,
-        'description': tag.description,
+        'description': tag.description ?? '', // Add empty string as fallback
         'displayOrder': tag.displayOrder,
         'color': tag.color,
       };

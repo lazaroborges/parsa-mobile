@@ -107,12 +107,7 @@
           "pt": "Profissional da Saúde"
         }
       },
-           {
-        "icon": "prescriptions",
-        "names": {
-          "pt": "Plano de Saúde"
-        }
-      },
+
       {
         "icon": "prescriptions",
         "names": {
@@ -369,7 +364,7 @@
       "pt": "Lazer"
     },
     "icon": "landscape",
-    "color": "2A6478",
+    "color": "CA6702",
     "type": "E",
     "subcategories": [
 

@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 575
+/// Strings: 578
 ///
-/// Built on 2024-10-16 at 20:22 UTC
+/// Built on 2024-10-19 at 19:56 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -171,6 +171,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	late final _TranslationsBackupPt backup = _TranslationsBackupPt._(_root);
 	late final _TranslationsSettingsPt settings = _TranslationsSettingsPt._(_root);
 	late final _TranslationsMorePt more = _TranslationsMorePt._(_root);
+	late final _TranslationsAuthPt auth = _TranslationsAuthPt._(_root);
 }
 
 // Path: general
@@ -226,7 +227,7 @@ class _TranslationsIntroPt {
 	String get next => 'Próximo';
 	String get select_your_currency => 'Selecione sua moeda';
 	String get welcome_subtitle => 'Seu gerente financeiro pessoal';
-	String get welcome_subtitle2 => '100% aberto, 100% grátis';
+	String get welcome_subtitle2 => 'Controle Financeiro sem esforço.';
 	String get welcome_footer => 'Ao entrar, você concorda com a <a href=\'https://github.com/enrique-lozano/Parsa/blob/main/docs/PRIVACY_POLICY.md\'>Política de Privacidade</a> e os <a href=\'https://github.com/enrique-lozano/Parsa/blob/main/docs/TERMS_OF_USE.md\'>Termos de Uso</a> do aplicativo';
 	String get offline_descr_title => 'CONTA OFFLINE:';
 	String get offline_descr => 'Seus dados serão armazenados apenas no seu dispositivo e estarão seguros enquanto você não desinstalar o aplicativo ou trocar de telefone. Para evitar a perda de dados, é recomendável fazer backup regularmente nas configurações do aplicativo.';
@@ -342,7 +343,7 @@ class _TranslationsTransactionPt {
 	String get create => 'Nova transação';
 	String get new_income => 'Nova receita';
 	String get new_expense => 'Nova despesa';
-	String get new_success => 'Transação criada com sucesso';
+	String get new_success => 'Transa��ão criada com sucesso';
 	String get edit => 'Editar transação';
 	String get edit_success => 'Transação editada com sucesso';
 	String get edit_multiple => 'Editar transações';
@@ -534,7 +535,7 @@ class _TranslationsBudgetsPt {
 	String get days_left => 'dias restantes';
 	String get days_to_start => 'dias para começar';
 	String get since_expiration => 'dias desde a expiração';
-	String get no_budgets => 'Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+	String get no_budgets => 'Orçamentos funciona porém os dados de orçamento ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
 	String get delete => 'Excluir orçamento';
 	String get delete_warning => 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 	late final _TranslationsBudgetsFormPt form = _TranslationsBudgetsFormPt._(_root);
@@ -598,6 +599,18 @@ class _TranslationsMorePt {
 	late final _TranslationsMoreDataPt data = _TranslationsMoreDataPt._(_root);
 	late final _TranslationsMoreAboutUsPt about_us = _TranslationsMoreAboutUsPt._(_root);
 	late final _TranslationsMoreHelpUsPt help_us = _TranslationsMoreHelpUsPt._(_root);
+}
+
+// Path: auth
+class _TranslationsAuthPt {
+	_TranslationsAuthPt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get login_button => 'Fazer Login no Parsa';
+	String get login_error => 'Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.';
+	String get app_name => 'Parsa';
 }
 
 // Path: general.clipboard
@@ -847,7 +860,7 @@ class _TranslationsTransactionNotesPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Descrição da Transação';
+	String get title => 'Detalhes extras sobre a Transação';
 	String get title_short => 'Insira informações adicionais sobre a transação.';
 }
 
@@ -1198,7 +1211,7 @@ class _TranslationsMoreDataPt {
 
 	// Translations
 	String get display => 'Dados';
-	String get display_descr => 'Exporte e importe seus dados para não perder nada';
+	String get display_descr => 'Exporte os dados da suas transações.';
 	String get delete_all => 'Excluir meus dados';
 	String get delete_all_header1 => 'Pare aí, padawan ⚠️⚠️';
 	String get delete_all_message1 => 'Tem certeza de que deseja continuar? Todos os seus dados serão excluídos permanentemente e não poderão ser recuperados';
@@ -1445,7 +1458,7 @@ class _TranslationsMoreAboutUsLegalPt {
 	// Translations
 	String get display => 'Informações legais';
 	String get privacy => 'Política de Privacidade e LGPD';
-	String get terms => 'Termos de uso';
+	String get terms => 'Termos de Uso e Serviço';
 	String get licenses => 'Licenças';
 }
 
@@ -1600,7 +1613,7 @@ extension on Translations {
 			case 'intro.next': return 'Próximo';
 			case 'intro.select_your_currency': return 'Selecione sua moeda';
 			case 'intro.welcome_subtitle': return 'Seu gerente financeiro pessoal';
-			case 'intro.welcome_subtitle2': return '100% aberto, 100% grátis';
+			case 'intro.welcome_subtitle2': return 'Controle Financeiro sem esforço.';
 			case 'intro.welcome_footer': return 'Ao entrar, você concorda com a <a href=\'https://github.com/enrique-lozano/Parsa/blob/main/docs/PRIVACY_POLICY.md\'>Política de Privacidade</a> e os <a href=\'https://github.com/enrique-lozano/Parsa/blob/main/docs/TERMS_OF_USE.md\'>Termos de Uso</a> do aplicativo';
 			case 'intro.offline_descr_title': return 'CONTA OFFLINE:';
 			case 'intro.offline_descr': return 'Seus dados serão armazenados apenas no seu dispositivo e estarão seguros enquanto você não desinstalar o aplicativo ou trocar de telefone. Para evitar a perda de dados, é recomendável fazer backup regularmente nas configurações do aplicativo.';
@@ -1744,7 +1757,7 @@ extension on Translations {
 			case 'transaction.create': return 'Nova transação';
 			case 'transaction.new_income': return 'Nova receita';
 			case 'transaction.new_expense': return 'Nova despesa';
-			case 'transaction.new_success': return 'Transação criada com sucesso';
+			case 'transaction.new_success': return 'Transa��ão criada com sucesso';
 			case 'transaction.edit': return 'Editar transação';
 			case 'transaction.edit_success': return 'Transação editada com sucesso';
 			case 'transaction.edit_multiple': return 'Editar transações';
@@ -1806,7 +1819,7 @@ extension on Translations {
 			case 'transaction.form.description_info': return 'Toque aqui para inserir uma descrição mais detalhada sobre esta transação';
 			case 'transaction.form.exchange_to_preferred_title': return ({required Object currency}) => 'Taxa de câmbio para ${currency}';
 			case 'transaction.form.exchange_to_preferred_in_date': return 'Na data da transação';
-			case 'transaction.notes.title': return 'Descrição da Transação';
+			case 'transaction.notes.title': return 'Detalhes extras sobre a Transação';
 			case 'transaction.notes.title_short': return 'Insira informações adicionais sobre a transação.';
 			case 'transaction.reversed.title': return 'AINDA NÃO FUNCIONA Transação inversa';
 			case 'transaction.reversed.title_short': return 'AINDA NÃO FUNCIONA Trans. inversa';
@@ -2006,7 +2019,7 @@ extension on Translations {
 			case 'budgets.days_left': return 'dias restantes';
 			case 'budgets.days_to_start': return 'dias para começar';
 			case 'budgets.since_expiration': return 'dias desde a expiração';
-			case 'budgets.no_budgets': return 'Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+			case 'budgets.no_budgets': return 'Orçamentos funciona porém os dados de orçamento ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
 			case 'budgets.delete': return 'Excluir orçamento';
 			case 'budgets.delete_warning': return 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 			case 'budgets.form.title': return 'Adicionar um orçamento';
@@ -2099,7 +2112,7 @@ extension on Translations {
 			case 'more.title': return 'Menu';
 			case 'more.title_long': return 'Menu e Preferências';
 			case 'more.data.display': return 'Dados';
-			case 'more.data.display_descr': return 'Exporte e importe seus dados para não perder nada';
+			case 'more.data.display_descr': return 'Exporte os dados da suas transações.';
 			case 'more.data.delete_all': return 'Excluir meus dados';
 			case 'more.data.delete_all_header1': return 'Pare aí, padawan ⚠️⚠️';
 			case 'more.data.delete_all_message1': return 'Tem certeza de que deseja continuar? Todos os seus dados serão excluídos permanentemente e não poderão ser recuperados';
@@ -2109,7 +2122,7 @@ extension on Translations {
 			case 'more.about_us.description': return 'Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ';
 			case 'more.about_us.legal.display': return 'Informações legais';
 			case 'more.about_us.legal.privacy': return 'Política de Privacidade e LGPD';
-			case 'more.about_us.legal.terms': return 'Termos de uso';
+			case 'more.about_us.legal.terms': return 'Termos de Uso e Serviço';
 			case 'more.about_us.legal.licenses': return 'Licenças';
 			case 'more.about_us.project.about_us': return 'Sobre o Parsa';
 			case 'more.about_us.project.display': return 'Sobre';
@@ -2130,6 +2143,9 @@ extension on Translations {
 			case 'more.help_us.donate_success': return 'Doação realizada. Muito obrigado pela sua contribuição! ❤️';
 			case 'more.help_us.donate_err': return 'Oops! Parece que houve um erro ao receber seu pagamento';
 			case 'more.help_us.report': return 'Entre em contato.';
+			case 'auth.login_button': return 'Fazer Login no Parsa';
+			case 'auth.login_error': return 'Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.';
+			case 'auth.app_name': return 'Parsa';
 			default: return null;
 		}
 	}

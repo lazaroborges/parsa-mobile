@@ -31,7 +31,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
-  apiEndpoint = dotenv.env['API_ENDPOINT'] ?? 'https://default-api-endpoint.com';
+  apiEndpoint = dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br';
 
   final auth0 = Auth0(
     dotenv.env['AUTH0_DOMAIN']!,

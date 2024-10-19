@@ -5,6 +5,7 @@ import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'widgets/settings_list_separator.dart';
 
@@ -15,17 +16,20 @@ class AboutPage extends StatelessWidget {
     String title, {
     String? subtitle,
     required Function() onTap,
+    IconData? icon,
   }) {
     return ListTile(
       title: Text(title),
       minVerticalPadding: 16,
       subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.arrow_forward_ios, size: 14),
-        ],
-      ),
+      trailing: icon != null
+          ? FaIcon(icon, size: 24, color: Colors.green)
+          : const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.arrow_forward_ios, size: 14),
+              ],
+            ),
       onTap: onTap,
     );
   }
@@ -75,7 +79,7 @@ class AboutPage extends StatelessWidget {
                               t.intro.welcome_subtitle2,
                               style: Theme.of(context)
                                   .textTheme
-                                  .labelSmall!
+                                  .labelMedium!
                                   .copyWith(
                                       color: Theme.of(context).primaryColor),
                             ),
@@ -103,6 +107,13 @@ class AboutPage extends StatelessWidget {
             buildLinkItem(t.more.about_us.project.contact, onTap: () {
               openExternalURL(context, 'mailto:lazaro@parsa-ai.com.br');
             }),
+                        buildLinkItem(
+              'Chama no Zap',
+              onTap: () {
+                openExternalURL(context, 'https://wa.me/5531972012338');
+              },
+              icon: FontAwesomeIcons.whatsapp,
+            ),
             createListSeparator(context, t.more.about_us.legal.display),
             buildLinkItem(
               t.more.about_us.legal.terms,
@@ -118,6 +129,7 @@ class AboutPage extends StatelessWidget {
                     'https://www.parsa-ai.com.br/pol%C3%ADtica-de-privacidade');
               },
             ),
+
             buildLinkItem(
               t.more.about_us.legal.licenses,
               onTap: () async {

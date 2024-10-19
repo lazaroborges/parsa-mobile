@@ -137,7 +137,7 @@
     "next": "Próximo",
     "select-your-currency": "Selecione sua moeda",
     "welcome.subtitle": "Seu gerente financeiro pessoal",
-    "welcome.subtitle2": "100% aberto, 100% grátis",
+    "welcome.subtitle2": "Controle Financeiro sem esforço.",
     "welcome.footer": "Ao entrar, você concorda com a <a href='https://github.com/enrique-lozano/Parsa/blob/main/docs/PRIVACY_POLICY.md'>Política de Privacidade</a> e os <a href='https://github.com/enrique-lozano/Parsa/blob/main/docs/TERMS_OF_USE.md'>Termos de Uso</a> do aplicativo",
     "offline.descr.title": "CONTA OFFLINE:",
     "offline.descr": "Seus dados serão armazenados apenas no seu dispositivo e estarão seguros enquanto você não desinstalar o aplicativo ou trocar de telefone. Para evitar a perda de dados, é recomendável fazer backup regularmente nas configurações do aplicativo.",
@@ -263,7 +263,7 @@
     "create": "Nova transação",
     "new.income": "Nova receita",
     "new.expense": "Nova despesa",
-    "new.success": "Transação criada com sucesso",
+    "new.success": "Transa��ão criada com sucesso",
     "edit": "Editar transação",
     "edit.success": "Transação editada com sucesso",
     "edit.multiple": "Editar transações",
@@ -335,7 +335,7 @@
       "exchange-to-preferred-in-date": "Na data da transação"
     },
     "NOTES": {
-      "title": "Descrição da Transação",
+      "title": "Detalhes extras sobre a Transação",
       "title.short": "Insira informações adicionais sobre a transação."
     },
     "REVERSED": {
@@ -583,7 +583,7 @@
     "days-left": "dias restantes",
     "days-to-start": "dias para começar",
     "since-expiration": "dias desde a expiração",
-    "no-budgets": "Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo",
+    "no-budgets": "Orçamentos funciona porém os dados de orçamento ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo",
     "delete": "Excluir orçamento",
     "delete-warning": "Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas",
     "FORM": {
@@ -701,7 +701,7 @@
     "title_long": "Menu e Preferências",
     "DATA": {
       "display": "Dados",
-      "display.descr": "Exporte e importe seus dados para não perder nada",
+      "display.descr": "Exporte os dados da suas transações.",
       "delete-all": "Excluir meus dados",
       "delete-all-header1": "Pare aí, padawan ⚠️⚠️",
       "delete-all-message1": "Tem certeza de que deseja continuar? Todos os seus dados serão excluídos permanentemente e não poderão ser recuperados",
@@ -714,7 +714,7 @@
       "LEGAL": {
         "display": "Informações legais",
         "privacy": "Política de Privacidade e LGPD",
-        "terms": "Termos de uso",
+        "terms": "Termos de Uso e Serviço",
         "licenses": "Licenças"
       },
       "PROJECT": {
@@ -741,5 +741,10 @@
       "donate.err": "Oops! Parece que houve um erro ao receber seu pagamento",
       "report": "Entre em contato."
     }
+  },
+  "AUTH": {
+    "login_button": "Fazer Login no Parsa",
+    "login_error": "Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.",
+    "app_name": "Parsa"
   }
 }

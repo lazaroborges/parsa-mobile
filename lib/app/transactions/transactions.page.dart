@@ -289,73 +289,24 @@ class _TransactionsPageState extends State<TransactionsPage> {
         t.transaction.list.selected_short(n: selectedTransactions.length),
       ),
       actions: [
-        MonekinPopupMenuButton(actionItems: [
-          ListTileActionItem(
-            label: t.general.edit,
-            icon: Icons.edit_rounded,
-            onClick: () {
-              showModalBottomSheet(
-                context: context,
-                showDragHandle: true,
-                builder: (context) {
-                  return BulkEditTransactionModal(
-                    transactionsToEdit: selectedTransactions,
-                    onSuccess: () {
-                      selectedTransactions = [];
-                      setState(() {});
-                    },
-                  );
-                },
-              );
-            },
-          ),
-          ListTileActionItem(
-            label: t.general.delete,
-            icon: Icons.delete_rounded,
-            onClick: () {
-              confirmDialog(
-                context,
-                dialogTitle: selectedTransactions.length <= 1
-                    ? t.transaction.delete
-                    : t.transaction.delete_multiple,
-                confirmationText: t.general.confirm,
-                showCancelButton: true,
-                icon: Icons.delete_rounded,
-                contentParagraphs: [
-                  Text(selectedTransactions.length <= 1
-                      ? t.transaction.delete_warning_message
-                      : t.transaction.delete_multiple_warning_message(
-                          x: selectedTransactions.length))
-                ],
-              ).then((value) {
-                if (value != true) {
-                  return;
-                }
-
-                final futures = selectedTransactions.map(
-                    (e) => TransactionService.instance.deleteTransaction(e.id));
-
-                Future.wait(futures).then((value) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(selectedTransactions.length <= 1
-                        ? t.transaction.delete_success
-                        : t.transaction.delete_multiple_success(
-                            x: selectedTransactions.length)),
-                  ));
-
-                  setState(() {
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              showDragHandle: true,
+              builder: (context) {
+                return BulkEditTransactionModal(
+                  transactionsToEdit: selectedTransactions,
+                  onSuccess: () {
                     selectedTransactions = [];
-                  });
-                }).catchError((err) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(err.toString()),
-                  ));
-                });
-              });
-            },
-            role: ListTileActionRole.delete,
-          )
-        ])
+                    setState(() {});
+                  },
+                );
+              },
+            );
+          },
+        ),
       ],
     );
   }
