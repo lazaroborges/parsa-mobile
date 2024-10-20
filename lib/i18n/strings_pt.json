@@ -588,7 +588,7 @@
     "days-left": "dias restantes",
     "days-to-start": "dias para começar",
     "since-expiration": "dias desde a expiração",
-    "no-budgets": "Orçamentos funciona porém os dados de orçamento ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo",
+    "no-budgets": "Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo",
     "delete": "Excluir orçamento",
     "delete-warning": "Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas",
     "FORM": {
