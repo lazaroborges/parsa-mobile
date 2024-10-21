@@ -497,12 +497,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   if (!snapshot.hasData) {
                     return const Skeleton(width: 52, height: 22);
                   }
+                      return const SizedBox(width: 52, height: 22);
 
-                  return TrendingValue(
-                    percentage: snapshot.data!,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  );
+                  // return TrendingValue(
+                  //   percentage: snapshot.data!,
+                  //   fontWeight: FontWeight.bold,
+                  //   fontSize: 16,
+                  // );
                 },
               ),
           ]

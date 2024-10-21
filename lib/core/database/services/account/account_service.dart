@@ -172,7 +172,6 @@ class AccountService {
         .watchSingleOrNull()
         .map((res) {
           if (res?.data != null) {
-            print('Total Balance: ${}');
             return (res!.data['total_balance'] as num).toDouble();
           }
 
