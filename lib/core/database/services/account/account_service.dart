@@ -172,8 +172,8 @@ class AccountService {
         .watchSingleOrNull()
         .map((res) {
           if (res?.data != null) {
-            print('Total Balance: ${res!.data['total_balance']}');
-            return (res.data['total_balance'] as num).toDouble();
+            print('Total Balance: ${}');
+            return (res!.data['total_balance'] as num).toDouble();
           }
 
           print('No data found for total balance.');
