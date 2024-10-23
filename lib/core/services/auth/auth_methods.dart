@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/main.dart';
+import 'package:http/http.dart' as http;
 
 class AuthMethods {
+
   // Fetch user profile data
   static Future<void> fetchUserProfile(Auth0 auth0) async {
     try {
@@ -31,6 +34,25 @@ class AuthMethods {
   static Future<void> logout(BuildContext context, Auth0 auth0) async {
     try {
       print('Logout attempt started');
+
+      final auth0Provider = Auth0Provider.instance;
+
+
+  final accessToken = auth0Provider.credentials!.accessToken;
+
+  final response = await http.post(
+    Uri.parse('$apiEndpoint/users/api_logout/'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+
+      if (response.statusCode == 200) {
+        print('Logout successful');
+      } else {
+        print('Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
+      }
 
       // Perform logout
       await auth0.webAuthentication().logout(
