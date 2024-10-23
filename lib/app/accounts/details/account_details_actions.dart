@@ -11,6 +11,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/models/transaction/transaction_type.enum.dart';
 
@@ -171,12 +172,9 @@ abstract class AccountDetailsActions {
     }
   }
 
-  static Future<void> disconnectAccount(
-    BuildContext context,
-    Account account,
-  ) async {
-    final t = Translations.of(context);
+  static Future<void> disconnectAccount(BuildContext context, Account account) async {
     final scaffold = ScaffoldMessenger.of(context);
+    final t = Translations.of(context);
 
     final isConfirmed = await confirmDialog(
       context,
@@ -190,9 +188,13 @@ abstract class AccountDetailsActions {
     if (isConfirmed != true) return;
 
     try {
-      final auth0 = getAuth0Instance();
+      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+      final credentials = auth0Provider.credentials;
 
-      final credentials = await auth0.credentialsManager.credentials();
+      if (credentials == null) {
+        throw Exception('User is not logged in');
+      }
+
       final accessToken = credentials.accessToken;
 
       final success = await PostUserAccountService.disconnectAccount(
@@ -235,9 +237,13 @@ abstract class AccountDetailsActions {
     if (isConfirmed != true) return;
 
     try {
-      final auth0 = getAuth0Instance();
+      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+      final credentials = await auth0Provider.credentials;
 
-      final credentials = await auth0.credentialsManager.credentials();
+      if (credentials == null) {
+        throw Exception('User is not logged in');
+      }
+
       final accessToken = credentials.accessToken;
       final success = await PostUserAccountService.deleteOpenFinanceAccount(
           accountId, accessToken);

@@ -16,10 +16,12 @@ import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
+import 'package:provider/provider.dart';
+
 
 Future<void> fetchUserTransactions(BuildContext context) async {
-  final auth0 = Auth0Provider.of(context)!.auth0;
-  final credentials = await auth0.credentialsManager.credentials();
+  final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+  final credentials = await auth0Provider.credentials;
 
   String url =
       '$apiEndpoint/api/transactions/';
@@ -27,7 +29,7 @@ Future<void> fetchUserTransactions(BuildContext context) async {
   final response = await http.get(
     Uri.parse(url),
     headers: {
-      'Authorization': 'Bearer ${credentials.accessToken}',
+      'Authorization': 'Bearer ${credentials?.accessToken}',
       'Content-Type': 'application/json',
     },
   );

@@ -5,6 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
+import 'package:provider/provider.dart';
+ 
+
+
+
 
 class PluggyConnectorPage extends StatefulWidget {
   const PluggyConnectorPage({super.key});
@@ -29,14 +34,14 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
   }
 
   Future<void> _fetchConnectToken(BuildContext context) async {
-    final auth0 = Auth0Provider.of(context)!.auth0;
+    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
 
-    final credentials = await auth0.credentialsManager.credentials();
+    final credentials = await auth0Provider.credentials;
 
     final response = await http.get(
       Uri.parse('$apiEndpoint/api/auth/'),
       headers: {
-        'Authorization': 'Bearer ${credentials.accessToken}',
+        'Authorization': 'Bearer ${credentials?.accessToken}',
         'Content-Type': 'application/json',
       },
     );

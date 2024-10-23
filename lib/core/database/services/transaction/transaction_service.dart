@@ -6,9 +6,11 @@ import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+
 
 import '../../../models/transaction/transaction_type.enum.dart';
 
@@ -48,8 +50,8 @@ class TransactionService {
     print('Inserting or updating transaction: ${transaction}');
 
     try {
-      final auth0 = getAuth0Instance();
-      final credentials = await auth0.credentialsManager.credentials();
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
 
       final existing = await (db.select(db.transactions)
             ..where((t) => t.id.equals(transaction.id)))
@@ -60,7 +62,7 @@ class TransactionService {
 
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
-            accessToken: credentials.accessToken,
+            accessToken: credentials!.accessToken,
             tags: tags, // Add this line
             method: 'PUT');
 
@@ -72,7 +74,7 @@ class TransactionService {
 
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
-            accessToken: credentials.accessToken,
+            accessToken: credentials!.accessToken,
             tags: tags, // Add this line
             method: 'POST');
 
@@ -114,11 +116,8 @@ class TransactionService {
   }
 
   Future<int> deleteTransaction(String transactionId) async {
-
-
-       
     final transaction = await getTransactionById(transactionId).first;
-    
+
     if (transaction == null) {
       throw Exception('Transaction not found');
     }
@@ -126,13 +125,13 @@ class TransactionService {
     if (transaction.isOpenFinance) {
       throw Exception('Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, utilize a opção "Desconsiderada" dentro do card da transação.');
     }
-    final auth0 = getAuth0Instance();
 
-    // Retrieve the access token from the Auth0 instance
-    final credentials = await auth0.credentialsManager.credentials();
+    final auth0Provider = Auth0Provider.instance;
+    final credentials = await auth0Provider.credentials;
+
     // Post the account to the API
     bool isPut = await PostUserTransactionService.deleteUserTransaction(
-        transactionId, credentials.accessToken);
+        transactionId, credentials!.accessToken);
 
     if (!isPut) {
       throw Exception('Failed to post account to the API.');

@@ -1,38 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 
-class Auth0Provider extends InheritedWidget {
+class Auth0Provider extends ChangeNotifier {
   final Auth0 auth0;
+  Credentials? _credentials;
 
-  const Auth0Provider({
-    Key? key,
-    required this.auth0,
-    required Widget child,
-  }) : super(key: key, child: child);
-
-  static Auth0Provider? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<Auth0Provider>();
+  // Singleton pattern
+  static Auth0Provider? _instance;
+  static Auth0Provider get instance {
+    if (_instance == null) {
+      throw Exception('Auth0Provider has not been initialized');
+    }
+    return _instance!;
   }
 
-  @override
-  bool updateShouldNotify(Auth0Provider oldWidget) {
-    return auth0 != oldWidget.auth0;
-  }
-}
-
-// Global variable to hold the app-wide BuildContext
-BuildContext? globalAppContext;
-
-// Helper function to get the Auth0 instance from the global context
-Auth0 getAuth0Instance() {
-  if (globalAppContext == null) {
-    throw Exception('Global app context not set');
+  Auth0Provider({required this.auth0}) {
+    _instance = this; // Initialize the singleton instance
   }
 
-  final auth0ProviderGlobal = Auth0Provider.of(globalAppContext!);
-  if (auth0ProviderGlobal == null) {
-    throw Exception('Auth0Provider not found in the widget tree');
+  Credentials? get credentials => _credentials;
+
+  Future<void> login() async {
+    try {
+      final result = await auth0.webAuthentication().login(
+            audience: 'https://api.parsa.com.br/api',
+          );
+      _credentials = result;
+      await auth0.credentialsManager.storeCredentials(result);
+      notifyListeners();
+    } catch (e) {
+      print('Login failed: $e');
+      rethrow;
+    }
   }
 
-  return auth0ProviderGlobal.auth0;
+  Future<void> logout() async {
+    try {
+      await auth0.webAuthentication().logout();
+      await auth0.credentialsManager.clearCredentials();
+      _credentials = null;
+      notifyListeners();
+    } catch (e) {
+      print('Logout failed: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> checkLoginStatus() async {
+    try {
+      final hasValidCredentials = await auth0.credentialsManager.hasValidCredentials();
+      if (hasValidCredentials) {
+        _credentials = await auth0.credentialsManager.credentials();
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false;
+    }
+  }
 }

@@ -4,17 +4,18 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/main.dart';
+import 'package:provider/provider.dart';
 
 Future<String?> checkItemAvailability(BuildContext context) async {
-  final auth0 = Auth0Provider.of(context)!.auth0;
-  final credentials = await auth0.credentialsManager.credentials();
+  final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+  final credentials = await auth0Provider.credentials;
 
   final t = Translations.of(context);
 
   final response = await http.get(
     Uri.parse('$apiEndpoint/api/check-item-availability/'),
     headers: {
-      'Authorization': 'Bearer ${credentials.accessToken}',
+      'Authorization': 'Bearer ${credentials?.accessToken}',
       'Content-Type': 'application/json',
     },
   );

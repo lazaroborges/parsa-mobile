@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:parsa/main.dart'; // Add this import
 
 Future<Map<String, dynamic>> apiLogin(BuildContext context) async {
-  final auth0 = Auth0Provider.of(context)!.auth0;
+  final auth0 = Auth0Provider.instance.auth0;
 
   final credentials = await auth0.credentialsManager.credentials();
 

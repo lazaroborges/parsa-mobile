@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
-import 'package:parsa/core/api/post_methods/post_user_account.dart';
 import 'package:parsa/core/api/post_methods/post_user_tag_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+
 
 class TagService {
   final AppDB db;
@@ -13,15 +13,11 @@ class TagService {
 
   Future<int> insertTag(TagInDB tag) async {
     try {
-      // Retrieve the access token from your authentication service
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
 
-      final auth0 = getAuth0Instance();
-
-      // Retrieve the access token from the Auth0 instance
-      final credentials = await auth0.credentialsManager.credentials();
-      // Post the account to the API
       bool isPosted = await PostUserTagService.postUserTag(
-          tag, credentials.accessToken, 'POST');
+          tag, credentials!.accessToken, 'POST');
 
       if (!isPosted) {
         throw Exception('Failed to post account to the API.');
@@ -38,15 +34,11 @@ class TagService {
 
   Future<bool> updateTag(TagInDB tag) async {
     try {
-      // Retrieve the access token from your authentication service
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
 
-      final auth0 = getAuth0Instance();
-
-      // Retrieve the access token from the Auth0 instance
-      final credentials = await auth0.credentialsManager.credentials();
-      // Post the account to the API
       bool isPut = await PostUserTagService.postUserTag(
-          tag, credentials.accessToken, 'PUT');
+          tag, credentials!.accessToken, 'PUT');
 
       if (!isPut) {
         throw Exception('Failed to post account to the API.');
@@ -61,20 +53,17 @@ class TagService {
 
   Future<int> deleteTag(String tagId) async {
     try {
-      // Added missing try block
-      final auth0 = getAuth0Instance();
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
 
-      // Retrieve the access token from the Auth0 instance
-      final credentials = await auth0.credentialsManager.credentials();
-      // Post the account to the API
       bool isPut = await PostUserTagService.deleteUserTag(
-          tagId, credentials.accessToken);
+          tagId, credentials!.accessToken);
 
       if (!isPut) {
         throw Exception('Failed to post account to the API.');
       } else {
         return (db.delete(db.tags)..where((tbl) => tbl.id.equals(tagId))).go();
-      } // Added missing closing bracket
+      }
     } catch (e) {
       print('Error updating account: $e');
       rethrow; // Propagate the error to be handled upstream if needed

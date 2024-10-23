@@ -46,7 +46,7 @@ class AuthMethods {
         context,
         MaterialPageRoute(
             builder: (context) => Auth0Service(
-                auth0: auth0)), // Replace with your login page widget
+                auth0Provider: Auth0Provider.instance)), // Replace with your login page widget
         (Route<dynamic> route) => false,
       );
       print('User logged out and navigated to LoginPage');
@@ -130,6 +130,6 @@ class AuthMethods {
 
   // Helper to get Auth0 instance from context
   static Auth0 auth0(BuildContext context) {
-    return Auth0Provider.of(context)!.auth0;
+    return Auth0Provider.instance.auth0;
   }
 }

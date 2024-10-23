@@ -22,6 +22,7 @@ import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:provider/provider.dart';
 
 String apiEndpoint = '';
 
@@ -38,10 +39,12 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  runApp(Auth0Provider(
-    auth0: auth0,
-    child: const MonekinAppEntryPoint(),
-  ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => Auth0Provider(auth0: auth0),
+      child: const MonekinAppEntryPoint(),
+    ),
+  );
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
@@ -111,7 +114,6 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   @override
   Widget build(BuildContext context) {
     print('------------------ APP ENTRY POINT ------------------');
-    globalAppContext = context;
 
     return StreamBuilder(
       stream: UserSettingService.instance.getSettings((p0) =>
@@ -215,10 +217,7 @@ class MaterialAppContainer extends StatefulWidget {
 }
 
 class _MaterialAppContainerState extends State<MaterialAppContainer> {
-  bool isLoggedIn = false;
   bool isLoading = true;
-
-  final local_auth.LocalAuthentication auth = local_auth.LocalAuthentication();
 
   @override
   void initState() {
@@ -226,75 +225,19 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     _checkLoginStatus();
   }
 
-  // Existing _checkLoginStatus method
   Future<void> _checkLoginStatus() async {
-    bool status = await AuthMethods.checkLoginStatus(context);
-    print('STATUS: $status ${status.runtimeType}');
-    if (status) {
-      bool biometricSuccess = true;
-      // await _authenticateWithBiometrics();
-      if (biometricSuccess) {
-        setState(() {
-          isLoggedIn = true;
-          isLoading = false;
-        });
-      } else {
-        // Show an alert dialog
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Authentication Failed'),
-            content: Text('Unable to authenticate using biometrics.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK'),
-              ),
-            ],
-          ),
-        );
-
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      setState(() {
-        isLoggedIn = status;
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<bool> _authenticateWithBiometrics() async {
-    bool canCheckBiometrics = await auth.canCheckBiometrics;
-    bool isDeviceSupported = await auth.isDeviceSupported();
-
-    if (!canCheckBiometrics || !isDeviceSupported) {
-      return false;
-    }
-
-    try {
-      bool authenticated = await auth.authenticate(
-        localizedReason: 'Please authenticate to access your account',
-        options: const local_auth.AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
-      );
-      return authenticated;
-    } on PlatformException catch (e) {
-      print(e);
-      return false;
-    }
+    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+    bool status = await auth0Provider.checkLoginStatus();
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth0 = Auth0Provider.of(context)!.auth0;
+    final auth0Provider = Provider.of<Auth0Provider>(context);
     Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
 
-    // Return a loading indicator while checking login status
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -322,7 +265,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       navigatorObservers: [
         MainLayoutNavObserver(),
         DeepLinkObserver(_handleIncomingLink)
-      ], // Added DeepLinkObserver
+      ],
       builder: (context, child) {
         return Overlay(initialEntries: [
           OverlayEntry(
@@ -354,16 +297,14 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           ),
         ]);
       },
-      home: (isLoggedIn
+      home: (auth0Provider.credentials != null
           ? TabsPage()
-          : Auth0Service(
-              auth0: auth0)), // Show home if logged in, otherwise show login
+          : Auth0Service(auth0Provider: auth0Provider)),
     );
   }
 
   void _handleIncomingLink(String link) {
     print('Received deep link: $link');
-    // Navigate to the desired page based on the link
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),

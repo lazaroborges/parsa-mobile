@@ -10,6 +10,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
 import 'package:parsa/core/api/delete_methods/delete_user_bank_account.dart';
 
+
 enum AccountDataFilter { income, expense, balance }
 
 class AccountService {
@@ -21,27 +22,22 @@ class AccountService {
   /// Inserts an account after successfully posting it to the API.
   Future<int> insertAccount(AccountInDB account) async {
     try {
-      // Retrieve the access token from your authentication service
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
 
-      final auth0 = getAuth0Instance();
-
-      // Retrieve the access token from the Auth0 instance
-      final credentials = await auth0.credentialsManager.credentials();
-      // Post the account to the API
       bool isPosted = await PostUserAccountService.postUserAccount(
-          account, credentials.accessToken);
+          account, credentials?.accessToken ?? '');
 
       if (!isPosted) {
         throw Exception('Failed to post account to the API.');
       }
 
-      // If the POST request is successful, insert into the local DB
       return await db
           .into(db.accounts)
           .insert(account, mode: InsertMode.insertOrReplace);
     } catch (e) {
       print('Error inserting account: $e');
-      rethrow; // Propagate the error to be handled upstream if needed
+      rethrow;
     }
   }
 
@@ -62,25 +58,21 @@ class AccountService {
 
   Future<int> deleteAccount(String accountId) async {
     try {
-      // Retrieve the access token from your authentication service
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
 
-      final auth0 = getAuth0Instance();
+      bool isDeleted = await DeleteUserBankAccount.deleteUser(
+          accountId, credentials?.accessToken ?? '');
 
-      // Retrieve the access token from the Auth0 instance
-      final credentials = await auth0.credentialsManager.credentials();
-      // Post the account to the API
-      bool isPosted = await DeleteUserBankAccount.deleteUser(
-          accountId, credentials.accessToken);
-
-      if (!isPosted) {
-        throw Exception('Failed to post account to the API.');
+      if (!isDeleted) {
+        throw Exception('Failed to delete account from the API.');
       }
 
       return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
           .go();
     } catch (e) {
-      print('Error inserting account: $e');
-      rethrow; // Propagate the error to be handled upstream if needed
+      print('Error deleting account: $e');
+      rethrow;
     }
   }
 

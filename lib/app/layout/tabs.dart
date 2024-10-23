@@ -3,9 +3,7 @@ import 'package:parsa/app/layout/lazy_indexed_stack.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
-import 'package:parsa/core/api/api_login.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 
@@ -59,7 +57,7 @@ class TabsPageState extends State<TabsPage> {
       isLoading = true;
     });
     try {
-      await fetchUserAccounts(context);
+      await fetchUserAccounts();
       setState(() {
         isLoading = false;
       });
