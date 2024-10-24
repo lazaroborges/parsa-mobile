@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 581
+/// Strings: 583
 ///
-/// Built on 2024-10-19 at 21:41 UTC
+/// Built on 2024-10-24 at 16:42 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -154,6 +154,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	late final Translations _root = this; // ignore: unused_field
 
 	// Translations
+	late final _TranslationsConnectionsPt connections = _TranslationsConnectionsPt._(_root);
 	late final _TranslationsGeneralPt general = _TranslationsGeneralPt._(_root);
 	late final _TranslationsIntroPt intro = _TranslationsIntroPt._(_root);
 	late final _TranslationsHomePt home = _TranslationsHomePt._(_root);
@@ -172,6 +173,17 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	late final _TranslationsSettingsPt settings = _TranslationsSettingsPt._(_root);
 	late final _TranslationsMorePt more = _TranslationsMorePt._(_root);
 	late final _TranslationsAuthPt auth = _TranslationsAuthPt._(_root);
+}
+
+// Path: connections
+class _TranslationsConnectionsPt {
+	_TranslationsConnectionsPt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get success => 'Sincronização concluída com sucesso. Vamos analisar seus dados. Em um minuto, tente atualizar a tela para ver seus dados atualizados.';
+	String get error => 'Ocorreu um erro ao sincronizar seus dados. Por favor, tente novamente mais tarde.';
 }
 
 // Path: general
@@ -536,7 +548,7 @@ class _TranslationsBudgetsPt {
 	String get days_left => 'dias restantes';
 	String get days_to_start => 'dias para começar';
 	String get since_expiration => 'dias desde a expiração';
-	String get no_budgets => 'Orçamentos funciona porém os dados de orçamento ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+	String get no_budgets => 'Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
 	String get delete => 'Excluir orçamento';
 	String get delete_warning => 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 	late final _TranslationsBudgetsFormPt form = _TranslationsBudgetsFormPt._(_root);
@@ -1509,6 +1521,8 @@ class _TranslationsGeneralTimeRangesTypesPt {
 extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		switch (path) {
+			case 'connections.success': return 'Sincronização concluída com sucesso. Vamos analisar seus dados. Em um minuto, tente atualizar a tela para ver seus dados atualizados.';
+			case 'connections.error': return 'Ocorreu um erro ao sincronizar seus dados. Por favor, tente novamente mais tarde.';
 			case 'general.cancel': return 'Cancelar';
 			case 'general.or': return 'ou';
 			case 'general.understood': return 'Entendido';
@@ -2035,7 +2049,7 @@ extension on Translations {
 			case 'budgets.days_left': return 'dias restantes';
 			case 'budgets.days_to_start': return 'dias para começar';
 			case 'budgets.since_expiration': return 'dias desde a expiração';
-			case 'budgets.no_budgets': return 'Orçamentos funciona porém os dados de orçamento ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+			case 'budgets.no_budgets': return 'Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
 			case 'budgets.delete': return 'Excluir orçamento';
 			case 'budgets.delete_warning': return 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 			case 'budgets.form.title': return 'Adicionar um orçamento';

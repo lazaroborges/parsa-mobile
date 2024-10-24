@@ -4,11 +4,9 @@ import 'package:flutter_pluggy_connect/flutter_pluggy_connect.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/main.dart';
 import 'package:provider/provider.dart';
- 
-
-
 
 
 class PluggyConnectorPage extends StatefulWidget {
@@ -66,32 +64,38 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
+
+
     return _connectToken.isEmpty
         ? Center(child: CircularProgressIndicator())
         : PluggyConnect(
             includeSandbox: true,
             onSuccess: (data) {
               print('Success');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(t.connections.success)),
+              );
               print(jsonEncode(data));
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const TabsPage()),
               );
             },
             onClose: () {
-              print('Closed');
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const TabsPage()),
               );
             },
             onError: (error) {
-              print('Error');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(t.connections.error)),
+              );
               print(jsonEncode(error));
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const TabsPage()),
               );
             },
             onOpen: () {
-              print('Opened');
             },
             onEvent: (payload) {
               print('Event');
