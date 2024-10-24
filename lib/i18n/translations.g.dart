@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 583
+/// Strings: 584
 ///
-/// Built on 2024-10-24 at 16:42 UTC
+/// Built on 2024-10-24 at 18:10 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -623,6 +623,7 @@ class _TranslationsAuthPt {
 	// Translations
 	String get login_button => 'Fazer Login no Parsa';
 	String get login_error => 'Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.';
+	String get biometric_failed => 'Autenticação biométrica falhou. Por favor, faça o login novamente.';
 	String get app_name => 'Parsa';
 }
 
@@ -2175,6 +2176,7 @@ extension on Translations {
 			case 'more.help_us.report': return 'Entre em contato.';
 			case 'auth.login_button': return 'Fazer Login no Parsa';
 			case 'auth.login_error': return 'Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.';
+			case 'auth.biometric_failed': return 'Autenticação biométrica falhou. Por favor, faça o login novamente.';
 			case 'auth.app_name': return 'Parsa';
 			default: return null;
 		}

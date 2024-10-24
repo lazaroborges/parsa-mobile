@@ -12,13 +12,12 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
-import 'package:parsa/core/services/auth/auth_methods.dart';
-import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -233,75 +232,75 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final auth0Provider = Provider.of<Auth0Provider>(context);
-    Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
+@override
+Widget build(BuildContext context) {
+  final auth0Provider = Provider.of<Auth0Provider>(context);
+  Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
 
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final ColorScheme lightColorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-      brightness: Brightness.light,
-    );
-
-    final ThemeData lightTheme = getThemeData(
-      lightColorScheme: lightColorScheme,
-      accentColor: widget.accentColor,
-    );
-
-    return MaterialApp(
-      title: 'Parsa',
-      key: ValueKey(refresh),
-      debugShowCheckedModeBanner: false,
-      locale: TranslationProvider.of(context).flutterLocale,
-      scrollBehavior: ScrollBehaviorOverride(),
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
-      navigatorObservers: [
-        MainLayoutNavObserver(),
-        DeepLinkObserver(_handleIncomingLink)
-      ],
-      builder: (context, child) {
-        return Overlay(initialEntries: [
-          OverlayEntry(
-            builder: (context) => Stack(
-              children: [
-                Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeInOutCubicEmphasized,
-                      width: widget.introSeen
-                          ? getNavigationSidebarWidth(context)
-                          : 0,
-                      color: Theme.of(context).canvasColor,
-                    ),
-                    if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
-                      Container(
-                        width: 2,
-                        height: MediaQuery.of(context).size.height,
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    Expanded(child: child ?? const SizedBox.shrink()),
-                  ],
-                ),
-                if (widget.introSeen)
-                  NavigationSidebar(key: navigationSidebarKey)
-              ],
-            ),
-          ),
-        ]);
-      },
-      home: (auth0Provider.credentials != null
-          ? TabsPage()
-          : Auth0Service(auth0Provider: auth0Provider)),
-    );
+  if (isLoading) {
+    return const Center(child: CircularProgressIndicator());
   }
+
+  final ColorScheme lightColorScheme = ColorScheme.fromSeed(
+    seedColor: Colors.blue,
+    brightness: Brightness.light,
+  );
+
+  final ThemeData lightTheme = getThemeData(
+    lightColorScheme: lightColorScheme,
+    accentColor: widget.accentColor,
+  );
+
+  return MaterialApp(
+    title: 'Parsa',
+    key: ValueKey(refresh),
+    debugShowCheckedModeBanner: false,
+    locale: TranslationProvider.of(context).flutterLocale,
+    scrollBehavior: ScrollBehaviorOverride(),
+    supportedLocales: AppLocaleUtils.supportedLocales,
+    localizationsDelegates: GlobalMaterialLocalizations.delegates,
+    theme: lightTheme,
+    navigatorKey: navigatorKey,
+    navigatorObservers: [
+      MainLayoutNavObserver(),
+      DeepLinkObserver(_handleIncomingLink)
+    ],
+    builder: (context, child) {
+      return Overlay(initialEntries: [
+        OverlayEntry(
+          builder: (context) => Stack(
+            children: [
+              Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 1500),
+                    curve: Curves.easeInOutCubicEmphasized,
+                    width: widget.introSeen
+                        ? getNavigationSidebarWidth(context)
+                        : 0,
+                    color: Theme.of(context).canvasColor,
+                  ),
+                  if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
+                    Container(
+                      width: 2,
+                      height: MediaQuery.of(context).size.height,
+                      color: Theme.of(context).dividerColor,
+                    ),
+                  Expanded(child: child ?? const SizedBox.shrink()),
+                ],
+              ),
+              if (widget.introSeen)
+                NavigationSidebar(key: navigationSidebarKey)
+            ],
+          ),
+        ),
+      ]);
+    },
+    home: (auth0Provider.credentials != null
+        ? BiometricsCheckScreen()
+        : Auth0Service(auth0Provider: auth0Provider)),
+  );
+}
 
   void _handleIncomingLink(String link) {
     print('Received deep link: $link');
