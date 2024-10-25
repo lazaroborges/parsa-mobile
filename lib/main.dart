@@ -12,16 +12,16 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
-import 'package:parsa/core/services/auth/auth_methods.dart';
-import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:provider/provider.dart';
 
 String apiEndpoint = '';
 
@@ -38,10 +38,12 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  runApp(Auth0Provider(
-    auth0: auth0,
-    child: const MonekinAppEntryPoint(),
-  ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => Auth0Provider(auth0: auth0),
+      child: const MonekinAppEntryPoint(),
+    ),
+  );
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
@@ -111,7 +113,6 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   @override
   Widget build(BuildContext context) {
     print('------------------ APP ENTRY POINT ------------------');
-    globalAppContext = context;
 
     return StreamBuilder(
       stream: UserSettingService.instance.getSettings((p0) =>
@@ -215,10 +216,7 @@ class MaterialAppContainer extends StatefulWidget {
 }
 
 class _MaterialAppContainerState extends State<MaterialAppContainer> {
-  bool isLoggedIn = false;
   bool isLoading = true;
-
-  final local_auth.LocalAuthentication auth = local_auth.LocalAuthentication();
 
   @override
   void initState() {
@@ -226,144 +224,86 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     _checkLoginStatus();
   }
 
-  // Existing _checkLoginStatus method
   Future<void> _checkLoginStatus() async {
-    bool status = await AuthMethods.checkLoginStatus(context);
-    print('STATUS: $status ${status.runtimeType}');
-    if (status) {
-      bool biometricSuccess = true;
-      // await _authenticateWithBiometrics();
-      if (biometricSuccess) {
-        setState(() {
-          isLoggedIn = true;
-          isLoading = false;
-        });
-      } else {
-        // Show an alert dialog
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Authentication Failed'),
-            content: Text('Unable to authenticate using biometrics.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK'),
+    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+    bool status = await auth0Provider.checkLoginStatus();
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+@override
+Widget build(BuildContext context) {
+  final auth0Provider = Provider.of<Auth0Provider>(context);
+  Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
+
+  if (isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  final ColorScheme lightColorScheme = ColorScheme.fromSeed(
+    seedColor: Colors.blue,
+    brightness: Brightness.light,
+  );
+
+  final ThemeData lightTheme = getThemeData(
+    lightColorScheme: lightColorScheme,
+    accentColor: widget.accentColor,
+  );
+
+  return MaterialApp(
+    title: 'Parsa',
+    key: ValueKey(refresh),
+    debugShowCheckedModeBanner: false,
+    locale: TranslationProvider.of(context).flutterLocale,
+    scrollBehavior: ScrollBehaviorOverride(),
+    supportedLocales: AppLocaleUtils.supportedLocales,
+    localizationsDelegates: GlobalMaterialLocalizations.delegates,
+    theme: lightTheme,
+    navigatorKey: navigatorKey,
+    navigatorObservers: [
+      MainLayoutNavObserver(),
+      DeepLinkObserver(_handleIncomingLink)
+    ],
+    builder: (context, child) {
+      return Overlay(initialEntries: [
+        OverlayEntry(
+          builder: (context) => Stack(
+            children: [
+              Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 1500),
+                    curve: Curves.easeInOutCubicEmphasized,
+                    width: widget.introSeen
+                        ? getNavigationSidebarWidth(context)
+                        : 0,
+                    color: Theme.of(context).canvasColor,
+                  ),
+                  if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
+                    Container(
+                      width: 2,
+                      height: MediaQuery.of(context).size.height,
+                      color: Theme.of(context).dividerColor,
+                    ),
+                  Expanded(child: child ?? const SizedBox.shrink()),
+                ],
               ),
+              if (widget.introSeen)
+                NavigationSidebar(key: navigationSidebarKey)
             ],
           ),
-        );
-
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      setState(() {
-        isLoggedIn = status;
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<bool> _authenticateWithBiometrics() async {
-    bool canCheckBiometrics = await auth.canCheckBiometrics;
-    bool isDeviceSupported = await auth.isDeviceSupported();
-
-    if (!canCheckBiometrics || !isDeviceSupported) {
-      return false;
-    }
-
-    try {
-      bool authenticated = await auth.authenticate(
-        localizedReason: 'Please authenticate to access your account',
-        options: const local_auth.AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
         ),
-      );
-      return authenticated;
-    } on PlatformException catch (e) {
-      print(e);
-      return false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final auth0 = Auth0Provider.of(context)!.auth0;
-    Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
-
-    // Return a loading indicator while checking login status
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final ColorScheme lightColorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-      brightness: Brightness.light,
-    );
-
-    final ThemeData lightTheme = getThemeData(
-      lightColorScheme: lightColorScheme,
-      accentColor: widget.accentColor,
-    );
-
-    return MaterialApp(
-      title: 'Parsa',
-      key: ValueKey(refresh),
-      debugShowCheckedModeBanner: false,
-      locale: TranslationProvider.of(context).flutterLocale,
-      scrollBehavior: ScrollBehaviorOverride(),
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
-      navigatorObservers: [
-        MainLayoutNavObserver(),
-        DeepLinkObserver(_handleIncomingLink)
-      ], // Added DeepLinkObserver
-      builder: (context, child) {
-        return Overlay(initialEntries: [
-          OverlayEntry(
-            builder: (context) => Stack(
-              children: [
-                Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeInOutCubicEmphasized,
-                      width: widget.introSeen
-                          ? getNavigationSidebarWidth(context)
-                          : 0,
-                      color: Theme.of(context).canvasColor,
-                    ),
-                    if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
-                      Container(
-                        width: 2,
-                        height: MediaQuery.of(context).size.height,
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    Expanded(child: child ?? const SizedBox.shrink()),
-                  ],
-                ),
-                if (widget.introSeen)
-                  NavigationSidebar(key: navigationSidebarKey)
-              ],
-            ),
-          ),
-        ]);
-      },
-      home: (isLoggedIn
-          ? TabsPage()
-          : Auth0Service(
-              auth0: auth0)), // Show home if logged in, otherwise show login
-    );
-  }
+      ]);
+    },
+    home: (auth0Provider.credentials != null
+        ? BiometricsCheckScreen()
+        : Auth0Service(auth0Provider: auth0Provider)),
+  );
+}
 
   void _handleIncomingLink(String link) {
     print('Received deep link: $link');
-    // Navigate to the desired page based on the link
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),

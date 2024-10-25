@@ -174,7 +174,7 @@
       {
         "icon": "credit_score",
         "names": {
-          "pt": "Pagamento Fatura Cartão"
+          "pt": "Pagamento Fatura do Cartão"
         }
       },
 
@@ -504,7 +504,7 @@
       {
         "icon": "train",
         "names": {
-          "pt": "Transporte público"
+          "pt": "Transporte Público"
         }
       },
       {

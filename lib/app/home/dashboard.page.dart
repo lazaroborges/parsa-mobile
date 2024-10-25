@@ -45,6 +45,9 @@ import '../../core/presentation/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'package:parsa/core/api/fetch_user_accounts.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -84,6 +87,28 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      isLoading = true;
+      isLoadingTransactions = true;
+    });
+
+    try {
+      await Future.wait([
+        fetchUserAccounts(),
+        fetchUserTransactions(context),
+      ]);
+    } catch (e) {
+      print('Error refreshing data: $e');
+      // You might want to show an error message to the user here
+    } finally {
+      setState(() {
+        isLoading = false;
+        isLoadingTransactions = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -115,316 +140,322 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 }),
               ),
-        body: SingleChildScrollView(
+        body: RefreshIndicator(
+          onRefresh: _refreshData,
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(), // Use ClampingScrollPhysics here
             child: Column(children: [
-          DefaultTextStyle.merge(
-            style:
-                TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
-            child: Card(
-              margin: const EdgeInsets.only(bottom: 24),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              DefaultTextStyle.merge(
+                style:
+                    TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Tappable(
-                          onTap: () {
-                            // No action needed
-                          },
-                          bgColor: Colors.transparent,
-                          borderRadius: 12,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Row(
-                              children: [
-                                if (BreakPoint.of(context)
-                                    .isSmallerThan(BreakpointID.md)) ...[
-                                  if (userData != null &&
-                                      userData!['avatar_url'] != null)
-                                    CircleAvatar(
-                                      backgroundImage:
-                                          NetworkImage(userData!['avatar_url']),
-                                      radius: 18,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Tappable(
+                              onTap: () {
+                                // No action needed
+                              },
+                              bgColor: Colors.transparent,
+                              borderRadius: 12,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Row(
+                                  children: [
+                                    if (BreakPoint.of(context)
+                                        .isSmallerThan(BreakpointID.md)) ...[
+                                      if (userData != null &&
+                                          userData!['avatar_url'] != null)
+                                        CircleAvatar(
+                                          backgroundImage:
+                                              NetworkImage(userData!['avatar_url']),
+                                          radius: 18,
+                                        )
+                                      else
+                                        StreamBuilder(
+                                            stream: UserSettingService.instance
+                                                .getSetting(SettingKey.avatar),
+                                            builder: (context, snapshot) {
+                                              return UserAvatar(
+                                                  avatar: snapshot.data);
+                                            }),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _getGreeting(),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium!
+                                              .copyWith(
+                                                fontWeight: FontWeight.w300,
+                                              ),
+                                        ),
+                                        StreamBuilder(
+                                            stream: UserSettingService.instance
+                                                .getSetting(SettingKey.userName),
+                                            builder: (context, snapshot) {
+                                              if (userData != null &&
+                                                  userData!['first_name'] != null) {
+                                                return Text(
+                                                  utf8.decode(
+                                                      userData!['first_name']
+                                                          .toString()
+                                                          .runes
+                                                          .toList()),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall!
+                                                      .copyWith(
+                                                        fontWeight: FontWeight.w600,
+                                                        fontSize: 18,
+                                                      ),
+                                                );
+                                              }
+
+                                              if (!snapshot.hasData) {
+                                                return const Skeleton(
+                                                    width: 70, height: 12);
+                                              }
+
+                                              return Text(
+                                                snapshot.data!,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall!
+                                                    .copyWith(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 18,
+                                                    ),
+                                              );
+                                            }),
+                                      ],
                                     )
-                                  else
-                                    StreamBuilder(
-                                        stream: UserSettingService.instance
-                                            .getSetting(SettingKey.avatar),
-                                        builder: (context, snapshot) {
-                                          return UserAvatar(
-                                              avatar: snapshot.data);
-                                        }),
-                                  const SizedBox(width: 8),
-                                ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // ActionChip(
+                            //   label: Text(dateRangeService.getText(context)),
+                            //   backgroundColor:
+                            //       AppColors.of(context).primaryContainer,
+                            //   shape: RoundedRectangleBorder(
+                            //     borderRadius: BorderRadius.circular(8.0),
+                            //     side: BorderSide(
+                            //       style: BorderStyle.none,
+                            //       color: AppColors.of(context).onPrimary,
+                            //     ),
+                            //   ),
+                            //   onPressed: () {
+                            //     openDatePeriodModal(
+                            //       context,
+                            //       DatePeriodModal(
+                            //         initialDatePeriod: dateRangeService.datePeriod,
+                            //       ),
+                            //     ).then((value) {
+                            //       if (value == null) return;
+
+                            //       setState(() {
+                            //         dateRangeService = dateRangeService.copyWith(
+                            //           periodModifier: 0,
+                            //           datePeriod: value,
+                            //         );
+                            //       });
+                            //     });
+                            //   },
+                            // ),
+                          ],
+                        ),
+                        const Divider(height: 16),
+                        const SizedBox(height: 8),
+                        StreamBuilder(
+                          stream: AccountService.instance.getAccounts(),
+                          builder: (context, accounts) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                totalBalanceIndicator(
+                                    context, accounts, accountService),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      _getGreeting(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(
-                                            fontWeight: FontWeight.w300,
-                                          ),
+                                    IncomeOrExpenseCard(
+                                      type: TransactionType.I,
+                                      startDate: dateRangeService.startDate,
+                                      endDate: dateRangeService.endDate,
                                     ),
-                                    StreamBuilder(
-                                        stream: UserSettingService.instance
-                                            .getSetting(SettingKey.userName),
-                                        builder: (context, snapshot) {
-                                          if (userData != null &&
-                                              userData!['first_name'] != null) {
-                                            return Text(
-                                              utf8.decode(
-                                                  userData!['first_name']
-                                                      .toString()
-                                                      .runes
-                                                      .toList()),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall!
-                                                  .copyWith(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 18,
-                                                  ),
-                                            );
-                                          }
-
-                                          if (!snapshot.hasData) {
-                                            return const Skeleton(
-                                                width: 70, height: 12);
-                                          }
-
-                                          return Text(
-                                            snapshot.data!,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleSmall!
-                                                .copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 18,
-                                                ),
-                                          );
-                                        }),
+                                    IncomeOrExpenseCard(
+                                      type: TransactionType.E,
+                                      startDate: dateRangeService.startDate,
+                                      endDate: dateRangeService.endDate,
+                                    ),
                                   ],
-                                )
+                                ),
                               ],
-                            ),
-                          ),
+                            );
+                          },
                         ),
-                        // ActionChip(
-                        //   label: Text(dateRangeService.getText(context)),
-                        //   backgroundColor:
-                        //       AppColors.of(context).primaryContainer,
-                        //   shape: RoundedRectangleBorder(
-                        //     borderRadius: BorderRadius.circular(8.0),
-                        //     side: BorderSide(
-                        //       style: BorderStyle.none,
-                        //       color: AppColors.of(context).onPrimary,
-                        //     ),
-                        //   ),
-                        //   onPressed: () {
-                        //     openDatePeriodModal(
-                        //       context,
-                        //       DatePeriodModal(
-                        //         initialDatePeriod: dateRangeService.datePeriod,
-                        //       ),
-                        //     ).then((value) {
-                        //       if (value == null) return;
-
-                        //       setState(() {
-                        //         dateRangeService = dateRangeService.copyWith(
-                        //           periodModifier: 0,
-                        //           datePeriod: value,
-                        //         );
-                        //       });
-                        //     });
-                        //   },
-                        // ),
                       ],
                     ),
-                    const Divider(height: 16),
-                    const SizedBox(height: 8),
-                    StreamBuilder(
-                      stream: AccountService.instance.getAccounts(),
-                      builder: (context, accounts) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            totalBalanceIndicator(
-                                context, accounts, accountService),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                IncomeOrExpenseCard(
-                                  type: TransactionType.I,
-                                  startDate: dateRangeService.startDate,
-                                  endDate: dateRangeService.endDate,
-                                ),
-                                IncomeOrExpenseCard(
-                                  type: TransactionType.E,
-                                  startDate: dateRangeService.startDate,
-                                  endDate: dateRangeService.endDate,
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
+                  ),
+                ),
+              ),
+
+              _HorizontalScrollableAccountList(
+                dateRangeService: dateRangeService,
+              ),
+
+              // Move the TransactionListComponent here
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+                child: CardWithHeader(
+                  title: t.home.last_transactions,
+                  onHeaderButtonClick: () {
+                    RouteUtils.pushRoute(context, TransactionsPage());
+                  },
+                  body: DashboardTransactionList(
+                    child: TransactionListComponent(
+                      heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
+                      filters: TransactionFilters(
+                        status: TransactionStatus.notIn({
+                          TransactionStatus.pending,
+                          TransactionStatus.voided,
+                          TransactionStatus.notconsidered
+                        }),
+                      ),
+                      limit: 5,
+                      showGroupDivider: false,
+                      prevPage: DashboardPage(),
+                      onEmptyList: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          t.transaction.list.empty,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
+                  ),
+                ),
+              ),
+
+              // ------------- STATS GENERAL CARDS --------------
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+                child: ResponsiveRowColumn.withSymetricSpacing(
+                  direction: BreakPoint.of(context).isLargerThan(BreakpointID.md)
+                      ? Axis.horizontal
+                      : Axis.vertical,
+                  rowCrossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 16,
+                  children: [
+                    ResponsiveRowColumnItem(
+                      rowFit: FlexFit.tight,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CardWithHeader(
+                            title: t.financial_health.display,
+                            onHeaderButtonClick: () => RouteUtils.pushRoute(
+                                context,
+                                StatsPage(
+                                    dateRangeService: dateRangeService,
+                                    initialIndex: 0)),
+                            bodyPadding: const EdgeInsets.all(16),
+                            body: StreamBuilder(
+                              stream: FinanceHealthService().getHealthyValue(
+                                filters: TransactionFilters(
+                                  minDate: dateRangeService.startDate,
+                                  maxDate: dateRangeService.endDate,
+                                ),
+                              ),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const LinearProgressIndicator();
+                                }
+
+                                final financeHealthData = snapshot.data!;
+
+                                return FinanceHealthMainInfo(
+                                    financeHealthData: financeHealthData);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          CardWithHeader(
+                              title: t.stats.by_categories,
+                              body: ChartByCategories(
+                                  datePeriodState: dateRangeService),
+                              onHeaderButtonClick: () {
+                                RouteUtils.pushRoute(
+                                  context,
+                                  StatsPage(
+                                      dateRangeService: dateRangeService,
+                                      initialIndex: 1),
+                                );
+                              }),
+                        ],
+                      ),
+                    ),
+                    ResponsiveRowColumnItem(
+                      rowFit: FlexFit.tight,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CardWithHeader(
+                              title: t.stats.balance_evolution,
+                              body: FundEvolutionLineChart(
+                                dateRange: dateRangeService,
+                              ),
+                              onHeaderButtonClick: () {
+                                RouteUtils.pushRoute(
+                                  context,
+                                  StatsPage(
+                                      dateRangeService: dateRangeService,
+                                      initialIndex: 2),
+                                );
+                              }),
+                          const SizedBox(height: 16),
+                          CardWithHeader(
+                              title: t.stats.cash_flow,
+                              body: Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 16, left: 16, right: 16),
+                                child: BalanceChartSmall(
+                                    dateRangeService: dateRangeService),
+                              ),
+                              onHeaderButtonClick: () {
+                                RouteUtils.pushRoute(
+                                  context,
+                                  StatsPage(
+                                      dateRangeService: dateRangeService,
+                                      initialIndex: 3),
+                                );
+                              }),
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
-            ),
+            ]),
           ),
-
-          _HorizontalScrollableAccountList(
-            dateRangeService: dateRangeService,
-          ),
-
-          // Move the TransactionListComponent here
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
-            child: CardWithHeader(
-              title: t.home.last_transactions,
-              onHeaderButtonClick: () {
-                RouteUtils.pushRoute(context, TransactionsPage());
-              },
-              body: DashboardTransactionList(
-                child: TransactionListComponent(
-                  heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
-                  filters: TransactionFilters(
-                    status: TransactionStatus.notIn({
-                      TransactionStatus.pending,
-                      TransactionStatus.voided,
-                      TransactionStatus.notconsidered
-                    }),
-                  ),
-                  limit: 5,
-                  showGroupDivider: false,
-                  prevPage: DashboardPage(),
-                  onEmptyList: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      t.transaction.list.empty,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // ------------- STATS GENERAL CARDS --------------
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
-            child: ResponsiveRowColumn.withSymetricSpacing(
-              direction: BreakPoint.of(context).isLargerThan(BreakpointID.md)
-                  ? Axis.horizontal
-                  : Axis.vertical,
-              rowCrossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 16,
-              children: [
-                ResponsiveRowColumnItem(
-                  rowFit: FlexFit.tight,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CardWithHeader(
-                        title: t.financial_health.display,
-                        onHeaderButtonClick: () => RouteUtils.pushRoute(
-                            context,
-                            StatsPage(
-                                dateRangeService: dateRangeService,
-                                initialIndex: 0)),
-                        bodyPadding: const EdgeInsets.all(16),
-                        body: StreamBuilder(
-                          stream: FinanceHealthService().getHealthyValue(
-                            filters: TransactionFilters(
-                              minDate: dateRangeService.startDate,
-                              maxDate: dateRangeService.endDate,
-                            ),
-                          ),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const LinearProgressIndicator();
-                            }
-
-                            final financeHealthData = snapshot.data!;
-
-                            return FinanceHealthMainInfo(
-                                financeHealthData: financeHealthData);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      CardWithHeader(
-                          title: t.stats.by_categories,
-                          body: ChartByCategories(
-                              datePeriodState: dateRangeService),
-                          onHeaderButtonClick: () {
-                            RouteUtils.pushRoute(
-                              context,
-                              StatsPage(
-                                  dateRangeService: dateRangeService,
-                                  initialIndex: 1),
-                            );
-                          }),
-                    ],
-                  ),
-                ),
-                ResponsiveRowColumnItem(
-                  rowFit: FlexFit.tight,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CardWithHeader(
-                          title: t.stats.balance_evolution,
-                          body: FundEvolutionLineChart(
-                            dateRange: dateRangeService,
-                          ),
-                          onHeaderButtonClick: () {
-                            RouteUtils.pushRoute(
-                              context,
-                              StatsPage(
-                                  dateRangeService: dateRangeService,
-                                  initialIndex: 2),
-                            );
-                          }),
-                      const SizedBox(height: 16),
-                      CardWithHeader(
-                          title: t.stats.cash_flow,
-                          body: Padding(
-                            padding: const EdgeInsets.only(
-                                top: 16, left: 16, right: 16),
-                            child: BalanceChartSmall(
-                                dateRangeService: dateRangeService),
-                          ),
-                          onHeaderButtonClick: () {
-                            RouteUtils.pushRoute(
-                              context,
-                              StatsPage(
-                                  dateRangeService: dateRangeService,
-                                  initialIndex: 3),
-                            );
-                          }),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        ])));
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
   }
 
   Widget totalBalanceIndicator(
@@ -834,3 +865,4 @@ class DashboardTransactionList extends StatelessWidget {
     );
   }
 }
+

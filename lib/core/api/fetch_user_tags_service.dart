@@ -10,7 +10,7 @@ import 'package:parsa/core/api/serializers/tags_serializer.dart';
 import 'package:parsa/main.dart';
 
 Future<void> fetchUserTags(BuildContext context) async {
-  final auth0 = Auth0Provider.of(context)!.auth0;
+  final auth0 = Auth0Provider.instance.auth0;
   final credentials = await auth0.credentialsManager.credentials();
 
   // URL for fetching user tags

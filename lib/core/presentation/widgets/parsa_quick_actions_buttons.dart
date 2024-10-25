@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/details/account_details_actions.dart';
 import 'package:parsa/core/models/account/account.dart';
-import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/core/utils/list_tile_action_item.dart';
 
 class ParsaQuickActionsButtons extends StatelessWidget {
   const ParsaQuickActionsButtons({

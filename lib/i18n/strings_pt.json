@@ -1,4 +1,8 @@
 {
+  "CONNECTIONS": {
+    "success": "Sincronização concluída com sucesso. Vamos analisar seus dados. Em um minuto, tente atualizar a tela para ver seus dados atualizados.",
+    "error": "Ocorreu um erro ao sincronizar seus dados. Por favor, tente novamente mais tarde."
+  },
   "GENERAL": {
     "cancel": "Cancelar",
     "or": "ou",
@@ -750,6 +754,7 @@
   "AUTH": {
     "login_button": "Fazer Login no Parsa",
     "login_error": "Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.",
+    "biometric_failed": "Autenticação biométrica falhou. Por favor, faça o login novamente.",
     "app_name": "Parsa"
   }
 }

@@ -1,17 +1,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
 class Auth0Service extends StatelessWidget {
-  final Auth0 auth0;
+  final Auth0Provider auth0Provider;
 
-  const Auth0Service({super.key, required this.auth0});
+  const Auth0Service({super.key, required this.auth0Provider});
 
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);
@@ -67,10 +67,7 @@ class Auth0Service extends StatelessWidget {
                         onPressed: () async {
                           print('Login attempt started');
                           try {
-                            final result = await auth0.webAuthentication().login(
-                                  audience: 'https://api.parsa.com.br/api',
-                                );
-                            await auth0.credentialsManager.storeCredentials(result);
+                            await auth0Provider.login();
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/all_accounts_page.dart';
 import 'package:parsa/app/budgets/budgets_page.dart';
-import 'package:parsa/app/categories/categories_list_page.dart';
-import 'package:parsa/app/currencies/currency_manager.dart';
+
 import 'package:parsa/app/settings/about_page.dart';
 import 'package:parsa/app/settings/appearance_settings_page.dart';
 import 'package:parsa/app/settings/backup_settings_page.dart';
-import 'package:parsa/app/settings/help_us_page.dart';
+
 import 'package:parsa/app/settings/widgets/setting_card_item.dart';
 import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/tags/tag_list.page.dart';
@@ -16,6 +15,7 @@ import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -27,7 +27,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final auth0 = Auth0Provider.of(context)!.auth0;
+    final auth0 = Auth0Provider.instance.auth0;
     final t = Translations.of(context);
 
     return Scaffold(

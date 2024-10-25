@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/main.dart';
+import 'package:http/http.dart' as http;
 
 class AuthMethods {
+
   // Fetch user profile data
   static Future<void> fetchUserProfile(Auth0 auth0) async {
     try {
@@ -32,6 +35,25 @@ class AuthMethods {
     try {
       print('Logout attempt started');
 
+      final auth0Provider = Auth0Provider.instance;
+
+
+  final accessToken = auth0Provider.credentials!.accessToken;
+
+  final response = await http.post(
+    Uri.parse('$apiEndpoint/users/api_logout/'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+
+      if (response.statusCode == 200) {
+        print('Logout successful');
+      } else {
+        print('Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
+      }
+
       // Perform logout
       await auth0.webAuthentication().logout(
             useHTTPS: true, // Set to true if you want to use HTTPS
@@ -46,7 +68,7 @@ class AuthMethods {
         context,
         MaterialPageRoute(
             builder: (context) => Auth0Service(
-                auth0: auth0)), // Replace with your login page widget
+                auth0Provider: Auth0Provider.instance)), // Replace with your login page widget
         (Route<dynamic> route) => false,
       );
       print('User logged out and navigated to LoginPage');
@@ -130,6 +152,6 @@ class AuthMethods {
 
   // Helper to get Auth0 instance from context
   static Auth0 auth0(BuildContext context) {
-    return Auth0Provider.of(context)!.auth0;
+    return Auth0Provider.instance.auth0;
   }
 }
