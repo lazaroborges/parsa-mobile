@@ -5,6 +5,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/i18n/translations.g.dart';
 
 class BiometricsService {
   final LocalAuthentication _localAuth = LocalAuthentication();
@@ -13,9 +14,11 @@ class BiometricsService {
     bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
     bool isAuthenticated = false;
 
+    final t = Translations.of(context);
+
     try {
       isAuthenticated = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to continue',
+        localizedReason: t.auth.login_reason,
         options: const AuthenticationOptions(
           biometricOnly: false, // Allows device passcode as fallback
           stickyAuth: true,

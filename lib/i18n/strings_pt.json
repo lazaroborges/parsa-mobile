@@ -758,6 +758,7 @@
   },
   "AUTH": {
     "login_button": "Fazer Login no Parsa",
+    "login_reason": "Por favor, confirme sua biometria para continuar. ",
     "login_error": "Erro ao fazer login. Por favor, verifique suas credenciais e conexão de rede.",
     "biometric_failed": "Autenticação biométrica falhou. Por favor, faça o login novamente.",
     "app_name": "Parsa"

@@ -497,10 +497,13 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(width: 4),
               Tooltip(
                 message: t.home.total_balance_tooltip,
-                child: Icon(
-                  Icons.info_outline,
-                  size: 14,
-                  color: Theme.of(context).textTheme.labelSmall!.color,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),  // Add padding to increase tap area
+                  child: Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: Theme.of(context).textTheme.labelSmall!.color,
+                  ),
                 ),
               ),
             ],
