@@ -95,10 +95,10 @@ class _StatsPageState extends State<StatsPage> {
           bottom: TabBar(
               tabAlignment: TabAlignment.center,
               tabs: [
-                Tab(text: t.financial_health.display),
                 Tab(text: t.stats.distribution),
                 Tab(text: t.stats.balance),
                 Tab(text: t.stats.cash_flow),
+                Tab(text: t.financial_health.display),
               ],
               isScrollable: true),
         ),
@@ -129,15 +129,6 @@ class _StatsPageState extends State<StatsPage> {
             ],
             Expanded(
               child: TabBarView(children: [
-                buildContainerWithPadding(
-                  [
-                    FinanceHealthDetails(
-                      filters: filters.copyWith(
-                          minDate: dateRangeService.startDate,
-                          maxDate: dateRangeService.endDate),
-                    )
-                  ],
-                ),
                 buildContainerWithPadding([
                   CardWithHeader(
                     title: t.stats.by_categories,
@@ -193,6 +184,15 @@ class _StatsPageState extends State<StatsPage> {
                     ),
                   )
                 ]),
+                buildContainerWithPadding(
+                  [
+                    FinanceHealthDetails(
+                      filters: filters.copyWith(
+                          minDate: dateRangeService.startDate,
+                          maxDate: dateRangeService.endDate),
+                    )
+                  ],
+                ),
               ]),
             ),
           ],

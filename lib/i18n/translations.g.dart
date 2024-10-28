@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 584
+/// Strings: 587
 ///
-/// Built on 2024-10-24 at 18:10 UTC
+/// Built on 2024-10-28 at 19:07 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -266,6 +266,7 @@ class _TranslationsHomePt {
 	String get hello_day => 'Bom dia,';
 	String get hello_night => 'Boa noite,';
 	String get total_balance => 'Saldo total';
+	String get total_balance_tooltip => 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
 	String get my_accounts => 'Minhas contas';
 	String get active_accounts => 'Contas ativas';
 	String get no_accounts => 'Nenhuma conta criada ainda';
@@ -936,6 +937,10 @@ class _TranslationsTransactionTypesPt {
 	String expense({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 		one: 'Saídas',
 		other: 'Saídas',
+	);
+	String outflow({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
+		one: 'Gasto',
+		other: 'Gastos',
 	);
 	String transfer({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 		one: 'Transferência',
@@ -1659,6 +1664,7 @@ extension on Translations {
 			case 'home.hello_day': return 'Bom dia,';
 			case 'home.hello_night': return 'Boa noite,';
 			case 'home.total_balance': return 'Saldo total';
+			case 'home.total_balance_tooltip': return 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
 			case 'home.my_accounts': return 'Minhas contas';
 			case 'home.active_accounts': return 'Contas ativas';
 			case 'home.no_accounts': return 'Nenhuma conta criada ainda';
@@ -1882,6 +1888,10 @@ extension on Translations {
 			case 'transaction.types.expense': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 				one: 'Saídas',
 				other: 'Saídas',
+			);
+			case 'transaction.types.outflow': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
+				one: 'Gasto',
+				other: 'Gastos',
 			);
 			case 'transaction.types.transfer': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 				one: 'Transferência',

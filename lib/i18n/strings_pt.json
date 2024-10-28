@@ -161,6 +161,7 @@
     "hello-day": "Bom dia,",
     "hello-night": "Boa noite,",
     "total-balance": "Saldo total",
+    "total-balance-tooltip": "Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.",
     "my-accounts": "Minhas contas",
     "active-accounts": "Contas ativas",
     "no-accounts": "Nenhuma conta criada ainda",
@@ -380,6 +381,10 @@
       "expense": {
         "one": "Saídas",
         "other": "Saídas"
+      },
+      "outflow": {
+        "one": "Gasto",
+        "other": "Gastos"
       },
       "transfer": {
         "one": "Transferência",

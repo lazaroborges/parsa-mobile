@@ -488,9 +488,22 @@ class _DashboardPageState extends State<DashboardPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            t.home.total_balance,
-            style: Theme.of(context).textTheme.labelSmall!,
+          Row(
+            children: [
+              Text(
+                t.home.total_balance,
+                style: Theme.of(context).textTheme.labelSmall!,
+              ),
+              const SizedBox(width: 4),
+              Tooltip(
+                message: t.home.total_balance_tooltip,
+                child: Icon(
+                  Icons.info_outline,
+                  size: 14,
+                  color: Theme.of(context).textTheme.labelSmall!.color,
+                ),
+              ),
+            ],
           ),
           if (!accounts.hasData) ...[
             const Skeleton(width: 70, height: 40),
