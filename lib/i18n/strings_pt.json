@@ -329,7 +329,7 @@
         "negative-transfer": "O valor monetário de uma transferência não pode ser negativo",
         "transfer-between-same-accounts": "A conta de origem e a conta de destino não podem ser a mesma"
       },
-      "title": "Descrição da Transação",
+      "title": "Descrição",
       "title.short": "Descrição",
       "value": "Valor da transação",
       "tap-to-see-more": "Toque para ver mais detalhes",
@@ -354,9 +354,10 @@
         "one": "Status",
         "other": "Status"
       },
-      "display_long": "Status da transação",
+      "display_long": "Status da transação para Insights",
       "tr_status": "Transação {{ status }}",
       "none": "Sem status",
+      "insights": "Insights",
       "none.descr": "Transação sem status específico",
       "reconciled": "Considerada",
       "reconciled.descr": "Esta transação conta para seus insights e saldos.",

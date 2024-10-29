@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 588
+/// Strings: 589
 ///
-/// Built on 2024-10-28 at 20:52 UTC
+/// Built on 2024-10-29 at 20:30 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -858,7 +858,7 @@ class _TranslationsTransactionFormPt {
 
 	// Translations
 	late final _TranslationsTransactionFormValidatorsPt validators = _TranslationsTransactionFormValidatorsPt._(_root);
-	String get title => 'Descrição da Transação';
+	String get title => 'Descrição';
 	String get title_short => 'Descrição';
 	String get value => 'Valor da transação';
 	String get tap_to_see_more => 'Toque para ver mais detalhes';
@@ -904,9 +904,10 @@ class _TranslationsTransactionStatusPt {
 		one: 'Status',
 		other: 'Status',
 	);
-	String get display_long => 'Status da transação';
+	String get display_long => 'Status da transação para Insights';
 	String tr_status({required Object status}) => 'Transação ${status}';
 	String get none => 'Sem status';
+	String get insights => 'Insights';
 	String get none_descr => 'Transação sem status específico';
 	String get reconciled => 'Considerada';
 	String get reconciled_descr => 'Esta transação conta para seus insights e saldos.';
@@ -1845,7 +1846,7 @@ extension on Translations {
 			case 'transaction.form.validators.date_after_account_creation': return 'Você não pode criar uma transação cuja data seja anterior à data de criação da conta a que pertence';
 			case 'transaction.form.validators.negative_transfer': return 'O valor monetário de uma transferência não pode ser negativo';
 			case 'transaction.form.validators.transfer_between_same_accounts': return 'A conta de origem e a conta de destino não podem ser a mesma';
-			case 'transaction.form.title': return 'Descrição da Transação';
+			case 'transaction.form.title': return 'Descrição';
 			case 'transaction.form.title_short': return 'Descrição';
 			case 'transaction.form.value': return 'Valor da transação';
 			case 'transaction.form.tap_to_see_more': return 'Toque para ver mais detalhes';
@@ -1864,9 +1865,10 @@ extension on Translations {
 				one: 'Status',
 				other: 'Status',
 			);
-			case 'transaction.status.display_long': return 'Status da transação';
+			case 'transaction.status.display_long': return 'Status da transação para Insights';
 			case 'transaction.status.tr_status': return ({required Object status}) => 'Transação ${status}';
 			case 'transaction.status.none': return 'Sem status';
+			case 'transaction.status.insights': return 'Insights';
 			case 'transaction.status.none_descr': return 'Transação sem status específico';
 			case 'transaction.status.reconciled': return 'Considerada';
 			case 'transaction.status.reconciled_descr': return 'Esta transação conta para seus insights e saldos.';

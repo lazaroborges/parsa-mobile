@@ -677,28 +677,25 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (transaction.status != null ||
-                                transaction.recurrentInfo.isRecurrent)
-                              statusDisplayer(transaction),
                             if (transaction.isReversed)
                               translucentCard(
-                                  color: AppColors.of(context).brand,
-                                  body: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Text(
-                                        transaction.type == TransactionType.E
-                                            ? t.transaction.reversed
-                                                .description_for_expenses
-                                            : t.transaction.reversed
-                                                .description_for_incomes),
+                                color: AppColors.of(context).brand,
+                                body: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    transaction.type == TransactionType.E
+                                        ? t.transaction.reversed.description_for_expenses
+                                        : t.transaction.reversed.description_for_incomes,
                                   ),
-                                  icon: MoneyTransaction.reversedIcon,
-                                  title: t.transaction.reversed.title),
+                                ),
+                                icon: MoneyTransaction.reversedIcon,
+                                title: t.transaction.reversed.title,
+                              ),
                             CardWithHeader(
                               title: t.transaction.title,
                               body: LabelValueInfoTable(
@@ -721,6 +718,54 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                     ),
                                     label: t.transaction.form.title,
+                                  ),
+                                  LabelValueInfoItem(
+                                    value: GestureDetector(
+                                      onTap: () {
+                                        showTransactioStatusModal(
+                                          context,
+                                          initialStatus: transaction.status,
+                                        ).then((modalRes) {
+                                          if (modalRes != null && modalRes.result != null) {
+                                            TransactionService.instance
+                                                .insertOrUpdateTransaction(
+                                              transaction.copyWith(
+                                                status: drift.Value(modalRes.result),
+                                              ),
+                                            )
+                                                .then((value) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(t.transaction.edit_success)),
+                                              );
+                                              setState(() {}); // Refresh the UI
+                                            }).catchError((error) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(error.toString())),
+                                              );
+                                            });
+                                          }
+                                        });
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            transaction.status?.icon ?? Icons.do_not_disturb_on_rounded,
+                                            size: 20,
+                                            color: transaction.status?.color ?? Colors.grey,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            transaction.status?.displayName(context) ?? t.transaction.status.none,
+                                            style: TextStyle(
+                                              color: transaction.status?.color ?? Colors.grey,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    label: t.transaction.status.insights,
                                   ),
                                   LabelValueInfoItem(
                                     value: buildInfoTileWithIconAndColor(
@@ -868,118 +913,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                 ),
                               ),
                             ),
-                            if (transaction.notes != null) ...[
-                              const SizedBox(height: 16),
-                              // CardWithHeader(
-                              //   title: t.transaction.form.description,
-                              //   bodyPadding: const EdgeInsets.all(16),
-                              //   body: Text(transaction.notes!),
-                              // )
-                            ],
-                            // StreamBuilder(
-                            //     stream: CurrencyService.instance
-                            //         .getUserPreferredCurrency(),
-                            //     builder: (context, snapshot) {
-                            //       if (!snapshot.hasData ||
-                            //           snapshot.data!.code ==
-                            //               transaction.account.currencyId) {
-                            //         return Container();
-                            //       }
-
-                            // final userCurrency = snapshot.data!;
-
-                            // // return Container(
-                            // //   margin: const EdgeInsets.only(top: 16),
-                            // //   child: CardWithHeader(
-                            // //     title: t.transaction.form
-                            // //         .exchange_to_preferred_title(
-                            // //             currency: userCurrency.code),
-                            // //     body: Column(
-                            // //       children: [
-                            // //         StreamBuilder(
-                            // //             stream: ExchangeRateService
-                            // //                 .instance
-                            // //                 .getLastExchangeRateOf(
-                            // //                   currencyCode: transaction
-                            // //                       .account.currency.code,
-                            // //                   date: DateTime.now(),
-                            // //                 )
-                            // //                 .map((event) =>
-                            // //                     event?.exchangeRate ?? 1),
-                            // //             initialData: 1,
-                            // //             builder: (context, snapshot) {
-                            // //               return buildInfoListTile(
-                            // //                 title: t.general.today,
-                            // //                 subtitle: Row(
-                            // //                   children: [
-                            // //                     const Icon(
-                            // //                       Icons
-                            // //                           .currency_exchange_rounded,
-                            // //                       size: 12,
-                            // //                     ),
-                            // //                     const SizedBox(width: 4),
-                            // //                     Text(
-                            // //                         '1 ${transaction.account.currency.code} = ${snapshot.data} ${userCurrency.code}')
-                            // //                   ],
-                            // //                 ),
-                            // //                 trailing: CurrencyDisplayer(
-                            // //                   currency: userCurrency,
-                            // //                   integerStyle:
-                            // //                       const TextStyle(
-                            // //                     fontWeight:
-                            // //                         FontWeight.w700,
-                            // //                   ),
-                            // //                   amountToConvert:
-                            // //                       snapshot.data! *
-                            // //                           transaction.value,
-                            // //                 ),
-                            // //               );
-                            // //             }),
-                            // //         StreamBuilder(
-                            // //             stream: ExchangeRateService
-                            // //                 .instance
-                            // //                 .getLastExchangeRateOf(
-                            // //                   currencyCode: transaction
-                            // //                       .account.currency.code,
-                            // //                   date: transaction.date,
-                            // //                 )
-                            // //                 .map((event) =>
-                            // //                     event?.exchangeRate ?? 1),
-                            // //             initialData: 1,
-                            // //             builder: (context, snapshot) {
-                            // //               return buildInfoListTile(
-                            // //                 title: t.transaction.form
-                            // //                     .exchange_to_preferred_in_date,
-                            // //                 subtitle: Row(
-                            // //                   children: [
-                            // //                     const Icon(
-                            // //                       Icons
-                            // //                           .currency_exchange_rounded,
-                            // //                       size: 12,
-                            // //                     ),
-                            // //                     const SizedBox(width: 4),
-                            // //                     Text(
-                            // //                         '1 ${transaction.account.currency.code} = ${snapshot.data} ${userCurrency.code}')
-                            // //                   ],
-                            // //                 ),
-                            // //                 trailing: CurrencyDisplayer(
-                            // //                   currency: userCurrency,
-                            // //                   integerStyle:
-                            // //                       const TextStyle(
-                            // //                     fontWeight:
-                            // //                         FontWeight.w700,
-                            // //                   ),
-                            // //                   amountToConvert:
-                            // //                       snapshot.data! *
-                            // //                           transaction.value,
-                            // //                 ),
-                            // //               );
-                            // //             }),
-                            // //       ],
-                            // //     ),
-                            // //   ),
-                            // );
-                            // }),
+                            if (transaction.status != null ||
+                                transaction.recurrentInfo.isRecurrent)
+                              statusDisplayer(transaction),
                             const SizedBox(height: 16),
                             // Only show quick actions if isOpenFinance is false
                             if (!transaction.isOpenFinance) ...[
@@ -1070,15 +1006,15 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
 
     return Container(
       color: AppColors.of(context).surface,
-      padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 16),
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 0, bottom: 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 100),
@@ -1159,13 +1095,15 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
             ),
           ),
           const SizedBox(width: 24),
-          GestureDetector(
-            onTap: () => updateCategory(context, transaction),
-            child: Hero(
-              tag: heroTag ?? UniqueKey(),
-              child: transaction.getDisplayIcon(
-                context,
-                size: iconSize,
+          Center(
+            child: GestureDetector(
+              onTap: () => updateCategory(context, transaction),
+              child: Hero(
+                tag: heroTag ?? UniqueKey(),
+                child: transaction.getDisplayIcon(
+                  context,
+                  size: iconSize,
+                ),
               ),
             ),
           ),
