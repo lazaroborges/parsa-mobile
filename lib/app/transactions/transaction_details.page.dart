@@ -669,6 +669,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     transaction: transaction,
                     updateCategory: updateCategory,
                     updateTitle: updateTitle,
+                    context: context,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -1045,23 +1046,27 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     );
   }
 }
-
 class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
-  const _TransactionDetailHeader({
+  _TransactionDetailHeader({
     required this.transaction,
     required this.heroTag,
     required this.updateCategory,
     required this.updateTitle,
+    required this.context,
   });
 
   final MoneyTransaction transaction;
   final Object? heroTag;
   final Function(BuildContext, MoneyTransaction) updateCategory;
   final Function(BuildContext, MoneyTransaction) updateTitle;
+  final BuildContext context;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlap) {
+  Widget build(BuildContext buildContext, double shrinkOffset, bool overlap) {
     final shrinkPercent = shrinkOffset / maxExtent;
+
+    // Calculate the icon size based on shrinkPercent
+    final iconSize = 42 - shrinkPercent * 16;
 
     return Container(
       color: AppColors.of(context).surface,
@@ -1085,10 +1090,9 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                             : transaction.type == TransactionType.T
                                 ? null
                                 : transaction.type.color(context),
-                        decoration:
-                            transaction.status == TransactionStatus.voided
-                                ? TextDecoration.lineThrough
-                                : null,
+                        decoration: transaction.status == TransactionStatus.voided
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                   child: CurrencyDisplayer(
                     amountToConvert: transaction.value,
@@ -1096,12 +1100,10 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                   ),
                 ),
                 GestureDetector(
-                  // Wrap the title in a GestureDetector
                   onTap: () => updateTitle(context, transaction),
                   child: Text(
                     transaction.displayName(context),
                     softWrap: true,
-                    overflow: TextOverflow.fade,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -1111,8 +1113,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                 if (transaction.recurrentInfo.isNoRecurrent)
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
+                    transitionBuilder: (Widget child, Animation<double> animation) {
                       return SizeTransition(
                         sizeFactor: animation,
                         child: ScaleTransition(
@@ -1125,7 +1126,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                     child: shrinkPercent > 0.3
                         ? const SizedBox.shrink()
                         : Text(
-                            DateFormat("EEEE, d 'de' MMMM 'às' HH:mm", 'pt_BR')
+                            DateFormat("EEEE, d 'de' MMMM", 'pt_BR')
                                 .format(transaction.date.toLocal()),
                             style: TextStyle(
                               fontSize: 14,
@@ -1164,7 +1165,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
               tag: heroTag ?? UniqueKey(),
               child: transaction.getDisplayIcon(
                 context,
-                size: 42 - shrinkPercent * 16,
+                size: iconSize,
               ),
             ),
           ),
@@ -1174,12 +1175,100 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 120;
+  double get maxExtent => _calculateMaxExtent();
 
   @override
   double get minExtent => 90;
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      false;
+      true;
+
+  double _calculateMaxExtent() {
+    // Total horizontal padding and spacing
+    const horizontalPadding = 48.0; // Left and right padding (24 + 24)
+    const betweenSpacing = 24.0; // Spacing between text and icon
+    final iconSize = 42.0; // Maximum icon size
+
+    final totalWidth = MediaQuery.of(context).size.width;
+    final availableWidth = totalWidth - horizontalPadding - betweenSpacing - iconSize;
+
+    final amountFontSize = 34.0;
+    final amountTextStyle = Theme.of(context).textTheme.headlineMedium!.copyWith(
+          fontSize: amountFontSize,
+          fontWeight: FontWeight.w600,
+        );
+    final amountText = CurrencyDisplayer(
+      amountToConvert: transaction.value,
+      currency: transaction.account.currency,
+    );
+
+    final amountLineHeight = _measureTextHeight(
+      text: amountText.toString(),
+      style: amountTextStyle,
+      maxWidth: availableWidth,
+    );
+
+    final displayNameStyle = const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    );
+
+    final displayNameHeight = _measureTextHeight(
+      text: transaction.displayName(context),
+      style: displayNameStyle,
+      maxWidth: availableWidth,
+    );
+
+    double dateLineHeight;
+
+    if (transaction.recurrentInfo.isNoRecurrent) {
+      final dateStyle = TextStyle(
+        fontSize: 14,
+        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+      );
+      final dateText = DateFormat("EEEE, d 'de' MMMM 'às' HH:mm", 'pt_BR')
+          .format(transaction.date.toLocal());
+
+      dateLineHeight = _measureTextHeight(
+        text: dateText,
+        style: dateStyle,
+        maxWidth: availableWidth,
+      );
+    } else {
+      // If recurrent, we assume single line for the recurrence info
+      dateLineHeight = 16.0;
+    }
+
+    // Vertical padding
+    const verticalPadding = 32.0; // Top and bottom padding (16 + 16)
+
+    // Total spacing between lines (assuming default line spacing)
+    const lineSpacing = 4.0; // Adjust if there's spacing between texts
+
+    // Total height
+    final totalHeight = verticalPadding +
+        amountLineHeight +
+        displayNameHeight +
+        dateLineHeight +
+        lineSpacing * 2;
+
+    // Ensure the maxExtent is at least as big as minExtent
+    return totalHeight.clamp(minExtent, double.infinity);
+  }
+
+  double _measureTextHeight({
+    required String text,
+    required TextStyle style,
+    required double maxWidth,
+  }) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: null,
+      textAlign: TextAlign.left,
+      textDirection: Directionality.of(context),
+    )..layout(maxWidth: maxWidth);
+
+    return textPainter.height;
+  }
 }
