@@ -296,10 +296,10 @@ Widget build(BuildContext context) {
         ),
       ]);
     },
-    home: (auth0Provider.credentials != null
-        ? BiometricsCheckScreen()
-        : Auth0Service(auth0Provider: auth0Provider)),
-  );
+      home: (auth0Provider.credentials != null
+          ? TabsPage(key: tabsPageKey)
+          : Auth0Service(auth0Provider: auth0Provider)),
+    );
 }
 
   void _handleIncomingLink(String link) {
