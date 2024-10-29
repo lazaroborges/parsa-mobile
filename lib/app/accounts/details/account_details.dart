@@ -232,10 +232,10 @@ class _AccountDetailHeader extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlap) {
-    final shrinkPercent = shrinkOffset / maxExtent;
+    final shrinkPercent = (shrinkOffset / maxExtent).clamp(0.0, 1.0);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
         border: Border(
@@ -245,72 +245,97 @@ class _AccountDetailHeader extends SliverPersistentHeaderDelegate {
           ),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (account.isOpenFinance) ...[
-                Image.asset(
-                  'assets/icons/supported_selectable_icons/logos/open/logo.png',
-                  width: 105,
-                  height: 24,
-                ),
-                const SizedBox(height: 8),
-              ],
-              Text(account.name),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 100),
-                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                      fontSize: 32 - shrinkPercent * 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                child: CurrencyDisplayer(
-                  amountToConvert: account.balance,
-                  currency: account.currency,
-                ),
-              ),
-              StreamBuilder(
-                stream: ExchangeRateService.instance
-                    .calculateExchangeRateToPreferredCurrency(
-                  amount: account.balance,
-                  fromCurrency: account.currency.code,
-                ),
-                builder: (context, currencySnapshot) {
-                  if (currencySnapshot.connectionState ==
-                          ConnectionState.waiting ||
-                      currencySnapshot.data != 0 &&
-                          currencySnapshot.data! == account.balance ||
-                      account.balance == 0) {
-                    return Container();
-                  }
-
-                  return Row(
-                    children: [
-                      Text(
-                        String.fromCharCode(
-                            Icons.currency_exchange_rounded.codePoint),
-                        style: TextStyle(
-                          fontFamily:
-                              Icons.currency_exchange_rounded.fontFamily,
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (account.isOpenFinance) ...[
+                      AnimatedOpacity(
+                        opacity: 1.0 - shrinkPercent,
+                        duration: const Duration(milliseconds: 200),
+                        child: Image.asset(
+                          'assets/icons/supported_selectable_icons/logos/open/logo.png',
+                          width: 105,
+                          height: 24,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      CurrencyDisplayer(
-                        amountToConvert: currencySnapshot.data!,
-                      ),
+                      const SizedBox(height: 8),
                     ],
-                  );
-                },
-              )
-            ],
-          ),
-          Hero(
-            tag: accountIconHeroTag ?? UniqueKey(),
-            child: account.displayIcon(context, size: 48 - shrinkPercent * 20),
+                    Text(
+                      account.name,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 100),
+                      style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                            fontSize: 32 - shrinkPercent * 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                      child: CurrencyDisplayer(
+                        amountToConvert: account.balance,
+                        currency: account.currency,
+                      ),
+                    ),
+                    StreamBuilder(
+                      stream: ExchangeRateService.instance
+                          .calculateExchangeRateToPreferredCurrency(
+                        amount: account.balance,
+                        fromCurrency: account.currency.code,
+                      ),
+                      builder: (context, currencySnapshot) {
+                        if (currencySnapshot.connectionState ==
+                                ConnectionState.waiting ||
+                            (currencySnapshot.data != 0 &&
+                                currencySnapshot.data! == account.balance) ||
+                            account.balance == 0) {
+                          return Container();
+                        }
+
+                        return Row(
+                          children: [
+                            Text(
+                              String.fromCharCode(
+                                  Icons.currency_exchange_rounded.codePoint),
+                              style: TextStyle(
+                                fontFamily:
+                                    Icons.currency_exchange_rounded.fontFamily,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            CurrencyDisplayer(
+                              amountToConvert: currencySnapshot.data!,
+                            ),
+                          ],
+                        );
+                      },
+                    )
+                  ],
+                ),
+                Hero(
+                  tag: accountIconHeroTag ?? UniqueKey(),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 72 - shrinkPercent * 20,
+                    height: 72 - shrinkPercent * 20,
+                    child: Image.asset(
+                      'assets/png_icons/${account.iconId}.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -325,7 +350,7 @@ class _AccountDetailHeader extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      false;
+      true;
 }
 
 class ArchiveWarnDialog extends StatefulWidget {
