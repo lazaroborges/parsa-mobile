@@ -118,6 +118,8 @@ class _DashboardPageState extends State<DashboardPage> {
     final hideDrawerAndFloatingButton =
         BreakPoint.of(context).isLargerOrEqualTo(BreakpointID.md);
 
+        
+
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
         floatingActionButton:
@@ -298,10 +300,13 @@ class _DashboardPageState extends State<DashboardPage> {
                                       startDate: dateRangeService.startDate,
                                       endDate: dateRangeService.endDate,
                                     ),
-                                    IncomeOrExpenseCard(
-                                      type: TransactionType.E,
-                                      startDate: dateRangeService.startDate,
-                                      endDate: dateRangeService.endDate,
+                                    SizedBox(
+                                      width: 100,
+                                      child: IncomeOrExpenseCard(
+                                        type: TransactionType.E,
+                                        startDate: dateRangeService.startDate,
+                                        endDate: dateRangeService.endDate,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -522,17 +527,28 @@ class _DashboardPageState extends State<DashboardPage> {
                 if (snapshot.hasData) {
                   final balance = snapshot.data!;
                   final isNegative = balance < 0;
-                  return CurrencyDisplayer(
-                    amountToConvert: balance.abs(),
-                    integerStyle: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w600,
-                      color: isNegative
-                          ? Colors.red
-                          : Theme.of(context).textTheme.titleLarge!.color,
-                    ),
-                  );
-                }
+
+                  double screenWidth = MediaQuery.of(context).size.width;
+                  double widthMultiplier = 0.45;
+                  double maxFontSize = 32;
+
+                  return SizedBox(
+                    width: screenWidth * widthMultiplier,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                    child: CurrencyDisplayer(
+                      amountToConvert: balance.abs(),
+                      integerStyle: TextStyle(
+                        fontSize: maxFontSize, // Start with the maximum font size
+                        fontWeight: FontWeight.w600,
+                          color: isNegative
+                              ? Colors.red
+                              : Theme.of(context).textTheme.titleLarge!.color,
+                        ),
+                  ),
+                  ),
+                );
+              }
 
                 return const Skeleton(width: 90, height: 40);
               },

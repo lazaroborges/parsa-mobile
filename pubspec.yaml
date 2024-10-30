@@ -62,6 +62,7 @@ dependencies:
   file_picker: ^8.0.3
   share_plus: ^9.0.0
   url_launcher: ^6.3.0
+  auto_size_text: ^3.0.0
   uuid: ^4.4.2
   csv: ^6.0.0
   dotted_border: ^2.0.0+3
