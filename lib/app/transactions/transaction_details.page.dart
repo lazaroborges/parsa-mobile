@@ -913,9 +913,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                 ),
                               ),
                             ),
-                            if (transaction.status != null ||
-                                transaction.recurrentInfo.isRecurrent)
-                              statusDisplayer(transaction),
+                            // if (transaction.status != null ||
+                            //     transaction.recurrentInfo.isRecurrent)
+                            //   statusDisplayer(transaction),
                             const SizedBox(height: 16),
                             // Only show quick actions if isOpenFinance is false
                             if (!transaction.isOpenFinance) ...[

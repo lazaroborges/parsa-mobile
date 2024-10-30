@@ -19,6 +19,6 @@ class Currency extends CurrencyInDB {
       : this(
           code: currencyInDB.code,
           name: currencyInDB.name,
-          symbol: currencyInDB.symbol,
+          symbol: 'R\$',
         );
 }

@@ -498,7 +498,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Tooltip(
                 message: t.home.total_balance_tooltip,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),  // Add padding to increase tap area
+                  padding: const EdgeInsets.all(8.0),  // Increased tap area
                   child: Icon(
                     Icons.info_outline,
                     size: 14,
@@ -520,11 +520,16 @@ class _DashboardPageState extends State<DashboardPage> {
                       .toList()), // Convert to List<String>
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
+                  final balance = snapshot.data!;
+                  final isNegative = balance < 0;
                   return CurrencyDisplayer(
-                    amountToConvert: snapshot.data!,
-                    integerStyle: const TextStyle(
+                    amountToConvert: balance.abs(),
+                    integerStyle: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w600,
+                      color: isNegative
+                          ? Colors.red
+                          : Theme.of(context).textTheme.titleLarge!.color,
                     ),
                   );
                 }
@@ -544,13 +549,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   if (!snapshot.hasData) {
                     return const Skeleton(width: 52, height: 22);
                   }
-                      return const SizedBox(width: 52, height: 22);
-
-                  // return TrendingValue(
-                  //   percentage: snapshot.data!,
-                  //   fontWeight: FontWeight.bold,
-                  //   fontSize: 16,
-                  // );
+                  return const SizedBox(width: 52, height: 22);
                 },
               ),
           ]
