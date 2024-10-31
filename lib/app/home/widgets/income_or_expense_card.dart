@@ -63,12 +63,12 @@ class IncomeOrExpenseCard extends StatelessWidget {
                       width: 100,
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
                         child: CurrencyDisplayer(
                           amountToConvert: snapshot.data!.abs(),
                           integerStyle: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-
                           ),
                         ),
                       ),

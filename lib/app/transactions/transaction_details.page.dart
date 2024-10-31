@@ -782,6 +782,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                           .lighten(0.5),
                                       data: transaction.account.name,
                                       isAccount: true,
+                                      
                                       iconId: transaction.account.iconId,
                                     ),
                                     label: transaction.isTransfer
@@ -844,7 +845,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         style: TextStyle(
                                           color: transaction.notes?.isEmpty == true ? Colors.grey : null,
                                           fontStyle: transaction.notes?.isEmpty == true ? FontStyle.italic : null,
-                                          decoration: transaction.notes?.isEmpty == true ? TextDecoration.underline : null,
+                                          
                                           decorationStyle: TextDecorationStyle.dotted,
                                         ),
                                       ),
@@ -927,7 +928,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                                 color: tag.colorData),
                                           );
                                         })
-                                      : [Text(t.tags.no_tags)],
+                                      : [Text(t.tags.no_tags, style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic))],
                                 ),
                               ),
                             ),
@@ -1000,13 +1001,17 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
           ),
         ],
         const SizedBox(width: 8),
-        Text(
-          data,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: color,
+        Flexible(
+          child: Text(
+            data,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            overflow: TextOverflow.visible,
+            softWrap: true,
           ),
-        )
+        ),
       ],
     );
   }

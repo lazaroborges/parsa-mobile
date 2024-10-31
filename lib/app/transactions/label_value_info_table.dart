@@ -46,6 +46,8 @@ class LabelValueInfoTable extends StatelessWidget {
                     child: Text(
                       e.label,
                       style: const TextStyle(fontWeight: FontWeight.w300),
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
                     ),
                   ),
                 ),
