@@ -776,6 +776,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                           .getComputedColor(context)
                                           .lighten(0.5),
                                       data: transaction.account.name,
+                                      isAccount: true,
+                                      iconId: transaction.account.iconId,
                                     ),
                                     label: transaction.isTransfer
                                         ? t.transfer.form.from
@@ -792,6 +794,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                                   transaction.category!.color)
                                               .lighten(0.5),
                                           data: transaction.category!.name,
+                                          isAccount: false,
+                                          iconId: transaction.category!.iconId,
                                         ),
                                       ),
                                       label: t.general.category,
@@ -805,6 +809,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                           color: AppColors.of(context).primary,
                                           data: transaction
                                               .receivingAccount!.name,
+                                          isAccount: false,
+                                          iconId: transaction.receivingAccount!.iconId,
                                         ),
                                         label: t.transfer.form.to),
                                   LabelValueInfoItem(
@@ -968,13 +974,24 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     required SupportedIcon icon,
     required String data,
     required Color color,
+    bool isAccount = false,
+    String? iconId,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        icon.display(
-          color: color,
-        ),
+        if (isAccount) ...[
+          Image.asset(
+            'assets/png_icons/${iconId ?? "1"}.png',
+            width: 24,
+            height: 24,
+            fit: BoxFit.contain,
+          ),
+        ] else ...[
+          icon.display(
+            color: color,
+          ),
+        ],
         const SizedBox(width: 8),
         Text(
           data,
