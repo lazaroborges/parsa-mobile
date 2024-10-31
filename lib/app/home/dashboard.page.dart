@@ -494,6 +494,7 @@ class _DashboardPageState extends State<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 t.home.total_balance,
@@ -503,7 +504,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Tooltip(
                 message: t.home.total_balance_tooltip,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),  // Increased tap area
+                  padding: const EdgeInsets.all(8.0),
                   child: Icon(
                     Icons.info_outline,
                     size: 14,
@@ -520,9 +521,7 @@ class _DashboardPageState extends State<DashboardPage> {
           if (accounts.hasData) ...[
             StreamBuilder(
               stream: accountService.getAccountsMoneyWidget(
-                  accountIds: accounts.data!
-                      .map((e) => e.id)
-                      .toList()), // Convert to List<String>
+                  accountIds: accounts.data!.map((e) => e.id).toList()),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   final balance = snapshot.data!;
@@ -530,26 +529,28 @@ class _DashboardPageState extends State<DashboardPage> {
 
                   double screenWidth = MediaQuery.of(context).size.width;
                   double widthMultiplier = 0.45;
-                  double maxFontSize = 32;
 
-                  return SizedBox(
-                    width: screenWidth * widthMultiplier,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                    child: CurrencyDisplayer(
-                      amountToConvert: balance.abs(),
-                      integerStyle: TextStyle(
-                        fontSize: maxFontSize, // Start with the maximum font size
-                        fontWeight: FontWeight.w600,
-                          color: isNegative
-                              ? Colors.red
-                              : Theme.of(context).textTheme.titleLarge!.color,
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: SizedBox(
+                      width: screenWidth * widthMultiplier,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: CurrencyDisplayer(
+                          amountToConvert: balance.abs(),
+                          integerStyle: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w600,
+                            color: isNegative
+                                ? Colors.red
+                                : Theme.of(context).textTheme.titleLarge!.color,
+                          ),
                         ),
-                  ),
-                  ),
-                );
-              }
-
+                      ),
+                    ),
+                  );
+                }
                 return const Skeleton(width: 90, height: 40);
               },
             ),

@@ -548,7 +548,7 @@
     "delete.success": "Tag excluída com sucesso",
     "delete-warning-header": "Excluir tag?",
     "delete-warning-message": "Essa ação não excluirá as transações que possuem essa tag.",
-    "no-tags": "Transação sem tags."
+    "no-tags": "Transação sem tags. Clique aqui para adicionar uma tag."
   },
   "CATEGORIES": {
     "unknown": "Categoria desconhecida",

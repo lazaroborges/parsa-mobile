@@ -59,9 +59,19 @@ class IncomeOrExpenseCard extends StatelessWidget {
                       return const Skeleton(width: 26, height: 18);
                     }
 
-                    return CurrencyDisplayer(
-                      amountToConvert: snapshot.data!.abs(),
-                      integerStyle: const TextStyle(fontSize: 18),
+                    return SizedBox(
+                      width: 100,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CurrencyDisplayer(
+                          amountToConvert: snapshot.data!.abs(),
+                          integerStyle: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+
+                          ),
+                        ),
+                      ),
                     );
                   })
             ],

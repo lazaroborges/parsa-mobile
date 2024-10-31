@@ -718,6 +718,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                     ),
                                     label: t.transaction.form.title,
+                                    isEditable: true,
                                   ),
                                   LabelValueInfoItem(
                                     value: GestureDetector(
@@ -766,6 +767,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                     ),
                                     label: t.transaction.status.insights,
+                                    isEditable: true,
                                   ),
                                   LabelValueInfoItem(
                                     value: buildInfoTileWithIconAndColor(
@@ -793,6 +795,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         ),
                                       ),
                                       label: t.general.category,
+                                      isEditable: true,
                                     ),
                                   if (transaction.isTransfer)
                                     LabelValueInfoItem(
@@ -834,6 +837,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                     ),
                                     label: t.transaction.form.description,
+                                    isEditable: true,
                                   ),
                                   if (transaction.paymentMethod != null)
                                     LabelValueInfoItem(
@@ -874,6 +878,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             const SizedBox(height: 16),
                             CardWithHeader(
                               title: t.tags.display(n: 2),
+                              isEditable: true,
                               bodyPadding: const EdgeInsets.all(12),
                               body: GestureDetector(
                                 onTap: () => updateTags(context, transaction),

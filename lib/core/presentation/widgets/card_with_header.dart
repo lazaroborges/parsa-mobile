@@ -13,6 +13,7 @@ class CardWithHeader extends StatelessWidget {
     this.onHeaderButtonClick,
     this.headerButtonIcon = Icons.arrow_forward_ios_rounded,
     this.bodyPadding = const EdgeInsets.all(0),
+    this.isEditable = false,
   });
 
   final Widget body;
@@ -24,6 +25,8 @@ class CardWithHeader extends StatelessWidget {
   final EdgeInsets bodyPadding;
 
   final void Function()? onHeaderButtonClick;
+
+  final bool isEditable;
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +74,22 @@ class CardWithHeader extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700)),
+                Row(
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
+                    if (isEditable)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: Colors.blue[500],
+                        ),
+                      ),
+                  ],
+                ),
                 if (onHeaderButtonClick != null)
                   IconButton(
                     onPressed: onHeaderButtonClick,

@@ -30,6 +30,7 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  
 
   apiEndpoint = dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br';
 

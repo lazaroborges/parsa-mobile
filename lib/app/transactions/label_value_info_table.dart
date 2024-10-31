@@ -5,10 +5,12 @@ import 'package:parsa/core/presentation/app_colors.dart';
 class LabelValueInfoItem {
   final Widget value;
   final String label;
+  final bool isEditable;
 
   const LabelValueInfoItem({
     required this.value,
     required this.label,
+    this.isEditable = false,
   });
 }
 
@@ -41,9 +43,19 @@ class LabelValueInfoTable extends StatelessWidget {
                       vertical: 12,
                       horizontal: 16,
                     ),
-                    child: Text(
-                      e.label,
-                      style: const TextStyle(fontWeight: FontWeight.w300),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            e.label,
+                            style: const TextStyle(fontWeight: FontWeight.w300),
+                          ),
+                        ),
+                        if (e.isEditable) ...[
+                          const SizedBox(width: 4),
+                          Icon(Icons.edit, size: 14, color: Colors.grey[600]),
+                        ],
+                      ],
                     ),
                   ),
                 ),

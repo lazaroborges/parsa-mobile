@@ -338,7 +338,7 @@
 
 
       {
-        "icon": "business_center",
+        "icon": "candlestick",
         "names": {
           "pt": "Venda de Ativos"
         }
@@ -351,7 +351,7 @@
         }
       },
       {
-        "icon": "business_center",
+        "icon": "payments",
         "names": {
           "pt": "Pro-labore"
         }
