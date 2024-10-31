@@ -701,6 +701,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                               body: LabelValueInfoTable(
                                 items: [
                                   LabelValueInfoItem(
+                                    isEditable: true,
                                     value: GestureDetector(
                                       onTap: () =>
                                           updateTitle(context, transaction),
@@ -715,12 +716,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                               ? FontStyle.italic
                                               : null,
                                         ),
+
                                       ),
                                     ),
                                     label: t.transaction.form.title,
-                                    isEditable: true,
+                                    
                                   ),
                                   LabelValueInfoItem(
+                                  
+                                    isEditable: true,
                                     value: GestureDetector(
                                       onTap: () {
                                         showTransactioStatusModal(
@@ -767,9 +771,10 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                     ),
                                     label: t.transaction.status.insights,
-                                    isEditable: true,
+                                    
                                   ),
                                   LabelValueInfoItem(
+
                                     value: buildInfoTileWithIconAndColor(
                                       icon: transaction.account.icon,
                                       color: transaction.account
@@ -785,7 +790,10 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                   ),
                                   if (transaction.isIncomeOrExpense)
                                     LabelValueInfoItem(
+                               isEditable: true,
+
                                       value: GestureDetector(
+                                        
                                         onTap: () => updateCategory(
                                             context, transaction),
                                         child: buildInfoTileWithIconAndColor(
@@ -799,7 +807,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         ),
                                       ),
                                       label: t.general.category,
-                                      isEditable: true,
+                                      
                                     ),
                                   if (transaction.isTransfer)
                                     LabelValueInfoItem(
@@ -826,24 +834,23 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         .datetime, // Assuming you have a combined label
                                   ),
                                   LabelValueInfoItem(
+                                                                        isEditable: true,
+
                                     value: GestureDetector(
                                       onTap: () =>
                                           updateNotes(context, transaction),
                                       child: Text(
-                                        transaction.notes ??
-                                            t.transaction.form.title,
+                                        transaction.notes?.isEmpty == true ? t.transaction.form.description_info : transaction.notes!,
                                         style: TextStyle(
-                                          color: transaction.notes == null
-                                              ? Colors.grey
-                                              : null,
-                                          fontStyle: transaction.notes == null
-                                              ? FontStyle.italic
-                                              : null,
+                                          color: transaction.notes?.isEmpty == true ? Colors.grey : null,
+                                          fontStyle: transaction.notes?.isEmpty == true ? FontStyle.italic : null,
+                                          decoration: transaction.notes?.isEmpty == true ? TextDecoration.underline : null,
+                                          decorationStyle: TextDecorationStyle.dotted,
                                         ),
                                       ),
                                     ),
                                     label: t.transaction.form.description,
-                                    isEditable: true,
+                                    
                                   ),
                                   if (transaction.paymentMethod != null)
                                     LabelValueInfoItem(
@@ -884,7 +891,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             const SizedBox(height: 16),
                             CardWithHeader(
                               title: t.tags.display(n: 2),
-                              isEditable: true,
+                              
                               bodyPadding: const EdgeInsets.all(12),
                               body: GestureDetector(
                                 onTap: () => updateTags(context, transaction),

@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 589
 ///
-/// Built on 2024-10-29 at 20:30 UTC
+/// Built on 2024-10-31 at 18:02 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -492,7 +492,7 @@ class _TranslationsTagsPt {
 	String get delete_success => 'Tag excluída com sucesso';
 	String get delete_warning_header => 'Excluir tag?';
 	String get delete_warning_message => 'Essa ação não excluirá as transações que possuem essa tag.';
-	String get no_tags => 'Transação sem tags.';
+	String get no_tags => 'Transação sem tags. Clique aqui para adicionar uma tag.';
 }
 
 // Path: categories
@@ -2019,7 +2019,7 @@ extension on Translations {
 			case 'tags.delete_success': return 'Tag excluída com sucesso';
 			case 'tags.delete_warning_header': return 'Excluir tag?';
 			case 'tags.delete_warning_message': return 'Essa ação não excluirá as transações que possuem essa tag.';
-			case 'tags.no_tags': return 'Transação sem tags.';
+			case 'tags.no_tags': return 'Transação sem tags. Clique aqui para adicionar uma tag.';
 			case 'categories.unknown': return 'Categoria desconhecida';
 			case 'categories.create': return 'Criar categoria';
 			case 'categories.create_success': return 'Categoria criada com sucesso.';

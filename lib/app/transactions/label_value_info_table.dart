@@ -43,27 +43,36 @@ class LabelValueInfoTable extends StatelessWidget {
                       vertical: 12,
                       horizontal: 16,
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            e.label,
-                            style: const TextStyle(fontWeight: FontWeight.w300),
-                          ),
-                        ),
-                        if (e.isEditable) ...[
-                          const SizedBox(width: 4),
-                          Icon(Icons.edit, size: 14, color: Colors.grey[600]),
-                        ],
-                      ],
+                    child: Text(
+                      e.label,
+                      style: const TextStyle(fontWeight: FontWeight.w300),
                     ),
                   ),
                 ),
                 TableCell(
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: e.value,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: e.value is Text
+                              ? Text(
+                                  (e.value as Text).data ?? '',
+                                  style: (e.value as Text).style,
+                                )
+                              : e.value,
+                        ),
+                        if (e.isEditable) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ],

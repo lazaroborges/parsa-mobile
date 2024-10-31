@@ -57,7 +57,7 @@ class _TransactionTitleModalState extends State<TransactionTitleModal> {
       bodyPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       body: TextFormField(
         controller: titleController,
-        maxLength: maxLabelLenghtForDisplayNames,
+        maxLength: 55,
         decoration:
             InputDecoration(label: Text(t.transaction.form.title_short)),
         focusNode: titleFocusNode,
