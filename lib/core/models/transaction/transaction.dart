@@ -34,7 +34,7 @@ class MoneyTransaction extends TransactionInDB {
       required super.isHidden, //
       required super.type, //
 
-      super.notes,
+      super.notes = '',
       super.title,
       this.isOpenFinance = false, // Set default value to false
       super.status, // to not consider a transaction, use enum 'notconsidered' (same as !isConsidered in the Backend)

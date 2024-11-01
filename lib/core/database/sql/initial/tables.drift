@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   title TEXT,
 
   -- Some description, notes or extra info about the transaction.
-  notes TEXT,
+  notes TEXT DEFAULT '',
 
   isOpenFinance BOOLEAN NOT NULL DEFAULT 0,
 

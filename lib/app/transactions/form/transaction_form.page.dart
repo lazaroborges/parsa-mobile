@@ -219,7 +219,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         status: date.compareTo(DateTime.now()) > 0
             ? TransactionStatus.pending
             : status,
-        notes: moreInfo.note.notEmptyString,
+        notes: moreInfo.note?.isEmpty == true ? '' : moreInfo.note,
         title: title.notEmptyString,
         intervalEach: recurrentRule.intervalEach,
         intervalPeriod: recurrentRule.intervalPeriod,
