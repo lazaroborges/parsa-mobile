@@ -38,42 +38,65 @@ class LabelValueInfoTable extends StatelessWidget {
               ),
               children: [
                 TableCell(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    child: Text(
-                      e.label,
-                      style: const TextStyle(fontWeight: FontWeight.w300),
-                      softWrap: true,
-                      overflow: TextOverflow.visible,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: e.isEditable ? () {
+                        // Forward the tap to the value's GestureDetector if it exists
+                        if (e.value is GestureDetector) {
+                          (e.value as GestureDetector).onTap?.call();
+                        }
+                      } : null,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              child: Text(
+                                e.label,
+                                style: const TextStyle(fontWeight: FontWeight.w300),
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 TableCell(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: e.value is Text
-                              ? Text(
-                                  (e.value as Text).data ?? '',
-                                  style: (e.value as Text).style,
-                                )
-                              : e.value,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: e.isEditable ? () {
+                        // Forward the tap to the value's GestureDetector if it exists
+                        if (e.value is GestureDetector) {
+                          (e.value as GestureDetector).onTap?.call();
+                        }
+                      } : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: e.value,
+                            ),
+                            if (e.isEditable) ...[
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                            ],
+                          ],
                         ),
-                        if (e.isEditable) ...[
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.edit,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                        ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
