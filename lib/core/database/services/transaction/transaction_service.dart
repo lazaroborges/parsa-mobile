@@ -93,9 +93,15 @@ class TransactionService {
 
       db.markTablesUpdated([db.accounts]);
       return result;
-    } catch (e) {
-      print(
-          'Error during insertOrReplace for transaction ID: ${transaction.id}: $e');
+    } catch (e, stackTrace) {
+      print('''
+Error during insertOrReplace for transaction:
+- Transaction ID: ${transaction.id}
+- Transaction details: ${transaction.toString()}
+- Error: $e
+- Stack trace: 
+$stackTrace
+''');
       rethrow;
     }
   }

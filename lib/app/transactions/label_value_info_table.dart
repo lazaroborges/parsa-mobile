@@ -42,7 +42,6 @@ class LabelValueInfoTable extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: e.isEditable ? () {
-                        // Forward the tap to the value's GestureDetector if it exists
                         if (e.value is GestureDetector) {
                           (e.value as GestureDetector).onTap?.call();
                         }
@@ -55,11 +54,25 @@ class LabelValueInfoTable extends StatelessWidget {
                                 vertical: 12,
                                 horizontal: 16,
                               ),
-                              child: Text(
-                                e.label,
-                                style: const TextStyle(fontWeight: FontWeight.w300),
-                                softWrap: true,
-                                overflow: TextOverflow.visible,
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      e.label,
+                                      style: const TextStyle(fontWeight: FontWeight.w300),
+                                      softWrap: true,
+                                      overflow: TextOverflow.visible,
+                                    ),
+                                  ),
+                                  if (e.isEditable) ...[
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.edit,
+                                      size: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),
@@ -73,7 +86,6 @@ class LabelValueInfoTable extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: e.isEditable ? () {
-                        // Forward the tap to the value's GestureDetector if it exists
                         if (e.value is GestureDetector) {
                           (e.value as GestureDetector).onTap?.call();
                         }
@@ -86,14 +98,6 @@ class LabelValueInfoTable extends StatelessWidget {
                             Flexible(
                               child: e.value,
                             ),
-                            if (e.isEditable) ...[
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                            ],
                           ],
                         ),
                       ),

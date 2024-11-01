@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 589
 ///
-/// Built on 2024-10-31 at 18:02 UTC
+/// Built on 2024-11-01 at 19:17 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -356,7 +356,7 @@ class _TranslationsTransactionPt {
 	String get create => 'Nova transação';
 	String get new_income => 'Nova receita';
 	String get new_expense => 'Nova despesa';
-	String get new_success => 'Transaão criada com sucesso';
+	String get new_success => 'Transação criada com sucesso';
 	String get edit => 'Editar transação';
 	String get edit_success => 'Transação editada com sucesso';
 	String get edit_multiple => 'Editar transações';
@@ -1793,7 +1793,7 @@ extension on Translations {
 			case 'transaction.create': return 'Nova transação';
 			case 'transaction.new_income': return 'Nova receita';
 			case 'transaction.new_expense': return 'Nova despesa';
-			case 'transaction.new_success': return 'Transaão criada com sucesso';
+			case 'transaction.new_success': return 'Transação criada com sucesso';
 			case 'transaction.edit': return 'Editar transação';
 			case 'transaction.edit_success': return 'Transação editada com sucesso';
 			case 'transaction.edit_multiple': return 'Editar transações';

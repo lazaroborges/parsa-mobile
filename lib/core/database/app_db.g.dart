@@ -1546,7 +1546,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       'notes', aliasedName, true,
       type: DriftSqlType.string,
       requiredDuringInsert: false,
-      $customConstraints: '');
+      $customConstraints: 'DEFAULT \'\'',
+      defaultValue: const CustomExpression('\'\''));
   static const VerificationMeta _isOpenFinanceMeta =
       const VerificationMeta('isOpenFinance');
   late final GeneratedColumn<bool> isOpenFinance = GeneratedColumn<bool>(

@@ -12,11 +12,11 @@ class PostUserTransactionService {
   static Future<bool> postUserTransaction(
       {required TransactionInDB transaction,
       required String accessToken,
-      required List<Tag> tags, // Add this parameter
+      required List<Tag> tags,
       String? method = 'POST'}) async {
-    // Fetch the category using the category ID from the transaction
-    final categoryStream =
-        CategoryService.instance.getCategoryById(transaction.categoryID!);
+    // Fetch the category using the category ID or default to '85' if null
+    final categoryStream = CategoryService.instance
+        .getCategoryById(transaction.categoryID ?? '85');
 
     // Await the first value from the stream
     final Category? category = await categoryStream.first;
@@ -38,7 +38,7 @@ class PostUserTransactionService {
       'categoryName': categoryName,
       'receivingAccountID': transaction.receivingAccountID,
       'isOpenFinance': transaction.isOpenFinance,
-      'tags': tags.map((tag) => tag.id).toList(), // Add this line
+      'tags': tags.map((tag) => tag.id).toList(),
     };
 
     print("TRANSACTION JSON: $transactionJson");
