@@ -41,10 +41,8 @@ class AccountService {
     }
   }
 
-  Future<int> insertAccountAPI(AccountInDB account) {
-    return db
-        .into(db.accounts)
-        .insert(account, mode: InsertMode.insertOrReplace);
+  Future<void> insertAccountAPI(AccountInDB account) {
+    return db.into(db.accounts).insertOnConflictUpdate(account);
   }
 
   Future<bool> updateAccount(AccountInDB account) {
