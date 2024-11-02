@@ -138,7 +138,7 @@ Future<void> insertAccountsIntoDB(List<Account> accounts) async {
 
     //find the Auth0 context and pass it up in here: 
       
-    accountService.deleteAccount(idToDelete);
+    accountService.deleteAccountLocally(idToDelete);
   }
 
   // Insert or update accounts from the API

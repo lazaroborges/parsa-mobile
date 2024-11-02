@@ -74,6 +74,18 @@ class AccountService {
     }
   }
 
+
+    Future<int> deleteAccountLocally(String accountId) async {
+    try {
+
+      return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
+          .go();
+    } catch (e) {
+      print('Error deleting account: $e');
+      rethrow;
+    }
+  }
+
   Stream<List<Account>> getAccounts({
     Expression<bool> Function(Accounts acc, Currencies curr)? predicate,
     OrderBy Function(Accounts acc, Currencies curr)? orderBy,
