@@ -298,7 +298,7 @@ Widget build(BuildContext context) {
       ]);
     },
       home: (auth0Provider.credentials != null
-          ? TabsPage(key: tabsPageKey)
+          ? BiometricsCheckScreen()
           : Auth0Service(auth0Provider: auth0Provider)),
     );
 }

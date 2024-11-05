@@ -49,6 +49,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.0</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>O Parsa usa sua biometria para proteger suas contas.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -70,5 +72,26 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>StoreKit</key>
+	<array>
+		<dict>
+			<key>SKPaymentQueue</key>
+			<true/>
+		</dict>
+	</array>
+	<key>SKProductsRequest</key>
+	<array>
+    <string>com.parsa.app.premium_monthl</string>
+	    <string>com.parsa.app.premium_monthly</string>
+		<string>com.parsa.app.monthly</string>
+				<string>com.parsa.app.premium_monthl</string>
+				<string>premium_monthl</string>
+				<string>premium_monthly</string>
+
+
+
+	</array>
+	<key>SKStoreKitConfigFile</key>
+	<string>Configuration.storekit</string>
 </dict>
 </plist>

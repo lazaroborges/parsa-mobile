@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 589
+/// Strings: 600
 ///
-/// Built on 2024-11-01 at 19:17 UTC
+/// Built on 2024-11-04 at 00:40 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -611,6 +611,7 @@ class _TranslationsMorePt {
 	String get title => 'Menu';
 	String get title_long => 'Menu e Preferências';
 	late final _TranslationsMoreDataPt data = _TranslationsMoreDataPt._(_root);
+	late final _TranslationsMoreSubscribePt subscribe = _TranslationsMoreSubscribePt._(_root);
 	late final _TranslationsMoreAboutUsPt about_us = _TranslationsMoreAboutUsPt._(_root);
 	late final _TranslationsMoreHelpUsPt help_us = _TranslationsMoreHelpUsPt._(_root);
 }
@@ -1250,6 +1251,26 @@ class _TranslationsMoreDataPt {
 	String get delete_all_message1 => 'Tem certeza de que deseja continuar? Todos os seus dados serão excluídos permanentemente e não poderão ser recuperados';
 	String get delete_all_header2 => 'Último passo ⚠️⚠️';
 	String get delete_all_message2 => 'Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?';
+}
+
+// Path: more.subscribe
+class _TranslationsMoreSubscribePt {
+	_TranslationsMoreSubscribePt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get display => 'Assinatura';
+	String get description => 'Assine o Parsa para desbloquear todas as funcionalidades premium';
+	String get title => 'Assinatura Premium';
+	String get subscribe => 'Assinar';
+	String subscribe_for({required Object price}) => 'Assinar por ${price}';
+	String get confirm_subscription => 'Confirmar assinatura';
+	String confirm_message({required Object price}) => 'Você está prestes a assinar o Parsa Premium por ${price}. Deseja continuar?';
+	String get no_plans_available => 'Nenhum plano disponível no momento';
+	String get success => 'Assinatura realizada com sucesso!';
+	String get error => 'Erro ao processar a assinatura. Por favor, tente novamente.';
+	String get cancel => 'Cancelar';
 }
 
 // Path: more.about_us
@@ -2162,6 +2183,17 @@ extension on Translations {
 			case 'more.data.delete_all_message1': return 'Tem certeza de que deseja continuar? Todos os seus dados serão excluídos permanentemente e não poderão ser recuperados';
 			case 'more.data.delete_all_header2': return 'Último passo ⚠️⚠️';
 			case 'more.data.delete_all_message2': return 'Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?';
+			case 'more.subscribe.display': return 'Assinatura';
+			case 'more.subscribe.description': return 'Assine o Parsa para desbloquear todas as funcionalidades premium';
+			case 'more.subscribe.title': return 'Assinatura Premium';
+			case 'more.subscribe.subscribe': return 'Assinar';
+			case 'more.subscribe.subscribe_for': return ({required Object price}) => 'Assinar por ${price}';
+			case 'more.subscribe.confirm_subscription': return 'Confirmar assinatura';
+			case 'more.subscribe.confirm_message': return ({required Object price}) => 'Você está prestes a assinar o Parsa Premium por ${price}. Deseja continuar?';
+			case 'more.subscribe.no_plans_available': return 'Nenhum plano disponível no momento';
+			case 'more.subscribe.success': return 'Assinatura realizada com sucesso!';
+			case 'more.subscribe.error': return 'Erro ao processar a assinatura. Por favor, tente novamente.';
+			case 'more.subscribe.cancel': return 'Cancelar';
 			case 'more.about_us.display': return 'Informações';
 			case 'more.about_us.description': return 'Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ';
 			case 'more.about_us.legal.display': return 'Informações legais';

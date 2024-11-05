@@ -13,7 +13,7 @@ publish_to: none
 # The X represents the major releases, and can be up to infinity. Never start by a zero
 # The Y represents the minor releases, and can be up to 99. Always start by a zero
 # The Z represents the patch releases, and can be up to 999. Always start by a zero
-version: 0.1.1+11
+version: 0.1.1+15
 
 environment:
   flutter: 3.22.3
@@ -30,7 +30,6 @@ dependencies:
   auth0_flutter: ^1.7.0
   flutter_appauth: ^7.0.0
   flutter_dotenv: ^5.1.0
-
   flutter_pluggy_connect: ^3.0.0
 
   # General
@@ -99,10 +98,10 @@ dev_dependencies:
 build:
   ios:
     build-name: 0.1.1
-    build-number: 11
+    build-number: 15
   android:
     build-name: 0.1.1
-    build-number: 11
+    build-number: 15
 
 
 flutter_launcher_icons:
@@ -130,7 +129,6 @@ flutter:
     - assets/icons/supported_selectable_icons/logos/open/marca_positiva_open_finance.svg
     - assets/icons/supported_selectable_icons/logos/open/marca_open_finance.svg
     - assets/icons/supported_selectable_icons/logos/open/logo.png
-
     - assets/icons/supported_selectable_icons/logos/financial_institutions/
     - assets/icons/supported_selectable_icons/logos/financial_institutions/611.svg
     - assets/sql/

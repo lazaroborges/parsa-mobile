@@ -723,6 +723,19 @@
       "delete-all-header2": "Último passo ⚠️⚠️",
       "delete-all-message2": "Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?"
     },
+    "SUBSCRIBE": {
+      "display": "Assinatura",
+      "description": "Assine o Parsa para desbloquear todas as funcionalidades premium",
+      "title": "Assinatura Premium",
+      "subscribe": "Assinar",
+      "subscribe_for": "Assinar por {{price}}",
+      "confirm_subscription": "Confirmar assinatura",
+      "confirm_message": "Você está prestes a assinar o Parsa Premium por {{price}}. Deseja continuar?",
+      "no_plans_available": "Nenhum plano disponível no momento",
+      "success": "Assinatura realizada com sucesso!",
+      "error": "Erro ao processar a assinatura. Por favor, tente novamente.",
+      "cancel": "Cancelar"
+    },
     "ABOUT_US": {
       "display": "Informações",
       "description": "Informações sobre o Parsa, entre em contato conosco, envie sugestões, etc. ",

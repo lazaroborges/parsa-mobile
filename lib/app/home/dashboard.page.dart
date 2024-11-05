@@ -326,7 +326,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
               // Move the TransactionListComponent here
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 child: CardWithHeader(
                   title: t.home.last_transactions,
                   onHeaderButtonClick: () {
@@ -357,6 +357,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
 
+              // Add padding/spacing here
+
               // ------------- STATS GENERAL CARDS --------------
 
               Padding(
@@ -368,11 +370,26 @@ class _DashboardPageState extends State<DashboardPage> {
                   rowCrossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 16,
                   children: [
+  
                     ResponsiveRowColumnItem(
                       rowFit: FlexFit.tight,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          CardWithHeader(
+                              title: t.stats.by_categories,
+                              body: ChartByCategories(
+                                  datePeriodState: dateRangeService),
+                              onHeaderButtonClick: () {
+                                RouteUtils.pushRoute(
+                                  context,
+                                  StatsPage(
+                                      dateRangeService: dateRangeService,
+                                      initialIndex: 1),
+                                );
+                              }),
+                          const SizedBox(height: 16),
+
                           CardWithHeader(
                             title: t.financial_health.display,
                             onHeaderButtonClick: () => RouteUtils.pushRoute(
@@ -401,59 +418,48 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          CardWithHeader(
-                              title: t.stats.by_categories,
-                              body: ChartByCategories(
-                                  datePeriodState: dateRangeService),
-                              onHeaderButtonClick: () {
-                                RouteUtils.pushRoute(
-                                  context,
-                                  StatsPage(
-                                      dateRangeService: dateRangeService,
-                                      initialIndex: 1),
-                                );
-                              }),
+
                         ],
                       ),
                     ),
-                    ResponsiveRowColumnItem(
-                      rowFit: FlexFit.tight,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CardWithHeader(
-                              title: t.stats.balance_evolution,
-                              body: FundEvolutionLineChart(
-                                dateRange: dateRangeService,
-                              ),
-                              onHeaderButtonClick: () {
-                                RouteUtils.pushRoute(
-                                  context,
-                                  StatsPage(
-                                      dateRangeService: dateRangeService,
-                                      initialIndex: 2),
-                                );
-                              }),
-                          const SizedBox(height: 16),
-                          CardWithHeader(
-                              title: t.stats.cash_flow,
-                              body: Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 16, left: 16, right: 16),
-                                child: BalanceChartSmall(
-                                    dateRangeService: dateRangeService),
-                              ),
-                              onHeaderButtonClick: () {
-                                RouteUtils.pushRoute(
-                                  context,
-                                  StatsPage(
-                                      dateRangeService: dateRangeService,
-                                      initialIndex: 3),
-                                );
-                              }),
-                        ],
-                      ),
-                    )
+                    // ResponsiveRowColumnItem(
+                    //   rowFit: FlexFit.tight,
+                    //   child: Column(
+                    //     mainAxisSize: MainAxisSize.min,
+                    //     children: [
+                    //       CardWithHeader(
+                    //           title: t.stats.balance_evolution,
+                    //           body: FundEvolutionLineChart(
+                    //             dateRange: dateRangeService,
+                    //           ),
+                    //           onHeaderButtonClick: () {
+                    //             RouteUtils.pushRoute(
+                    //               context,
+                    //               StatsPage(
+                    //                   dateRangeService: dateRangeService,
+                    //                   initialIndex: 2),
+                    //             );
+                    //           }),
+                    //       const SizedBox(height: 16),
+                    //       CardWithHeader(
+                    //           title: t.stats.cash_flow,
+                    //           body: Padding(
+                    //             padding: const EdgeInsets.only(
+                    //                 top: 16, left: 16, right: 16),
+                    //             child: BalanceChartSmall(
+                    //                 dateRangeService: dateRangeService),
+                    //           ),
+                    //           onHeaderButtonClick: () {
+                    //             RouteUtils.pushRoute(
+                    //               context,
+                    //               StatsPage(
+                    //                   dateRangeService: dateRangeService,
+                    //                   initialIndex: 3),
+                    //             );
+                    //           }),
+                    //     ],
+                    //   ),
+                    // )
                   ],
                 ),
               ),
