@@ -1,3 +1,5 @@
+// subscribe_page.dart
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -56,11 +58,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
       // Define all product IDs
       const Set<String> productIds = {
-        'premium_monthl',
         'premium_monthly',  
-        'com.parsa.app.premium_monthly',  // Monthly subscription
         'premium_yearly',    // Yearly subscription
-        'premium_quarterly', // Quarterly subscription
       };
       
       print('Attempting to query products: $productIds');

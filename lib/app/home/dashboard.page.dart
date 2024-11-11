@@ -385,7 +385,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   context,
                                   StatsPage(
                                       dateRangeService: dateRangeService,
-                                      initialIndex: 1),
+                                      initialIndex: 0),
                                 );
                               }),
                           const SizedBox(height: 16),
