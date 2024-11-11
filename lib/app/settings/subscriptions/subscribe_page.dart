@@ -125,7 +125,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
       // Send purchaseDetails.purchaseID or purchaseDetails.verificationData.serverVerificationData to your backend
       final response = await http.post(
-        Uri.parse('$apiEndpoint/api/subscription/'),
+        Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/subscription/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'purchaseId': purchaseDetails.purchaseID,
