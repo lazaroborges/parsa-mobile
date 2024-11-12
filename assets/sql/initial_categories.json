@@ -582,8 +582,15 @@
       }
     ]
   }, 
-
-
+  {
+    "names": {
+      "pt": "Investimentos"
+    },
+    "icon": "savings",
+    "color": "4C9141",
+    "type": "E",
+    "subcategories": []
+  },
   {
     "names": {
       "pt": "Outros"

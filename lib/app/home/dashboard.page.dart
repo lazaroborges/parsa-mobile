@@ -396,7 +396,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 StatsPage(
                                     dateRangeService: dateRangeService,
-                                    initialIndex: 0)),
+                                    initialIndex: 3)),
                             bodyPadding: const EdgeInsets.all(16),
                             body: StreamBuilder(
                               stream: FinanceHealthService().getHealthyValue(

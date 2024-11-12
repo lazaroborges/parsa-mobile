@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
@@ -22,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
+
 
 String apiEndpoint = '';
 
@@ -113,7 +115,10 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
 
   @override
   Widget build(BuildContext context) {
-    print('------------------ APP ENTRY POINT ------------------');
+    // Print app version
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      print('------------------ APP ENTRY POINT ------------------ v${packageInfo.version.toString()}');
+    });
 
     return StreamBuilder(
       stream: UserSettingService.instance.getSettings((p0) =>
