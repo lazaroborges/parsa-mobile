@@ -375,6 +375,12 @@
         }
       },
       {
+        "icon": "flight_takeoff",
+        "names": {
+          "pt": "Viagens"
+        }
+      },
+      {
         "icon": "celebration",
         "names": {
           "pt": "Festas & Eventos"

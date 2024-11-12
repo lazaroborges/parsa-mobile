@@ -48,6 +48,9 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 
+import 'package:provider/provider.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -57,8 +60,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
-  Map<String, dynamic>? userData;
-  bool isLoading = true;
+  bool isLoading = false;
   bool isLoadingTransactions = true;
 
   @override
@@ -66,28 +68,8 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
   }
 
-  @override
-  Future<void> didChangeDependencies() async {
-    super.didChangeDependencies();
-    await _apiLogin();
-  }
 
-  Future<void> _apiLogin() async {
-    try {
-      final data = await apiLogin(context);
-      setState(() {
-        userData = data;
-        isLoading = false;
-      });
-    } catch (e) {
-      // Handle error
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _refreshData() async {
+Future<void> _refreshData() async {
     setState(() {
       isLoading = true;
       isLoadingTransactions = true;
@@ -108,9 +90,9 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
+    final userData = context.watch<UserDataProvider>().userData;
     final t = Translations.of(context);
 
     final accountService = AccountService.instance;
@@ -251,35 +233,35 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                               ),
                             ),
-                            // ActionChip(
-                            //   label: Text(dateRangeService.getText(context)),
-                            //   backgroundColor:
-                            //       AppColors.of(context).primaryContainer,
-                            //   shape: RoundedRectangleBorder(
-                            //     borderRadius: BorderRadius.circular(8.0),
-                            //     side: BorderSide(
-                            //       style: BorderStyle.none,
-                            //       color: AppColors.of(context).onPrimary,
-                            //     ),
-                            //   ),
-                            //   onPressed: () {
-                            //     openDatePeriodModal(
-                            //       context,
-                            //       DatePeriodModal(
-                            //         initialDatePeriod: dateRangeService.datePeriod,
-                            //       ),
-                            //     ).then((value) {
-                            //       if (value == null) return;
+                            ActionChip(
+                              label: Text(dateRangeService.getText(context)),
+                              backgroundColor:
+                                  AppColors.of(context).primaryContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                side: BorderSide(
+                                  style: BorderStyle.none,
+                                  color: AppColors.of(context).onPrimary,
+                                ),
+                              ),
+                              onPressed: () {
+                                openDatePeriodModal(
+                                  context,
+                                  DatePeriodModal(
+                                    initialDatePeriod: dateRangeService.datePeriod,
+                                  ),
+                                ).then((value) {
+                                  if (value == null) return;
 
-                            //       setState(() {
-                            //         dateRangeService = dateRangeService.copyWith(
-                            //           periodModifier: 0,
-                            //           datePeriod: value,
-                            //         );
-                            //       });
-                            //     });
-                            //   },
-                            // ),
+                                  setState(() {
+                                    dateRangeService = dateRangeService.copyWith(
+                                      periodModifier: 0,
+                                      datePeriod: value,
+                                    );
+                                  });
+                                });
+                              },
+                            ),
                           ],
                         ),
                         const Divider(height: 16),
@@ -396,7 +378,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 StatsPage(
                                     dateRangeService: dateRangeService,
-                                    initialIndex: 3)),
+                                    initialIndex: 2)),
                             bodyPadding: const EdgeInsets.all(16),
                             body: StreamBuilder(
                               stream: FinanceHealthService().getHealthyValue(

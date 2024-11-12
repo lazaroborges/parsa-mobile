@@ -23,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 
 
 String apiEndpoint = '';
@@ -42,8 +43,14 @@ void main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => Auth0Provider(auth0: auth0),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserDataProvider()),
+        ChangeNotifierProvider(
+          create: (_) => Auth0Provider(auth0: auth0),
+          child: const MonekinAppEntryPoint(),
+        ),
+      ],
       child: const MonekinAppEntryPoint(),
     ),
   );

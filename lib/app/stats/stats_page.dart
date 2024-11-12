@@ -96,7 +96,7 @@ class _StatsPageState extends State<StatsPage> {
               tabAlignment: TabAlignment.center,
               tabs: [
                 Tab(text: t.stats.distribution),
-                Tab(text: t.stats.balance),
+                // Tab(text: t.stats.balance),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
               ],
@@ -150,21 +150,21 @@ class _StatsPageState extends State<StatsPage> {
                     ),
                   ),
                 ]),
-                buildContainerWithPadding([
-                  CardWithHeader(
-                    title: t.stats.balance_evolution,
-                    body: FundEvolutionLineChart(
-                      showBalanceHeader: true,
-                      dateRange: dateRangeService,
-                      filters: filters,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  AllAccountBalancePage(
-                    date: dateRangeService.endDate ?? DateTime.now(),
-                    filters: filters,
-                  ),
-                ]),
+                // buildContainerWithPadding([
+                //   CardWithHeader(
+                //     title: t.stats.balance_evolution,
+                //     body: FundEvolutionLineChart(
+                //       showBalanceHeader: true,
+                //       dateRange: dateRangeService,
+                //       filters: filters,
+                //     ),
+                //   ),
+                //   const SizedBox(height: 16),
+                //   AllAccountBalancePage(
+                //     date: dateRangeService.endDate ?? DateTime.now(),
+                //     filters: filters,
+                //   ),
+                // ]),
                 buildContainerWithPadding([
                   CardWithHeader(
                     title: t.stats.cash_flow,

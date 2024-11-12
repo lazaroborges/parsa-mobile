@@ -6,6 +6,9 @@ import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:provider/provider.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/api/api_login.dart';
 
 /// This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -42,10 +45,11 @@ class TabsPageState extends State<TabsPage> {
   }
 
   Future<void> _initializeData() async {
-    // Run _fetchUserAccounts and _fetchUserTags in parallel
+    // Add API login to the parallel operations
     await Future.wait([
       _fetchUserAccounts(),
       _fetchUserTags(),
+      _performApiLogin(),
     ]);
 
     // Wait for _fetchAndSyncTransactions after the above operations complete
@@ -100,6 +104,16 @@ class TabsPageState extends State<TabsPage> {
       setState(() {
         isLoadingTags = false;
       });
+    }
+  }
+
+  Future<void> _performApiLogin() async {
+    try {
+      final data = await apiLogin(context);
+      context.read<UserDataProvider>().setUserData(data);
+    } catch (e) {
+      print('Error during API login: $e');
+      // Handle error as needed
     }
   }
 
