@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:parsa/core/database/app_db.dart';
 
 /// The keys of the avalaible settings of the app
-enum AppDataKey { dbVersion, introSeen, lastExportDate }
+enum AppDataKey { dbVersion, introSeen, lastExportDate, appVersion, lastUpdateDate }
 
 class AppDataService {
   final AppDB db;

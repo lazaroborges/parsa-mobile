@@ -17,6 +17,7 @@ import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 part 'app_db.g.dart';
 
@@ -78,38 +79,72 @@ class AppDB extends _$AppDB {
         print(
             'DB found! Version ${details.versionNow} (previous was ${details.versionBefore}). Path to DB -> ${await databasePath}');
 
-        if (details.wasCreated) {
-          print('Executing seeders... Populating the database...');
+        // Fetch the current app version using PackageInfo
+        final packageInfo = await PackageInfo.fromPlatform();
+        final currentAppVersion = packageInfo.version;
 
-          try {
-            String initialSQL =
-                await rootBundle.loadString('assets/sql/initial_data.sql');
+        // Obtain the stored appVersion from the database
+        String? storedAppVersion = await AppDataService.instance
+            .getAppDataItem(AppDataKey.appVersion)
+            .first;
 
-            for (final sqlStatement in splitSQLStatements(initialSQL)) {
-              await customStatement(sqlStatement);
-            }
+        if (storedAppVersion == null || storedAppVersion != currentAppVersion) {
+          print('App version changed or missing. Recreating the database schema...');
 
-            await customStatement(
-                "INSERT INTO appData VALUES ('${AppDataKey.dbVersion.name}', '${schemaVersion.toStringAsFixed(0)}'), ('${AppDataKey.introSeen.name}', '0'), ('${AppDataKey.lastExportDate.name}', null)");
+          // Disable foreign keys before dropping tables
+          await customStatement('PRAGMA foreign_keys = OFF');
 
-            await CategoryService.instance.initializeCategories();
-            await CurrencyService.instance.initializeCurrencies();
-
-            print('Initial data correctly inserted!');
-          } catch (e) {
-            print('ERROR: $e');
-            throw Exception(e);
+          // Drop all existing tables
+          for (final table in allTables) {
+            final tableName = table.actualTableName;
+            await customStatement('DROP TABLE IF EXISTS $tableName');
+            print('Dropped table $tableName');
           }
-        }
 
-        await customStatement('PRAGMA foreign_keys = ON');
+          // Create a Migrator instance
+          final m = createMigrator();
 
-        final dbVersion = int.parse((await AppDataService.instance
-            .getAppDataItem(AppDataKey.dbVersion)
-            .first)!);
+          // Recreate tables by calling onCreate
+          await migration.onCreate(m);
+          print('Database tables recreated!');
 
-        if (dbVersion < schemaVersion) {
-          await migrateDB(dbVersion, schemaVersion);
+          // Insert initial data as if the app was newly installed
+          await _insertInitialData();
+
+          // Update the appVersion in the appData table
+          await AppDataService.instance
+              .setAppDataItem(AppDataKey.appVersion, currentAppVersion);
+
+          // Re-enable foreign keys
+          await customStatement('PRAGMA foreign_keys = ON');
+
+          print('Database schema recreated due to app version change.');
+        } else {
+          print('App version unchanged. Proceeding with normal migration.');
+
+          if (details.wasCreated) {
+            print('Executing seeders... Populating the database...');
+
+            try {
+              await _insertInitialData();
+              print('Initial data correctly inserted!');
+            } catch (e) {
+              print('ERROR: $e');
+              throw Exception(e);
+            }
+          }
+
+          // Ensure foreign keys are enabled
+          await customStatement('PRAGMA foreign_keys = ON');
+
+          // Existing migration logic
+          final dbVersion = int.parse((await AppDataService.instance
+                  .getAppDataItem(AppDataKey.dbVersion)
+                  .first)!);
+
+          if (dbVersion < schemaVersion) {
+            await migrateDB(dbVersion, schemaVersion);
+          }
         }
 
         print("DB Opened!");
@@ -117,7 +152,7 @@ class AppDB extends _$AppDB {
       onCreate: (m) async {
         print('Creating database tables...');
 
-        // Create all tables from `sql/initial/tables.drift`. We have also the schema in SQLite format in the assets folder
+        // Create all tables from `sql/initial/tables.drift`
         await m.createAll();
 
         print('Database tables created!');
@@ -127,6 +162,26 @@ class AppDB extends _$AppDB {
         return Future(() => null);
       },
     );
+  }
+
+  Future<void> _insertInitialData() async {
+    // Load and execute initial SQL scripts
+    String initialSQL =
+        await rootBundle.loadString('assets/sql/initial_data.sql');
+
+    for (final sqlStatement in splitSQLStatements(initialSQL)) {
+      await customStatement(sqlStatement);
+    }
+
+    // Insert default app data
+    await customStatement(
+        "INSERT INTO appData VALUES ('${AppDataKey.dbVersion.name}', '${schemaVersion.toStringAsFixed(0)}'), ('${AppDataKey.introSeen.name}', '0'), ('${AppDataKey.lastExportDate.name}', null)");
+
+    // Initialize categories and currencies
+    await CategoryService.instance.initializeCategories();
+    await CurrencyService.instance.initializeCurrencies();
+
+    print('Initial data inserted!');
   }
 
   /// Return a WHERE clause expression that is the equivalent to the conjunction of some expressions. If no expressions are passed, the WHERE clause will have no effect.
