@@ -5,8 +5,7 @@ import 'package:parsa/app/budgets/budgets_page.dart';
 import 'package:parsa/app/settings/about_page.dart';
 import 'package:parsa/app/settings/appearance_settings_page.dart';
 import 'package:parsa/app/settings/backup_settings_page.dart';
-import 'package:parsa/app/settings/subscriptions/premium_widget.dart';
-import 'package:parsa/app/settings/subscriptions/subscribe_page.dart';
+import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
 
 import 'package:parsa/app/settings/widgets/setting_card_item.dart';
 import 'package:parsa/app/stats/stats_page.dart';

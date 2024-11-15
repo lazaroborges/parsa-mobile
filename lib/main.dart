@@ -24,6 +24,7 @@ import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 
 String apiEndpoint = '';
@@ -42,16 +43,23 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserDataProvider()),
-        ChangeNotifierProvider(
-          create: (_) => Auth0Provider(auth0: auth0),
-          child: const MonekinAppEntryPoint(),
-        ),
-      ],
-      child: const MonekinAppEntryPoint(),
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = dotenv.env['SENTRY_DSN']!; // Add SENTRY_DSN to your .env file
+      options.tracesSampleRate = 1.0; // Capture 100% of transactions
+      options.enableAutoSessionTracking = true;
+    },
+    appRunner: () => runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => UserDataProvider()),
+          ChangeNotifierProvider(
+            create: (_) => Auth0Provider(auth0: auth0),
+            child: const MonekinAppEntryPoint(),
+          ),
+        ],
+        child: const MonekinAppEntryPoint(),
+      ),
     ),
   );
 }
@@ -125,6 +133,8 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
     // Print app version
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       print('------------------ APP ENTRY POINT ------------------ v${packageInfo.version.toString()}');
+      print('API_ENDPOINT: $apiEndpoint');
+
     });
 
     return StreamBuilder(
@@ -310,7 +320,7 @@ Widget build(BuildContext context) {
       ]);
     },
       home: (auth0Provider.credentials != null
-          ? BiometricsCheckScreen()
+          ? TabsPage(key: tabsPageKey) //bring back biometrics check
           : Auth0Service(auth0Provider: auth0Provider)),
     );
 }
