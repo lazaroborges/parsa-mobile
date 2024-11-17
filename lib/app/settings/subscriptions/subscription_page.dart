@@ -134,15 +134,22 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
       print('Processing purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}');
 
-      if (purchaseDetails.status == PurchaseStatus.purchased) {
-        _verifyAndDeliverPurchase(purchaseDetails);
-      } else if (purchaseDetails.status == PurchaseStatus.restored) {
-        _updateSubscriptionStatus(purchaseDetails.productID);
-      } else if (purchaseDetails.status == PurchaseStatus.error) {
-        print('Purchase error: ${purchaseDetails.error}');
-        setState(() {
-          _error = purchaseDetails.error?.message ?? 'Purchase Error';
-        });
+      switch (purchaseDetails.status) {
+        case PurchaseStatus.purchased:
+          _verifyAndDeliverPurchase(purchaseDetails, 'successful');
+          break;
+        case PurchaseStatus.pending:
+          _handlePendingPurchase(purchaseDetails);
+          break;
+        case PurchaseStatus.restored:
+          _verifyAndDeliverPurchase(purchaseDetails, 'restored');
+          break;
+        case PurchaseStatus.error:
+          _handleErrorPurchase(purchaseDetails);
+          break;
+        default:
+          _handleUnknownPurchase(purchaseDetails);
+          break;
       }
 
       if (purchaseDetails.pendingCompletePurchase) {
@@ -163,7 +170,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     });
   }
 
-  Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails) async {
+  Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails, String status) async {
     if ((purchaseDetails.productID == 'premium_monthly' && hasMonthlySubscription) ||
         (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
       return;
@@ -171,23 +178,97 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
     print('Starting purchase verification...');
     
-    // Update subscription status immediately
-    _updateSubscriptionStatus(purchaseDetails.productID);
+    // Update subscription status immediately if successful
+    if (status == 'successful') {
+      _updateSubscriptionStatus(purchaseDetails.productID);
+      
+      // Show success message to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Assinatura realizada com sucesso!')),
+      );
+    }
+
+    // Call the server with the appropriate status
+    try {
+      String mobilePurchaseStatus = status;
+
+      await PostSubscriptions.verifyPurchase(
+        purchaseDetails,
+        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+        mobilePurchaseStatus, // Pass the status
+      );
+    } catch (e) {
+      print('Failed to sync purchase with server: $e');
+      // Optionally handle the failure
+    }
+  }
+
+  Future<void> _handlePendingPurchase(PurchaseDetails purchaseDetails) async {
+    print('Purchase is pending for ${purchaseDetails.productID}');
     
-    // Show success message to user
+    // Optionally show a pending UI to the user
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Assinatura realizada com sucesso!')),
+      SnackBar(content: Text('Sua compra está pendente.')),
     );
 
-    // Try to sync with server, but don't wait for it
+    // Send the pending status to the server
     try {
       await PostSubscriptions.verifyPurchase(
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+        'pending',
       );
     } catch (e) {
-      print('Failed to sync purchase with server: $e');
-      // Don't show error to user or revert subscription status
+      print('Failed to sync pending purchase with server: $e');
+      // Optionally handle the failure
+    }
+  }
+
+  Future<void> _handleErrorPurchase(PurchaseDetails purchaseDetails) async {
+    print('Purchase error: ${purchaseDetails.error}');
+    setState(() {
+      _error = purchaseDetails.error?.message ?? 'Purchase Error';
+    });
+
+    // Determine if the error is a rejection
+    String mobilePurchaseStatus;
+    if (purchaseDetails.error?.code == 'some_rejected_code') {
+      mobilePurchaseStatus = 'rejected';
+    } else {
+      mobilePurchaseStatus = 'failed';
+    }
+
+    // Send the error status to the server
+    try {
+      await PostSubscriptions.verifyPurchase(
+        purchaseDetails,
+        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+        mobilePurchaseStatus,
+      );
+    } catch (e) {
+      print('Failed to sync error purchase with server: $e');
+      // Optionally handle the failure
+    }
+  }
+
+  Future<void> _handleUnknownPurchase(PurchaseDetails purchaseDetails) async {
+    print('Unknown purchase status for ${purchaseDetails.productID}');
+    
+    // Treat it as failed
+    setState(() {
+      _error = 'Compra desconhecida.';
+    });
+
+    // Send the failed status to the server
+    try {
+      await PostSubscriptions.verifyPurchase(
+        purchaseDetails,
+        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+        'failed',
+      );
+    } catch (e) {
+      print('Failed to sync unknown purchase with server: $e');
+      // Optionally handle the failure
     }
   }
 
@@ -199,7 +280,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         productDetails: product,
       );
       
-      // For subscriptions, always use buyNonConsumable
+      // For subscriptions, use buyNonConsumable or buySubscription as appropriate
       final bool success = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );

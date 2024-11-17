@@ -7,6 +7,7 @@ class PostSubscriptions {
   static Future<bool> verifyPurchase(
     PurchaseDetails purchaseDetails,
     String platform,
+    String mobilePurchaseStatus,
   ) async {
     try {
       final auth0Provider = Auth0Provider.instance;
@@ -25,16 +26,16 @@ class PostSubscriptions {
         body: json.encode({
           'purchaseId': purchaseDetails.purchaseID,
           'subscription_id': purchaseDetails.productID,
-          'is_finished': purchaseDetails.status,
           'verificationData': purchaseDetails.verificationData.serverVerificationData,
           'device_type': platform,
-          'receipt_data': receiptData,
+          'mobilePurchaseStatus': mobilePurchaseStatus,
         }),
       );
 
       return response.statusCode == 200;
     } catch (e) {
       print('Error Pushing the purchase to the server: $e');
+      // In case of failure, you might want to send 'failed' status
       return false;
     }
   }
