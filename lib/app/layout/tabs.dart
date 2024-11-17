@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/api/api_login.dart';
 
-/// This page is the entry point of the app once the user has complete onboarding
+// This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
   const TabsPage({super.key});
 

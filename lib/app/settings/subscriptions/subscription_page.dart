@@ -1,15 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'dart:developer' as developer;
-import 'package:parsa/main.dart';
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/api/post_methods/post_subscriptions.dart';
+
 
 class PremiumWidget extends StatefulWidget {
   @override
@@ -33,21 +30,29 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   // Add a new flag to track restoration
   bool _isRestoringPurchases = false;
 
+  // **New: Track processed purchases**
+  final Set<String> _processedPurchases = <String>{};
+
   @override
   void initState() {
     super.initState();
+
+    // Set up the purchase stream listener before initializing the store
+    _inAppPurchase.purchaseStream.listen(
+      _listenToPurchaseUpdated,
+      onDone: () {
+        print('Purchase stream completed.');
+      },
+      onError: (error) {
+        print('Purchase stream error: $error');
+        setState(() {
+          _error = 'Purchase stream error: $error';
+        });
+      },
+    );
+
+    // Initialize the store
     _initializeStore();
-    _inAppPurchase.purchaseStream.listen((purchaseDetailsList) {
-      print('Received purchase stream update.');
-      _listenToPurchaseUpdated(purchaseDetailsList);
-    }, onDone: () {
-      print('Purchase stream completed.');
-    }, onError: (error) {
-      print('Purchase stream error: $error');
-      setState(() {
-        _error = 'Purchase stream error: $error';
-      });
-    });
   }
 
   Future<void> _initializeStore() async {
@@ -65,7 +70,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         return;
       }
 
-      // Define all product IDs
+      // Define all product IDs - Make sure these match EXACTLY with Play Console/App Store
       const Set<String> productIds = {
         'premium_monthly',
         'premium_yearly',
@@ -79,15 +84,9 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       print('Products found: ${response.productDetails.length}');
       print('Not found IDs: ${response.notFoundIDs}');
       print('Error: ${response.error?.message}');
-      
-      if (response.productDetails.isNotEmpty) {
-        print('=== PRODUCT DETAILS ===');
-        for (var product in response.productDetails) {
-          print('ID: ${product.id}');
-          print('Title: ${product.title}');
-          print('Description: ${product.description}');
-          print('Price: ${product.price}');
-        }
+
+      if (response.notFoundIDs.isNotEmpty) {
+        print('WARNING: Some products were not found: ${response.notFoundIDs}');
       }
 
       setState(() {
@@ -123,91 +122,72 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
     print('Purchase updated: ${purchaseDetailsList.length} purchases');
-    
-    // Create a Set to track processed purchase IDs
-    final processedPurchases = <String>{};
-    
+
     for (var purchaseDetails in purchaseDetailsList) {
-      // Skip if we've already processed this purchase
-      if (processedPurchases.contains(purchaseDetails.purchaseID)) {
+      final purchaseId = purchaseDetails.purchaseID ?? '';
+      
+      if (_processedPurchases.contains(purchaseId)) {
+        print('Purchase $purchaseId already processed.');
         continue;
       }
-      processedPurchases.add(purchaseDetails.purchaseID ?? '');
-      
-      print('Purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}');
-      
-      if (purchaseDetails.status == PurchaseStatus.purchased ||
-          purchaseDetails.status == PurchaseStatus.restored) {
+      _processedPurchases.add(purchaseId);
+
+      print('Processing purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}');
+
+      if (purchaseDetails.status == PurchaseStatus.purchased) {
         _verifyAndDeliverPurchase(purchaseDetails);
+      } else if (purchaseDetails.status == PurchaseStatus.restored) {
+        _updateSubscriptionStatus(purchaseDetails.productID);
       } else if (purchaseDetails.status == PurchaseStatus.error) {
         print('Purchase error: ${purchaseDetails.error}');
         setState(() {
           _error = purchaseDetails.error?.message ?? 'Purchase Error';
         });
       }
-      
+
       if (purchaseDetails.pendingCompletePurchase) {
         _inAppPurchase.completePurchase(purchaseDetails);
       }
     }
   }
 
+  void _updateSubscriptionStatus(String? productId) {
+    setState(() {
+      if (productId == 'premium_monthly') {
+        hasMonthlySubscription = true;
+        selectedPlan = null;
+      } else if (productId == 'premium_yearly') {
+        hasYearlySubscription = true;
+        selectedPlan = null;
+      }
+    });
+  }
+
   Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails) async {
-    // Skip verification if subscription is already active for this product
     if ((purchaseDetails.productID == 'premium_monthly' && hasMonthlySubscription) ||
         (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
       return;
     }
 
     print('Starting purchase verification...');
-    print('Purchase ID: ${purchaseDetails.purchaseID}');
-    print('Verification Data: ${purchaseDetails.verificationData.serverVerificationData}');
+    
+    // Update subscription status immediately
+    _updateSubscriptionStatus(purchaseDetails.productID);
+    
+    // Show success message to user
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Assinatura realizada com sucesso!')),
+    );
+
+    // Try to sync with server, but don't wait for it
     try {
-      // Get credentials using Auth0Provider
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
-      
-      if (credentials == null) {
-        throw Exception('No authentication credentials available');
-      }
-
-      final response = await http.post(
-        Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/subscription/'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${credentials.accessToken}',
-        },
-        body: json.encode({
-          'purchaseId': purchaseDetails.purchaseID,
-          'verificationData': purchaseDetails.verificationData.serverVerificationData,
-          'platform': Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        }),
+      await PostSubscriptions.verifyPurchase(
+        purchaseDetails,
+        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
       );
-
-      if (response.statusCode == 200) {
-        // Update the subscription status in the state
-        setState(() {
-          if (purchaseDetails.productID == 'premium_monthly') {
-            hasMonthlySubscription = true;
-            selectedPlan = null; // Reset selected plan
-          } else if (purchaseDetails.productID == 'premium_yearly') {
-            hasYearlySubscription = true;
-            selectedPlan = null; // Reset selected plan
-          }
-        });
-        // Optionally, show a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Assinatura realizada com sucesso!')),
-        );
-      } else {
-        setState(() {
-          _error = 'Failed to validate purchase';
-        });
-      }
     } catch (e) {
-      setState(() {
-        _error = 'Error verifying purchase: $e';
-      });
+      print('Failed to sync purchase with server: $e');
+      // Don't show error to user or revert subscription status
     }
   }
 
@@ -219,17 +199,22 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         productDetails: product,
       );
       
-      if (product.id.startsWith('premium')) {
-        developer.log('Buying non-consumable product');
-        await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
-      } else {
-        developer.log('Buying consumable product');
-        await _inAppPurchase.buyConsumable(purchaseParam: purchaseParam);
+      // For subscriptions, always use buyNonConsumable
+      final bool success = await _inAppPurchase.buyNonConsumable(
+        purchaseParam: purchaseParam,
+      );
+      
+      developer.log('Purchase initiation result: $success');
+      
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível iniciar a compra. Tente novamente.')),
+        );
       }
     } catch (e, stackTrace) {
       developer.log('Purchase error', error: e, stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to process purchase: $e')),
+        SnackBar(content: Text('Falha ao processar a compra. Tente novamente.')),
       );
     }
   }
@@ -241,8 +226,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
     // Determine if the purchase button should be enabled
     bool isPurchaseButtonEnabled = selectedPlan != null &&
-        !((hasMonthlySubscription && selectedPlan == 'premium_monthly') ||
-          hasYearlySubscription);
+        !((selectedPlan == 'premium_monthly' && hasMonthlySubscription) ||
+          (selectedPlan == 'premium_yearly' && hasYearlySubscription));
 
     return Scaffold(
       body: _isLoading

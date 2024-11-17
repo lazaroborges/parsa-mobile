@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 
-class SubscriptionService {
+class PostSubscriptions {
   static Future<bool> verifyPurchase(
     PurchaseDetails purchaseDetails,
     String platform,
@@ -17,21 +17,24 @@ class SubscriptionService {
       }
 
       final response = await http.post(
-        Uri.parse('https://naturally-creative-boxer.ngrok-free.app/api/subscription/'),
+        Uri.parse('https://naturally-creative-boxer.ngrok-free.app/subscriptions/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${credentials.accessToken}',
         },
         body: json.encode({
           'purchaseId': purchaseDetails.purchaseID,
+          'subscription_id': purchaseDetails.productID,
+          'is_finished': purchaseDetails.status,
           'verificationData': purchaseDetails.verificationData.serverVerificationData,
-          'platform': platform,
+          'device_type': platform,
+          'receipt_data': receiptData,
         }),
       );
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error verifying purchase: $e');
+      print('Error Pushing the purchase to the server: $e');
       return false;
     }
   }
