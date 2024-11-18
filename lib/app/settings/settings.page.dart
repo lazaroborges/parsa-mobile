@@ -5,6 +5,7 @@ import 'package:parsa/app/budgets/budgets_page.dart';
 import 'package:parsa/app/settings/about_page.dart';
 import 'package:parsa/app/settings/appearance_settings_page.dart';
 import 'package:parsa/app/settings/backup_settings_page.dart';
+import 'package:parsa/app/settings/subscriptions/can.dart';
 import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
 
 import 'package:parsa/app/settings/widgets/setting_card_item.dart';
@@ -77,8 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: t.more.subscribe.description,
                     icon: Icons.subscriptions,
                     mainAxis: Axis.horizontal,
-                    onTap: () =>
-                        RouteUtils.pushRoute(context,  PremiumWidget()),
+                      onTap: () => ServerHealthCheck.checkServerHealthAndNavigate(context),
                   ),
                   //bring back the donate button
                   if (BreakPoint.of(context)
