@@ -481,26 +481,26 @@ Future<void> _refreshData() async {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                t.home.total_balance,
-                style: Theme.of(context).textTheme.labelSmall!,
-              ),
-              const SizedBox(width: 4),
-              Tooltip(
-                message: t.home.total_balance_tooltip,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+          Tooltip(
+            message: t.home.total_balance_tooltip,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  t.home.total_balance,
+                  style: Theme.of(context).textTheme.labelSmall!,
+                ),
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.all(0),
                   child: Icon(
                     Icons.info_outline,
                     size: 14,
                     color: Theme.of(context).textTheme.labelSmall!.color,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           if (!accounts.hasData) ...[
             const Skeleton(width: 70, height: 40),
