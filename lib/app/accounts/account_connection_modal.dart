@@ -193,12 +193,12 @@ class AccountConnectionModal extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: ShapeDecoration(
-          color: Colors.white, // Use appropriate background color
+          color: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(
+            side: BorderSide(
               width: 1,
-              color: Color.fromARGB(161, 37, 114, 237),
+              color: Colors.blue.shade200,
             ),
           ),
           shadows: [

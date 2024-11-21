@@ -418,13 +418,13 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                         decoration: ShapeDecoration(
                                           color: hasMonthlySubscription
                                               ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_monthly' ? Color(0xFFF9F5FF) : Colors.white),
+                                              : (selectedPlan == 'premium_monthly' ? Colors.blue.shade50 : Colors.white),
                                           shape: RoundedRectangleBorder(
                                             side: BorderSide(
                                               width: 1,
                                               color: hasMonthlySubscription
                                                   ? Colors.grey
-                                                  : (selectedPlan == 'premium_monthly' ? Color(0xFFD6BBFB) : Color(0xFFE4E7EC)),
+                                                  : (selectedPlan == 'premium_monthly' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
                                             ),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
@@ -437,7 +437,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly' ? Color(0xFF52379E) : Color(0xFF344053)),
+                                                    : (selectedPlan == 'premium_monthly' ? Colors.blue.shade700 : Color(0xFF344053)),
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -447,7 +447,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly' ? Color(0xFF7E56D8) : Color(0xFF667084)),
+                                                    : (selectedPlan == 'premium_monthly' ? Colors.blue.shade600 : Color(0xFF667084)),
                                                 fontSize: 14,
                                               ),
                                             ),
@@ -467,13 +467,13 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                         decoration: ShapeDecoration(
                                           color: hasYearlySubscription
                                               ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_yearly' ? Color(0xFFF9F5FF) : Colors.white),
+                                              : (selectedPlan == 'premium_yearly' ? Colors.blue.shade50 : Colors.white),
                                           shape: RoundedRectangleBorder(
                                             side: BorderSide(
                                               width: 1,
                                               color: hasYearlySubscription
                                                   ? Colors.grey
-                                                  : (selectedPlan == 'premium_yearly' ? Color(0xFFD6BBFB) : Color(0xFFE4E7EC)),
+                                                  : (selectedPlan == 'premium_yearly' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
                                             ),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
@@ -493,7 +493,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                                           style: TextStyle(
                                                             color: hasYearlySubscription
                                                                 ? Colors.grey
-                                                                : (selectedPlan == 'premium_yearly' ? Color(0xFF52379E) : Color(0xFF344053)),
+                                                                : (selectedPlan == 'premium_yearly' ? Colors.blue.shade700 : Color(0xFF344053)),
                                                             fontSize: 14,
                                                             fontWeight: FontWeight.w500,
                                                           ),
@@ -503,7 +503,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                                           style: TextStyle(
                                                             color: hasYearlySubscription
                                                                 ? Colors.grey
-                                                                : (selectedPlan == 'premium_yearly' ? Color(0xFF7E56D8) : Color(0xFF667084)),
+                                                                : (selectedPlan == 'premium_yearly' ? Colors.blue.shade600 : Color(0xFF667084)),
                                                             fontSize: 14,
                                                             fontWeight: FontWeight.w400,
                                                           ),
@@ -517,7 +517,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                                     style: TextStyle(
                                                       color: hasYearlySubscription
                                                           ? Colors.grey
-                                                          : (selectedPlan == 'premium_yearly' ? Color(0xFF7E56D8) : Color(0xFF667084)),
+                                                          : (selectedPlan == 'premium_yearly' ? Colors.blue.shade600 : Color(0xFF667084)),
                                                       fontSize: 14,
                                                     ),
                                                   ),
