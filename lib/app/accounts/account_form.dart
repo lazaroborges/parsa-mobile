@@ -246,26 +246,26 @@ class _AccountFormPageState extends State<AccountFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconAndColorSelector(
-                  iconSelectorModalSubtitle:
-                      t.icon_selector.select_account_icon,
-                  iconDisplayer: IconDisplayer(
-                    supportedIcon: _icon,
-                    size: 36,
-                    isOutline: true,
-                    outlineWidth: 1.5,
-                    mainColor: _color.lighten(0.82),
-                    secondaryColor: _color,
-                    displayMode: IconDisplayMode.polygon,
-                  ),
-                  onDataChange: ((data) {
-                    setState(() {
-                      _icon = data.icon;
-                      _color = data.color;
-                    });
-                  }),
-                  data: (color: _color, icon: _icon),
-                ),
+                // IconAndColorSelector(
+                //   iconSelectorModalSubtitle:
+                //       t.icon_selector.select_account_icon,
+                //   iconDisplayer: IconDisplayer(
+                //     supportedIcon: _icon,
+                //     size: 36,
+                //     isOutline: true,
+                //     outlineWidth: 1.5,
+                //     mainColor: _color.lighten(0.82),
+                //     secondaryColor: _color,
+                //     displayMode: IconDisplayMode.polygon,
+                //   ),
+                //   onDataChange: ((data) {
+                //     setState(() {
+                //       _icon = data.icon;
+                //       _color = data.color;
+                //     });
+                //   }),
+                //   data: (color: _color, icon: _icon),
+                // ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,

@@ -585,7 +585,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                                       moreInfo.transferAccount!.currency.symbol,
                                   decimalDigits:
                                       _valueInDestinyOrDefault % 1 == 0 ? 0 : 2,
-                                ).format(_valueInDestinyOrDefault)} a cuenta de destino')),
+                                ).format(_valueInDestinyOrDefault)} para a conta de destino')),
                           if (transactionType == TransactionType.E &&
                                   !transactionAmount.isNegative ||
                               transactionType == TransactionType.I &&

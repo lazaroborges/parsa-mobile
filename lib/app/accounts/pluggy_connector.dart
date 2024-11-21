@@ -70,7 +70,7 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
     return _connectToken.isEmpty
         ? Center(child: CircularProgressIndicator())
         : PluggyConnect(
-            includeSandbox: true,
+            includeSandbox: false,
             onSuccess: (data) {
               print('Success');
               ScaffoldMessenger.of(context).showSnackBar(

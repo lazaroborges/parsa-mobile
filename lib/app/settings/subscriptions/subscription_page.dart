@@ -185,12 +185,19 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   }
 
   Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails, String status) async {
+    // Early return if already processed this specific purchase
+    final purchaseId = purchaseDetails.purchaseID;
+    if (purchaseId == null || _processedPurchases.contains(purchaseId)) {
+      print('Purchase already processed: $purchaseId');
+      return;
+    }
+
     if ((purchaseDetails.productID == 'premium_monthly' && hasMonthlySubscription) ||
         (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
       return;
     }
 
-    print('Starting purchase verification...');
+    print('Starting purchase verification for $purchaseId...');
     
     // Update subscription status immediately if successful
     if (status == 'successful') {
@@ -209,11 +216,14 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       await PostSubscriptions.sendPurchaseToServerPOST(
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        mobilePurchaseStatus, // Pass the status
+        mobilePurchaseStatus,
       );
+
+      // Mark as processed only after successful server sync
+      _processedPurchases.add(purchaseId);
     } catch (e) {
       print('Failed to sync purchase with server: $e');
-      // Optionally handle the failure
+      // Don't mark as processed if server sync fails
     }
   }
 
@@ -569,6 +579,30 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                   ),
                                 ),
                                 const SizedBox(height: 16), // Adjusted spacing
+                                // Available Banks List
+                                SizedBox(
+                                  width: 338,
+                                  child: Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        
+                                        TextSpan(
+                                          text: 'Lista de Bancos Disponíveis para Integração',
+                                          style: TextStyle(
+                                            color: Color(0xFF475466),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/bancos')),
+                                        ),
+                                      ],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
                                 // Terms and Privacy Policy
                                 SizedBox(
                                   width: 338,

@@ -22,9 +22,9 @@ class PostUserTransactionService {
     final Category? category = await categoryStream.first;
 
     // Print the category name or a default value if null
-    print("CATEGORY NAME: ${category?.name ?? 'Unknown Category'}");
+    print("CATEGORY NAME: ${category?.name ?? 'Outros'}");
 
-    String categoryName = category?.name ?? 'Unknown Category';
+    String categoryName = category?.name ?? 'Outros';
 
     // Serialize the transaction with the category name and tags
     final Map<String, dynamic> transactionJson = {

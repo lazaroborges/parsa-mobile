@@ -207,7 +207,7 @@
         "good": "Parabéns! Você conseguiu economizar <b>{{value}}%</b> da sua renda durante este período. Parece que você já é um especialista, continue assim!",
         "normal": "Parabéns, você conseguiu economizar <b>{{value}}%</b> da sua renda durante este período.",
         "bad": "Você conseguiu economizar <b>{{value}}%</b> da sua renda durante este período. No entanto, achamos que você ainda pode fazer muito mais!",
-        "very_bad": "Uau, você não conseguiu economizar nada durante este período."
+        "very_bad": "Você não conseguiu economizar nada durante este período."
       },
       "suggestion": "Lembre-se de que é aconselhável economizar pelo menos 15-20% do que você ganha."
     }

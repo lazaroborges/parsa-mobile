@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 600
 ///
-/// Built on 2024-11-11 at 23:32 UTC
+/// Built on 2024-11-20 at 23:54 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1431,7 +1431,7 @@ class _TranslationsFinancialHealthSavingsPercentageTextPt {
 	String good({required Object value}) => 'Parabéns! Você conseguiu economizar <b>${value}%</b> da sua renda durante este período. Parece que você já é um especialista, continue assim!';
 	String normal({required Object value}) => 'Parabéns, você conseguiu economizar <b>${value}%</b> da sua renda durante este período.';
 	String bad({required Object value}) => 'Você conseguiu economizar <b>${value}%</b> da sua renda durante este período. No entanto, achamos que você ainda pode fazer muito mais!';
-	String get very_bad => 'Uau, você não conseguiu economizar nada durante este período.';
+	String get very_bad => 'Você não conseguiu economizar nada durante este período.';
 }
 
 // Path: transaction.list.bulk_edit
@@ -1763,7 +1763,7 @@ extension on Translations {
 			case 'financial_health.savings_percentage.text.good': return ({required Object value}) => 'Parabéns! Você conseguiu economizar <b>${value}%</b> da sua renda durante este período. Parece que você já é um especialista, continue assim!';
 			case 'financial_health.savings_percentage.text.normal': return ({required Object value}) => 'Parabéns, você conseguiu economizar <b>${value}%</b> da sua renda durante este período.';
 			case 'financial_health.savings_percentage.text.bad': return ({required Object value}) => 'Você conseguiu economizar <b>${value}%</b> da sua renda durante este período. No entanto, achamos que você ainda pode fazer muito mais!';
-			case 'financial_health.savings_percentage.text.very_bad': return 'Uau, você não conseguiu economizar nada durante este período.';
+			case 'financial_health.savings_percentage.text.very_bad': return 'Você não conseguiu economizar nada durante este período.';
 			case 'financial_health.savings_percentage.suggestion': return 'Lembre-se de que é aconselhável economizar pelo menos 15-20% do que você ganha.';
 			case 'stats.title': return 'Insights';
 			case 'stats.balance': return 'Saldo';
