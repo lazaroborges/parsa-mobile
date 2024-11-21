@@ -185,19 +185,12 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   }
 
   Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails, String status) async {
-    // Early return if already processed this specific purchase
-    final purchaseId = purchaseDetails.purchaseID;
-    if (purchaseId == null || _processedPurchases.contains(purchaseId)) {
-      print('Purchase already processed: $purchaseId');
-      return;
-    }
-
     if ((purchaseDetails.productID == 'premium_monthly' && hasMonthlySubscription) ||
         (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
       return;
     }
 
-    print('Starting purchase verification for $purchaseId...');
+    print('Starting purchase verification...');
     
     // Update subscription status immediately if successful
     if (status == 'successful') {
@@ -216,14 +209,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       await PostSubscriptions.sendPurchaseToServerPOST(
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        mobilePurchaseStatus,
+        mobilePurchaseStatus, // Pass the status
       );
-
-      // Mark as processed only after successful server sync
-      _processedPurchases.add(purchaseId);
     } catch (e) {
       print('Failed to sync purchase with server: $e');
-      // Don't mark as processed if server sync fails
+      // Optionally handle the failure
     }
   }
 
@@ -562,7 +552,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                           }
                                         : null,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF7E56D8),
+                                      backgroundColor: Colors.blue.shade700,
                                       padding: const EdgeInsets.symmetric(vertical: 14),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
@@ -585,9 +575,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                   child: Text.rich(
                                     TextSpan(
                                       children: [
-                                        
                                         TextSpan(
-                                          text: 'Lista de Bancos Disponíveis para Integração',
+                                          text: 'Lista de Bancos Disponíveis para Integração.',
                                           style: TextStyle(
                                             color: Color(0xFF475466),
                                             fontSize: 14,
