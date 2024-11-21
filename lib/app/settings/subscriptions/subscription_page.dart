@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:parsa/app/settings/subscriptions/success_page.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter/services.dart';
 import 'dart:developer' as developer;
@@ -200,6 +201,13 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Assinatura realizada com sucesso!')),
       );
+
+      // Navigate to success page
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => SubscriptionSuccessPage(), // Replace SuccessWidget with your actual widget
+        ),
+      );
     }
 
     // Call the server with the appropriate status
@@ -209,11 +217,10 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       await PostSubscriptions.sendPurchaseToServerPOST(
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        mobilePurchaseStatus, // Pass the status
+        mobilePurchaseStatus,
       );
     } catch (e) {
       print('Failed to sync purchase with server: $e');
-      // Optionally handle the failure
     }
   }
 
