@@ -197,6 +197,9 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
     print('Starting purchase verification...');
     
+    // Store platform before any potential unmounting
+    final String platform = 'ios';
+
     // Update subscription status immediately if successful
     if (status == 'successful') {
       _updateSubscriptionStatus(purchaseDetails.productID);
@@ -209,9 +212,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       // Navigate to success page
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => SubscriptionSuccessPage(), // Replace SuccessWidget with your actual widget
+          builder: (context) => SubscriptionSuccessPage(),
         ),
       );
+
+      // After this point, the widget is unmounted
     }
 
     // Call the server with the appropriate status
@@ -220,7 +225,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
       await PostSubscriptions.sendPurchaseToServerPOST(
         purchaseDetails,
-        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+        platform,
         mobilePurchaseStatus,
       );
     } catch (e) {
@@ -347,7 +352,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         );
       }
     } catch (e, stackTrace) {
-      developer.log('Purchase error', error: e, stackTrace: stackTrace);
+      print('----------Purchase error: $e');
+      print('----Stack trace: $stackTrace');
       
       // Remove from processed purchases to allow retry
       _processedPurchases.removeWhere((purchaseId) => 
