@@ -39,7 +39,7 @@ class SubscriptionSuccessPage extends StatelessWidget {
               
               // Description
               Text(
-                'Parabéns! Agora você tem acesso a todas as funcionalidades premium do Parsa. Que tal começar conectando sua primeira conta bancária?',
+                'Parabéns! Agora você tem acesso a todas as funcionalidades Premium do Parsa. Que tal começar conectando sua primeira conta bancária?',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),

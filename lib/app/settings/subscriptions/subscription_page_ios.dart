@@ -252,9 +252,23 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   }
 
   Future<void> _handleErrorPurchase(PurchaseDetails purchaseDetails) async {
+    // Remove the purchase from processed set to allow retry
+    _processedPurchases.remove(purchaseDetails.purchaseID);
+    
     setState(() {
       _error = purchaseDetails.error?.message ?? 'Purchase Error';
     });
+
+    // Show error message with retry option
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Falha na compra. Tente novamente.'),
+        action: SnackBarAction(
+          label: 'Tentar Novamente',
+          onPressed: () => _cleanupPurchases(),
+        ),
+      ),
+    );
 
     // Determine if the error is a rejection
     String mobilePurchaseStatus;
@@ -301,28 +315,52 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   Future<void> _buySubscription(ProductDetails product) async {
     try {
-      developer.log('Initiating purchase for product: ${product.id}');
+      // Remove any previous purchase attempts for this product
+      _processedPurchases.removeWhere((purchaseId) => 
+        purchaseId.contains(product.id));
       
+      developer.log('Initiating purchase for product: ${product.id}');
+
       final PurchaseParam purchaseParam = PurchaseParam(
         productDetails: product,
       );
-      
-      // For subscriptions, use buyNonConsumable or buySubscription as appropriate
+
       final bool success = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
-      
+
       developer.log('Purchase initiation result: $success');
-      
+
       if (!success) {
+        // Remove from processed purchases to allow retry
+        _processedPurchases.removeWhere((purchaseId) => 
+          purchaseId.contains(product.id));
+          
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível iniciar a compra. Tente novamente.')),
+          SnackBar(
+            content: Text('Não foi possível iniciar a compra.'),
+            action: SnackBarAction(
+              label: 'Tentar Novamente',
+              onPressed: () => _cleanupPurchases(),
+            ),
+          ),
         );
       }
     } catch (e, stackTrace) {
       developer.log('Purchase error', error: e, stackTrace: stackTrace);
+      
+      // Remove from processed purchases to allow retry
+      _processedPurchases.removeWhere((purchaseId) => 
+        purchaseId.contains(product.id));
+        
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao processar a compra. Tente novamente.')),
+        SnackBar(
+          content: Text('Falha ao processar a compra.'),
+          action: SnackBarAction(
+            label: 'Tentar Novamente',
+            onPressed: () => _cleanupPurchases(),
+          ),
+        ),
       );
     }
   }
@@ -341,6 +379,31 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     return 'R\$${monthlyPrice.toStringAsFixed(2).replaceAll('.', ',')}/mês';
   }
 
+  // Add this method to clean up purchases
+  Future<void> _cleanupPurchases() async {
+    try {
+      // Clear processed purchases set
+      _processedPurchases.clear();
+      
+      // Reset error state
+      setState(() {
+        _error = null;
+        _isLoading = true;
+      });
+
+      // Cancel any existing subscriptions
+      final Stream<List<PurchaseDetails>> purchaseUpdated = 
+          InAppPurchase.instance.purchaseStream;
+      await purchaseUpdated.drain(); // Clear existing purchase stream
+      
+      // Reinitialize the store
+      await _initializeStore();
+      
+    } catch (e) {
+      print('Error cleaning up purchases: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -352,12 +415,46 @@ class _PremiumWidgetState extends State<PremiumWidget> {
           (selectedPlan == 'premium_yearly' && hasYearlySubscription));
 
     return Scaffold(
-      body: _isLoading
+      appBar: AppBar(
+        // ... other AppBar properties ...
+        actions: [
+          if (_error != null || _products.isEmpty)
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: _cleanupPurchases,
+            ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _cleanupPurchases,
+        child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_error!),
+                      ElevatedButton(
+                        onPressed: _cleanupPurchases,
+                        child: Text('Tentar Novamente'),
+                      ),
+                    ],
+                  ),
+                )
               : _products.isEmpty
-                  ? Center(child: Text(t.more.subscribe.no_plans_available))
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(t.more.subscribe.no_plans_available),
+                          ElevatedButton(
+                            onPressed: _cleanupPurchases,
+                            child: Text('Recarregar'),
+                          ),
+                        ],
+                      ),
+                    )
                   : SingleChildScrollView(
                       child: Column(
                         children: [
@@ -678,6 +775,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                         ],
                       ),
                     ),
+      ),
     );
   }
 }

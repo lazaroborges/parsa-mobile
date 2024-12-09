@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/i18n/translations.g.dart';
 import 'pluggy_connector.dart';
 import 'account_form.dart';
+import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
 
 class AccountConnectionModal extends StatelessWidget {
   const AccountConnectionModal({Key? key}) : super(key: key);
@@ -128,9 +130,20 @@ class AccountConnectionModal extends StatelessWidget {
                                 // Show the error message in a SnackBar
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
+                                    duration: const Duration(seconds: 4),
                                     content: Text(errorMessage),
                                   ),
                                 );
+
+                                // If error code is 0 (not subscribed), navigate to subscription page
+                                if (errorMessage == t.account.connection_errors.not_subscribed) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PremiumWidget(),
+                                    ),
+                                  );
+                                }
                               }
                             },
                             image: Container(

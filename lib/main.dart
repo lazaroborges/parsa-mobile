@@ -320,7 +320,7 @@ Widget build(BuildContext context) {
       ]);
     },
       home: (auth0Provider.credentials != null
-          ? TabsPage(key: tabsPageKey) //bring back biometrics check
+          ? BiometricsCheckScreen() //bring back biometrics check
           : Auth0Service(auth0Provider: auth0Provider)),
     );
 }

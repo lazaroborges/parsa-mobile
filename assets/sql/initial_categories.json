@@ -68,7 +68,7 @@
       {
         "icon": "call",
         "names": {
-          "pt": "Telefone"
+          "pt": "Serviços de Telecomunicação"
         }
       },
       {
@@ -81,6 +81,12 @@
         "icon": "bed",
         "names": {
           "pt": "Móveis e eletrodomésticos"
+        }
+      },
+      {
+        "icon": "home",
+        "names": {
+          "pt": "Serviços Domésticos"
         }
       },
       {
@@ -181,6 +187,13 @@
       {
         "icon": "receipt",
         "names": {
+          "pt": "Serviços"
+        }
+      },
+
+      {
+        "icon": "receipt",
+        "names": {
           "pt": "Impostos"
         }
       },
@@ -192,12 +205,6 @@
         }
       },
 
-      {
-        "icon": "credit_card",
-        "names": {
-          "pt": "Taxas de cartão de crédito"
-        }
-      },
 
       {
         "icon": "receipt_long",
@@ -205,6 +212,25 @@
           "pt": "Juros / Multas por Atraso"
         }
       },
+
+      {
+        "icon": "loan",
+        "names": {
+          "pt": "Empréstimos"
+        }
+      },
+      {
+        "icon": "home",
+        "names": {
+          "pt": "Seguros"
+        }
+      },
+      {
+        "icon": "receipt",
+        "names": {
+          "pt": "Pensão alimentícia"
+        }
+      },       
       {
         "icon": "home",
         "names": {
@@ -217,12 +243,7 @@
           "pt": "Financiamento de veículos"
         }
       },
-      {
-        "icon": "loan",
-        "names": {
-          "pt": "Empréstimos"
-        }
-      },
+     
   
       {
         "icon": "receipt",
@@ -237,23 +258,7 @@
         }
       },
 
-      {
-        "icon": "home",
-        "names": {
-          "pt": "Seguros"
-        }
-      },
-      {
-        "icon": "receipt",
-        "names": {
-          "pt": "Pensão alimentícia"
-        }
-      },       {
-        "icon": "receipt",
-        "names": {
-          "pt": "Serviços"
-        }
-      },
+
       {
         "icon": "call",
         "names": {
@@ -272,12 +277,7 @@
     "type": "E",
     "subcategories": [
 
- {
-        "icon": "library_books",
-        "names": {
-          "pt": "Educação"
-        }
-      },
+
 
       {
         "icon": "school",
@@ -322,6 +322,12 @@
       {
         "icon": "payments",
         "names": {
+          "pt": "Pro-labore"
+        }
+      },
+      {
+        "icon": "payments",
+        "names": {
           "pt": "Renda não-recorrente"
         }
       }
@@ -350,10 +356,18 @@
           "pt": "Aluguéis"
         }
       },
+
       {
-        "icon": "payments",
+        "icon": "candlestick",
         "names": {
-          "pt": "Pro-labore"
+          "pt": "Dividendos"
+        }
+      },
+
+      {
+        "icon": "savings",
+        "names": {
+          "pt": "Renda Variável"
         }
       }
     ]
@@ -380,35 +394,11 @@
           "pt": "Viagens"
         }
       },
-      {
-        "icon": "celebration",
-        "names": {
-          "pt": "Festas & Eventos"
-        }
-      },
-      {
-        "icon": "museum",
-        "names": {
-          "pt": "Pontos turísticos e eventos"
-        }
-      },
-
-      {
-        "icon": "sports_soccer",
-        "names": {
-          "pt": "Estádios e arenas"
-        }
-      },
-      {
-        "icon": "museum",
-        "names": {
-          "pt": "Museus e pontos turísticos"
-        }
-      },
+      
       {
         "icon": "movie",
         "names": {
-          "pt": "Cinema, Teatro e Concertos"
+          "pt": "Eventos e Cultura"
         }
       },
 
@@ -439,6 +429,12 @@
         "icon": "library_books",
         "names": {
           "pt": "Papelaria"
+        }
+      },
+      {
+        "icon": "shopping_cart",
+        "names": {
+          "pt": "Presentes"
         }
       },
       {
@@ -502,7 +498,7 @@
     "type": "E",
     "subcategories": [
       {
-        "icon": "specar_repair",
+        "icon": "car_repair",
         "names": {
           "pt": "Despesas Veículo Particular"
         }
@@ -513,22 +509,11 @@
           "pt": "Transporte Público"
         }
       },
+  
       {
-        "icon": "speed",
+        "icon": "local_taxi",
         "names": {
-          "pt": "Combustível"
-        }
-      },
-      {
-        "icon": "receipt_long",
-        "names": {
-          "pt": "Pedágios e estacionamento"
-        }
-      },
-      {
-        "icon": "receipt",
-        "names": {
-          "pt": "Impostos e seguro de carro"
+          "pt": "Táxi e transporte privado urbano"
         }
       },
       {
@@ -536,56 +521,9 @@
         "names": {
           "pt": "Transporte Áereo"
         }
-      },
-      {
-        "icon": "car_repair",
-        "names": {
-          "pt": "Manutenção"
-        }
-      },
-      {
-        "icon": "local_taxi",
-        "names": {
-          "pt": "Táxi e transporte privado urbano"
-        }
-      },
-     {
-        "icon": "gas_station",
-        "names": {
-          "pt": "Postos de gasolina"
-        }
-      },
-      {
-        "icon": "tram",
-        "names": {
-          "pt": "Transporte público"
-        }
-      },
-      {
-        "icon": "car_rental",
-        "names": {
-          "pt": "Aluguel de veículos"
-        }
-      },
-      {
-        "icon": "pedal",
-        "names": {
-          "pt": "Aluguel de bicicletas"
-        }
-      },
- 
-      {
-        "icon": "receipt",
-        "names": {
-          "pt": "Estacionamentos"
-        }
-      },
-      {
-        "icon": "receipt_long",
-        "names": {
-          "pt": "Multas de trânsito"
-        }
       }
+
+
     ]
   }, 
   {

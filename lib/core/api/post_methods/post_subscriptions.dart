@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/main.dart';
 
 class PostSubscriptions {
   static Future<bool> sendPurchaseToServerPOST(
@@ -45,7 +46,7 @@ class PostSubscriptions {
       }
 
       final response = await http.post(
-        Uri.parse('https://naturally-creative-boxer.ngrok-free.app/subscriptions/'),
+        Uri.parse('$apiEndpoint/subscriptions/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${credentials.accessToken}',

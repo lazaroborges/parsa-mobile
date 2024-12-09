@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 600
+/// Strings: 601
 ///
-/// Built on 2024-11-20 at 23:54 UTC
+/// Built on 2024-11-21 at 21:16 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1091,6 +1091,7 @@ class _TranslationsAccountConnectionErrorsPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+	String get not_subscribed => 'Você não está inscrito no plano Premium. Por favor, assine o plano Premium para conectar suas contas Via Open Finance.';
 	String get limit_reached => 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 	String get daily_limit_reached => 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
 	String get default_message => 'Não foi possível conectar no momento. Tente novamente mais tarde.';
@@ -1261,7 +1262,7 @@ class _TranslationsMoreSubscribePt {
 
 	// Translations
 	String get display => 'Assinatura';
-	String get description => 'Assine o Parsa para desbloquear todas as funcionalidades premium';
+	String get description => 'Assine o Parsa para desbloquear todas os recursos Premium.';
 	String get title => 'Assinatura Premium';
 	String get subscribe => 'Assinar';
 	String subscribe_for({required Object price}) => 'Assinar por ${price}';
@@ -1999,6 +2000,7 @@ extension on Translations {
 			case 'account.select.one': return 'Selecione uma conta';
 			case 'account.select.all': return 'Todas as contas';
 			case 'account.select.multiple': return 'Selecionar contas';
+			case 'account.connection_errors.not_subscribed': return 'Você não está inscrito no plano Premium. Por favor, assine o plano Premium para conectar suas contas Via Open Finance.';
 			case 'account.connection_errors.limit_reached': return 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 			case 'account.connection_errors.daily_limit_reached': return 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
 			case 'account.connection_errors.default_message': return 'Não foi possível conectar no momento. Tente novamente mais tarde.';
@@ -2184,7 +2186,7 @@ extension on Translations {
 			case 'more.data.delete_all_header2': return 'Último passo ⚠️⚠️';
 			case 'more.data.delete_all_message2': return 'Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?';
 			case 'more.subscribe.display': return 'Assinatura';
-			case 'more.subscribe.description': return 'Assine o Parsa para desbloquear todas as funcionalidades premium';
+			case 'more.subscribe.description': return 'Assine o Parsa para desbloquear todas os recursos Premium.';
 			case 'more.subscribe.title': return 'Assinatura Premium';
 			case 'more.subscribe.subscribe': return 'Assinar';
 			case 'more.subscribe.subscribe_for': return ({required Object price}) => 'Assinar por ${price}';

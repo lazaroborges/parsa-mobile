@@ -498,6 +498,7 @@
       "multiple": "Selecionar contas"
     },
     "CONNECTION_ERRORS": {
+      "not_subscribed": "Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.",
       "limit_reached": "Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.",
       "daily_limit_reached": "O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.",
       "default-message": "Não foi possível conectar no momento. Tente novamente mais tarde."
@@ -725,7 +726,7 @@
     },
     "SUBSCRIBE": {
       "display": "Assinatura",
-      "description": "Assine o Parsa para desbloquear todas as funcionalidades premium",
+      "description": "Assine o Parsa para desbloquear todas os recursos Premium.",
       "title": "Assinatura Premium",
       "subscribe": "Assinar",
       "subscribe_for": "Assinar por {{price}}",

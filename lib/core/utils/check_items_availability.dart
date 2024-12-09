@@ -20,6 +20,8 @@ Future<String?> checkItemAvailability(BuildContext context) async {
     },
   );
 
+  print(response.body);
+
   if (response.statusCode == 200) {
     final data = json.decode(response.body);
     if (data['available'] == true) {
@@ -28,6 +30,8 @@ Future<String?> checkItemAvailability(BuildContext context) async {
   } else if (response.statusCode == 403) {
     final data = json.decode(response.body);
     switch (data['code']) {
+      case '0':
+        return t.account.connection_errors.not_subscribed;
       case '4':
         return t.account.connection_errors.limit_reached;
       case '100':
