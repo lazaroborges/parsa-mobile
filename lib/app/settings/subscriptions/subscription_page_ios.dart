@@ -7,7 +7,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:parsa/core/api/post_methods/post_subscriptions.dart';
-
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 class PremiumWidget extends StatefulWidget {
   @override
@@ -16,53 +16,26 @@ class PremiumWidget extends StatefulWidget {
 
 class _PremiumWidgetState extends State<PremiumWidget> {
   String? selectedPlan;
-
-  // In-App Purchase variables
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   List<ProductDetails> _products = [];
   bool _isLoading = true;
   String? _error;
 
-  // Subscription status variables
-  String? activeSubscriptionProductId;
-  bool hasMonthlySubscription = false;
-  bool hasYearlySubscription = false;
-
-  // Add a new flag to track restoration
-  bool _isRestoringPurchases = false;
-
-  // **New: Track processed purchases**
-  final Set<String> _processedPurchases = <String>{};
-
   @override
   void initState() {
     super.initState();
-
-    // Set up the purchase stream listener before initializing the store
+    _initializeStore();
+    
     _inAppPurchase.purchaseStream.listen(
       _listenToPurchaseUpdated,
-      onDone: () {
-        print('Purchase stream completed.');
-      },
-      onError: (error) {
-        print('Purchase stream error: $error');
-        setState(() {
-          _error = 'Purchase stream error: $error';
-        });
-      },
+      onDone: () => print('Done'),
+      onError: (error) => setState(() => _error = error.toString()),
     );
-
-    // Initialize the store
-    _initializeStore();
   }
 
   Future<void> _initializeStore() async {
     try {
-      print('=== ANDROID IN-APP PURCHASE DEBUG ===');
-      print('Checking store availability...');
       final bool available = await _inAppPurchase.isAvailable();
-      print('Store available: $available');
-
       if (!available) {
         setState(() {
           _error = 'Store not available';
@@ -71,38 +44,19 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         return;
       }
 
-      // Define all product IDs - Make sure these match EXACTLY with Play Console/App Store
       const Set<String> productIds = {
         'premium_monthly',
         'premium_yearly',
       };
       
-      print('Attempting to query products: $productIds');
       final ProductDetailsResponse response = 
           await _inAppPurchase.queryProductDetails(productIds);
       
-      print('=== STORE RESPONSE ===');
-      print('Products found: ${response.productDetails.length}');
-      print('Not found IDs: ${response.notFoundIDs}');
-      print('Error: ${response.error?.message}');
-
-      if (response.notFoundIDs.isNotEmpty) {
-        print('WARNING: Some products were not found: ${response.notFoundIDs}');
-      }
-
-      //print the producsts raw prices
-      for (var product in response.productDetails) {
-        print('Product: ${product.id} - Price: ${product.price}');
-      }
       setState(() {
         _products = response.productDetails;
         _isLoading = false;
       });
-
-      // Check for existing subscriptions
-      await _checkSubscriptionStatus();
     } catch (e) {
-      print('Error initializing store: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -110,677 +64,103 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     }
   }
 
-  Future<void> _checkSubscriptionStatus() async {
-    if (_isRestoringPurchases) return;
-    
-    try {
-      setState(() => _isRestoringPurchases = true);
-      await _inAppPurchase.restorePurchases();
-    } catch (e) {
-      setState(() {
-        _error = 'Error checking subscription status: $e';
-      });
-    } finally {
-      setState(() => _isRestoringPurchases = false);
-    }
-  }
-
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
-    print('Purchase updated: ${purchaseDetailsList.length} purchases');
-
-    //print all the purchase details
-
     for (var purchaseDetails in purchaseDetailsList) {
-      final purchaseId = purchaseDetails.purchaseID ?? '';
-
-      print("------------------Purchase ID: $purchaseId");
-      
-      if (_processedPurchases.contains(purchaseId)) {
-        print('Purchase $purchaseId already processed.');
-        // print all the fields of the purchaseDetails
-        print('Purchase message: ${purchaseDetails.error?.message}');
-        print('Purchase code: ${purchaseDetails.error?.code}');
-        print('Purchase details: ${purchaseDetails.error?.details}');
-        print('Purchase source: ${purchaseDetails.error?.source}');
-        print('Purchase date: ${purchaseDetails.transactionDate}');
-        continue;
-      }
-      _processedPurchases.add(purchaseId);
-
-      print('Processing purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}');
-
-      // if (purchaseDetails.status == PurchaseStatus.error) {
-      //   _handleErrorPurchase(purchaseDetails);
-      // }
-
-      switch (purchaseDetails.status) {
-        case PurchaseStatus.purchased:
-          _verifyAndDeliverPurchase(purchaseDetails, 'successful');
-          break;
-        case PurchaseStatus.pending:
-          _handlePendingPurchase(purchaseDetails);
-          break;
-        case PurchaseStatus.restored:
-          _verifyAndDeliverPurchase(purchaseDetails, 'restored');
-          break;
-        case PurchaseStatus.error:
-    _handleErrorPurchase(purchaseDetails);
-          break;
-        default:
-          _handleUnknownPurchase(purchaseDetails);
-          break;
-      }
-
-      if (purchaseDetails.pendingCompletePurchase) {
-        _inAppPurchase.completePurchase(purchaseDetails);
+      if (purchaseDetails.status == PurchaseStatus.purchased ||
+          purchaseDetails.status == PurchaseStatus.restored) {
+        _verifyPurchase(purchaseDetails);
+      } else if (purchaseDetails.status == PurchaseStatus.error) {
+        _handleError(purchaseDetails.error!);
       }
     }
   }
 
-  void _updateSubscriptionStatus(String? productId) {
-    setState(() {
-      if (productId == 'premium_monthly') {
-        hasMonthlySubscription = true;
-        selectedPlan = 'premium_monthly';
-      } else if (productId == 'premium_yearly') {
-        hasYearlySubscription = true;
-        selectedPlan = 'premium_yearly';
-      }
-    });
-  }
-
-  Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails, String status) async {
-    if ((purchaseDetails.productID == 'premium_monthly' && hasMonthlySubscription) ||
-        (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
-      return;
-    }
-
-    print('Starting purchase verification...');
-    
-    // Store platform before any potential unmounting
-    final String platform = 'ios';
-
-    // Update subscription status immediately if successful
-    if (status == 'successful') {
-      _updateSubscriptionStatus(purchaseDetails.productID);
-      
-      // Show success message to user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Assinatura realizada com sucesso!')),
-      );
-
-      // Navigate to success page
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => SubscriptionSuccessPage(),
-        ),
-      );
-
-      // After this point, the widget is unmounted
-    }
-
-    // Call the server with the appropriate status
-    try {
-      String mobilePurchaseStatus = status;
-
-      await PostSubscriptions.sendPurchaseToServerPOST(
-        purchaseDetails,
-        platform,
-        mobilePurchaseStatus,
-      );
-    } catch (e) {
-      print('Failed to sync purchase with server: $e');
-    }
-  }
-
-  Future<void> _handlePendingPurchase(PurchaseDetails purchaseDetails) async {
-    print('----------Purchase is pending for ${purchaseDetails.purchaseID}');
-    
-    // Optionally show a pending UI to the user
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sua compra está pendente. Volte aqui em alguns minutos para checar sua compra ou te notificaremos por e-mail.'),
-      duration: Duration(seconds: 5),
-      ),
+  Future<void> _verifyPurchase(PurchaseDetails purchaseDetails) async {
+    await PostSubscriptions.sendPurchaseToServerPOST(
+      purchaseDetails,
+      'ios',
+      'successful',
     );
 
-    // Send the pending status to the server
-    try {
-      await PostSubscriptions.sendPurchaseToServerPOST(
-        purchaseDetails,
-        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        'pending',
-      );
-    } catch (e) {
-      print('Failed to sync pending purchase with server: $e');
-      // Optionally handle the failure
-    }
-  }
-
-  Future<void> _handleErrorPurchase(PurchaseDetails purchaseDetails) async {
-    // Remove the purchase from processed set to allow retry
-    _processedPurchases.remove(purchaseDetails.purchaseID);
-    
-    setState(() {
-      _error = purchaseDetails.error?.message ?? 'Purchase Error';
-    });
-
-    // Show error message with retry option
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Falha na compra. Tente novamente.'),
-        action: SnackBarAction(
-          label: 'Tentar Novamente',
-          onPressed: () => _cleanupPurchases(),
-        ),
-      ),
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SubscriptionSuccessPage()),
     );
-
-    // Determine if the error is a rejection
-    String mobilePurchaseStatus;
-    if (purchaseDetails.error?.code == 'some_rejected_code') {
-      mobilePurchaseStatus = 'rejected';
-    } else {
-      mobilePurchaseStatus = 'failed';
-    }
-
-    // Send the error status to the server
-    try {
-      await PostSubscriptions.sendPurchaseToServerPOST(
-        purchaseDetails,
-        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        mobilePurchaseStatus,
-        selectedPlan,
-      );
-    } catch (e) {
-      print('Failed to sync error purchase with server: $e');
-      // Optionally handle the failure
-    }
   }
 
-  Future<void> _handleUnknownPurchase(PurchaseDetails purchaseDetails) async {
-    print('Unknown purchase status for ${purchaseDetails.productID}');
-    
-    // Treat it as failed
-    setState(() {
-      _error = 'Compra desconhecida.';
-    });
+  void _handleError(IAPError error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.message)),
+    );
+  }
 
-    // Send the failed status to the server
-    try {
-      await PostSubscriptions.sendPurchaseToServerPOST(
-        purchaseDetails,
-        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        'failed',
-      );
-    } catch (e) {
-      print('Failed to sync unknown purchase with server: $e');
-      // Optionally handle the failure
+  Future<void> _clearPendingTransactions() async {
+    final transactions = await SKPaymentQueueWrapper().transactions();
+    for (var transaction in transactions) {
+      print(transaction.transactionIdentifier);
+      print(transaction.transactionState);
+      await SKPaymentQueueWrapper().finishTransaction(transaction);
     }
   }
 
   Future<void> _buySubscription(ProductDetails product) async {
+    await _clearPendingTransactions();
+    
+    final PurchaseParam purchaseParam = PurchaseParam(
+      productDetails: product,
+    );
+    
     try {
-      // Remove any previous purchase attempts for this product
-      _processedPurchases.removeWhere((purchaseId) => 
-        purchaseId.contains(product.id));
-      
-      developer.log('Initiating purchase for product: ${product.id}');
-
-      final PurchaseParam purchaseParam = PurchaseParam(
-        productDetails: product,
-      );
-
-      final bool success = await _inAppPurchase.buyNonConsumable(
-        purchaseParam: purchaseParam,
-      );
-
-      developer.log('Purchase initiation result: $success');
-
-      if (!success) {
-        // Remove from processed purchases to allow retry
-        _processedPurchases.removeWhere((purchaseId) => 
-          purchaseId.contains(product.id));
-          
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Não foi possível iniciar a compra.'),
-            action: SnackBarAction(
-              label: 'Tentar Novamente',
-              onPressed: () => _cleanupPurchases(),
-            ),
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      print('----------Purchase error: $e');
-      print('----Stack trace: $stackTrace');
-      
-      // Remove from processed purchases to allow retry
-      _processedPurchases.removeWhere((purchaseId) => 
-        purchaseId.contains(product.id));
-        
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha ao processar a compra.'),
-          action: SnackBarAction(
-            label: 'Tentar Novamente',
-            onPressed: () => _cleanupPurchases(),
-          ),
-        ),
-      );
-    }
-  }
-
-  String _formatPrice(ProductDetails product) {
-    // Remove currency symbol and trim whitespace
-    String price = product.price.replaceAll(RegExp(r'[^\d.,]'), '').trim();
-    return 'R\$$price/mês';
-  }
-
-  String _formatYearlyPrice(ProductDetails product) {
-    // Remove currency symbol and trim whitespace
-    String price = product.price.replaceAll(RegExp(r'[^\d.,]'), '').trim();
-    double monthlyPrice = double.parse(price.replaceAll(',', '.')) / 12;
-    // Convert back to string with comma as decimal separator
-    return 'R\$${monthlyPrice.toStringAsFixed(2).replaceAll('.', ',')}/mês';
-  }
-
-  // Add this method to clean up purchases
-  Future<void> _cleanupPurchases() async {
-    try {
-      // Clear processed purchases set
-      _processedPurchases.clear();
-      
-      // Reset error state
-      setState(() {
-        _error = null;
-        _isLoading = true;
-      });
-
-      // Cancel any existing subscriptions
-      final Stream<List<PurchaseDetails>> purchaseUpdated = 
-          InAppPurchase.instance.purchaseStream;
-      await purchaseUpdated.drain(); // Clear existing purchase stream
-      
-      // Reinitialize the store
-      await _initializeStore();
-      
+      await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
     } catch (e) {
-      print('Error cleaning up purchases: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to make purchase: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final screenHeight = MediaQuery.of(context).size.height;
+    if (_isLoading) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    // Determine if the purchase button should be enabled
-    bool isPurchaseButtonEnabled = selectedPlan != null &&
-        !((selectedPlan == 'premium_monthly' && hasMonthlySubscription) ||
-          (selectedPlan == 'premium_yearly' && hasYearlySubscription));
+    if (_error != null) {
+      return Scaffold(body: Center(child: Text(_error!)));
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        // ... other AppBar properties ...
-        actions: [
-          if (_error != null || _products.isEmpty)
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: _cleanupPurchases,
+      appBar: AppBar(title: Text('Premium Subscription')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              'Choose your plan',
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _cleanupPurchases,
-        child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(_error!),
-                      ElevatedButton(
-                        onPressed: _cleanupPurchases,
-                        child: Text('Tentar Novamente'),
-                      ),
-                    ],
-                  ),
-                )
-              : _products.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(t.more.subscribe.no_plans_available),
-                          ElevatedButton(
-                            onPressed: _cleanupPurchases,
-                            child: Text('Recarregar'),
-                          ),
-                        ],
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          // Top container with background image
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            decoration: BoxDecoration(
-                              image: const DecorationImage(
-                                image: AssetImage('assets/resources/container_background.png'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(height: MediaQuery.of(context).padding.top + 8), // Add status bar height + extra padding
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 255, 255, 255)),
-                                      onPressed: () => Navigator.of(context).pop(),
-                                    ),
-                                    const Spacer(), // This pushes the header to center
-                                    Image.asset(
-                                      'assets/resources/header.png',
-                                      height: 40,
-                                    ),
-                                    const Spacer(), // This maintains the center position
-                                    const SizedBox(width: 48), // Same width as IconButton for balance
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Center(
-                                  child: Image.asset(
-                                    'assets/resources/app_image.png',
-                                    height: screenHeight * 0.3 > 280 ? 280 : screenHeight * 0.3,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          
-                          // Rest of the content with original padding
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 40),
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 24),
-                                // Title
-                                const Text(
-                                  'Parsa Premium - Teste por 7 dias com direito a reembolso total',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Color(0xFF0F1728),
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                // Subtitle
-                                const Text(
-                                  'Integração via Open Finance com até 3 contas, sincronização automática, insights precisos.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Color(0xFF475466),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 28),
-                                // Plans
-                                Column(
-                                  children: [
-                                    // Monthly Plan
-                                    GestureDetector(
-                                      onTap: hasMonthlySubscription
-                                          ? null
-                                          : () => setState(() => selectedPlan = 'premium_monthly'),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: ShapeDecoration(
-                                          color: hasMonthlySubscription
-                                              ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_monthly' ? Colors.blue.shade50 : Colors.white),
-                                          shape: RoundedRectangleBorder(
-                                            side: BorderSide(
-                                              width: 1,
-                                              color: hasMonthlySubscription
-                                                  ? Colors.grey
-                                                  : (selectedPlan == 'premium_monthly' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
-                                            ),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              hasMonthlySubscription ? 'Plano Mensal (Ativo)' : 'Plano Mensal',
-                                              style: TextStyle(
-                                                color: hasMonthlySubscription
-                                                    ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly' ? Colors.blue.shade700 : Color(0xFF344053)),
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            Text(
-                                              _products.where((p) => p.id == 'premium_monthly').isNotEmpty
-                                                  ? _formatPrice(_products.firstWhere((p) => p.id == 'premium_monthly'))
-                                                  : '-',
-                                              style: TextStyle(
-                                                color: hasMonthlySubscription
-                                                    ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly' ? Colors.blue.shade600 : Color(0xFF667084)),
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    // Annual Plan
-                                    GestureDetector(
-                                      onTap: hasYearlySubscription
-                                          ? null
-                                          : () => setState(() => selectedPlan = 'premium_yearly'),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: ShapeDecoration(
-                                          color: hasYearlySubscription
-                                              ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_yearly' ? Colors.blue.shade50 : Colors.white),
-                                          shape: RoundedRectangleBorder(
-                                            side: BorderSide(
-                                              width: 1,
-                                              color: hasYearlySubscription
-                                                  ? Colors.grey
-                                                  : (selectedPlan == 'premium_yearly' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
-                                            ),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  hasYearlySubscription ? 'Plano Anual (Ativo)' : 'Plano Anual',
-                                                  style: TextStyle(
-                                                    color: hasYearlySubscription
-                                                        ? Colors.grey
-                                                        : (selectedPlan == 'premium_yearly' ? Colors.blue.shade700 : Color(0xFF344053)),
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _products.where((p) => p.id == 'premium_yearly').isNotEmpty
-                                                      ? '*Cobrança anual única de ${_products.firstWhere((p) => p.id == 'premium_yearly').price}'
-                                                      : '*Cobrança anual única',
-                                                  style: TextStyle(
-                                                    color: hasYearlySubscription
-                                                        ? Colors.grey
-                                                        : (selectedPlan == 'premium_yearly' ? Colors.blue.shade600 : Color(0xFF667084)),
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Text(
-                                              _products.where((p) => p.id == 'premium_yearly').isNotEmpty
-                                                  ? _formatYearlyPrice(_products.firstWhere((p) => p.id == 'premium_yearly'))
-                                                  : '-',
-                                              style: TextStyle(
-                                                color: hasYearlySubscription
-                                                    ? Colors.grey
-                                                    : (selectedPlan == 'premium_yearly' ? Colors.blue.shade600 : Color(0xFF667084)),
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 28),
-                                // Premium Button
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: isPurchaseButtonEnabled
-                                        ? () {
-                                            print('selectedPlan: $selectedPlan');
-                                            try {
-                                              final product = _products.firstWhere(
-                                                (prod) => prod.id == selectedPlan,
-                                              );
-                                              _buySubscription(product);
-                                            } catch (e) {
-                                              print('Product not found: $e');
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Plano selecionado não está disponível')),
-                                              );
-                                            }
-                                          }
-                                        : null,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue.shade700,
-                                      disabledBackgroundColor: Colors.blue.shade700,
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Seja Premium',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16), // Adjusted spacing
-                                // Available Banks List
-                                SizedBox(
-                                  width: 338,
-                                  child: Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: 'Lista de Bancos Disponíveis para Integração.',
-                                          style: TextStyle(
-                                            color: Color(0xFF475466),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/bancos')),
-                                        ),
-                                      ],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                // Terms and Privacy Policy
-                                SizedBox(
-                                  width: 338,
-                                  child: Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: 'Ao continuar, estou de acordo com os ',
-                                          style: TextStyle(
-                                            color: Color(0xFF475466),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: 'Termos de Uso e Serviço',
-                                          style: TextStyle(
-                                            color: Color(0xFF475466),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/termos-e-condi%C3%A7%C3%B5es-de-servi%C3%A7o')),
-                                        ),
-                                        TextSpan(
-                                          text: ' e a ',
-                                          style: TextStyle(
-                                            color: Color(0xFF475466),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: 'Política de Privacidade',
-                                          style: TextStyle(
-                                            color: Color(0xFF475466),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/pol%C3%ADtica-de-privacidade')),
-                                        ),
-                                        TextSpan(
-                                          text: ' do Parsa.',
-                                          style: TextStyle(
-                                            color: Color(0xFF475466),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            SizedBox(height: 20),
+            ..._products.map((product) => Card(
+              child: ListTile(
+                title: Text(product.title),
+                subtitle: Text(product.description),
+                trailing: Text(product.price),
+                selected: selectedPlan == product.id,
+                onTap: () => setState(() => selectedPlan = product.id),
+              ),
+            )),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: selectedPlan == null ? null : () {
+                final product = _products.firstWhere(
+                  (p) => p.id == selectedPlan,
+                );
+                _buySubscription(product);
+              },
+              child: Text('Subscribe Now'),
+            ),
+          ],
+        ),
       ),
     );
   }

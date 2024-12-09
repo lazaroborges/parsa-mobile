@@ -7,6 +7,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:parsa/core/api/post_methods/post_subscriptions.dart';
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 
 class PremiumWidget extends StatefulWidget {
@@ -302,6 +303,17 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   Future<void> _buySubscription(ProductDetails product) async {
     try {
       developer.log('Initiating purchase for product: ${product.id}');
+      
+      // Clear pending transactions for iOS only
+      if (Theme.of(context).platform == TargetPlatform.iOS) {
+        developer.log('iOS platform detected - clearing pending transactions');
+        final transactions = await SKPaymentQueueWrapper().transactions();
+        for (var transaction in transactions) {
+          developer.log('Clearing pending transaction: ${transaction.transactionIdentifier}');
+          developer.log('Transaction state: ${transaction.transactionState}');
+          await SKPaymentQueueWrapper().finishTransaction(transaction);
+        }
+      }
       
       final PurchaseParam purchaseParam = PurchaseParam(
         productDetails: product,

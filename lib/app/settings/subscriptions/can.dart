@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/main.dart';
-import 'package:parsa/app/settings/subscriptions/subscription_page_ios.dart';
+import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
 
 class ServerHealthCheck extends StatelessWidget {
   const ServerHealthCheck({super.key});
