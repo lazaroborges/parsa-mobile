@@ -25,6 +25,10 @@ class PostSubscriptions {
         subscriptionID = productId ?? '';
       }
 
+      //if device type is == android  and subscriptionID is == premium_monthly1, then set subscriptionID to premium_monthly1_android
+      if (platform == 'android' && subscriptionID == 'premium_monthly1') {
+        subscriptionID = 'premium_monthly';
+      }
 
       final Map<String, dynamic> requestBody = {
         'purchase_id': purchaseDetails.purchaseID,

@@ -74,7 +74,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
       // Define all product IDs - Make sure these match EXACTLY with Play Console/App Store
       const Set<String> productIds = {
-        'premium_monthly',
+        'premium_monthly1',
+        'premium_monthly11',
         'premium_yearly',
       };
       
@@ -84,6 +85,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       
       print('=== STORE RESPONSE ===');
       print('Products found: ${response.productDetails.length}');
+
       print('Not found IDs: ${response.notFoundIDs}');
       print('Error: ${response.error?.message}');
 
@@ -180,9 +182,9 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   void _updateSubscriptionStatus(String? productId) {
     setState(() {
-      if (productId == 'premium_monthly') {
+      if (productId == 'premium_monthly1') {
         hasMonthlySubscription = true;
-        selectedPlan = 'premium_monthly';
+        selectedPlan = 'premium_monthly1';
       } else if (productId == 'premium_yearly') {
         hasYearlySubscription = true;
         selectedPlan = 'premium_yearly';
@@ -191,7 +193,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   }
 
   Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails, String status) async {
-    if ((purchaseDetails.productID == 'premium_monthly' && hasMonthlySubscription) ||
+    if ((purchaseDetails.productID == 'premium_monthly1' && hasMonthlySubscription) ||
         (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
       return;
     }
@@ -360,7 +362,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
     // Determine if the purchase button should be enabled
     bool isPurchaseButtonEnabled = selectedPlan != null &&
-        !((selectedPlan == 'premium_monthly' && hasMonthlySubscription) ||
+        !((selectedPlan == 'premium_monthly1' && hasMonthlySubscription) ||
           (selectedPlan == 'premium_yearly' && hasYearlySubscription));
 
     return Scaffold(
@@ -448,20 +450,20 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                     GestureDetector(
                                       onTap: hasMonthlySubscription
                                           ? null
-                                          : () => setState(() => selectedPlan = 'premium_monthly'),
+                                          : () => setState(() => selectedPlan = 'premium_monthly1'),
                                       child: Container(
                                         width: double.infinity,
                                         padding: const EdgeInsets.all(16),
                                         decoration: ShapeDecoration(
                                           color: hasMonthlySubscription
                                               ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_monthly' ? Colors.blue.shade50 : Colors.white),
+                                              : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade50 : Colors.white),
                                           shape: RoundedRectangleBorder(
                                             side: BorderSide(
                                               width: 1,
                                               color: hasMonthlySubscription
                                                   ? Colors.grey
-                                                  : (selectedPlan == 'premium_monthly' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
+                                                  : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
                                             ),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
@@ -474,19 +476,19 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly' ? Colors.blue.shade700 : Color(0xFF344053)),
+                                                    : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade700 : Color(0xFF344053)),
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                             Text(
-                                              _products.where((p) => p.id == 'premium_monthly').isNotEmpty
-                                                  ? _formatPrice(_products.firstWhere((p) => p.id == 'premium_monthly'))
+                                              _products.where((p) => p.id == 'premium_monthly1').isNotEmpty
+                                                  ? _formatPrice(_products.firstWhere((p) => p.id == 'premium_monthly1'))
                                                   : '-',
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly' ? Colors.blue.shade600 : Color(0xFF667084)),
+                                                    : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade600 : Color(0xFF667084)),
                                                 fontSize: 14,
                                               ),
                                             ),
@@ -593,7 +595,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Seja Premium',
+                                      'Assinar o Parsa',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
