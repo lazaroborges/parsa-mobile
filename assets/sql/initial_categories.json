@@ -369,6 +369,12 @@
         "names": {
           "pt": "Renda Variável"
         }
+      }, 
+      {
+        "icon": "candlestick",
+        "names": {
+          "pt": "Fundos Multimercados"
+        }
       }
     ]
   },

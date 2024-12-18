@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
+import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/main.dart';
@@ -36,17 +37,15 @@ class AuthMethods {
       print('Logout attempt started');
 
       final auth0Provider = Auth0Provider.instance;
+      final accessToken = auth0Provider.credentials!.accessToken;
 
-
-  final accessToken = auth0Provider.credentials!.accessToken;
-
-  final response = await http.post(
-    Uri.parse('$apiEndpoint/users/api_logout/'),
-    headers: {
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json',
-    },
-  );
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/users/api_logout/'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
 
       if (response.statusCode == 200) {
         print('Logout successful');
@@ -54,9 +53,18 @@ class AuthMethods {
         print('Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
       }
 
+      // Clear database tables
+      await AppDB.instance.transaction(() async {
+        // Delete all data except user settings and app data
+        await AppDB.instance.delete(AppDB.instance.accounts).go();
+        await AppDB.instance.delete(AppDB.instance.transactions).go();
+        await AppDB.instance.delete(AppDB.instance.tags).go();
+        await AppDB.instance.delete(AppDB.instance.budgets).go();
+      });
+
       // Perform logout
       await auth0.webAuthentication().logout(
-            useHTTPS: true, // Set to true if you want to use HTTPS
+            useHTTPS: true,
           );
       print('Logout successful');
 
