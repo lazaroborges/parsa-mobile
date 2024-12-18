@@ -9,6 +9,8 @@ import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/utils/get_download_path.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class BackupDatabaseService {
   AppDB db = AppDB.instance;
@@ -39,6 +41,10 @@ class BackupDatabaseService {
     String format = 'csv',
     String separator = ',',
   }) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = 'Transactions-${DateFormat('yyyyMMdd-HHmmss').format(DateTime.now())}.csv';
+    final filePath = '${directory.path}/$fileName';
+    
     var csvData = '';
 
     var keys = [
@@ -87,7 +93,7 @@ class BackupDatabaseService {
       csvData += '\n';
 
       if (transaction.isTransfer) {
-        final toAdd2 = [
+        final toAdd = [
           transaction.id,
           (transaction.valueInDestiny ?? transaction.value).toStringAsFixed(2),
           dateFormatter.format(transaction.date),
@@ -105,15 +111,12 @@ class BackupDatabaseService {
       }
     }
 
-    String downloadPath = await getDownloadPath();
-    downloadPath =
-        '${downloadPath}Transactions-${DateFormat('yyyyMMdd-Hms').format(DateTime.now())}.csv';
-
-    File downloadFile = File(downloadPath);
-
-    await downloadFile.writeAsString(csvData);
-
-    return downloadPath;
+    final file = File(filePath);
+    await file.writeAsString(csvData);
+    
+    await Share.shareXFiles([XFile(filePath)], text: 'Your transactions export');
+    
+    return fileName;
   }
 
   Future<bool> importDatabase() async {

@@ -91,5 +91,9 @@
 	</array>
 	<key>SKStoreKitConfigFile</key>
 	<string>Configuration.storekit</string>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>
