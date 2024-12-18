@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 601
 ///
-/// Built on 2024-11-21 at 21:16 UTC
+/// Built on 2024-12-18 at 18:03 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1091,7 +1091,7 @@ class _TranslationsAccountConnectionErrorsPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get not_subscribed => 'Você não está inscrito no plano Premium. Por favor, assine o plano Premium para conectar suas contas Via Open Finance.';
+	String get not_subscribed => 'Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.';
 	String get limit_reached => 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 	String get daily_limit_reached => 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
 	String get default_message => 'Não foi possível conectar no momento. Tente novamente mais tarde.';
@@ -1181,7 +1181,7 @@ class _TranslationsBackupExportPt {
 	String get all_descr => 'Exporte todos os seus dados (contas, transações, orçamentos, configurações...). Importe-os novamente a qualquer momento para não perder nada.';
 	String get transactions => 'Backup de transações';
 	String get transactions_descr => 'Exporte suas transações em CSV para que você possa analisá-las mais facilmente em outros programas ou aplicativos.';
-	String get description => 'Baixe seus dados em diferentes formatos';
+	String get description => 'Baixe os dados da suas transações em formato CSV. Recomendamos o uso do Google Sheets para abrir o arquivo por primeira vez - de lá você poderá exportar o arquivo para o Excel.';
 	String get dialog_title => 'Salvar/Enviar arquivo';
 	String success({required Object x}) => 'Arquivo salvo/baixado com sucesso em ${x}';
 	String get error => 'Erro ao baixar o arquivo. Entre em contato com o desenvolvedor via lozin.technologies@gmail.com';
@@ -2000,7 +2000,7 @@ extension on Translations {
 			case 'account.select.one': return 'Selecione uma conta';
 			case 'account.select.all': return 'Todas as contas';
 			case 'account.select.multiple': return 'Selecionar contas';
-			case 'account.connection_errors.not_subscribed': return 'Você não está inscrito no plano Premium. Por favor, assine o plano Premium para conectar suas contas Via Open Finance.';
+			case 'account.connection_errors.not_subscribed': return 'Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.';
 			case 'account.connection_errors.limit_reached': return 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 			case 'account.connection_errors.daily_limit_reached': return 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
 			case 'account.connection_errors.default_message': return 'Não foi possível conectar no momento. Tente novamente mais tarde.';
@@ -2107,7 +2107,7 @@ extension on Translations {
 			case 'backup.export.all_descr': return 'Exporte todos os seus dados (contas, transações, orçamentos, configurações...). Importe-os novamente a qualquer momento para não perder nada.';
 			case 'backup.export.transactions': return 'Backup de transações';
 			case 'backup.export.transactions_descr': return 'Exporte suas transações em CSV para que você possa analisá-las mais facilmente em outros programas ou aplicativos.';
-			case 'backup.export.description': return 'Baixe seus dados em diferentes formatos';
+			case 'backup.export.description': return 'Baixe os dados da suas transações em formato CSV. Recomendamos o uso do Google Sheets para abrir o arquivo por primeira vez - de lá você poderá exportar o arquivo para o Excel.';
 			case 'backup.export.dialog_title': return 'Salvar/Enviar arquivo';
 			case 'backup.export.success': return ({required Object x}) => 'Arquivo salvo/baixado com sucesso em ${x}';
 			case 'backup.export.error': return 'Erro ao baixar o arquivo. Entre em contato com o desenvolvedor via lozin.technologies@gmail.com';

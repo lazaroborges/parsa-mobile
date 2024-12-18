@@ -627,7 +627,7 @@
       "all.descr": "Exporte todos os seus dados (contas, transações, orçamentos, configurações...). Importe-os novamente a qualquer momento para não perder nada.",
       "transactions": "Backup de transações",
       "transactions.descr": "Exporte suas transações em CSV para que você possa analisá-las mais facilmente em outros programas ou aplicativos.",
-      "description": "Baixe seus dados em diferentes formatos",
+      "description": "Baixe os dados da suas transações em formato CSV. Recomendamos o uso do Google Sheets para abrir o arquivo por primeira vez - de lá você poderá exportar o arquivo para o Excel.",
       "dialog_title": "Salvar/Enviar arquivo",
       "success": "Arquivo salvo/baixado com sucesso em {{x}}",
       "error": "Erro ao baixar o arquivo. Entre em contato com o desenvolvedor via lozin.technologies@gmail.com"

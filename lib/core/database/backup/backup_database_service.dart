@@ -39,7 +39,7 @@ class BackupDatabaseService {
     BuildContext context,
     List<MoneyTransaction> data, {
     String format = 'csv',
-    String separator = ',',
+    String separator = ';',
   }) async {
     final directory = await getApplicationDocumentsDirectory();
     final fileName = 'Transactions-${DateFormat('yyyyMMdd-HHmmss').format(DateTime.now())}.csv';
@@ -57,6 +57,7 @@ class BackupDatabaseService {
       'Currency',
       'Category',
       'Subcategory',
+      
     ];
 
     if (data.isNotEmpty) {
@@ -114,7 +115,7 @@ class BackupDatabaseService {
     final file = File(filePath);
     await file.writeAsString(csvData);
     
-    await Share.shareXFiles([XFile(filePath)], text: 'Your transactions export');
+    await Share.shareXFiles([XFile(filePath)], text: 'Veja o anexo com suas transações');
     
     return fileName;
   }

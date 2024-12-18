@@ -96,22 +96,31 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: SettingCardItem(
-                            title: t.budgets.title,
-                            icon: Icons.pie_chart_rounded,
-                            onTap: () => RouteUtils.pushRoute(
-                                context, const BudgetsPage()),
+                          child: Opacity(
+                            opacity: 0.5,
+                            child: SettingCardItem(
+                              title: t.budgets.title,
+                              icon: Icons.pie_chart_rounded,
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Em breve!"),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: SettingCardItem(
-                            title: t.recurrent_transactions.title_short,
-                            icon: Icons.repeat_rounded,
-                            onTap: () => RouteUtils.pushRoute(
-                                context, const RecurrentTransactionPage()),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: SettingCardItem(
+                        //     title: t.recurrent_transactions.title_short,
+                        //     icon: Icons.repeat_rounded,
+                        //     onTap: () => RouteUtils.pushRoute(
+                        //         context, const RecurrentTransactionPage()),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ],

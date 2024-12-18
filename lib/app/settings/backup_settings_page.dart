@@ -1,15 +1,18 @@
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/settings/export_page.dart';
 import 'package:parsa/app/settings/import_csv.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/backup/backup_database_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/numbers.extensions.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/routes/route_utils.dart';
+import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/main.dart';
 
@@ -26,108 +29,73 @@ class BackupSettingsPage extends StatelessWidget {
       appBar: AppBar(title: Text(t.more.data.display)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            createListSeparator(context, t.backup.import.title),
-            ListTile(
-              title: Text(t.backup.import.restore_backup),
-              subtitle: Text(t.backup.import.restore_backup_descr),
-              minVerticalPadding: 16,
-              onTap: () {
-                confirmDialog(context,
-                    icon: Icons.warning_rounded,
-                    dialogTitle: t.backup.import.restore_backup_warn_title,
-                    contentParagraphs: [
-                      Text(t.backup.import.restore_backup_warn_description)
-                    ]).then((value) {
-                  if (value == null || !value) {
-                    return;
-                  }
-
-                  BackupDatabaseService().importDatabase().then((value) {
-                    if (!value) {
-                      Navigator.pop(context);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(t.backup.import.cancelled)),
-                      );
-
-                      return;
-                    }
-
-                    RouteUtils.popAllRoutesExceptFirst();
-
-                    tabsPageKey.currentState!.changePage(
-                      getAllDestinations(context, shortLabels: false)
-                          .firstWhere((element) =>
-                              element.id == AppMenuDestinationsID.dashboard),
-                    );
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(t.backup.import.success)),
-                    );
-                  }).catchError((err) {
-                    Navigator.pop(context);
-
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(err.toString())));
-                  });
-                });
-              },
-            ),
-            ListTile(
-              title: Text(t.backup.import.manual_import.title),
-              subtitle: Text(t.backup.import.manual_import.descr),
-              minVerticalPadding: 16,
-              onTap: () {
-                RouteUtils.pushRoute(context, const ImportCSVPage());
-              },
-            ),
-            createListSeparator(context, t.backup.export.title_short),
-            ListTile(
-              title: Text(t.backup.export.title),
-              subtitle: Text(t.backup.export.description),
-              minVerticalPadding: 16,
-              onTap: () {
-                RouteUtils.pushRoute(context, const ExportDataPage());
-              },
-            ),
-            createListSeparator(context, t.backup.about.title),
-            ListTile(
-              title: Text(t.backup.about.modify_date),
-              trailing: FutureBuilder(
-                  future: AppDB.instance.databasePath,
-                  builder: (context, snapshot) {
-                    final path = snapshot.data;
-
-                    if (path == null || path.isEmpty) {
-                      return const Text('----');
-                    }
-
-                    return Text(
-                      DateFormat.yMMMd()
-                          .add_Hm()
-                          .format(File(path).lastModifiedSync()),
-                    );
-                  }),
-            ),
-            ListTile(
-              title: Text(t.backup.about.size),
-              trailing: FutureBuilder(
-                  future: AppDB.instance.databasePath
-                      .then((value) => File(value).stat()),
-                  builder: (context, snapshot) {
-                    final fileStats = snapshot.data;
-
-                    if (fileStats == null) {
-                      return const Text('----');
-                    }
-
-                    return Text(fileStats.size.readableFileSize());
-                  }),
-            ),
-          ],
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              createListSeparator(context, t.backup.export.title_short),
+              
+              ListTile(
+                title: Text(t.backup.export.title),
+                subtitle: Text(t.backup.export.description),
+                minVerticalPadding: 16,
+                onTap: () async {
+                  final messeger = ScaffoldMessenger.of(context);
+                  
+                  await BackupDatabaseService()
+                    .exportSpreadsheet(
+                      context,
+                      await TransactionService.instance
+                        .getTransactions()
+                        .first
+                    )
+                    .then((value) {
+                      messeger.showSnackBar(SnackBar(
+                        content: Text(t.backup.export.success(x: value)),
+                      ));
+                    })
+                    .catchError((err) {
+                      messeger.showSnackBar(SnackBar(
+                        content: Text('$err'),
+                      ));
+                    });
+                },
+              ),
+              const Spacer(),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 48 ),
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Você gostaria de importar seus dados? ',
+                          style: TextStyle(
+                            color: Color(0xFF475466),
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'Fale com a gente',
+                          style: TextStyle(
+                            color: Color(0xFF475466),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => openExternalURL(
+                                context, 'https://wa.me/5531972012338?text=Gostaria%20de%20importar%20meus%20dados%20no%20Parsa'),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
