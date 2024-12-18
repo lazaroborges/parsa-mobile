@@ -199,7 +199,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     }
 
     print('Starting purchase verification...');
-    
+    print('------Purchase STATUS: ${purchaseDetails.productID} ${purchaseDetails.status}');
+
     // Update subscription status immediately if successful
     if (status == 'successful') {
       _updateSubscriptionStatus(purchaseDetails.productID);
@@ -209,19 +210,27 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         SnackBar(content: Text('Assinatura realizada com sucesso!')),
       );
 
-      // Navigate to success page
+      // Navigate to success page ONLY for new purchases
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => SubscriptionSuccessPage(), // Replace SuccessWidget with your actual widget
+          builder: (context) => SubscriptionSuccessPage(),
         ),
+      );
+    } else if (status == 'restored') {
+      _updateSubscriptionStatus(purchaseDetails.productID);
+      
+      // Just show a snackbar for restored purchases
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Assinatura restaurada com sucesso!')),
       );
     }
 
+    String purchasePost_code = 'server_error';
     // Call the server with the appropriate status
     try {
       String mobilePurchaseStatus = status;
 
-      await PostSubscriptions.sendPurchaseToServerPOST(
+      purchasePost_code = await PostSubscriptions.sendPurchaseToServerPOST(
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
         mobilePurchaseStatus,
@@ -229,6 +238,33 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     } catch (e) {
       print('Failed to sync purchase with server: $e');
     }
+
+    if (purchasePost_code == 'created') {
+      //print a snackbar with the purchasePost_code
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: Duration(seconds: 3), content: Text('Assinatura confirmada com sucesso!')),
+      );
+    }
+    else if (purchasePost_code == 'confirmed') {
+      //print a snackbar with the purchasePost_code
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: Duration(seconds: 3), content: Text('Assinatura resgatada com sucesso!')),
+      );
+    }
+    else if (purchasePost_code == 'forbidden') {
+      //print a snackbar with the purchasePost_code
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: Duration(seconds: 5), content: Text('Assinatura não confirmada. Pode ser que esta conta App Store tenha sido usado primeiro com outro usuário Parsa e não pode ser reutilizada com outra conta Parsa. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
+      );
+    }
+    else {
+      //print a snackbar with the purchasePost_code
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: Duration(seconds: 5), content: Text('Operação não autorizada. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
+      );
+    }
+
+
   }
 
   Future<void> _handlePendingPurchase(PurchaseDetails purchaseDetails) async {
@@ -236,7 +272,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     
     // Optionally show a pending UI to the user
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sua compra está pendente. Volte aqui em alguns minutos para checar sua compra ou te notificaremos por e-mail.'),
+      SnackBar(content: Text('Sua compra está sendo processada. Um momento por favor.'),
       duration: Duration(seconds: 5),
       ),
     );

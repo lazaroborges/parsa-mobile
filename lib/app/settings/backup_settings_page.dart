@@ -29,61 +29,61 @@ class BackupSettingsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // createListSeparator(context, t.backup.import.title),
-            // ListTile(
-            //   title: Text(t.backup.import.restore_backup),
-            //   subtitle: Text(t.backup.import.restore_backup_descr),
-            //   minVerticalPadding: 16,
-            //   onTap: () {
-            //     confirmDialog(context,
-            //         icon: Icons.warning_rounded,
-            //         dialogTitle: t.backup.import.restore_backup_warn_title,
-            //         contentParagraphs: [
-            //           Text(t.backup.import.restore_backup_warn_description)
-            //         ]).then((value) {
-            //       if (value == null || !value) {
-            //         return;
-            //       }
+            createListSeparator(context, t.backup.import.title),
+            ListTile(
+              title: Text(t.backup.import.restore_backup),
+              subtitle: Text(t.backup.import.restore_backup_descr),
+              minVerticalPadding: 16,
+              onTap: () {
+                confirmDialog(context,
+                    icon: Icons.warning_rounded,
+                    dialogTitle: t.backup.import.restore_backup_warn_title,
+                    contentParagraphs: [
+                      Text(t.backup.import.restore_backup_warn_description)
+                    ]).then((value) {
+                  if (value == null || !value) {
+                    return;
+                  }
 
-            //       BackupDatabaseService().importDatabase().then((value) {
-            //         if (!value) {
-            //           Navigator.pop(context);
+                  BackupDatabaseService().importDatabase().then((value) {
+                    if (!value) {
+                      Navigator.pop(context);
 
-            //           ScaffoldMessenger.of(context).showSnackBar(
-            //             SnackBar(content: Text(t.backup.import.cancelled)),
-            //           );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(t.backup.import.cancelled)),
+                      );
 
-            //           return;
-            //         }
+                      return;
+                    }
 
-            //         RouteUtils.popAllRoutesExceptFirst();
+                    RouteUtils.popAllRoutesExceptFirst();
 
-            //         tabsPageKey.currentState!.changePage(
-            //           getAllDestinations(context, shortLabels: false)
-            //               .firstWhere((element) =>
-            //                   element.id == AppMenuDestinationsID.dashboard),
-            //         );
+                    tabsPageKey.currentState!.changePage(
+                      getAllDestinations(context, shortLabels: false)
+                          .firstWhere((element) =>
+                              element.id == AppMenuDestinationsID.dashboard),
+                    );
 
-            //         ScaffoldMessenger.of(context).showSnackBar(
-            //           SnackBar(content: Text(t.backup.import.success)),
-            //         );
-            //       }).catchError((err) {
-            //         Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(t.backup.import.success)),
+                    );
+                  }).catchError((err) {
+                    Navigator.pop(context);
 
-            //         ScaffoldMessenger.of(context)
-            //             .showSnackBar(SnackBar(content: Text(err.toString())));
-            //       });
-            //     });
-            //   },
-            // ),
-            // ListTile(
-            //   title: Text(t.backup.import.manual_import.title),
-            //   subtitle: Text(t.backup.import.manual_import.descr),
-            //   minVerticalPadding: 16,
-            //   onTap: () {
-            //     RouteUtils.pushRoute(context, const ImportCSVPage());
-            //   },
-            // ),
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(err.toString())));
+                  });
+                });
+              },
+            ),
+            ListTile(
+              title: Text(t.backup.import.manual_import.title),
+              subtitle: Text(t.backup.import.manual_import.descr),
+              minVerticalPadding: 16,
+              onTap: () {
+                RouteUtils.pushRoute(context, const ImportCSVPage());
+              },
+            ),
             createListSeparator(context, t.backup.export.title_short),
             ListTile(
               title: Text(t.backup.export.title),

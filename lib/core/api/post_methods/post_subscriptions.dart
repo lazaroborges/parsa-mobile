@@ -5,7 +5,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 
 class PostSubscriptions {
-  static Future<bool> sendPurchaseToServerPOST(
+  static Future<String> sendPurchaseToServerPOST(
     PurchaseDetails purchaseDetails,
     String platform,
     String mobilePurchaseStatus,
@@ -26,12 +26,13 @@ class PostSubscriptions {
       }
 
       //if device type is == android  and subscriptionID is == premium_monthly1, then set subscriptionID to premium_monthly1_android
-      if (platform == 'android' && subscriptionID == 'premium_monthly1') {
+      if (subscriptionID == 'premium_monthly1') {
         subscriptionID = 'premium_monthly';
       }
 
+
       final Map<String, dynamic> requestBody = {
-        'purchase_id': purchaseDetails.purchaseID,
+        'purchase_id': purchaseDetails.purchaseID ?? '',
         'subscription_id': subscriptionID,
         'verificationData': purchaseDetails.verificationData.serverVerificationData,
         'device_type': platform,
@@ -58,11 +59,14 @@ class PostSubscriptions {
         body: json.encode(requestBody),
       );
 
-      return response.statusCode == 200;
+      // set the response body to a map
+      final responseBody = json.decode(response.body);
+      // Check if message exists in responseBody, otherwise return the error message or default
+      return responseBody['message'] ?? 'No message received from server';
     } catch (e) {
       print('Error Pushing the purchase to the server: $e');
       // In case of failure, you might want to send 'failed' status
-      return false;
+      return 'server_error';
     }
   }
 }
