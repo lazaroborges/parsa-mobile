@@ -131,6 +131,12 @@
         "names": {
           "pt": "Bem-estar"
         }
+      },
+      {
+        "icon": "fitness_center",
+        "names": {
+          "pt": "Esportes"
+        }
       }
     ]
   },
@@ -300,7 +306,7 @@
       {
         "icon": "library_books",
         "names": {
-          "pt": "Cursos online"
+          "pt": "Cursos e Treinamentos"
         }
       }
     ]
@@ -490,6 +496,12 @@
         "names": {
           "pt": "Cashback"
         }
+      },
+      {
+        "icon": "store",
+        "names": {
+          "pt": "Higine, Beleza e Perfumaria"
+        }
       }
     ]
   },
@@ -562,6 +574,21 @@
         "icon": "inventory_2",
         "names": {
           "pt": "Despesa Não Classificada"
+        }
+      },
+
+
+      {
+        "icon": "",
+        "names": {
+          "pt": "Ajuda Familiar"
+        }
+      },
+
+      {
+        "icon": "inventory_2",
+        "names": {
+          "pt": "Doações e Contribuições"
         }
       }
     ]

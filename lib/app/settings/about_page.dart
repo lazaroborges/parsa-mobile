@@ -166,13 +166,13 @@ class DisplayAppIcon extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       height: height,
       decoration: BoxDecoration(
-        border: Border.all(width: 1, color: Colors.white),
-        borderRadius: BorderRadius.circular(12),
-        color: ColorHex.get('0F3375'),
+        border: Border.all(width: 1, color: Colors.transparent),
+        borderRadius: BorderRadius.circular(18),
+        color: Colors.transparent,
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
         ),
         clipBehavior: Clip.hardEdge,
         child: AspectRatio(
