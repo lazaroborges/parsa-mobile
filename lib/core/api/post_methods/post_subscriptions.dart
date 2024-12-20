@@ -9,6 +9,7 @@ class PostSubscriptions {
     PurchaseDetails purchaseDetails,
     String platform,
     String mobilePurchaseStatus,
+    String? source,
     [String? productId] //productId must be optional
   ) async {
     try {
@@ -39,6 +40,7 @@ class PostSubscriptions {
         'mobilePurchaseStatus': mobilePurchaseStatus,
         'purchase_date': purchaseDetails.transactionDate,
         'notes': purchaseDetails.error?.message ?? '',
+        'source': source ?? '',
       };
 
 

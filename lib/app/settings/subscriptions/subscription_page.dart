@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:parsa/app/settings/subscriptions/check_subscription_status.dart';
 import 'package:parsa/app/settings/subscriptions/success_page.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +32,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   // Add a new flag to track restoration
   bool _isRestoringPurchases = false;
+
+  bool _alreadySaidRestored = false;
 
   // **New: Track processed purchases**
   final Set<String> _processedPurchases = <String>{};
@@ -86,12 +89,12 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       print('=== STORE RESPONSE ===');
       print('Products found: ${response.productDetails.length}');
 
-      print('Not found IDs: ${response.notFoundIDs}');
-      print('Error: ${response.error?.message}');
+      // print('Not found IDs: ${response.notFoundIDs}');
+      // print('Error: ${response.error?.message}');
 
-      if (response.notFoundIDs.isNotEmpty) {
-        print('WARNING: Some products were not found: ${response.notFoundIDs}');
-      }
+      // if (response.notFoundIDs.isNotEmpty) {
+      //   print('WARNING: Some products were not found: ${response.notFoundIDs}');
+      // }
 
       //print the producsts raw prices
       for (var product in response.productDetails) {
@@ -104,6 +107,18 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
       // Check for existing subscriptions
       await _checkSubscriptionStatus();
+
+      // Inside _initializeStore() after querying products
+      print('\n=== DETAILED PRODUCT INFO ===');
+      for (var product in response.productDetails) {
+        print('\nProduct ID: ${product.id}');
+        print('Title: ${product.title}');
+        print('Description: ${product.description}');
+        print('Price: ${product.price}');
+        print('Raw Price: ${product.rawPrice}');
+        // Print all available properties
+        print('Full product details: ${product.toString()}');
+      }
     } catch (e) {
       print('Error initializing store: $e');
       setState(() {
@@ -129,28 +144,59 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
-    print('Purchase updated: ${purchaseDetailsList.length} purchases');
 
-    //print all the purchase details
+    // Track processed product IDs for iOS restoration
+    Set<String> processedProductIds = {};
 
     for (var purchaseDetails in purchaseDetailsList) {
       final purchaseId = purchaseDetails.purchaseID ?? '';
+      final productId = purchaseDetails.productID;
 
-      print("------------------Purchase ID: $purchaseId");
-      
+      // Skip if already processed this specific purchase
       if (_processedPurchases.contains(purchaseId)) {
-        print('Purchase $purchaseId already processed.');
-        // print all the fields of the purchaseDetails
-        print('Purchase message: ${purchaseDetails.error?.message}');
-        print('Purchase code: ${purchaseDetails.error?.code}');
-        print('Purchase details: ${purchaseDetails.error?.details}');
-        print('Purchase source: ${purchaseDetails.error?.source}');
-        print('Purchase date: ${purchaseDetails.transactionDate}');
         continue;
       }
+
       _processedPurchases.add(purchaseId);
 
-      print('Processing purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}');
+      // For iOS restoration, check if we already processed this product type
+      if (Theme.of(context).platform == TargetPlatform.iOS && 
+          purchaseDetails.status == PurchaseStatus.restored) {
+        
+        // Skip if we already processed this product type
+        if (processedProductIds.contains(productId)) {
+          continue;
+        }
+
+        // Skip if we already have an active subscription for this type
+        if ((productId == 'premium_monthly1' && hasMonthlySubscription) ||
+            (productId == 'premium_yearly' && hasYearlySubscription)) {
+          continue;
+        }
+
+        // Verify subscription status with backend
+        CheckSubscriptionStatus.verifyRestoredSubscription(
+          productId,
+          purchaseId,
+        ).then((isValid) {
+          if (isValid) {
+            // If the subscription is valid, update the subscription status
+            _updateSubscriptionStatus(productId);
+          } else {
+            print("Invalid subscription detected");
+            setState(() {
+              // Reset subscription status based on product type
+              if (productId == 'premium_monthly1') {
+                hasMonthlySubscription = false;
+              } else if (productId == 'premium_yearly') {
+                hasYearlySubscription = false;
+              }
+            });
+          }
+        });
+      }
+
+      // print('Processing purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}');
 
       // if (purchaseDetails.status == PurchaseStatus.error) {
       //   _handleErrorPurchase(purchaseDetails);
@@ -198,8 +244,9 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       return;
     }
 
-    print('Starting purchase verification...');
-    print('------Purchase STATUS: ${purchaseDetails.productID} ${purchaseDetails.status}');
+
+    // print('Starting purchase verification...');
+    // print('------Purchase STATUS: ${purchaseDetails.productID} ${purchaseDetails.status}');
 
     // Update subscription status immediately if successful
     if (status == 'successful') {
@@ -216,13 +263,13 @@ class _PremiumWidgetState extends State<PremiumWidget> {
           builder: (context) => SubscriptionSuccessPage(),
         ),
       );
-    } else if (status == 'restored') {
+    } else if (status == 'restored' && !_alreadySaidRestored)  {
       _updateSubscriptionStatus(purchaseDetails.productID);
-      
       // Just show a snackbar for restored purchases
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Assinatura restaurada com sucesso!')),
       );
+      _alreadySaidRestored = true;
     }
 
     String purchasePost_code = 'server_error';
@@ -234,7 +281,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
         mobilePurchaseStatus,
+        '_verifyAndDeliverPurchase',
       );
+
+
+      print('------------------- purchasePost_code: $purchasePost_code ${purchaseDetails.status}') ;
     } catch (e) {
       print('Failed to sync purchase with server: $e');
     }
@@ -245,23 +296,31 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         SnackBar(duration: Duration(seconds: 3), content: Text('Assinatura confirmada com sucesso!')),
       );
     }
-    else if (purchasePost_code == 'confirmed') {
+    else if (purchasePost_code == 'confirmed' && !_alreadySaidRestored) {
       //print a snackbar with the purchasePost_code
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(duration: Duration(seconds: 3), content: Text('Assinatura resgatada com sucesso!')),
       );
+      _alreadySaidRestored = true;
     }
-    else if (purchasePost_code == 'forbidden') {
+    else if (purchasePost_code == 'forbidden' && !_alreadySaidRestored) {
       //print a snackbar with the purchasePost_code
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(duration: Duration(seconds: 5), content: Text('Assinatura não confirmada. Pode ser que esta conta App Store tenha sido usado primeiro com outro usuário Parsa e não pode ser reutilizada com outra conta Parsa. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
       );
+      _alreadySaidRestored = true;
     }
     else {
-      //print a snackbar with the purchasePost_code
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(duration: Duration(seconds: 5), content: Text('Operação não autorizada. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
-      );
+      if (!_alreadySaidRestored) {
+        //print a snackbar with the purchasePost_code
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(duration: Duration(seconds: 5), content: Text('Operação não autorizada. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
+        );
+        _alreadySaidRestored = true;
+      }
+      else {
+        print('alreadySaidRestored: $_alreadySaidRestored');
+      }
     }
 
 
@@ -283,6 +342,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
         'pending',
+        '_handlePendingPurchase',
       );
     } catch (e) {
       print('Failed to sync pending purchase with server: $e');
@@ -310,6 +370,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
         mobilePurchaseStatus,
         selectedPlan,
+        "_handleErrorPurchase"
       );
     } catch (e) {
       print('Failed to sync error purchase with server: $e');
@@ -331,6 +392,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         purchaseDetails,
         Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
         'failed',
+        '_handleUnknownPurchase'
       );
     } catch (e) {
       print('Failed to sync unknown purchase with server: $e');

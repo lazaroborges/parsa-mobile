@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 
 
 class CheckSubscriptionStatus {
   static Future<bool> verifyRestoredSubscription(
-    PurchaseDetails purchaseDetails,
+      String productID,
+      String purchaseID,
   ) async {
+
     try {
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
@@ -23,24 +24,27 @@ class CheckSubscriptionStatus {
           'Authorization': 'Bearer ${credentials.accessToken}',
           'Content-Type': 'application/json',
         },
-        body: json.encode({
-          'purchase_id': purchaseDetails.purchaseID,
-          'product_id': purchaseDetails.productID,
-          'verification_data': purchaseDetails.verificationData.serverVerificationData,
-          'transaction_date': purchaseDetails.transactionDate,
-          'platform': 'ios',
-          'status': purchaseDetails.status,
+        body: jsonEncode({
+          'product_id': productID,
+          'purchase_id': purchaseID,
         }),
       );
 
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        return responseData['is_active'] ?? false;
+        //extract the json from the response body
+        print('2000000 Response body: ${response.body}');
+        return true;
       }
-      
-      print('Verification failed with status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      return false;
+      else if (response.statusCode == 401) {
+        print('4010000 Response body: ${response.body}');
+        return false;
+      }
+      else {
+        print('4040000 Response body: ${response.body}');
+        return false;
+      }
+
+
 
     } catch (e) {
       print('Error verifying restored subscription: $e');
