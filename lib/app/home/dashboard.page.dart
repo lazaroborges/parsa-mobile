@@ -62,6 +62,14 @@ class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
   bool isLoading = false;
   bool isLoadingTransactions = true;
+  BalanceType currentBalanceType = BalanceType.total;
+
+  void _toggleBalanceType() {
+    setState(() {
+      currentBalanceType = BalanceType.values[
+          (currentBalanceType.index + 1) % BalanceType.values.length];
+    });
+  }
 
   @override
   void initState() {
@@ -458,25 +466,8 @@ Future<void> _refreshData() async {
   ) {
     final t = Translations.of(context);
 
-    return SuccessiveTapDetector(
-      delayTrackingAfterGoal: 4000,
-      onClickGoalReached: () async {
-        final sc = ScaffoldMessenger.of(context);
-        final privateMode =
-            await PrivateModeService.instance.privateModeStream.first;
-
-        PrivateModeService.instance.setPrivateMode(!privateMode);
-
-        await HapticFeedback.lightImpact();
-
-        sc.showSnackBar(
-          SnackBar(
-            content: Text(!privateMode
-                ? t.settings.security.private_mode_activated
-                : t.settings.security.private_mode_deactivated),
-          ),
-        );
-      },
+    return GestureDetector(
+      onTap: _toggleBalanceType,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,7 +478,7 @@ Future<void> _refreshData() async {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  t.home.total_balance,
+                  currentBalanceType.getTitle(context),
                   style: Theme.of(context).textTheme.labelSmall!,
                 ),
                 const SizedBox(width: 4),
@@ -883,6 +874,24 @@ class DashboardTransactionList extends StatelessWidget {
       onLongPress: (_) {}, // This effectively disables the long press action
       onEmptyList: child.onEmptyList,
     );
+  }
+}
+
+enum BalanceType {
+  total,
+  available,
+  future;
+
+  String getTitle(BuildContext context) {
+    final t = Translations.of(context);
+    switch (this) {
+      case BalanceType.total:
+        return t.home.total_balance;
+      case BalanceType.available:
+        return 'Available Balance'; // Add to translations later
+      case BalanceType.future:
+        return 'Future Balance'; // Add to translations later
+    }
   }
 }
 
