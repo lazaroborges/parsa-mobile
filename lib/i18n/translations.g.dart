@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 601
+/// Strings: 605
 ///
-/// Built on 2024-12-18 at 18:03 UTC
+/// Built on 2024-12-22 at 17:34 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -267,6 +267,10 @@ class _TranslationsHomePt {
 	String get hello_night => 'Boa noite,';
 	String get total_balance => 'Saldo total';
 	String get total_balance_tooltip => 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
+	String get available_balance => 'Saldo disponível';
+	String get available_balance_tooltip => 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
+	String get future_balance => 'Saldo futuro';
+	String get future_balance_tooltip => 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
 	String get my_accounts => 'Minhas contas';
 	String get active_accounts => 'Contas ativas';
 	String get no_accounts => 'Nenhuma conta criada ainda';
@@ -1689,6 +1693,10 @@ extension on Translations {
 			case 'home.hello_night': return 'Boa noite,';
 			case 'home.total_balance': return 'Saldo total';
 			case 'home.total_balance_tooltip': return 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
+			case 'home.available_balance': return 'Saldo disponível';
+			case 'home.available_balance_tooltip': return 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
+			case 'home.future_balance': return 'Saldo futuro';
+			case 'home.future_balance_tooltip': return 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
 			case 'home.my_accounts': return 'Minhas contas';
 			case 'home.active_accounts': return 'Contas ativas';
 			case 'home.no_accounts': return 'Nenhuma conta criada ainda';

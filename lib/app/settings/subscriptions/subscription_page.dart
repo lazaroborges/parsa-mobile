@@ -183,15 +183,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
             // If the subscription is valid, update the subscription status
             _updateSubscriptionStatus(productId);
           } else {
-            print("Invalid subscription detected");
-            setState(() {
-              // Reset subscription status based on product type
-              if (productId == 'premium_monthly1') {
-                hasMonthlySubscription = false;
-              } else if (productId == 'premium_yearly') {
-                hasYearlySubscription = false;
-              }
-            });
+            print("ELSE CASE: $isValid, ${purchaseDetails.productID}");
+            // If the subscription is not valid, treat it as failed
+            // setState(() {
+            //   _error = 'Compra desconhecida.';
+            // });
           }
         });
       }
@@ -263,13 +259,15 @@ class _PremiumWidgetState extends State<PremiumWidget> {
           builder: (context) => SubscriptionSuccessPage(),
         ),
       );
-    } else if (status == 'restored' && !_alreadySaidRestored)  {
+    } else if (status == 'restored')  {
       _updateSubscriptionStatus(purchaseDetails.productID);
       // Just show a snackbar for restored purchases
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Assinatura restaurada com sucesso!')),
-      );
-      _alreadySaidRestored = true;
+      if (!_alreadySaidRestored) { 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Assinatura restaurada com sucesso!')),
+        );
+        _alreadySaidRestored = true;
+      }
     }
 
     String purchasePost_code = 'server_error';
