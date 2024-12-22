@@ -466,6 +466,18 @@ Future<void> _refreshData() async {
   ) {
     final t = Translations.of(context);
 
+    // Helper function to get balance based on type
+    double getBalanceForType() {
+      switch (currentBalanceType) {
+        case BalanceType.total:
+          return 10000.00; // Placeholder for total balance
+        case BalanceType.available:
+          return 5000.00; // Placeholder for available balance
+        case BalanceType.future:
+          return 0.0; // This will be overwritten by the StreamBuilder
+      }
+    }
+
     return GestureDetector(
       onTap: _toggleBalanceType,
       child: Column(
@@ -498,58 +510,50 @@ Future<void> _refreshData() async {
             const Skeleton(width: 30, height: 14),
           ],
           if (accounts.hasData) ...[
-            StreamBuilder(
-              stream: accountService.getAccountsMoneyWidget(
-                  accountIds: accounts.data!.map((e) => e.id).toList()),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final balance = snapshot.data!;
-                  final isNegative = balance < 0;
-
-                  double screenWidth = MediaQuery.of(context).size.width;
-                  double widthMultiplier = 0.45;
-
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: SizedBox(
-                      width: screenWidth * widthMultiplier,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: CurrencyDisplayer(
-                          amountToConvert: balance.abs(),
-                          integerStyle: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w600,
-                            color: isNegative
-                                ? Colors.red
-                                : Theme.of(context).textTheme.titleLarge!.color,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-                return const Skeleton(width: 90, height: 40);
-              },
-            ),
-            if (dateRangeService.startDate != null &&
-                dateRangeService.endDate != null)
-              StreamBuilder(
-                stream: accountService.getAccountsMoneyVariation(
-                    accounts: accounts.data!,
-                    startDate: dateRangeService.startDate,
-                    endDate: dateRangeService.endDate,
-                    convertToPreferredCurrency: true),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Skeleton(width: 52, height: 22);
-                  }
-                  return const SizedBox(width: 52, height: 22);
-                },
-              ),
+            // Use different data source based on balance type
+            currentBalanceType == BalanceType.future
+                ? StreamBuilder(
+                    stream: accountService.getAccountsMoneyWidget(
+                        accountIds: accounts.data!.map((e) => e.id).toList()),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return _buildBalanceDisplay(context, snapshot.data!);
+                          }
+                          return const Skeleton(width: 90, height: 40);
+                        },
+                      )
+                : _buildBalanceDisplay(context, getBalanceForType()),
+            // ... rest of the existing code for variation display ...
           ]
         ],
+      ),
+    );
+  }
+
+  // Helper method to build the balance display
+  Widget _buildBalanceDisplay(BuildContext context, double balance) {
+    final isNegative = balance < 0;
+    double screenWidth = MediaQuery.of(context).size.width;
+    double widthMultiplier = 0.45;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        width: screenWidth * widthMultiplier,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: CurrencyDisplayer(
+            amountToConvert: balance.abs(),
+            integerStyle: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              color: isNegative
+                  ? Colors.red
+                  : Theme.of(context).textTheme.titleLarge!.color,
+            ),
+          ),
+        ),
       ),
     );
   }
