@@ -5,19 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
-import 'package:parsa/app/home/widgets/click_tracker.dart';
 import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
 import 'package:parsa/app/home/widgets/new_transaction_fl_button.dart';
-import 'package:parsa/app/settings/edit_profile_modal.dart';
 import 'package:parsa/app/stats/stats_page.dart';
-import 'package:parsa/app/stats/widgets/balance_bar_chart_small.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
-import 'package:parsa/app/stats/widgets/fund_evolution_line_chart.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
-import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
@@ -36,13 +31,11 @@ import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/services/finance_health_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/core/api/api_login.dart'; // Import the fetchUserData function
 import 'package:parsa/app/transactions/widgets/transaction_list.dart'; // Import the TransactionListComponent
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
 
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
@@ -62,7 +55,7 @@ class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
   bool isLoading = false;
   bool isLoadingTransactions = true;
-  BalanceType currentBalanceType = BalanceType.total;
+  BalanceType currentBalanceType = BalanceType.future;
 
   void _toggleBalanceType() {
     setState(() {
@@ -101,14 +94,13 @@ Future<void> _refreshData() async {
   @override
   Widget build(BuildContext context) {
     final userData = context.watch<UserDataProvider>().userData;
+    print('userData: $userData');
     final t = Translations.of(context);
 
     final accountService = AccountService.instance;
 
     final hideDrawerAndFloatingButton =
         BreakPoint.of(context).isLargerOrEqualTo(BreakpointID.md);
-
-        
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
@@ -466,18 +458,6 @@ Future<void> _refreshData() async {
   ) {
     final t = Translations.of(context);
 
-    // Helper function to get balance based on type
-    double getBalanceForType() {
-      switch (currentBalanceType) {
-        case BalanceType.total:
-          return 10000.00; // Placeholder for total balance
-        case BalanceType.available:
-          return 5000.00; // Placeholder for available balance
-        case BalanceType.future:
-          return 0.0; // This will be overwritten by the StreamBuilder
-      }
-    }
-
     return GestureDetector(
       onTap: _toggleBalanceType,
       child: Column(
@@ -506,52 +486,69 @@ Future<void> _refreshData() async {
             ),
           ),
           if (!accounts.hasData) ...[
-            const Skeleton(width: 70, height: 40),
-            const Skeleton(width: 30, height: 14),
+            const Skeleton(width: 70, height: 54),
           ],
           if (accounts.hasData) ...[
-            // Use different data source based on balance type
-            currentBalanceType == BalanceType.future
-                ? StreamBuilder(
-                    stream: accountService.getAccountsMoneyWidget(
-                        accountIds: accounts.data!.map((e) => e.id).toList()),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return _buildBalanceDisplay(context, snapshot.data!);
-                          }
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.0, 0.1),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: currentBalanceType == BalanceType.future
+                  ? StreamBuilder(
+                      key: ValueKey('future-balance-${currentBalanceType.index}'),
+                      stream: accountService.getAccountsMoneyWidget(
+                        accountIds: accounts.data!.map((e) => e.id).toList(),
+                      ),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
                           return const Skeleton(width: 90, height: 40);
-                        },
-                      )
-                : _buildBalanceDisplay(context, getBalanceForType()),
-            // ... rest of the existing code for variation display ...
+                        }
+                        return _buildBalanceDisplay(context, snapshot.data!);
+                      },
+                    )
+                  : _buildBalanceDisplay(
+                      context,
+                      currentBalanceType == BalanceType.total ? 10000.00 : 5000.00,
+                      key: ValueKey('static-balance-${currentBalanceType.index}'),
+                    ),
+            ),
           ]
         ],
       ),
     );
   }
 
-  // Helper method to build the balance display
-  Widget _buildBalanceDisplay(BuildContext context, double balance) {
+  Widget _buildBalanceDisplay(BuildContext context, double balance, {Key? key}) {
     final isNegative = balance < 0;
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
 
-    return Align(
+    return Container(
+      key: key,
+      width: screenWidth * widthMultiplier,
+      height: 54, // Fixed height to prevent layout shifts
       alignment: Alignment.centerLeft,
-      child: SizedBox(
-        width: screenWidth * widthMultiplier,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: CurrencyDisplayer(
-            amountToConvert: balance.abs(),
-            integerStyle: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-              color: isNegative
-                  ? Colors.red
-                  : Theme.of(context).textTheme.titleLarge!.color,
-            ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: CurrencyDisplayer(
+          amountToConvert: balance.abs(),
+          integerStyle: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w600,
+            color: isNegative
+                ? Colors.red
+                : Theme.of(context).textTheme.titleLarge!.color,
           ),
         ),
       ),
@@ -658,7 +655,7 @@ Future<void> _refreshData() async {
   }
 }
 
-class _HorizontalScrollableAccountList extends StatelessWidget {
+class _HorizontalScrollableAccountList extends StatefulWidget {
   const _HorizontalScrollableAccountList({
     required this.dateRangeService,
     super.key,
@@ -666,16 +663,54 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
 
   final DatePeriodState dateRangeService;
 
+  @override
+  State<_HorizontalScrollableAccountList> createState() => _HorizontalScrollableAccountListState();
+}
+
+class _HorizontalScrollableAccountListState extends State<_HorizontalScrollableAccountList> {
+  final Map<String, String> _iconPathCache = {};
+
   Future<String> _getIconPath(String iconId) async {
+    if (_iconPathCache.containsKey(iconId)) {
+      return _iconPathCache[iconId]!;
+    }
+
     final defaultPath = 'assets/png_icons/$iconId.png';
-    final iconPath = 'assets/png_icons/1.png';
+    final fallbackPath = 'assets/png_icons/1.png';
 
     try {
       await rootBundle.load(defaultPath);
+      _iconPathCache[iconId] = defaultPath;
       return defaultPath;
     } catch (_) {
-      return iconPath;
+      _iconPathCache[iconId] = fallbackPath;
+      return fallbackPath;
     }
+  }
+
+  Widget _buildAccountIcon(String iconId) {
+    return FutureBuilder<String>(
+      future: _getIconPath(iconId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Image.asset(
+            'assets/png_icons/1.png',
+            width: 45,
+            height: 45,
+            fit: BoxFit.contain,
+          );
+        }
+        
+        return Image.asset(
+          snapshot.data!,
+          width: 45,
+          height: 45,
+          fit: BoxFit.contain,
+          cacheWidth: 90, // 2x for high DPI
+          cacheHeight: 90,
+        );
+      },
+    );
   }
 
   @override
@@ -719,28 +754,12 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: SizedBox(
-                          width: 240,
+                          width: 220,
                           child: Column(
                             children: [
                               Row(
                                 children: [
-                                  FutureBuilder<String>(
-                                    future: _getIconPath(account.iconId),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.done) {
-                                        return Image.asset(
-                                          snapshot.data!,
-                                          width: 45,
-                                          height: 45,
-                                          fit: BoxFit.contain,
-                                        );
-                                      } else {
-                                        return const SizedBox(
-                                            width: 45, height: 45);
-                                      }
-                                    },
-                                  ),
+                                  _buildAccountIcon(account.iconId),
                                   const SizedBox(width: 2),
                                   Column(
                                     crossAxisAlignment:
@@ -784,7 +803,7 @@ class _HorizontalScrollableAccountList extends StatelessWidget {
                                   ),
                                   if (account.isOpenFinance == true)
                                     SizedBox(
-                                      width: 105,
+                                      width: 92,
                                       child: Image.asset(
                                         'assets/icons/supported_selectable_icons/logos/open/logo.png',
                                       ),
@@ -882,19 +901,22 @@ class DashboardTransactionList extends StatelessWidget {
 }
 
 enum BalanceType {
-  total,
-  available,
-  future;
+      
+      total,
+      future,
+      
+      available;
 
   String getTitle(BuildContext context) {
     final t = Translations.of(context);
     switch (this) {
       case BalanceType.total:
+        return 'Future Balance';
+      case BalanceType.future:
         return t.home.total_balance;
       case BalanceType.available:
         return 'Available Balance'; // Add to translations later
-      case BalanceType.future:
-        return 'Future Balance'; // Add to translations later
+ // Add to translations later
     }
   }
 }

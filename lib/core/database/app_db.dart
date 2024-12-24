@@ -77,7 +77,7 @@ class AppDB extends _$AppDB {
     return MigrationStrategy(
       beforeOpen: (details) async {
         print(
-            'DB found! Version ${details.versionNow} (previous was ${details.versionBefore}). Path to DB -> ${await databasePath}');
+            'DB found! Version ${details.versionNow} (previous was ${details.versionBefore}). '); //Path to DB -> ${await databasePath}
 
         // Fetch the current app version using PackageInfo
         final packageInfo = await PackageInfo.fromPlatform();
