@@ -296,6 +296,59 @@ Future<void> _refreshData() async {
                             );
                           },
                         ),
+                        const SizedBox(height: 16),
+                        StreamBuilder<double>(
+                          stream: AccountService.instance.getAccountsBalance(
+                            filters: TransactionFilters(
+                              minDate: dateRangeService.startDate,
+                              maxDate: dateRangeService.endDate,
+                              transactionTypes: [TransactionType.I],
+                            ),
+                          ),
+                          builder: (context, incomeSnapshot) {
+                            return StreamBuilder<double>(
+                              stream: AccountService.instance.getAccountsBalance(
+                                filters: TransactionFilters(
+                                  minDate: dateRangeService.startDate,
+                                  maxDate: dateRangeService.endDate,
+                                  transactionTypes: [TransactionType.E],
+                                ),
+                              ),
+                              builder: (context, expenseSnapshot) {
+                                if (!incomeSnapshot.hasData || !expenseSnapshot.hasData) {
+                                  return const LinearProgressIndicator();
+                                }
+
+                                final income = incomeSnapshot.data!.abs();
+                                final expenses = expenseSnapshot.data!.abs();
+                                final percentage = income > 0 ? (expenses / income) : 0.0;
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  width: double.infinity,
+                                  child: Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: percentage,
+                                          backgroundColor: Colors.green.withOpacity(0.2),
+                                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                                          minHeight: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${(percentage * 100).toStringAsFixed(1)}% of income spent',
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
