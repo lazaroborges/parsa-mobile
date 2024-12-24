@@ -457,6 +457,7 @@ Future<void> _refreshData() async {
     AccountService accountService,
   ) {
     final t = Translations.of(context);
+    final userData = context.watch<UserDataProvider>().userData;
 
     return GestureDetector(
       onTap: _toggleBalanceType,
@@ -503,24 +504,30 @@ Future<void> _refreshData() async {
                   ),
                 );
               },
-              child: currentBalanceType == BalanceType.future
-                  ? StreamBuilder(
-                      key: ValueKey('future-balance-${currentBalanceType.index}'),
-                      stream: accountService.getAccountsMoneyWidget(
-                        accountIds: accounts.data!.map((e) => e.id).toList(),
-                      ),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Skeleton(width: 90, height: 40);
-                        }
-                        return _buildBalanceDisplay(context, snapshot.data!);
-                      },
-                    )
-                  : _buildBalanceDisplay(
-                      context,
-                      currentBalanceType == BalanceType.total ? 10000.00 : 5000.00,
-                      key: ValueKey('static-balance-${currentBalanceType.index}'),
+              child: switch (currentBalanceType) {
+                BalanceType.available => _buildBalanceDisplay(
+                    context,
+                    userData?['balance_available']?.toDouble() ?? 0.0,
+                    key: ValueKey('available-balance-${currentBalanceType.index}'),
+                  ),
+                BalanceType.total => _buildBalanceDisplay(
+                    context,
+                    userData?['balance_total']?.toDouble() ?? 0.0,
+                    key: ValueKey('total-balance-${currentBalanceType.index}'),
+                  ),
+                BalanceType.future => StreamBuilder(
+                    key: ValueKey('future-balance-${currentBalanceType.index}'),
+                    stream: accountService.getAccountsMoneyWidget(
+                      accountIds: accounts.data!.map((e) => e.id).toList(),
                     ),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Skeleton(width: 90, height: 40);
+                      }
+                      return _buildBalanceDisplay(context, snapshot.data!);
+                    },
+                  ),
+              },
             ),
           ]
         ],
@@ -901,22 +908,19 @@ class DashboardTransactionList extends StatelessWidget {
 }
 
 enum BalanceType {
-      
-      total,
-      future,
-      
-      available;
+  available,
+  total,
+  future;
 
   String getTitle(BuildContext context) {
     final t = Translations.of(context);
     switch (this) {
+      case BalanceType.available:
+        return 'Saldo Total Disponível';
       case BalanceType.total:
-        return 'Future Balance';
+        return 'Saldo Total com Investimentos';
       case BalanceType.future:
         return t.home.total_balance;
-      case BalanceType.available:
-        return 'Available Balance'; // Add to translations later
- // Add to translations later
     }
   }
 }
