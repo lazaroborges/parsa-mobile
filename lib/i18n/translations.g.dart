@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 605
 ///
-/// Built on 2024-12-22 at 17:34 UTC
+/// Built on 2024-12-30 at 00:18 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -265,7 +265,7 @@ class _TranslationsHomePt {
 	String get filter_transactions => 'Filtrar transações';
 	String get hello_day => 'Bom dia,';
 	String get hello_night => 'Boa noite,';
-	String get total_balance => 'Saldo total';
+	String get total_balance => 'Saldo Disponível';
 	String get total_balance_tooltip => 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
 	String get available_balance => 'Saldo disponível';
 	String get available_balance_tooltip => 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
@@ -1691,7 +1691,7 @@ extension on Translations {
 			case 'home.filter_transactions': return 'Filtrar transações';
 			case 'home.hello_day': return 'Bom dia,';
 			case 'home.hello_night': return 'Boa noite,';
-			case 'home.total_balance': return 'Saldo total';
+			case 'home.total_balance': return 'Saldo Disponível';
 			case 'home.total_balance_tooltip': return 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';
 			case 'home.available_balance': return 'Saldo disponível';
 			case 'home.available_balance_tooltip': return 'Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.';

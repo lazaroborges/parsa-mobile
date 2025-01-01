@@ -43,6 +43,7 @@ import 'package:parsa/core/api/fetch_user_transactions.dart';
 
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -55,7 +56,7 @@ class _DashboardPageState extends State<DashboardPage> {
   DatePeriodState dateRangeService = const DatePeriodState();
   bool isLoading = false;
   bool isLoadingTransactions = true;
-  BalanceType currentBalanceType = BalanceType.future;
+  BalanceType currentBalanceType = BalanceType.available;
 
   void _toggleBalanceType() {
     setState(() {
@@ -67,10 +68,26 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    _initializeDashboard();
   }
 
+  Future<void> _initializeDashboard() async {
+    try {
+      // Ensure we check the announcement first
+      if (mounted) {
+        await FeatureAnnouncementModal.showIfNeeded(context);
+      }
+      
+      // Then fetch data
+      await _refreshData();
+    } catch (e) {
+      print('Error in initialization: $e');
+    }
+  }
 
-Future<void> _refreshData() async {
+  Future<void> _refreshData() async {
+    if (!mounted) return;
+    
     setState(() {
       isLoading = true;
       isLoadingTransactions = true;
@@ -85,12 +102,15 @@ Future<void> _refreshData() async {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
     } finally {
-      setState(() {
-        isLoading = false;
-        isLoadingTransactions = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final userData = context.watch<UserDataProvider>().userData;
@@ -324,23 +344,43 @@ Future<void> _refreshData() async {
                                 final percentage = income > 0 ? (expenses / income) : 0.0;
 
                                 return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
                                   width: double.infinity,
                                   child: Column(
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: LinearProgressIndicator(
-                                          value: percentage,
-                                          backgroundColor: Colors.green.withOpacity(0.2),
-                                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                                          minHeight: 16,
+                                      TweenAnimationBuilder<double>(
+                                        duration: const Duration(milliseconds: 1500),
+                                        curve: Curves.easeInOut,
+                                        tween: Tween<double>(
+                                          begin: 0,
+                                          end: percentage,
                                         ),
+                                        builder: (context, value, child) {
+                                          return ClipRRect(
+                                            borderRadius: BorderRadius.circular(4),
+                                            child: LinearProgressIndicator(
+                                              value: value,
+                                              backgroundColor: Colors.green.withOpacity(0.9),
+                                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                                              minHeight: 16,
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${(percentage * 100).toStringAsFixed(1)}% of income spent',
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                      const SizedBox(height: 2),
+                                      TweenAnimationBuilder<double>(
+                                        duration: const Duration(milliseconds: 1500),
+                                        curve: Curves.easeInOut,
+                                        tween: Tween<double>(
+                                          begin: 0,
+                                          end: percentage,
+                                        ),
+                                        builder: (context, value, child) {
+                                          return Text(
+                                            '${(value * 100).toStringAsFixed(1)}% of income spent',
+                                            style: Theme.of(context).textTheme.bodySmall,
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -512,15 +552,49 @@ Future<void> _refreshData() async {
     final t = Translations.of(context);
     final userData = context.watch<UserDataProvider>().userData;
 
+    String getTooltipMessage() {
+      switch (currentBalanceType) {
+        case BalanceType.available:
+          return 'Saldo disponível para uso imediato. Inclui as suas contas correntes e carteiras manuais, descontando os gastos no cartão de crédito. Este é o dinheiro que você pode utilizar imediatamente';
+        case BalanceType.total:
+          return 'Saldo disponível com reservas de emergência. Inclui a soma de todas as contas correntes mais reservas imediatas (como Poupança e Caixinhas) menos cartão de crédito. Este é o dinheiro que você possui disponível em caso de emergências.';
+        case BalanceType.future:
+          return 'Saldo total. Inclui conta corrente, carteira manual, caixinhas, poupanças e investimentos de longo prazo menos os saldos do cartão de crédito. Esta é a soma total de todos os seus recursos no Parsa e no Open Finance.';
+      }
+    }
+
     return GestureDetector(
       onTap: _toggleBalanceType,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Tooltip(
-            message: t.home.total_balance_tooltip,
-            child: Row(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: () {
+          final RenderBox box = context.findRenderObject() as RenderBox;
+          final Offset position = box.localToGlobal(Offset.zero);
+          
+          showMenu(
+            context: context,
+            position: RelativeRect.fromLTRB(
+              position.dx,
+              position.dy + box.size.height,
+              position.dx + box.size.width,
+              position.dy + box.size.height + 20,
+            ),
+            items: [
+              PopupMenuItem(
+                enabled: false,
+                child: Text(
+                  getTooltipMessage(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          );
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
@@ -538,37 +612,36 @@ Future<void> _refreshData() async {
                 ),
               ],
             ),
-          ),
-          if (!accounts.hasData) ...[
-            const Skeleton(width: 70, height: 54),
-          ],
-          if (accounts.hasData) ...[
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.0, 0.1),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                );
-              },
-              child: switch (currentBalanceType) {
-                BalanceType.available => _buildBalanceDisplay(
-                    context,
-                    userData?['balance_available']?.toDouble() ?? 0.0,
-                    key: ValueKey('available-balance-${currentBalanceType.index}'),
-                  ),
-                BalanceType.total => _buildBalanceDisplay(
-                    context,
-                    userData?['balance_total']?.toDouble() ?? 0.0,
-                    key: ValueKey('total-balance-${currentBalanceType.index}'),
-                  ),
-                BalanceType.future => StreamBuilder(
+            if (!accounts.hasData) ...[
+              const Skeleton(width: 70, height: 54),
+            ],
+            if (accounts.hasData) ...[
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.1),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: switch (currentBalanceType) {
+                  BalanceType.available => _buildBalanceDisplay(
+                      context,
+                      userData?['balance_available']?.toDouble() ?? 0.0,
+                      key: ValueKey('available-balance-${currentBalanceType.index}'),
+                    ),
+                  BalanceType.total => _buildBalanceDisplay(
+                      context,
+                      userData?['balance_total']?.toDouble() ?? 0.0,
+                      key: ValueKey('total-balance-${currentBalanceType.index}'),
+                    ),
+                  BalanceType.future => StreamBuilder(
                     key: ValueKey('future-balance-${currentBalanceType.index}'),
                     stream: accountService.getAccountsMoneyWidget(
                       accountIds: accounts.data!.map((e) => e.id).toList(),
@@ -580,10 +653,11 @@ Future<void> _refreshData() async {
                       return _buildBalanceDisplay(context, snapshot.data!);
                     },
                   ),
-              },
-            ),
-          ]
-        ],
+                },
+              ),
+            ]
+          ],
+        ),
       ),
     );
   }
@@ -814,7 +888,7 @@ class _HorizontalScrollableAccountListState extends State<_HorizontalScrollableA
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: SizedBox(
-                          width: 220,
+                          width: 250,
                           child: Column(
                             children: [
                               Row(
@@ -969,11 +1043,11 @@ enum BalanceType {
     final t = Translations.of(context);
     switch (this) {
       case BalanceType.available:
-        return 'Saldo Total Disponível';
-      case BalanceType.total:
-        return 'Saldo Total com Investimentos';
-      case BalanceType.future:
         return t.home.total_balance;
+      case BalanceType.total:
+        return 'Saldo com Reservas';
+      case BalanceType.future:
+        return 'Saldo Total';
     }
   }
 }

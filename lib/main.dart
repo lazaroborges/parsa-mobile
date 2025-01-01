@@ -25,6 +25,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:parsa/core/providers/feature_announcement_provider.dart';
 
 
 String apiEndpoint = '';

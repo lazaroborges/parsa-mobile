@@ -160,7 +160,7 @@
     "filter-transactions": "Filtrar transações",
     "hello-day": "Bom dia,",
     "hello-night": "Boa noite,",
-    "total-balance": "Saldo total",
+    "total-balance": "Saldo Disponível",
     "total-balance-tooltip": "Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.",
     "available-balance": "Saldo disponível",
     "available-balance-tooltip": "Soma de todos os saldos das suas contas menos os saldos do cartão de crédito e empréstimos.",
