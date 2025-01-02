@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:flutter/widgets.dart';
 import 'package:parsa/main.dart'; // Add this import
+import 'package:provider/provider.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 
 
 // Function that calls the API to fetch the user data like name, avatar photo, and different summarized balances to be displayed at the Dashboard Page Top. Set's a provider for it. 
@@ -25,6 +27,7 @@ Future<Map<String, dynamic>> fetchUserDataAtServer(BuildContext context) async {
   print('data: $data');
 
   if (response.statusCode == 200) {
+    Provider.of<UserDataProvider>(context, listen: false).setUserData(data);
     return data;
   } else {
     throw Exception('Failed to load user data');
