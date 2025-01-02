@@ -4,7 +4,11 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:flutter/widgets.dart';
 import 'package:parsa/main.dart'; // Add this import
 
-Future<Map<String, dynamic>> apiLogin(BuildContext context) async {
+
+// Function that calls the API to fetch the user data like name, avatar photo, and different summarized balances to be displayed at the Dashboard Page Top. Set's a provider for it. 
+
+
+Future<Map<String, dynamic>> fetchUserDataAtServer(BuildContext context) async {
   final auth0 = Auth0Provider.instance.auth0;
 
   final credentials = await auth0.credentialsManager.credentials();

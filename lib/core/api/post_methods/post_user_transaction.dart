@@ -22,7 +22,6 @@ class PostUserTransactionService {
     final Category? category = await categoryStream.first;
 
     // Print the category name or a default value if null
-    print("CATEGORY NAME: ${category?.name ?? 'Outros'}");
 
     String categoryName = category?.name ?? 'Outros';
 
@@ -41,7 +40,6 @@ class PostUserTransactionService {
       'tags': tags.map((tag) => tag.id).toList(),
     };
 
-    print("TRANSACTION JSON: $transactionJson");
     try {
       // Send POST request to the API
       final response = method == 'POST'
