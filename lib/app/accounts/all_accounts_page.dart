@@ -142,8 +142,11 @@ class _AllAccountsPageState extends State<AllAccountsPage> {
                     final item = accounts.removeAt(from);
                     accounts.insert(to, item);
 
+                    print('${accounts} - ${from} - ${to}');
+
                     await Future.wait(
                       accounts.mapIndexed(
+
                         (index, element) =>
                             AccountService.instance.updateAccount(
                           element.copyWith(displayOrder: index),

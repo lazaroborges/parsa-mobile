@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 605
 ///
-/// Built on 2024-12-30 at 00:18 UTC
+/// Built on 2025-01-03 at 19:04 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1266,7 +1266,7 @@ class _TranslationsMoreSubscribePt {
 
 	// Translations
 	String get display => 'Assinatura';
-	String get description => 'Assine o Parsa para desbloquear todas os recursos Premium.';
+	String get description => 'Assine o Parsa para desbloquear todos os recursos Premium.';
 	String get title => 'Assinatura Premium';
 	String get subscribe => 'Assinar';
 	String subscribe_for({required Object price}) => 'Assinar por ${price}';
@@ -2194,7 +2194,7 @@ extension on Translations {
 			case 'more.data.delete_all_header2': return 'Último passo ⚠️⚠️';
 			case 'more.data.delete_all_message2': return 'Ao excluir uma conta, você excluirá todos os seus dados pessoais armazenados. Suas contas, transações, orçamentos e categorias serão excluídos e não poderão ser recuperados. Você concorda?';
 			case 'more.subscribe.display': return 'Assinatura';
-			case 'more.subscribe.description': return 'Assine o Parsa para desbloquear todas os recursos Premium.';
+			case 'more.subscribe.description': return 'Assine o Parsa para desbloquear todos os recursos Premium.';
 			case 'more.subscribe.title': return 'Assinatura Premium';
 			case 'more.subscribe.subscribe': return 'Assinar';
 			case 'more.subscribe.subscribe_for': return ({required Object price}) => 'Assinar por ${price}';

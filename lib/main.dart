@@ -27,6 +27,7 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:parsa/core/providers/feature_announcement_provider.dart';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
 
@@ -36,8 +37,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   
-
-  apiEndpoint = dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br';
+  //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file. 
+  apiEndpoint = kReleaseMode ? 'https://app.parsa-ai.com.br' : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
 
   final auth0 = Auth0(
     dotenv.env['AUTH0_DOMAIN']!,

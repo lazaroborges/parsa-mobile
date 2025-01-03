@@ -730,7 +730,7 @@
     },
     "SUBSCRIBE": {
       "display": "Assinatura",
-      "description": "Assine o Parsa para desbloquear todas os recursos Premium.",
+      "description": "Assine o Parsa para desbloquear todos os recursos Premium.",
       "title": "Assinatura Premium",
       "subscribe": "Assinar",
       "subscribe_for": "Assinar por {{price}}",

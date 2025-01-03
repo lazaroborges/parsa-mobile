@@ -319,7 +319,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             );
                           },
                         ),
-                      //   const SizedBox(height: 16),
+                      //   const SizedBox(height: 16), TODO bring back the bar! 
                       //   StreamBuilder<double>(
                       //     stream: AccountService.instance.getAccountsBalance(
                       //       filters: TransactionFilters(

@@ -49,6 +49,10 @@ class AccountService {
   }
 
   Future<bool> updateAccount(AccountInDB account) {
+
+    
+
+    print('Updating account: ${account}');
     return db.update(db.accounts).replace(account);
   }
 
