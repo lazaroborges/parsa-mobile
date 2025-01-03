@@ -7,6 +7,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/main.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 
 class PluggyConnectorPage extends StatefulWidget {
@@ -17,7 +18,6 @@ class PluggyConnectorPage extends StatefulWidget {
 }
 
 class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
-  bool _showPluggyConnect = false;
   String _connectToken = '';
   bool _isLoading = true;
   String? _error;
@@ -98,7 +98,7 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
 
     return Scaffold(
       body: PluggyConnect(
-        includeSandbox: true,
+        includeSandbox: !kReleaseMode,
         onSuccess: (data) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.connections.success)),
