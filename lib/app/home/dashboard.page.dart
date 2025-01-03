@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -98,6 +100,7 @@ class _DashboardPageState extends State<DashboardPage> {
         fetchUserAccounts(),
         fetchUserTransactions(context),
       ]);
+      unawaited(fetchUserDataAtServer());  // Trul
     } catch (e) {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
@@ -316,79 +319,80 @@ class _DashboardPageState extends State<DashboardPage> {
                             );
                           },
                         ),
-                        const SizedBox(height: 16),
-                        StreamBuilder<double>(
-                          stream: AccountService.instance.getAccountsBalance(
-                            filters: TransactionFilters(
-                              minDate: dateRangeService.startDate,
-                              maxDate: dateRangeService.endDate,
-                              transactionTypes: [TransactionType.I],
-                            ),
-                          ),
-                          builder: (context, incomeSnapshot) {
-                            return StreamBuilder<double>(
-                              stream: AccountService.instance.getAccountsBalance(
-                                filters: TransactionFilters(
-                                  minDate: dateRangeService.startDate,
-                                  maxDate: dateRangeService.endDate,
-                                  transactionTypes: [TransactionType.E],
-                                ),
-                              ),
-                              builder: (context, expenseSnapshot) {
-                                if (!incomeSnapshot.hasData || !expenseSnapshot.hasData) {
-                                  return const LinearProgressIndicator();
-                                }
+                      //   const SizedBox(height: 16),
+                      //   StreamBuilder<double>(
+                      //     stream: AccountService.instance.getAccountsBalance(
+                      //       filters: TransactionFilters(
+                      //         minDate: dateRangeService.startDate,
+                      //         maxDate: dateRangeService.endDate,
+                      //         transactionTypes: [TransactionType.I],
+                      //       ),
+                      //     ),
+                      //     builder: (context, incomeSnapshot) {
+                      //       return StreamBuilder<double>(
+                      //         stream: AccountService.instance.getAccountsBalance(
+                      //           filters: TransactionFilters(
+                      //             minDate: dateRangeService.startDate,
+                      //             maxDate: dateRangeService.endDate,
+                      //             transactionTypes: [TransactionType.E],
+                      //           ),
+                      //         ),
+                      //         builder: (context, expenseSnapshot) {
+                      //           if (!incomeSnapshot.hasData || !expenseSnapshot.hasData) {
+                      //             return const LinearProgressIndicator();
+                      //           }
 
-                                final income = incomeSnapshot.data!.abs();
-                                final expenses = expenseSnapshot.data!.abs();
-                                final percentage = income > 0 ? (expenses / income) : 0.0;
+                      //           final income = incomeSnapshot.data!.abs();
+                      //           final expenses = expenseSnapshot.data!.abs();
+                      //           final percentage = income > 0 ? (expenses / income) : 0.0;
 
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-                                  width: double.infinity,
-                                  child: Column(
-                                    children: [
-                                      TweenAnimationBuilder<double>(
-                                        duration: const Duration(milliseconds: 1500),
-                                        curve: Curves.easeInOut,
-                                        tween: Tween<double>(
-                                          begin: 0,
-                                          end: percentage,
-                                        ),
-                                        builder: (context, value, child) {
-                                          return ClipRRect(
-                                            borderRadius: BorderRadius.circular(4),
-                                            child: LinearProgressIndicator(
-                                              value: value,
-                                              backgroundColor: Colors.green.withOpacity(0.9),
-                                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                                              minHeight: 16,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 2),
-                                      TweenAnimationBuilder<double>(
-                                        duration: const Duration(milliseconds: 1500),
-                                        curve: Curves.easeInOut,
-                                        tween: Tween<double>(
-                                          begin: 0,
-                                          end: percentage,
-                                        ),
-                                        builder: (context, value, child) {
-                                          return Text(
-                                            '${(value * 100).toStringAsFixed(1)}% of income spent',
-                                            style: Theme.of(context).textTheme.bodySmall,
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                      //           return Container(
+                      //             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                      //             width: double.infinity,
+                      //             child: Column(
+                      //               children: [
+                      //                 TweenAnimationBuilder<double>(
+                      //                   duration: const Duration(milliseconds: 1500),
+                      //                   curve: Curves.easeInOut,
+                      //                   tween: Tween<double>(
+                      //                     begin: 0,
+                      //                     end: percentage,
+                      //                   ),
+                      //                   builder: (context, value, child) {
+                      //                     return ClipRRect(
+                      //                       borderRadius: BorderRadius.circular(4),
+                      //                       child: LinearProgressIndicator(
+                      //                         value: value,
+                      //                         backgroundColor: Colors.green.withOpacity(0.9),
+                      //                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                      //                         minHeight: 16,
+                      //                       ),
+                      //                     );
+                      //                   },
+                      //                 ),
+                      //                 const SizedBox(height: 2),
+                      //                 TweenAnimationBuilder<double>(
+                      //                   duration: const Duration(milliseconds: 1500),
+                      //                   curve: Curves.easeInOut,
+                      //                   tween: Tween<double>(
+                      //                     begin: 0,
+                      //                     end: percentage,
+                      //                   ),
+                      //                   builder: (context, value, child) {
+                      //                     return Text(
+                      //                       '${(value * 100).toStringAsFixed(1)}% of income spent',
+                      //                       style: Theme.of(context).textTheme.bodySmall,
+                      //                     );
+                      //                   },
+                      //                 ),
+                      //               ],
+                      //             ),
+                      //           );
+                      //         },
+                      //       );
+                      //     },
+                      //   ),
+                      // 
                       ],
                     ),
                   ),
@@ -641,18 +645,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       userData?['balance_total']?.toDouble() ?? 0.0,
                       key: ValueKey('total-balance-${currentBalanceType.index}'),
                     ),
-                  BalanceType.future => StreamBuilder(
-                    key: ValueKey('future-balance-${currentBalanceType.index}'),
-                    stream: accountService.getAccountsMoneyWidget(
-                      accountIds: accounts.data!.map((e) => e.id).toList(),
+                  BalanceType.future => _buildBalanceDisplay(
+                      context,
+                      userData?['balance_future']?.toDouble() ?? 0.0,
+                      key: ValueKey('future-balance-${currentBalanceType.index}'),
                     ),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Skeleton(width: 90, height: 40);
-                      }
-                      return _buildBalanceDisplay(context, snapshot.data!);
-                    },
-                  ),
                 },
               ),
             ]

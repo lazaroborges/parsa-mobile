@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -92,6 +95,7 @@ class TransactionService {
       await _updateTransactionTags(transaction.id, tags);
 
       db.markTablesUpdated([db.accounts]);
+      unawaited(fetchUserDataAtServer());  // Trul
       return result;
     } catch (e, stackTrace) {
       print('''
@@ -142,6 +146,8 @@ $stackTrace
     if (!isPut) {
       throw Exception('Failed to post account to the API.');
     } else {
+            unawaited(fetchUserDataAtServer());  // Trul
+
       return (db.delete(db.transactions)
             ..where((tbl) => tbl.id.equals(transactionId)))
           .go();

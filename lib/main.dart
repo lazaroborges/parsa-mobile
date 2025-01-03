@@ -53,10 +53,9 @@ void main() async {
     appRunner: () => runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => UserDataProvider()),
+          ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
           ChangeNotifierProvider(
             create: (_) => Auth0Provider(auth0: auth0),
-            child: const MonekinAppEntryPoint(),
           ),
         ],
         child: const MonekinAppEntryPoint(),

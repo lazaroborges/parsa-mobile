@@ -107,15 +107,14 @@ class TabsPageState extends State<TabsPage> {
     }
   }
 
-  Future<void> _fetchUserInfoServer() async {
-    try {
-      final data = await fetchUserDataAtServer(context);
-      context.read<UserDataProvider>().setUserData(data);
-    } catch (e) {
-      print('Error during API login: $e');
-      // Handle error as needed
-    }
+Future<void> _fetchUserInfoServer() async {
+  try {
+    final data = await fetchUserDataAtServer();
+  } catch (e) {
+    print('Error during API login: $e');
+    // Handle error as needed
   }
+}
 
   void changePage(MainMenuDestination destination) {
     navigationSidebarKey.currentState?.setSelectedDestination(destination);

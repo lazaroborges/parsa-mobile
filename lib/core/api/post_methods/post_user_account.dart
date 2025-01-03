@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/main.dart';
 
@@ -43,10 +45,10 @@ class PostUserAccountService {
         body: json.encode(accountJson),
       );
 
-      print(
-          'LA respuesta es la verdad ${response.body} ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        unawaited(fetchUserDataAtServer());  // Fire and forget
+
         return true;
       } else {
         print(

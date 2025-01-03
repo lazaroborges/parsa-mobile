@@ -33,14 +33,14 @@ class TransactionViewActionService {
               mode: transaction.type,
             )),
       ),
-      if (transaction.recurrentInfo.isNoRecurrent)
-        ListTileActionItem(
-          label: t.transaction.duplicate_short,
-          icon: Icons.control_point_duplicate_rounded,
-          onClick: () => TransactionViewActionService()
-              .cloneTransactionWithAlertAndSnackBar(context,
-                  transaction: transaction),
-        ),
+      // if (transaction.recurrentInfo.isNoRecurrent)
+      //   ListTileActionItem(
+      //     label: t.transaction.duplicate_short,
+      //     icon: Icons.control_point_duplicate_rounded,
+      //     onClick: () => TransactionViewActionService()
+      //         .cloneTransactionWithAlertAndSnackBar(context,
+      //             transaction: transaction),
+      //   ), TODO this is the Clone Button to be ressucitated.
       ListTileActionItem(
           label: t.general.delete,
           icon: Icons.delete,

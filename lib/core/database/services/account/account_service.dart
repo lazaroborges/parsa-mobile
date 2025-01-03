@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -50,12 +53,16 @@ class AccountService {
   }
 
   Future<int> deleteAccountFromLocalDB(String accountId) {
+            unawaited(fetchUserDataAtServer());  // Truly non-blocking
+
     return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
         .go();
   }
 
   Future<int> deleteAccount(String accountId) async {
+    
     try {
+      
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
 
@@ -65,7 +72,7 @@ class AccountService {
       if (!isDeleted) {
         throw Exception('Failed to delete account from the API.');
       }
-
+unawaited(fetchUserDataAtServer());  // Trul
       return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
           .go();
     } catch (e) {

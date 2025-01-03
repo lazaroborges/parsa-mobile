@@ -197,8 +197,8 @@ class ApiAccount {
       accountType:
           json['account_type'] ?? 'normal', // Default to 'normal' if missing
       number: json['number'] ?? '', // Handle null number
-      iniValue: json['iniValue'] != null
-          ? double.tryParse(json['iniValue'].toString()) ?? 0.0
+      iniValue: json['initial_value'] != null
+          ? double.tryParse(json['initial_value'].toString()) ?? 0.0
           : 0.0, // Safely parse iniValue
       name: json['name'] ?? 'Parsa', // Fallback for missing name
       createdAt: json['created_at'] != null

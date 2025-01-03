@@ -181,8 +181,6 @@
     "color": "781F19",
     "type": "E",
     "subcategories": [
-
-
       {
         "icon": "credit_score",
         "names": {
@@ -356,26 +354,8 @@
         }
       },
 
-      {
-        "icon": "home",
-        "names": {
-          "pt": "Aluguéis"
-        }
-      },
 
-      {
-        "icon": "candlestick",
-        "names": {
-          "pt": "Dividendos"
-        }
-      },
-
-      {
-        "icon": "savings",
-        "names": {
-          "pt": "Renda Variável"
-        }
-      }, 
+ 
       {
         "icon": "candlestick",
         "names": {
@@ -555,6 +535,40 @@
   },
   {
     "names": {
+      "pt": "Renda Passiva"
+    },
+    "icon": "payments",
+    "color": "6B4C9B",
+    "type": "I",
+    "subcategories": [{
+      "icon": "pix",
+      "names": {
+        "pt": "Juros e Dividendos"
+      }
+    },
+
+    {
+      "icon": "home",
+      "names": {
+        "pt": "Aluguéis"
+      }
+    },   
+     {
+      "icon": "savings",
+      "names": {
+        "pt": "Renda Variável"
+      }
+    },
+    {
+      "icon": "savings",
+      "names": {
+        "pt": "Outros Proventos"
+      }
+    } 
+    
+    ]},
+  {
+    "names": {
       "pt": "Outros"
     },
     "icon": "inventory_2",
@@ -579,7 +593,7 @@
 
 
       {
-        "icon": "",
+        "icon": "library_books",
         "names": {
           "pt": "Ajuda Familiar"
         }

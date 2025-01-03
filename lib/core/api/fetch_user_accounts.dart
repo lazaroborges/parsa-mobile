@@ -81,7 +81,7 @@ Future<List<Account>> convertApiAccountsToLocal(
     Account account = Account(
       id: apiAccount.accountId,
       name: name,
-      iniValue: apiAccount.balance ?? 0.0,
+      iniValue: apiAccount.iniValue ?? 0.0,
       date: apiAccount.createdAt,
 
       type: _mapAccountType(apiAccount.accountType),
@@ -97,6 +97,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       swift: null, // Set if applicable
       color: apiAccount.primaryColor,
       isOpenFinance: apiAccount.isOpenFinance,
+     
     );
 
     localAccounts.add(account);
