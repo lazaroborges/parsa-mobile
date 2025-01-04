@@ -9,7 +9,6 @@ import 'package:parsa/main.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
-
 class PluggyConnectorPage extends StatefulWidget {
   const PluggyConnectorPage({super.key});
 

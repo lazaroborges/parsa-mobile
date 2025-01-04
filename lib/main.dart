@@ -1,4 +1,5 @@
 import 'dart:async'; // Added for StreamSubscription
+import 'dart:io';
 import 'package:app_links/app_links.dart'; // Correctly imported package
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,11 @@ import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/theme.dart';
+import 'package:parsa/core/providers/app_version_provider.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
+import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -36,6 +39,10 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  await AppVersionProvider.instance.initialize();
+  
+  // Add custom HTTP override for User-Agent
+  HttpOverrides.global = CustomHttpOverrides();
   
   //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file. 
   apiEndpoint = kReleaseMode ? 'https://app.parsa-ai.com.br' : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
@@ -58,6 +65,7 @@ void main() async {
           ChangeNotifierProvider(
             create: (_) => Auth0Provider(auth0: auth0),
           ),
+          ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
         ],
         child: const MonekinAppEntryPoint(),
       ),
@@ -133,9 +141,9 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   Widget build(BuildContext context) {
     // Print app version
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
-      print('------------------ APP ENTRY POINT ------------------ v${packageInfo.version.toString()}');
+      print('------------------ APP ENTRY POINT ------------------ v${AppVersionProvider.instance.fullVersion}');
       print('API_ENDPOINT: $apiEndpoint');
-
+      print('App Version: ');
     });
 
     return StreamBuilder(

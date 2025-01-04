@@ -14,6 +14,10 @@ correct_webview_convert.dart
 
 *.rdb
 
+# Firebase
+google-services.json
+ios/Runner/GoogleService-Info.plist 
+
 # IntelliJ related
 *.iml
 *.ipr
