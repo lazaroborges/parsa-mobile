@@ -81,13 +81,8 @@
 	</array>
 	<key>SKProductsRequest</key>
 	<array>
-    <string>com.parsa.app.premium_monthl</string>
-	    <string>com.parsa.app.premium_monthly</string>
-		<string>com.parsa.app.monthly</string>
-				<string>com.parsa.app.premium_monthl</string>
-				<string>premium_monthl</string>
-				<string>premium_monthly</string>
-
+		<string>premium_monthly1</string>
+		<string>premium_yearly</string>
 	</array>
 	<key>SKStoreKitConfigFile</key>
 	<string>Configuration.storekit</string>

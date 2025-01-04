@@ -1,10 +1,13 @@
 //BiometricsService.dart
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
 class BiometricsService {
@@ -29,6 +32,7 @@ class BiometricsService {
     }
 
     if (isAuthenticated) {
+      unawaited(SessionService.instance.registerUserSession());
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => TabsPage()),

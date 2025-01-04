@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
+import 'package:parsa/core/services/session_service.dart';
 
 class Auth0Provider extends ChangeNotifier {
   final Auth0 auth0;
@@ -28,6 +31,7 @@ class Auth0Provider extends ChangeNotifier {
       _credentials = result;
       await auth0.credentialsManager.storeCredentials(result);
       notifyListeners();
+      unawaited(SessionService.instance.registerUserSession());
     } catch (e) {
       print('Login failed: $e');
       rethrow;

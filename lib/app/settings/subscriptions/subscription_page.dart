@@ -135,8 +135,9 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       setState(() => _isRestoringPurchases = true);
       await _inAppPurchase.restorePurchases();
     } catch (e) {
+      print('Detailed SKError: ${e.toString()}');
       setState(() {
-        _error = 'Error checking subscription status: $e';
+        _error = 'Error checking subscription status: ${e.toString()}';
       });
     } finally {
       setState(() => _isRestoringPurchases = false);
