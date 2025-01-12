@@ -84,11 +84,13 @@ class Account extends AccountInDB {
     required super.lastUpdateTime,
     required super.connectorID,
     required super.isOpenFinance,
+    required super.removed,
     super.closingDate,
     super.description,
     super.iban,
     super.swift,
     super.color,
+    
   }) : super(currencyId: currency.code);
 
   /// Currency of all the transactions of this account. When you change this currency all transactions in this account
@@ -150,6 +152,7 @@ class Account extends AccountInDB {
         lastUpdateTime: account.lastUpdateTime,
         connectorID: account.connectorID,
         isOpenFinance: account.isOpenFinance,
+        removed: account.removed,
       );
 }
 
@@ -170,6 +173,8 @@ class ApiAccount {
   final bool isOpenFinance;
   final DateTime? closedAt;
   final int order;
+  final String description;
+  final bool removed;
 
   ApiAccount({
     required this.accountId,
@@ -188,6 +193,8 @@ class ApiAccount {
     required this.isOpenFinance,
     this.closedAt,
     required this.order,
+    required this.description,
+    required this.removed,
   });
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
@@ -224,6 +231,9 @@ class ApiAccount {
           ? DateTime.parse(json['closed_at'])
           : null, // Safely parse closedAt
       order: json['order'] ?? 90, // Default to 0 if missing
+      removed: json['removed'] ?? false, // Default to false if missing
+      description: json['description'] ?? '', // Default to empty string if missing
     );
   }
 }
+

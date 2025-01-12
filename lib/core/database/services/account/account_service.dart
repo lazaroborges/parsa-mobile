@@ -291,4 +291,25 @@ unawaited(fetchUserDataAtServer());  // Trul
         [accountsBalanceStartPeriod, accountsBalanceEndPeriod],
         (res) => (res[1] - res[0]) / res[0]);
   }
+
+  Future<bool> removeAccount(String accountId) async {
+    try {
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+
+      bool isRemoved = await PostUserAccountService.removeAccount(
+          accountId, credentials?.accessToken ?? '');
+
+      if (!isRemoved) {
+        throw Exception('Failed to remove account from the API.');
+      }
+
+      await deleteAccountLocally(accountId);
+      unawaited(fetchUserDataAtServer());  // Fire and forget
+      return true;
+    } catch (e) {
+      print('Error removing account: $e');
+      return false;
+    }
+  }
 }

@@ -268,4 +268,15 @@ abstract class AccountDetailsActions {
       scaffold.showSnackBar(SnackBar(content: Text('$err')));
     }
   }
+
+  static Future<void> removeAccount(
+    BuildContext context,
+    String accountId,
+    bool navigateBack,
+  ) async {
+    final success = await AccountService.instance.removeAccount(accountId);
+    if (success && navigateBack) {
+      Navigator.of(context).pop();
+    }
+  }
 }

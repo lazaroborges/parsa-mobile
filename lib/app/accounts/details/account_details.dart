@@ -136,7 +136,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                                   value: Text(
                                     DateFormat('dd/MM/yyyy HH:mm', 'pt_BR')
                                         .format(
-                                      account.date.toLocal(),
+                                      account.closingDate!.toLocal(),
                                     ),
                                   ),
                                 ),
@@ -153,7 +153,7 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                                 buildCopyableTile(
                                     t.account.form.swift, account.swift!)
                               ],
-                              if (account.description != null) ...[
+                              if (account.description != '') ...[
                                 LabelValueInfoListItem(
                                   label: t.account.form.notes,
                                   value: Text(account.description!),

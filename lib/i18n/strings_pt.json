@@ -470,13 +470,19 @@
       "swift": "Agencia"
     },
     "DISCONNECT": {
-      "title": "Desconectar",
+      "title": "Desconectar Banco",
       "warning-header": "Desconectar conta?",
       "warning-text": "Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Esta ação afetará também outros produtos do mesmo banco. Suas transações ainda permanecerão guardadas no Parsa.",
       "success": "Conta desconectada com sucesso"
     },
+    "REMOVE": {
+      "title": "Remover Conta",
+      "warning-header": "Deletar?",
+      "warning-text": "Está ação irá remover esta conta da interface do Parsa, mas seu banco e outras contas continuarão sendo sincronizadas. Esta ação é totalmente reversível. Você deseja continuar?",
+      "success": "Conta removida com sucesso"
+    },
     "DELETE-OPENFINANCE": {
-      "title": "Deletar conta",
+      "title": "Remover Banco",
       "warning-header": "Deletar?",
       "warning-text": "Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?",
       "success": "Conta deletada com sucesso"

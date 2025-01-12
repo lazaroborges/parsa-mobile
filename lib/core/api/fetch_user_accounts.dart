@@ -76,7 +76,11 @@ Future<List<Account>> convertApiAccountsToLocal(
         .getCurrencyByCode('BRL')
         .first) as CurrencyInDB;
 
+    // Decode UTF-8 for both name and description
     final name = utf8.decode(apiAccount.name.runes.toList());
+    final description = apiAccount.description != null 
+        ? utf8.decode(apiAccount.description!.runes.toList())
+        : null;
 
     Account account = Account(
       id: apiAccount.accountId,
@@ -92,11 +96,12 @@ Future<List<Account>> convertApiAccountsToLocal(
       lastUpdateTime: apiAccount.updatedAt,
       connectorID: apiAccount.connectorId,
       closingDate: apiAccount.closedAt, // Set if applicable
-      description: null, // Set if applicable
+      description: description, // Use the decoded description
       iban: apiAccount.number.isNotEmpty ? apiAccount.number : null,
       swift: null, // Set if applicable
       color: apiAccount.primaryColor,
       isOpenFinance: apiAccount.isOpenFinance,
+      removed: apiAccount.removed ?? false,
      
     );
 
@@ -172,6 +177,7 @@ extension AccountExtension on Account {
       swift: swift,
       color: color,
       isOpenFinance: isOpenFinance,
+      removed: removed,
     );
   }
 }

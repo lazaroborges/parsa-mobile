@@ -7,10 +7,20 @@ class LabelValueInfoListItem extends LabelValueInfoItem {
   final Widget? trailing;
 
   LabelValueInfoListItem({
-    required super.value,
-    required super.label,
+    required Widget value,
+    required String label,
     this.trailing,
-  });
+  }) : super(
+          value: (value is Text) 
+              ? Text.rich(
+                  TextSpan(text: value.data),
+                  textAlign: value.textAlign,
+                  softWrap: value.softWrap,
+                  overflow: value.overflow,
+                )
+              : value,
+          label: label,
+        );
 }
 
 class LabelValueInfoList extends StatelessWidget {

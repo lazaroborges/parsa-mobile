@@ -6,11 +6,13 @@ class LabelValueInfoItem {
   final Widget value;
   final String label;
   final bool isEditable;
+  final String? description;
 
   const LabelValueInfoItem({
     required this.value,
     required this.label,
     this.isEditable = false,
+    this.description,
   });
 }
 

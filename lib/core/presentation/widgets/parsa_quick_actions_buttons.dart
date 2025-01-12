@@ -23,17 +23,28 @@ class ParsaQuickActionsButtons extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildActionButton(
+                    _buildActionButton(
             context,
-            Icons.link_off,
-            t.account.disconnect.title,
-            () => AccountDetailsActions.disconnectAccount(context, account),
-            isDisconnectAction: true,
+            Icons.remove_circle,
+            _buildMultilineText(t.account.remove.title),
+            () => AccountDetailsActions.removeAccount(
+              context,
+              account.id,
+              navigateBackOnDelete,
+            ),
           ),
           _buildActionButton(
             context,
+            Icons.link_off,
+            _buildMultilineText(t.account.disconnect.title),
+            () => AccountDetailsActions.disconnectAccount(context, account),
+            isDisconnectAction: true,
+          ),
+
+          _buildActionButton(
+            context,
             Icons.delete,
-            t.account.delete_openfinance.title,
+            _buildMultilineText(t.account.delete_openfinance.title),
             () => AccountDetailsActions.deleteOpenFinanceAccount(
               context,
               account.id,
@@ -49,7 +60,7 @@ class ParsaQuickActionsButtons extends StatelessWidget {
   Widget _buildActionButton(
     BuildContext context,
     IconData icon,
-    String label,
+    Widget label,
     VoidCallback onPressed, {
     bool isDeleteAction = false,
     bool isDisconnectAction = false,
@@ -80,11 +91,17 @@ class ParsaQuickActionsButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w300),
-        ),
+        label,
       ],
+    );
+  }
+
+  Widget _buildMultilineText(String text) {
+    return Column(
+      children: text.split(' ').map((word) => Text(
+        word,
+        style: const TextStyle(fontSize: 12),
+      )).toList(),
     );
   }
 }

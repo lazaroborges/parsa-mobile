@@ -20,15 +20,18 @@ Future<void> fetchUserTags(BuildContext context) async {
     Uri.parse(url),
     headers: {
       'Authorization': 'Bearer ${credentials.accessToken}',
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     },
   );
 
   if (response.statusCode == 200) {
+    // Explicitly decode as UTF-8
+    final String decodedBody = utf8.decode(response.bodyBytes);
+    
     // Sync the fetched tags with the local database
-    await syncTags(response.body);
+    await syncTags(decodedBody);
 
-    var jsonResponse = json.decode(response.body);
+    var jsonResponse = json.decode(decodedBody);
     int objectCount = jsonResponse.length;
   } else {
     throw Exception('Failed to load user tags');

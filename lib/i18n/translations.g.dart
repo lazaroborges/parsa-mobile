@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 605
+/// Strings: 609
 ///
-/// Built on 2025-01-12 at 11:13 UTC
+/// Built on 2025-01-12 at 13:31 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -441,6 +441,7 @@ class _TranslationsAccountPt {
 	late final _TranslationsAccountTypesPt types = _TranslationsAccountTypesPt._(_root);
 	late final _TranslationsAccountFormPt form = _TranslationsAccountFormPt._(_root);
 	late final _TranslationsAccountDisconnectPt disconnect = _TranslationsAccountDisconnectPt._(_root);
+	late final _TranslationsAccountRemovePt remove = _TranslationsAccountRemovePt._(_root);
 	late final _TranslationsAccountDeleteOpenfinancePt delete_openfinance = _TranslationsAccountDeleteOpenfinancePt._(_root);
 	late final _TranslationsAccountDeletePt delete = _TranslationsAccountDeletePt._(_root);
 	late final _TranslationsAccountClosePt close = _TranslationsAccountClosePt._(_root);
@@ -1029,10 +1030,23 @@ class _TranslationsAccountDisconnectPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Desconectar';
+	String get title => 'Desconectar Banco';
 	String get warning_header => 'Desconectar conta?';
 	String get warning_text => 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Esta ação afetará também outros produtos do mesmo banco. Suas transações ainda permanecerão guardadas no Parsa.';
 	String get success => 'Conta desconectada com sucesso';
+}
+
+// Path: account.remove
+class _TranslationsAccountRemovePt {
+	_TranslationsAccountRemovePt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Remover Conta';
+	String get warning_header => 'Deletar?';
+	String get warning_text => 'Está ação irá remover esta conta da interface do Parsa, mas seu banco e outras contas continuarão sendo sincronizadas. Esta ação é totalmente reversível. Você deseja continuar?';
+	String get success => 'Conta removida com sucesso';
 }
 
 // Path: account.delete_openfinance
@@ -1042,7 +1056,7 @@ class _TranslationsAccountDeleteOpenfinancePt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get title => 'Deletar conta';
+	String get title => 'Remover Banco';
 	String get warning_header => 'Deletar?';
 	String get warning_text => 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
 	String get success => 'Conta deletada com sucesso';
@@ -1987,11 +2001,15 @@ extension on Translations {
 			case 'account.form.tr_before_opening_date': return 'Existem transações nesta conta com uma data anterior à data de abertura';
 			case 'account.form.iban': return 'Número de Conta';
 			case 'account.form.swift': return 'Agencia';
-			case 'account.disconnect.title': return 'Desconectar';
+			case 'account.disconnect.title': return 'Desconectar Banco';
 			case 'account.disconnect.warning_header': return 'Desconectar conta?';
 			case 'account.disconnect.warning_text': return 'Esta ação cancelerá seu consentimento com o seu banco e não poderemos mais sincronizar suas transações. Esta ação afetará também outros produtos do mesmo banco. Suas transações ainda permanecerão guardadas no Parsa.';
 			case 'account.disconnect.success': return 'Conta desconectada com sucesso';
-			case 'account.delete_openfinance.title': return 'Deletar conta';
+			case 'account.remove.title': return 'Remover Conta';
+			case 'account.remove.warning_header': return 'Deletar?';
+			case 'account.remove.warning_text': return 'Está ação irá remover esta conta da interface do Parsa, mas seu banco e outras contas continuarão sendo sincronizadas. Esta ação é totalmente reversível. Você deseja continuar?';
+			case 'account.remove.success': return 'Conta removida com sucesso';
+			case 'account.delete_openfinance.title': return 'Remover Banco';
 			case 'account.delete_openfinance.warning_header': return 'Deletar?';
 			case 'account.delete_openfinance.warning_text': return 'Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?';
 			case 'account.delete_openfinance.success': return 'Conta deletada com sucesso';
