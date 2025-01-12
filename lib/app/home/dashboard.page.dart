@@ -117,7 +117,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final userData = context.watch<UserDataProvider>().userData;
-    print('userData: $userData');
     final t = Translations.of(context);
 
     final accountService = AccountService.instance;

@@ -6,8 +6,6 @@ import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
-import 'package:provider/provider.dart';
-import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 
 // This page is the entry point of the app once the user has complete onboarding

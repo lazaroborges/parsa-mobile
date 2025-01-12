@@ -73,7 +73,6 @@ class _ExportDataPageState extends State<ExportDataPage> {
                 await BackupDatabaseService()
                     .downloadDatabaseFile(context)
                     .then((value) {
-                  print('EEEEEEEEEEE');
                 }).catchError((err) {
                   print(err);
                 });

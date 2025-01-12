@@ -481,13 +481,18 @@
       "warning-text": "Está ação irá remover esta conta da interface do Parsa, mas seu banco e outras contas continuarão sendo sincronizadas. Esta ação é totalmente reversível. Você deseja continuar?",
       "success": "Conta removida com sucesso"
     },
+    "RESTORE": {
+      "title": "Restaurar Conta",
+      "warning-header": "Restaurar?",
+      "warning-text": "Está ação irá trazer de volta para sincronização automática continua esta conta que você parou de sincronizar. Você gostaria de prosseguir com esta ação?",
+      "success": "Conta restaurada com sucesso. Pode levar algumas horas para que ela volte a aparecer sincronzida aqui na interface do App."
+    },
     "DELETE-OPENFINANCE": {
       "title": "Remover Banco",
       "warning-header": "Deletar?",
       "warning-text": "Está ação irá remover seu consentimento com o seu banco, interromperá a sincronização de todas as contas e transações neste banco e excluirá todas as suas transações desta conta no Parsa. Deseja prosseguir?",
       "success": "Conta deletada com sucesso"
     },
-
     "DELETE": {
       "warning-header": "Excluir conta?",
       "warning-text": "Essa ação excluirá essa conta e todas as suas transações",

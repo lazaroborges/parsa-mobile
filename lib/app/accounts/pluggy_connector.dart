@@ -98,28 +98,22 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
     return Scaffold(
       body: PluggyConnect(
         includeSandbox: !kReleaseMode,
+        connectToken: _connectToken,
         onSuccess: (data) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.connections.success)),
           );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const TabsPage()),
-          );
+          Navigator.of(context).pop();
         },
         onClose: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const TabsPage()),
-          );
+          Navigator.of(context).pop();
         },
         onError: (error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.connections.error)),
           );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const TabsPage()),
-          );
+          Navigator.of(context).pop();
         },
-        connectToken: _connectToken,
       ),
     );
   }

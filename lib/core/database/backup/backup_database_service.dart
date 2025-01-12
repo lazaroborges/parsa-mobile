@@ -49,14 +49,16 @@ class BackupDatabaseService {
 
     var keys = [
       'ID',
-      'Amount',
-      'Date',
-      'Title',
-      'Note',
-      'Account',
-      'Currency',
-      'Category',
-      'Subcategory',
+      'Quantidade',
+      'Data',
+      'Nome',
+      'Comentários  ',
+      'Conta',
+      'Moeda',
+      'Categoria',
+      'Subcategoria',
+      'Considerada',
+      'Manipulada',
       
     ];
 
@@ -86,7 +88,9 @@ class BackupDatabaseService {
         if (transaction.isTransfer) 'TRANSFER',
         (transaction.category?.parentCategory != null
             ? transaction.category?.name
-            : '')
+            : ''),
+        transaction.status?.name ?? '',
+        transaction.manipulated.toString(),
       ];
 
       csvData += toAdd.join(separator);
@@ -103,7 +107,9 @@ class BackupDatabaseService {
           transaction.receivingAccount!.name,
           transaction.receivingAccount!.currencyId,
           'TRANSFER',
-          ''
+          '',
+          transaction.status?.name ?? '',
+          transaction.manipulated.toString(),
         ];
 
         csvData += toAdd.join(separator);

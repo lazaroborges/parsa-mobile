@@ -304,7 +304,25 @@ unawaited(fetchUserDataAtServer());  // Trul
         throw Exception('Failed to remove account from the API.');
       }
 
-      await deleteAccountLocally(accountId);
+      // First delete all transactions for this account
+      await (db.delete(db.transactions)
+        ..where((tbl) => tbl.accountID.equals(accountId)))
+        .go();
+
+      // Then fetch and update the account
+      final accountToChange = await (db.select(db.accounts)
+        ..where((tbl) => tbl.id.equals(accountId)))
+        .getSingle();
+      
+      // Update account status
+      await db.update(db.accounts).replace(
+        accountToChange.copyWith(
+          removed: true,
+          description: Value('Conta removida'),
+          closingDate: Value(DateTime.now()),
+        ),
+      );
+
       unawaited(fetchUserDataAtServer());  // Fire and forget
       return true;
     } catch (e) {
@@ -312,4 +330,39 @@ unawaited(fetchUserDataAtServer());  // Trul
       return false;
     }
   }
+
+
+  Future<bool> restoreAccount(String accountId) async {
+    try {
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+
+      bool isRestored = await PostUserAccountService.restoreAccount(
+          accountId, credentials?.accessToken ?? '');
+
+      if (!isRestored) {
+        throw Exception('Failed to restore account from the API.');
+      }
+
+      // First fetch the account
+      final accountToRestore = await (db.select(db.accounts)
+        ..where((tbl) => tbl.id.equals(accountId)))
+        .getSingle();
+      
+      // Then update it with the new values
+      await db.update(db.accounts).replace(
+        accountToRestore.copyWith(
+          removed: false,
+          description: Value(''),
+          closingDate: Value(null),
+        ),
+      );
+unawaited(fetchUserDataAtServer());  
+      return true;
+    } catch (e) {
+      print('Error restoring account: $e');
+      return false;
+    }
+  }
 }
+

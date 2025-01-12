@@ -23,15 +23,23 @@ class ParsaQuickActionsButtons extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-                    _buildActionButton(
+          _buildActionButton(
             context,
-            Icons.remove_circle,
-            _buildMultilineText(t.account.remove.title),
-            () => AccountDetailsActions.removeAccount(
-              context,
-              account.id,
-              navigateBackOnDelete,
+            account.removed ? Icons.restore : Icons.remove_circle,
+            _buildMultilineText(
+              account.removed ? t.account.restore.title : t.account.remove.title
             ),
+            () => account.removed
+                ? AccountDetailsActions.restoreAccount(
+                    context,
+                    account.id,
+                    navigateBackOnDelete,
+                  )
+                : AccountDetailsActions.removeAccount(
+                    context,
+                    account.id,
+                    navigateBackOnDelete,
+                  ),
           ),
           _buildActionButton(
             context,

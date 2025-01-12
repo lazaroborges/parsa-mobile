@@ -279,4 +279,15 @@ abstract class AccountDetailsActions {
       Navigator.of(context).pop();
     }
   }
+
+  static Future<void> restoreAccount(
+    BuildContext context,
+    String accountId,
+    bool navigateBack,
+  ) async {
+    final success = await AccountService.instance.restoreAccount(accountId);
+    if (success && navigateBack) {
+      Navigator.of(context).pop();
+    }
+  }
 }

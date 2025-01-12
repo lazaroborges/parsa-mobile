@@ -76,6 +76,11 @@ class PostUserAccountService {
     return await _postAccountAction(accountId, accessToken, 'remove');
   }
 
+  static Future<bool> restoreAccount(
+      String accountId, String accessToken) async {
+    return await _postAccountAction(accountId, accessToken, 'restore');
+  }
+
   static Future<bool> _postAccountAction(
       String accountId, String accessToken, String action) async {
     final url = Uri.parse(
