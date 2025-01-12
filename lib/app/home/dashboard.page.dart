@@ -319,80 +319,84 @@ class _DashboardPageState extends State<DashboardPage> {
                             );
                           },
                         ),
-                      //   const SizedBox(height: 16), TODO bring back the bar! 
-                      //   StreamBuilder<double>(
-                      //     stream: AccountService.instance.getAccountsBalance(
-                      //       filters: TransactionFilters(
-                      //         minDate: dateRangeService.startDate,
-                      //         maxDate: dateRangeService.endDate,
-                      //         transactionTypes: [TransactionType.I],
-                      //       ),
-                      //     ),
-                      //     builder: (context, incomeSnapshot) {
-                      //       return StreamBuilder<double>(
-                      //         stream: AccountService.instance.getAccountsBalance(
-                      //           filters: TransactionFilters(
-                      //             minDate: dateRangeService.startDate,
-                      //             maxDate: dateRangeService.endDate,
-                      //             transactionTypes: [TransactionType.E],
-                      //           ),
-                      //         ),
-                      //         builder: (context, expenseSnapshot) {
-                      //           if (!incomeSnapshot.hasData || !expenseSnapshot.hasData) {
-                      //             return const LinearProgressIndicator();
-                      //           }
+                        
+                        
+                        if (userData?['beta_user'] == true) ...[
+                          const SizedBox(height: 16),
+                          StreamBuilder<double>(
+                            stream: AccountService.instance.getAccountsBalance(
+                              filters: TransactionFilters(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate,
+                                transactionTypes: [TransactionType.I],
+                              ),
+                            ),
+                            builder: (context, incomeSnapshot) {
+                              return StreamBuilder<double>(
+                                stream: AccountService.instance.getAccountsBalance(
+                                  filters: TransactionFilters(
+                                    minDate: dateRangeService.startDate,
+                                    maxDate: dateRangeService.endDate,
+                                    transactionTypes: [TransactionType.E],
+                                  ),
+                                ),
+                                builder: (context, expenseSnapshot) {
+                                  if (!incomeSnapshot.hasData || !expenseSnapshot.hasData) {
+                                    return const LinearProgressIndicator();
+                                  }
 
-                      //           final income = incomeSnapshot.data!.abs();
-                      //           final expenses = expenseSnapshot.data!.abs();
-                      //           final percentage = income > 0 ? (expenses / income) : 0.0;
+                                  final income = incomeSnapshot.data!.abs();
+                                  final expenses = expenseSnapshot.data!.abs();
+                                  final percentage = income > 0 ? (expenses / income) : 0.0;
 
-                      //           return Container(
-                      //             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-                      //             width: double.infinity,
-                      //             child: Column(
-                      //               children: [
-                      //                 TweenAnimationBuilder<double>(
-                      //                   duration: const Duration(milliseconds: 1500),
-                      //                   curve: Curves.easeInOut,
-                      //                   tween: Tween<double>(
-                      //                     begin: 0,
-                      //                     end: percentage,
-                      //                   ),
-                      //                   builder: (context, value, child) {
-                      //                     return ClipRRect(
-                      //                       borderRadius: BorderRadius.circular(4),
-                      //                       child: LinearProgressIndicator(
-                      //                         value: value,
-                      //                         backgroundColor: Colors.green.withOpacity(0.9),
-                      //                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                      //                         minHeight: 16,
-                      //                       ),
-                      //                     );
-                      //                   },
-                      //                 ),
-                      //                 const SizedBox(height: 2),
-                      //                 TweenAnimationBuilder<double>(
-                      //                   duration: const Duration(milliseconds: 1500),
-                      //                   curve: Curves.easeInOut,
-                      //                   tween: Tween<double>(
-                      //                     begin: 0,
-                      //                     end: percentage,
-                      //                   ),
-                      //                   builder: (context, value, child) {
-                      //                     return Text(
-                      //                       '${(value * 100).toStringAsFixed(1)}% of income spent',
-                      //                       style: Theme.of(context).textTheme.bodySmall,
-                      //                     );
-                      //                   },
-                      //                 ),
-                      //               ],
-                      //             ),
-                      //           );
-                      //         },
-                      //       );
-                      //     },
-                      //   ),
-                      // 
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                                    width: double.infinity,
+                                    child: Column(
+                                      children: [
+                                        TweenAnimationBuilder<double>(
+                                          duration: const Duration(milliseconds: 1500),
+                                          curve: Curves.easeInOut,
+                                          tween: Tween<double>(
+                                            begin: 0,
+                                            end: percentage,
+                                          ),
+                                          builder: (context, value, child) {
+                                            return ClipRRect(
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: LinearProgressIndicator(
+                                                value: value,
+                                                backgroundColor: Colors.green.withOpacity(0.9),
+                                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                                                minHeight: 16,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        const SizedBox(height: 2),
+                                        TweenAnimationBuilder<double>(
+                                          duration: const Duration(milliseconds: 1500),
+                                          curve: Curves.easeInOut,
+                                          tween: Tween<double>(
+                                            begin: 0,
+                                            end: percentage,
+                                          ),
+                                          builder: (context, value, child) {
+                                            return Text(
+                                              '${(value * 100).toStringAsFixed(1)}% dos rendimentos gastos.',
+                                              style: Theme.of(context).textTheme.bodySmall,
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      
                       ],
                     ),
                   ),
@@ -861,7 +865,8 @@ class _HorizontalScrollableAccountListState extends State<_HorizontalScrollableA
               return const CircularProgressIndicator();
             }
 
-            final accounts = snapshot.data!;
+            // Filter out removed accounts
+            final accounts = snapshot.data!.where((account) => !account.removed).toList();
 
             return Row(
               children: [
