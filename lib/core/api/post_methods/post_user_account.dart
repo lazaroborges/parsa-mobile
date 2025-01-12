@@ -98,4 +98,31 @@ class PostUserAccountService {
       return false;
     }
   }
+
+  static Future<bool> updateAccountOrder(AccountInDB account, String accessToken) async {
+    final url = Uri.parse('$apiEndpoint/api/account-order/');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'accountId': account.id,
+          'order': account.displayOrder,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      print('Failed to update account order. Status: ${response.statusCode}, Body: ${response.body}');
+      return false;
+    } catch (e) {
+      print('Error updating account order: $e');
+      return false;
+    }
+  }
 }

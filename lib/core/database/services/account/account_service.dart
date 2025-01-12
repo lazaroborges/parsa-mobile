@@ -48,12 +48,24 @@ class AccountService {
     return db.into(db.accounts).insertOnConflictUpdate(account);
   }
 
-  Future<bool> updateAccount(AccountInDB account) {
+  Future<bool> updateAccount(AccountInDB account) async {
+    try {
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+      
+      // Only send the order update to API if we have credentials
+      if (credentials?.accessToken != null) {
+        unawaited(PostUserAccountService.updateAccountOrder(
+          account, 
+          credentials!.accessToken,
+        ));
+      }
 
-    
-
-    print('Updating account: ${account}');
-    return db.update(db.accounts).replace(account);
+      return await db.update(db.accounts).replace(account);
+    } catch (e) {
+      print('Error updating account: $e');
+      rethrow;
+    }
   }
 
   Future<int> deleteAccountFromLocalDB(String accountId) {

@@ -85,7 +85,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       date: apiAccount.createdAt,
 
       type: _mapAccountType(apiAccount.accountType),
-      displayOrder: 10, // Default or based on your logic
+      displayOrder: apiAccount.order, // Default or based on your logic
       iconId: apiAccount.connectorId, // Define based on your logic
       currency: currency,
       balance: apiAccount.balance ?? 0.0,

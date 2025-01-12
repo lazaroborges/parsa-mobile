@@ -169,6 +169,7 @@ class ApiAccount {
   final String iconId;
   final bool isOpenFinance;
   final DateTime? closedAt;
+  final int order;
 
   ApiAccount({
     required this.accountId,
@@ -186,6 +187,7 @@ class ApiAccount {
     this.balance,
     required this.isOpenFinance,
     this.closedAt,
+    required this.order,
   });
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
@@ -221,6 +223,7 @@ class ApiAccount {
       closedAt: json['closed_at'] != null
           ? DateTime.parse(json['closed_at'])
           : null, // Safely parse closedAt
+      order: json['order'] ?? 90, // Default to 0 if missing
     );
   }
 }
