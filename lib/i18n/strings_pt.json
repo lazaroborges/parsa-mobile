@@ -485,7 +485,8 @@
       "title": "Restaurar Conta",
       "warning-header": "Restaurar?",
       "warning-text": "Está ação irá trazer de volta para sincronização automática continua esta conta que você parou de sincronizar. Você gostaria de prosseguir com esta ação?",
-      "success": "Conta restaurada com sucesso. Pode levar algumas horas para que ela volte a aparecer sincronzida aqui na interface do App."
+      "success": "Conta restaurada com sucesso.",
+      "in_progress": "Restauração da Conta em Andamento. Você pode continuar usando o app."
     },
     "DELETE-OPENFINANCE": {
       "title": "Remover Banco",

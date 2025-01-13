@@ -76,7 +76,7 @@ class TabsPageState extends State<TabsPage> {
       isLoadingTransactions = true;
     });
     try {
-      await fetchUserTransactions(context);
+      await fetchUserTransactions(null);
       setState(() {
         isLoadingTransactions = false;
       });

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -334,15 +336,6 @@ unawaited(fetchUserDataAtServer());  // Trul
 
   Future<bool> restoreAccount(String accountId) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
-
-      bool isRestored = await PostUserAccountService.restoreAccount(
-          accountId, credentials?.accessToken ?? '');
-
-      if (!isRestored) {
-        throw Exception('Failed to restore account from the API.');
-      }
 
       // First fetch the account
       final accountToRestore = await (db.select(db.accounts)
@@ -357,12 +350,33 @@ unawaited(fetchUserDataAtServer());  // Trul
           closingDate: Value(null),
         ),
       );
-unawaited(fetchUserDataAtServer());  
+
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+
+      bool isRestored = await PostUserAccountService.restoreAccount(
+          accountId, credentials?.accessToken ?? '');
+
+      if (!isRestored) {
+        throw Exception('Failed to restore account from the API.');
+      }
+
+      await updateRestoredAccount(accountId);
+      unawaited(fetchUserDataAtServer());  
       return true;
     } catch (e) {
       print('Error restoring account: $e');
       return false;
     }
   }
+}
+
+Future<void> updateRestoredAccount(String accountId) async {
+    try {        // Call the fetchUserAccounts function with the accountId
+        await fetchUserAccounts();
+        await fetchUserTransactions(accountId);
+    } catch (e) {
+        print('Error updating restored account: $e');
+    }
 }
 

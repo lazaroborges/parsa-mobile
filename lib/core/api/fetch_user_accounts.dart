@@ -20,6 +20,8 @@ Future<void> fetchUserAccounts() async {
     }
   }
 
+  
+
   final accessToken = auth0Provider.credentials!.accessToken;
 
   final response = await http.get(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/account_form.dart';
@@ -285,9 +287,26 @@ abstract class AccountDetailsActions {
     String accountId,
     bool navigateBack,
   ) async {
-    final success = await AccountService.instance.restoreAccount(accountId);
-    if (success && navigateBack) {
+    final t = Translations.of(context);
+    final scaffold = ScaffoldMessenger.of(context);
+
+    // Show immediate feedback
+    scaffold.showSnackBar(
+      SnackBar(content: Text(t.account.restore.in_progress)),
+    );
+
+    // Navigate back immediately if needed
+    if (navigateBack) {
       Navigator.of(context).pop();
     }
+
+    // Fire and forget the restore operation
+    unawaited(AccountService.instance.restoreAccount(accountId).then((success) {
+      if (success) {
+        scaffold.showSnackBar(
+          SnackBar(content: Text(t.account.restore.success)),
+        );
+      }
+    }));
   }
 }

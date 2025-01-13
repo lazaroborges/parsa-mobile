@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'package:drift/drift.dart';
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
@@ -16,15 +15,27 @@ import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
-import 'package:provider/provider.dart';
 
 
-Future<void> fetchUserTransactions(BuildContext context) async {
-  final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl}) async {
+  String url;
+  
+  if (nextPageUrl != null) {
+    // Extract just the path and query parameters from the full URL
+    Uri nextUri = Uri.parse(nextPageUrl);
+    url = '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
+  } else {
+    url = '$apiEndpoint/api/transactions/?page=1';
+    if (accountId != null) {
+      url = '$apiEndpoint/api/transactions/$accountId/?page=1';
+    }
+  }
+
+  print('Requesting URL: $url'); // Add this for debugging
+  
+  final auth0Provider = Auth0Provider.instance;
   final credentials = await auth0Provider.credentials;
 
-  String url =
-      '$apiEndpoint/api/transactions/';
 
   final response = await http.get(
     Uri.parse(url),
@@ -35,10 +46,18 @@ Future<void> fetchUserTransactions(BuildContext context) async {
   );
 
   if (response.statusCode == 200) {
-    await syncTransactions(response.body);
     var jsonResponse = json.decode(response.body);
-    int objectCount = jsonResponse.length;
+    // Extract the results field and encode it back to JSON string
+    String resultsJson = json.encode(jsonResponse['results']);
+    await syncTransactions(resultsJson);
+    
+    print('Count: ${jsonResponse['count']}, Next: ${jsonResponse['next']}');
+    int objectCount = jsonResponse['results'].length;
     print('Number of transactions synced: $objectCount');
+
+    if (jsonResponse['next'] != null) {
+      await fetchUserTransactions(null, nextPageUrl: jsonResponse['next']);
+    }
   } else {
     throw Exception('Failed to load user transactions');
   }
