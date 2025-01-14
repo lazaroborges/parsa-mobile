@@ -26,7 +26,7 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl}) asy
     Uri nextUri = Uri.parse(nextPageUrl);
     url = '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
   } else {
-    url = '$apiEndpoint/api/transactions/?page=1';
+    url = '$apiEndpoint/api/transactions/';
     if (accountId != null) {
       url = '$apiEndpoint/api/transactions/$accountId/?page=1';
     }

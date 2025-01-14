@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 614
 ///
-/// Built on 2025-01-13 at 00:03 UTC
+/// Built on 2025-01-14 at 22:18 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1060,7 +1060,7 @@ class _TranslationsAccountRestorePt {
 	String get title => 'Restaurar Conta';
 	String get warning_header => 'Restaurar?';
 	String get warning_text => 'Está ação irá trazer de volta para sincronização automática continua esta conta que você parou de sincronizar. Você gostaria de prosseguir com esta ação?';
-	String get success => 'Conta restaurada com sucesso. Pode levar algumas horas para que ela volte a aparecer sincronzida aqui na interface do App.';
+	String get success => 'Conta restaurada com sucesso.';
 	String get in_progress => 'Restauração da Conta em Andamento. Você pode continuar usando o app.';
 }
 
@@ -2027,7 +2027,7 @@ extension on Translations {
 			case 'account.restore.title': return 'Restaurar Conta';
 			case 'account.restore.warning_header': return 'Restaurar?';
 			case 'account.restore.warning_text': return 'Está ação irá trazer de volta para sincronização automática continua esta conta que você parou de sincronizar. Você gostaria de prosseguir com esta ação?';
-			case 'account.restore.success': return 'Conta restaurada com sucesso. Pode levar algumas horas para que ela volte a aparecer sincronzida aqui na interface do App.';
+			case 'account.restore.success': return 'Conta restaurada com sucesso.';
 			case 'account.restore.in_progress': return 'Restauração da Conta em Andamento. Você pode continuar usando o app.';
 			case 'account.delete_openfinance.title': return 'Remover Banco';
 			case 'account.delete_openfinance.warning_header': return 'Deletar?';
