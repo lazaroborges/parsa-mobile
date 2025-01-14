@@ -13,7 +13,7 @@ publish_to: none
 # The X represents the major releases, and can be up to infinity. Never start by a zero
 # The Y represents the minor releases, and can be up to 99. Always start by a zero
 # The Z represents the patch releases, and can be up to 999. Always start by a zero
-version: 2.0.7+57
+version: 2.0.7+58
 
 environment:
   flutter: 3.22.3
@@ -101,10 +101,10 @@ dev_dependencies:
 build:
   ios:
     build-name: 2.0.7
-    build-number: 57
+    build-number: 58
   android:
     build-name: 2.0.7
-    build-number: 57
+    build-number: 58
 
 
 flutter_launcher_icons:

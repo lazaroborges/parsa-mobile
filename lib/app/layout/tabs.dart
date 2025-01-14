@@ -51,7 +51,6 @@ class TabsPageState extends State<TabsPage> {
     ]);
 
     // Wait for _fetchAndSyncTransactions after the above operations complete
-    await _fetchAndSyncTransactions();
   }
 
   Future<void> _fetchUserAccounts() async {
