@@ -46,6 +46,7 @@ import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -82,6 +83,12 @@ class _DashboardPageState extends State<DashboardPage> {
       
       // Then fetch data
       await _refreshData();
+      
+      // Add small delay to ensure userData is loaded and UI is stable
+      if (mounted) {
+        await Future.delayed(const Duration(seconds: 2));
+        await _checkAndShowReviewDialog();
+      }
     } catch (e) {
       print('Error in initialization: $e');
     }
@@ -110,6 +117,19 @@ class _DashboardPageState extends State<DashboardPage> {
           isLoading = false;
           isLoadingTransactions = false;
         });
+      }
+    }
+  }
+
+  Future<void> _checkAndShowReviewDialog() async {
+    final userData = context.read<UserDataProvider>().userData;
+    
+    if (userData != null && userData['ask_feedback'] == true) {
+      final InAppReview inAppReview = InAppReview.instance;
+
+      if (await inAppReview.isAvailable()) {
+        // Request review
+        await inAppReview.requestReview();
       }
     }
   }

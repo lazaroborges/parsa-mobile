@@ -1,5 +1,6 @@
 // path: lib/core/api/fetch_user_transactions.dart
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
@@ -49,14 +50,14 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl}) asy
     var jsonResponse = json.decode(response.body);
     // Extract the results field and encode it back to JSON string
     String resultsJson = json.encode(jsonResponse['results']);
-    await syncTransactions(resultsJson);
+    unawaited(syncTransactions(resultsJson));
     
     print('Count: ${jsonResponse['count']}, Next: ${jsonResponse['next']}');
     int objectCount = jsonResponse['results'].length;
     print('Number of transactions synced: $objectCount');
 
     if (jsonResponse['next'] != null) {
-      await fetchUserTransactions(null, nextPageUrl: jsonResponse['next']);
+      unawaited(fetchUserTransactions(null, nextPageUrl: jsonResponse['next']));
     }
   } else {
     throw Exception('Failed to load user transactions');
