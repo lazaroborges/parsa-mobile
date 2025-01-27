@@ -103,12 +103,13 @@ class _AccountFormPageState extends State<AccountFormPage> {
       color: _color.toHex(leadingHashSign: false),
       currency: _currency!,
       iban: _ibanController.text.isEmpty ? null : _ibanController.text,
-      description: _textController.text.isEmpty ? null : _textController.text,
+      description: _textController.text.isEmpty ? 'Conta Manual' : _textController.text,
       swift: _swiftController.text.isEmpty ? null : _swiftController.text,
       balance: newBalance,
       lastUpdateTime: DateTime.now(),
       isOpenFinance: false,
       removed: false,
+
       connectorID:
           _accountToEdit?.connectorID ?? '1', // Assign a valid connectorID
     );
