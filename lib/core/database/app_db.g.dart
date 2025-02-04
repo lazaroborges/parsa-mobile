@@ -1609,6 +1609,12 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _cousinMeta = const VerificationMeta('cousin');
+  late final GeneratedColumn<int> cousin = GeneratedColumn<int>(
+      'cousin', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumnWithTypeConverter<TransactionType, String> type =
       GeneratedColumn<String>('type', aliasedName, false,
@@ -1720,6 +1726,7 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
         isOpenFinance,
         manipulated,
         paymentMethod,
+        cousin,
         type,
         status,
         categoryID,
@@ -1798,6 +1805,10 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           _paymentMethodMeta,
           paymentMethod.isAcceptableOrUnknown(
               data['payment_method']!, _paymentMethodMeta));
+    }
+    if (data.containsKey('cousin')) {
+      context.handle(_cousinMeta,
+          cousin.isAcceptableOrUnknown(data['cousin']!, _cousinMeta));
     }
     context.handle(_typeMeta, const VerificationResult.success());
     context.handle(_statusMeta, const VerificationResult.success());
@@ -1887,6 +1898,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           .read(DriftSqlType.bool, data['${effectivePrefix}manipulated']),
       paymentMethod: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}payment_method']),
+      cousin: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cousin']),
       type: Transactions.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
       status: Transactions.$converterstatusn.fromSql(attachedDatabase
@@ -1969,6 +1982,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
   final bool isOpenFinance;
   final bool? manipulated;
   final String? paymentMethod;
+  final int? cousin;
 
   /// Whether the transacton is an income, an expense or a transfer
   final TransactionType type;
@@ -2011,6 +2025,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       required this.isOpenFinance,
       this.manipulated,
       this.paymentMethod,
+      this.cousin,
       required this.type,
       this.status,
       this.categoryID,
@@ -2046,6 +2061,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     }
     if (!nullToAbsent || paymentMethod != null) {
       map['payment_method'] = Variable<String>(paymentMethod);
+    }
+    if (!nullToAbsent || cousin != null) {
+      map['cousin'] = Variable<int>(cousin);
     }
     {
       map['type'] = Variable<String>(Transactions.$convertertype.toSql(type));
@@ -2109,6 +2127,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       paymentMethod: paymentMethod == null && nullToAbsent
           ? const Value.absent()
           : Value(paymentMethod),
+      cousin:
+          cousin == null && nullToAbsent ? const Value.absent() : Value(cousin),
       type: Value(type),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
@@ -2160,6 +2180,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       isOpenFinance: serializer.fromJson<bool>(json['isOpenFinance']),
       manipulated: serializer.fromJson<bool?>(json['manipulated']),
       paymentMethod: serializer.fromJson<String?>(json['payment_method']),
+      cousin: serializer.fromJson<int?>(json['cousin']),
       type: Transactions.$convertertype
           .fromJson(serializer.fromJson<String>(json['type'])),
       status: Transactions.$converterstatusn
@@ -2194,6 +2215,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       'isOpenFinance': serializer.toJson<bool>(isOpenFinance),
       'manipulated': serializer.toJson<bool?>(manipulated),
       'payment_method': serializer.toJson<String?>(paymentMethod),
+      'cousin': serializer.toJson<int?>(cousin),
       'type':
           serializer.toJson<String>(Transactions.$convertertype.toJson(type)),
       'status': serializer
@@ -2224,6 +2246,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           bool? isOpenFinance,
           Value<bool?> manipulated = const Value.absent(),
           Value<String?> paymentMethod = const Value.absent(),
+          Value<int?> cousin = const Value.absent(),
           TransactionType? type,
           Value<TransactionStatus?> status = const Value.absent(),
           Value<String?> categoryID = const Value.absent(),
@@ -2250,6 +2273,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         manipulated: manipulated.present ? manipulated.value : this.manipulated,
         paymentMethod:
             paymentMethod.present ? paymentMethod.value : this.paymentMethod,
+        cousin: cousin.present ? cousin.value : this.cousin,
         type: type ?? this.type,
         status: status.present ? status.value : this.status,
         categoryID: categoryID.present ? categoryID.value : this.categoryID,
@@ -2291,6 +2315,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       paymentMethod: data.paymentMethod.present
           ? data.paymentMethod.value
           : this.paymentMethod,
+      cousin: data.cousin.present ? data.cousin.value : this.cousin,
       type: data.type.present ? data.type.value : this.type,
       status: data.status.present ? data.status.value : this.status,
       categoryID:
@@ -2335,6 +2360,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           ..write('isOpenFinance: $isOpenFinance, ')
           ..write('manipulated: $manipulated, ')
           ..write('paymentMethod: $paymentMethod, ')
+          ..write('cousin: $cousin, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -2364,6 +2390,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         isOpenFinance,
         manipulated,
         paymentMethod,
+        cousin,
         type,
         status,
         categoryID,
@@ -2392,6 +2419,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           other.isOpenFinance == this.isOpenFinance &&
           other.manipulated == this.manipulated &&
           other.paymentMethod == this.paymentMethod &&
+          other.cousin == this.cousin &&
           other.type == this.type &&
           other.status == this.status &&
           other.categoryID == this.categoryID &&
@@ -2418,6 +2446,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   final Value<bool> isOpenFinance;
   final Value<bool?> manipulated;
   final Value<String?> paymentMethod;
+  final Value<int?> cousin;
   final Value<TransactionType> type;
   final Value<TransactionStatus?> status;
   final Value<String?> categoryID;
@@ -2443,6 +2472,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.isOpenFinance = const Value.absent(),
     this.manipulated = const Value.absent(),
     this.paymentMethod = const Value.absent(),
+    this.cousin = const Value.absent(),
     this.type = const Value.absent(),
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2469,6 +2499,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.isOpenFinance = const Value.absent(),
     this.manipulated = const Value.absent(),
     this.paymentMethod = const Value.absent(),
+    this.cousin = const Value.absent(),
     required TransactionType type,
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2499,6 +2530,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     Expression<bool>? isOpenFinance,
     Expression<bool>? manipulated,
     Expression<String>? paymentMethod,
+    Expression<int>? cousin,
     Expression<String>? type,
     Expression<String>? status,
     Expression<String>? categoryID,
@@ -2525,6 +2557,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       if (isOpenFinance != null) 'isOpenFinance': isOpenFinance,
       if (manipulated != null) 'manipulated': manipulated,
       if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (cousin != null) 'cousin': cousin,
       if (type != null) 'type': type,
       if (status != null) 'status': status,
       if (categoryID != null) 'categoryID': categoryID,
@@ -2554,6 +2587,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       Value<bool>? isOpenFinance,
       Value<bool?>? manipulated,
       Value<String?>? paymentMethod,
+      Value<int?>? cousin,
       Value<TransactionType>? type,
       Value<TransactionStatus?>? status,
       Value<String?>? categoryID,
@@ -2579,6 +2613,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       isOpenFinance: isOpenFinance ?? this.isOpenFinance,
       manipulated: manipulated ?? this.manipulated,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      cousin: cousin ?? this.cousin,
       type: type ?? this.type,
       status: status ?? this.status,
       categoryID: categoryID ?? this.categoryID,
@@ -2629,6 +2664,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     }
     if (paymentMethod.present) {
       map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
+    if (cousin.present) {
+      map['cousin'] = Variable<int>(cousin.value);
     }
     if (type.present) {
       map['type'] =
@@ -2691,6 +2729,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
           ..write('isOpenFinance: $isOpenFinance, ')
           ..write('manipulated: $manipulated, ')
           ..write('paymentMethod: $paymentMethod, ')
+          ..write('cousin: $cousin, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -4933,6 +4972,7 @@ abstract class _$AppDB extends GeneratedDatabase {
               row.readNullable<String>('intervalPeriod')),
           remainingTransactions: row.readNullable<int>('remainingTransactions'),
           lastUpdateTime: row.readNullable<DateTime>('lastUpdateTime'),
+          cousin: row.readNullable<int>('cousin'),
           paymentMethod: row.readNullable<String>('payment_method'),
         ));
   }
@@ -5980,6 +6020,7 @@ typedef $TransactionsCreateCompanionBuilder = TransactionsCompanion Function({
   Value<bool> isOpenFinance,
   Value<bool?> manipulated,
   Value<String?> paymentMethod,
+  Value<int?> cousin,
   required TransactionType type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -6006,6 +6047,7 @@ typedef $TransactionsUpdateCompanionBuilder = TransactionsCompanion Function({
   Value<bool> isOpenFinance,
   Value<bool?> manipulated,
   Value<String?> paymentMethod,
+  Value<int?> cousin,
   Value<TransactionType> type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -6049,6 +6091,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<bool> isOpenFinance = const Value.absent(),
             Value<bool?> manipulated = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
+            Value<int?> cousin = const Value.absent(),
             Value<TransactionType> type = const Value.absent(),
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -6075,6 +6118,7 @@ class $TransactionsTableManager extends RootTableManager<
             isOpenFinance: isOpenFinance,
             manipulated: manipulated,
             paymentMethod: paymentMethod,
+            cousin: cousin,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -6101,6 +6145,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<bool> isOpenFinance = const Value.absent(),
             Value<bool?> manipulated = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
+            Value<int?> cousin = const Value.absent(),
             required TransactionType type,
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -6127,6 +6172,7 @@ class $TransactionsTableManager extends RootTableManager<
             isOpenFinance: isOpenFinance,
             manipulated: manipulated,
             paymentMethod: paymentMethod,
+            cousin: cousin,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -6190,6 +6236,11 @@ class $TransactionsFilterComposer
 
   ColumnFilters<String> get paymentMethod => $state.composableBuilder(
       column: $state.table.paymentMethod,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get cousin => $state.composableBuilder(
+      column: $state.table.cousin,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6349,6 +6400,11 @@ class $TransactionsOrderingComposer
 
   ColumnOrderings<String> get paymentMethod => $state.composableBuilder(
       column: $state.table.paymentMethod,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get cousin => $state.composableBuilder(
+      column: $state.table.cousin,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
