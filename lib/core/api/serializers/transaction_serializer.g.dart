@@ -27,6 +27,7 @@ ApiTransaction _$ApiTransactionFromJson(Map<String, dynamic> json) =>
       lastUpdateTime: json['lastUpdateDateParsa'] == null
           ? null
           : DateTime.parse(json['lastUpdateDateParsa'] as String),
+      cousin: (json['cousin'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
@@ -43,6 +44,7 @@ Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
       'status': instance.status,
       'considered': instance.considered,
       'isOpenFinance': instance.isOpenFinance,
+      'cousin': instance.cousin,
       'tags': instance.tags,
       'payment_method': instance.paymentMethod,
       'manipulated': instance.manipulated,

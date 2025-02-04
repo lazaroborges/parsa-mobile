@@ -57,6 +57,7 @@ class MoneyTransaction extends TransactionInDB {
       super.intervalPeriod,
       super.remainingTransactions,
       super.lastUpdateTime,
+      super.cousin, 
       super.paymentMethod})
       : category =
             category != null ? Category.fromDB(category, parentCategory) : null,

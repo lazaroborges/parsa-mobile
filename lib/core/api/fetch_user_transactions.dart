@@ -67,11 +67,22 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl}) asy
 Future<void> syncTransactions(String apiResponse) async {
   try {
     // Step 1: Parse the API response
-    List<ApiTransaction> apiTransactions =
-        fetchAndParseTransactions(apiResponse);
+    List<ApiTransaction> apiTransactions = fetchAndParseTransactions(apiResponse);
     if (apiTransactions.isEmpty) {
       print('No transactions to sync.');
       return;
+    }
+
+    // Add debug printing for each transaction
+    print('\nReceived transactions from API:');
+    for (var tx in apiTransactions) {
+      print('''
+    Transaction ID: ${tx.id}
+      Description: ${tx.description}
+      Amount: ${tx.amount}
+      Date: ${tx.transactionDate}
+      Cousin: ${tx.cousin}
+      ----------------------------------------''');
     }
 
     // Ensure all tags exist
@@ -202,7 +213,6 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         tagsInDB.add(tagInDB);
       }
 
-      // Create MoneyTransaction instance
       MoneyTransaction transaction = MoneyTransaction(
         id: apiTransaction.id,
         title: description,
@@ -228,6 +238,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         intervalPeriod: null,
         remainingTransactions: null,
         receivingAccount: null,
+        cousin: apiTransaction.cousin,
         currentValueInPreferredCurrency:
             apiTransaction.amount, // Adjust as needed
         tags: tagsInDB, // Add this line
@@ -329,6 +340,7 @@ extension MoneyTransactionExtension on MoneyTransaction {
       paymentMethod: paymentMethod,
       lastUpdateTime: lastUpdateTime,
       notes: notes,
+      cousin: cousin,
     );
   }
 }

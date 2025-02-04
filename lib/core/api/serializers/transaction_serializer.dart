@@ -53,6 +53,8 @@ class ApiTransaction {
 
   final bool isOpenFinance;
 
+  final int? cousin;  
+
   final List<String> tags; // Add this line
 
   @JsonKey(name: 'payment_method')
@@ -80,6 +82,7 @@ class ApiTransaction {
     this.paymentMethod,
     this.manipulated,
     this.lastUpdateTime,
+    this.cousin,
   });
 
   /// Factory constructor for creating a new `ApiTransaction` instance from JSON.
