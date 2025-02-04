@@ -41,6 +41,8 @@ class TransactionService {
   static final TransactionService instance =
       TransactionService._(AppDB.instance);
 
+  static Future<bool?> Function(int numberOfCousins)? onCousinFound;
+
   Future<int> insertTransaction(TransactionInDB transaction) async {
     final toReturn = await db.into(db.transactions).insert(transaction);
     db.markTablesUpdated([db.accounts]);
@@ -60,13 +62,16 @@ class TransactionService {
             ..where((t) => t.id.equals(transaction.id)))
           .getSingleOrNull();
 
+      // Only check for cousins if this is an update operation
+     
+
       if (existing != null) {
         print('Updating existing transaction: ${transaction.id}');
 
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
             accessToken: credentials!.accessToken,
-            tags: tags, // Add this line
+            tags: tags,
             method: 'PUT');
 
         if (!isPosted) {
@@ -78,7 +83,7 @@ class TransactionService {
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
             accessToken: credentials!.accessToken,
-            tags: tags, // Add this line
+            tags: tags,
             method: 'POST');
 
         if (!isPosted) {
@@ -91,11 +96,46 @@ class TransactionService {
             mode: InsertMode.insertOrReplace,
           );
 
-      // Insert or update tags for the transaction
       await _updateTransactionTags(transaction.id, tags);
 
       db.markTablesUpdated([db.accounts]);
-      unawaited(fetchUserDataAtServer());  // Trul
+      unawaited(fetchUserDataAtServer());
+
+
+ if (existing != null && transaction.cousin != null) {
+
+        
+        // Find other transactions with the same cousin value
+        final cousins = await (db.select(db.transactions)
+              ..where((t) => t.cousin.equals(transaction.cousin!)
+                  & t.id.isNotValue(transaction.id)))
+            .get();
+
+        if (cousins.isNotEmpty && cousins.length > 1) {
+          print('Checking for cousins for transaction: ${transaction.id} ${cousins.length}');
+          
+          if (onCousinFound != null) {
+            final shouldContinue = await onCousinFound!(cousins.length);
+            
+            if (shouldContinue == false) {
+              throw Exception('Operation cancelled by user');
+            }
+
+
+
+
+
+
+
+            
+          }
+        }
+      }
+
+
+
+
+
       return result;
     } catch (e, stackTrace) {
       print('''

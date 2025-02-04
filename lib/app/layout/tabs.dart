@@ -7,7 +7,7 @@ import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
-
+import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
   const TabsPage({super.key});
@@ -16,7 +16,7 @@ class TabsPage extends StatefulWidget {
   State<TabsPage> createState() => TabsPageState();
 }
 
-class TabsPageState extends State<TabsPage> {
+class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   MainMenuDestination? selectedDestination;
   Map<String, dynamic>? userData;
   bool isLoading = true;

@@ -1,0 +1,47 @@
+---
+description: Design-System Elements - Material Design T3
+globs: *.dart
+---
+Rule Name: design-system.mdc
+Description: Design System Structure in Parsa App (Material Design 3)
+
+# Theme Configuration
+The app uses Material Design 3 but has its theme configuration spread across multiple files:
+
+## Core Theme Definition
+@lib/core/presentation/theme.dart
+- Main theme configuration using `getThemeData()`
+- Takes `lightColorScheme` and `accentColor` as parameters
+- Sets up Material 3 with custom font 'Nunito'
+- Configures input, FAB, bottom sheet, and list tile themes
+
+## Custom Colors Extension
+@lib/core/presentation/app_colors.dart
+- Defines `AppColors` extending `ThemeExtension`
+- Contains brand color constant `brandBlue = Color(0xFF0F3375)`
+- Manages custom color palette including:
+  - danger/success colors
+  - brand colors
+  - input fills
+  - surface colors
+  - modal backgrounds
+
+## Theme Service
+@lib/core/presentation/theme_service.dart
+- Provides theme state management
+- Allows dynamic theme updates
+
+## Color Picker Options
+@lib/core/presentation/widgets/color_picker/color_picker.dart
+- Defines `defaultColorPickerOptions` array with material color codes
+- Used for accent color selection (currently hardcoded)
+
+# Important Note
+The accent color functionality appears to be hardcoded in the theme configuration. The primary color being used is blue (Color(0xFF0F3375)) as defined in app_colors.dart.
+
+# Usage Guidelines
+1. Theme access: Use `Theme.of(context)` to access theme data
+2. Custom colors: Access via `AppColors.of(context)`
+3. Brightness check: Use utility functions:
+   - `isAppInDarkBrightness(context)`
+   - `isAppInLightBrightness(context)`
