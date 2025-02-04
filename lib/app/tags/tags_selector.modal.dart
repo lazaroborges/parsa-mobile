@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:parsa/app/tags/tag_form_page.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/extensions/string.extension.dart';
 import 'package:parsa/core/models/tags/tag.dart';
@@ -9,6 +10,7 @@ import 'package:parsa/core/presentation/widgets/bottomSheetFooter.dart';
 import 'package:parsa/core/presentation/widgets/count_indicator.dart';
 import 'package:parsa/core/presentation/widgets/modal_container.dart';
 import 'package:parsa/core/presentation/widgets/scrollable_with_bottom_gradient.dart';
+import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
 Future<List<Tag?>?> showTagListModal(
@@ -91,52 +93,66 @@ class _TagSelectorState extends State<TagSelector> {
         snap: true,
         snapSizes: const [0.65],
         builder: (context, scrollController) {
-          return ModalContainer(
-            title: t.tags.select,
-            titleBuilder: selectedTags.isEmpty
-                ? null
-                : (title) {
-                    return Row(
-                      children: [
-                        Text(title),
-                        const SizedBox(width: 12),
-                        CountIndicator(selectedTags.length),
-                      ],
+          return Stack(
+            children: [
+              ModalContainer(
+                title: t.tags.select,
+                titleBuilder: selectedTags.isEmpty
+                    ? null
+                    : (title) {
+                        return Row(
+                          children: [
+                            Text(title),
+                            const SizedBox(width: 12),
+                            CountIndicator(selectedTags.length),
+                          ],
+                        );
+                      },
+                body: StreamBuilder(
+                    stream: TagService.instance.getTags(
+                      filter: (p0) => p0.name.contains(searchValue),
+                    ),
+                    builder: (context, snapshot) {
+                      return Column(
+                        children: [
+                          TextField(
+                            decoration: InputDecoration(
+                              filled: false,
+                              isDense: false,
+                              hintText: t.currencies.search,
+                              labelText: t.general.tap_to_search,
+                              floatingLabelStyle: const TextStyle(height: -0.0005),
+                              prefixIcon: const Icon(Icons.search),
+                              border: const UnderlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                searchValue = value;
+                              });
+                            },
+                          ),
+                          buildSelectAllButton(snapshot),
+                          buildTagList(snapshot, scrollController),
+                        ],
+                      );
+                    }),
+                footer: BottomSheetFooter(
+                  onSaved: selectedTags.isNotEmpty || widget.allowEmptySubmit
+                      ? () => Navigator.of(context).pop(selectedTags)
+                      : null,
+                  showAddButton: true,
+                  onAddPressed: () async {
+                    final result = await RouteUtils.pushRoute(
+                      context, 
+                      const TagFormPage()
                     );
+                    if (result != null) {
+                      // Refresh will happen automatically via stream
+                    }
                   },
-            body: StreamBuilder(
-                stream: TagService.instance.getTags(
-                  filter: (p0) => p0.name.contains(searchValue),
                 ),
-                builder: (context, snapshot) {
-                  return Column(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          filled: false,
-                          isDense: false,
-                          hintText: t.currencies.search,
-                          labelText: t.general.tap_to_search,
-                          floatingLabelStyle: const TextStyle(height: -0.0005),
-                          prefixIcon: const Icon(Icons.search),
-                          border: const UnderlineInputBorder(),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            searchValue = value;
-                          });
-                        },
-                      ),
-                      buildSelectAllButton(snapshot),
-                      buildTagList(snapshot, scrollController),
-                    ],
-                  );
-                }),
-            footer: BottomSheetFooter(
-              onSaved: selectedTags.isNotEmpty || widget.allowEmptySubmit
-                  ? () => Navigator.of(context).pop(selectedTags)
-                  : null,
-            ),
+              ),
+            ],
           );
         });
   }
