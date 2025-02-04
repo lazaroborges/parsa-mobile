@@ -393,7 +393,12 @@
           "pt": "Eventos e Cultura"
         }
       },
-
+      {
+        "icon": "liquor",
+        "names": {
+          "pt": "Vida Noturna"
+        }
+      },
       {
         "icon": "casino",
         "names": {
