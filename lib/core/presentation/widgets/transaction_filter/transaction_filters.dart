@@ -39,6 +39,8 @@ class TransactionFilters {
 
   final Iterable<String?>? tagsIDs;
 
+  final int? cousinFilter;
+
   const TransactionFilters(
       {this.minDate,
       this.maxDate,
@@ -52,7 +54,8 @@ class TransactionFilters {
       this.accountsIDs,
       this.categories,
       this.status,
-      this.tagsIDs});
+      this.tagsIDs,
+      this.cousinFilter});
 
   get hasFilter => [
         minDate,
@@ -66,6 +69,7 @@ class TransactionFilters {
         categories,
         status,
         tagsIDs,
+        cousinFilter,
       ].any((element) => element != null);
 
   Stream<List<Account>> accounts() => accountsIDs != null
@@ -145,6 +149,8 @@ class TransactionFilters {
                     c,
                     p6)
                 .toList()),
+          if (cousinFilter != null)
+            transaction.cousin.equals(cousinFilter!),
         ]);
   }
 }

@@ -64,6 +64,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    print('Current filters: ${filters.cousinFilter} ${filters.cousinFilter.runtimeType}'); // Debug
+
     final t = Translations.of(context);
 
     return PopScope(

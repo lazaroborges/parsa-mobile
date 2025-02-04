@@ -41,7 +41,7 @@ class TransactionService {
   static final TransactionService instance =
       TransactionService._(AppDB.instance);
 
-  static Future<bool?> Function(int numberOfCousins)? onCousinFound;
+  static Future<bool?> Function(int numberOfCousins, int cousinValue)? onCousinFound;
 
   Future<int> insertTransaction(TransactionInDB transaction) async {
     final toReturn = await db.into(db.transactions).insert(transaction);
@@ -103,34 +103,24 @@ class TransactionService {
 
 
  if (existing != null && transaction.cousin != null) {
+  // Find other transactions with the same cousin value
+  final cousins = await (db.select(db.transactions)
+        ..where((t) => t.cousin.equals(transaction.cousin!)
+            & t.id.isNotValue(transaction.id)))
+      .get();
 
-        
-        // Find other transactions with the same cousin value
-        final cousins = await (db.select(db.transactions)
-              ..where((t) => t.cousin.equals(transaction.cousin!)
-                  & t.id.isNotValue(transaction.id)))
-            .get();
-
-        if (cousins.isNotEmpty && cousins.length > 1) {
-          print('Checking for cousins for transaction: ${transaction.id} ${cousins.length}');
-          
-          if (onCousinFound != null) {
-            final shouldContinue = await onCousinFound!(cousins.length);
-            
-            if (shouldContinue == false) {
-              throw Exception('Operation cancelled by user');
-            }
-
-
-
-
-
-
-
-            
-          }
-        }
+  if (cousins.isNotEmpty) {
+    print('Checking for cousins for transaction: ${transaction.id}, cousin value: ${transaction.cousin}');
+    
+    if (onCousinFound != null) {
+      final shouldContinue = await onCousinFound!(cousins.length, transaction.cousin!);
+      
+      if (shouldContinue == false) {
+        throw Exception('Operation cancelled by user');
       }
+    }
+  }
+}
 
 
 
