@@ -32,20 +32,20 @@ class TrDistributionChartItem<T> {
 }
 
 class ChartByCategories extends StatefulWidget {
-  const ChartByCategories(
-      {super.key,
-      required this.datePeriodState,
-      this.showList = false,
-      this.initialSelectedType = TransactionType.E,
-      this.filters = const TransactionFilters()});
+  const ChartByCategories({
+    super.key,
+    required this.datePeriodState,
+    this.showList = false,
+    this.initialSelectedType = TransactionType.E,
+    this.filters = const TransactionFilters(),
+    this.useSubcategories = false,
+  });
 
   final DatePeriodState datePeriodState;
-
   final bool showList;
-
   final TransactionType initialSelectedType;
-
   final TransactionFilters filters;
+  final bool useSubcategories;
 
   @override
   State<ChartByCategories> createState() => _ChartByCategoriesState();
@@ -71,7 +71,6 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
     BuildContext context,
   ) async {
     final data = <TrDistributionChartItem<Category>>[];
-
     final transactionService = TransactionService.instance;
 
     final transactions = await transactionService
@@ -79,12 +78,24 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
         .first;
 
     for (final transaction in transactions) {
+      if (transaction.category == null) continue;
+      
       final trValue = transaction.currentValueInPreferredCurrency *
           (transactionsType == TransactionType.E ? -1 : 1);
 
-      final categoryToEdit = data.firstWhereOrNull((cat) =>
-          cat.category.id == transaction.category?.id ||
-          cat.category.id == transaction.category?.parentCategoryID);
+      final categoryToUse = widget.useSubcategories
+          ? transaction.category
+          : (transaction.category!.parentCategoryID == null
+              ? transaction.category
+              : await CategoryService.instance
+                  .getCategoryById(transaction.category!.parentCategoryID!)
+                  .first);
+
+      if (categoryToUse == null) continue;
+
+      final categoryToEdit = data.firstWhereOrNull(
+        (cat) => cat.category.id == categoryToUse.id,
+      );
 
       if (categoryToEdit != null) {
         categoryToEdit.value += trValue;
@@ -92,11 +103,7 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
       } else {
         data.add(
           TrDistributionChartItem(
-            category: transaction.category!.parentCategoryID == null
-                ? Category.fromDB(transaction.category!, null)
-                : (await CategoryService.instance
-                    .getCategoryById(transaction.category!.parentCategoryID!)
-                    .first)!,
+            category: Category.fromDB(categoryToUse, null),
             transactions: [transaction],
             value: trValue,
           ),

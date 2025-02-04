@@ -16,7 +16,6 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/i18n/translations.g.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
-import '../accounts/all_accounts_balance.dart';
 
 class StatsPage extends StatefulWidget {
   const StatsPage({
@@ -96,7 +95,7 @@ class _StatsPageState extends State<StatsPage> {
               tabAlignment: TabAlignment.center,
               tabs: [
                 Tab(text: t.stats.distribution),
-                // Tab(text: t.stats.balance),
+                Tab(text: "${t.categories.subcategories}"),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
               ],
@@ -137,6 +136,7 @@ class _StatsPageState extends State<StatsPage> {
                       showList: true,
                       initialSelectedType: TransactionType.E,
                       filters: filters,
+                      useSubcategories: false,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -150,21 +150,18 @@ class _StatsPageState extends State<StatsPage> {
                     ),
                   ),
                 ]),
-                // buildContainerWithPadding([
-                //   CardWithHeader(
-                //     title: t.stats.balance_evolution,
-                //     body: FundEvolutionLineChart(
-                //       showBalanceHeader: true,
-                //       dateRange: dateRangeService,
-                //       filters: filters,
-                //     ),
-                //   ),
-                //   const SizedBox(height: 16),
-                //   AllAccountBalancePage(
-                //     date: dateRangeService.endDate ?? DateTime.now(),
-                //     filters: filters,
-                //   ),
-                // ]),
+                buildContainerWithPadding([
+                  CardWithHeader(
+                    title: t.stats.by_categories,
+                    body: ChartByCategories(
+                      datePeriodState: dateRangeService,
+                      showList: true,
+                      initialSelectedType: TransactionType.E,
+                      filters: filters,
+                      useSubcategories: true,
+                    ),
+                  ),
+                ]),
                 buildContainerWithPadding([
                   CardWithHeader(
                     title: t.stats.cash_flow,

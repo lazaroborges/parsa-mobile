@@ -8,6 +8,8 @@ import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
+
 
 class TagStats extends StatelessWidget {
   const TagStats({super.key, required this.filters});
@@ -93,6 +95,17 @@ class TagStats extends StatelessWidget {
                       trailing:
                           CurrencyDisplayer(amountToConvert: dataTag.value),
                       leading: dataTag.category.displayIcon(),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => TransactionsPage(
+                              filters: TransactionFilters(
+                                tagsIDs: [dataTag.category.id],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
