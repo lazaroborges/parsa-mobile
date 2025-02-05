@@ -1,0 +1,72 @@
+---
+description: API and Authentication rules
+globs: *dart
+---
+0. **Retrieve Valid Credentials Before API Calls**
+    - Always retrieve valid `Auth0` credentials (`credentials.accessToken`) before making any authenticated requests.
+    - If credentials are `null` or invalid, attempt a silent refresh using `auth0Provider.checkLoginStatus()` before proceeding.
+
+1. ** Use the Auth0Provider Singleton** 
+    - Access the Auth0 instance through `Auth0Provider.instance.auth0` rather than creating new `Auth0` objects.
+    - Any login/logout checks should leverage `Auth0Provider` methods (e.g., `checkLoginStatus`, `logout`).
+    - Acess the Auth0Provider Singleton via Provider and don't pass it from where the post request is being called. 
+
+3. **Handle Offline Scenarios Gracefully**
+    - Before making API calls, detect if the user is offline.
+    - If offline and credentials are stored locally, allow local usage.
+    - Otherwise, gracefully handle or prompt the user.
+
+4. **Consistent HTTP Headers**
+    - Include `"Content-Type": "application/json"` and `"Authorization": "Bearer <token>"` for every authenticated API call to keep headers uniform.
+    - The URL parameter is defined in the global env variable `apiEndpoint`in [main.dart](mdc:lib/main.dart) 
+    
+    - Example:
+        ```dart
+        final response = await http.get(
+            Uri.parse(apiUrl),
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+            },
+        );
+
+
+5. **Minimal Extra Abstraction**  
+
+
+   - Use existing HTTP calls (e.g., `http.get`, `http.post`) plus `Auth0Provider` for token management. Avoid introducing extra frameworks if not necessary.  
+
+   - When possible, rely on existing methods or patterns (e.g., `PostUserAccountService`, `fetchUserAccounts`) instead of duplicating logic.
+
+
+6. **Error Handling & Logging**  
+
+
+   - Wrap all API calls in `try/catch` blocks, log errors (`print()` or use Sentry if configured), and rethrow or handle them to prevent silent failures.
+
+
+   - If a call fails due to auth, consider calling `logout` or re-check login status.  
+
+
+7. **Separation of Concerns**  
+
+
+   - Keep authentication logic (e.g., login, checking credentials) in files such as `auth0_class.dart` or `auth_methods.dart`.
+
+   - Keep business-related API calls in separate service classes (e.g., `fetchUserDataAtServer`, `postUserTransaction`, `fetchUserTransactions`), ensuring each function focuses on one main task.
+
+
+8. **Use the Provided Auth Checking**  
+
+   - Check user login state with `checkLoginStatus()` if uncertain about credential validity.  
+
+   - On any auth failure, direct the user to re-authenticate or gracefully handle in the UI (e.g. show a login screen).
+
+
+9. **Consistent Code Style**  
+
+   - Use the same function naming convention across the codebase (`fetchSomething`, `postSomething`, `checkLoginStatus`).  
+
+   - Maintain the same parameter order: `accessToken` at or near the front, followed by method-specific arguments.
+
+  

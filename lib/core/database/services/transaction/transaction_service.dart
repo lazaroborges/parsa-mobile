@@ -37,24 +37,32 @@ typedef TransactionQueryOrderBy = OrderBy Function(
 
 class TransactionChanges {
   final String? description;
-  final String? categoryId;
+  final String? categoryName;
   final TransactionStatus? status;
   final String? notes;
   final List<Tag>? tags;
 
   TransactionChanges({
     this.description,
-    this.categoryId,
+    this.categoryName,
     this.status,
     this.notes,
     this.tags,
   });
 
   bool get hasChanges => description != null || 
-      categoryId != null || 
+      categoryName != null || 
       status != null || 
       notes != null || 
       tags != null;
+
+  Map<String, dynamic> toJson() => {
+    if (description != null) 'description': description,
+    if (categoryName != null) 'category': categoryName,
+    if (status != null) 'status': status?.name,
+    if (notes != null) 'notes': notes,
+    if (tags != null) 'tags': tags?.map((tag) => tag.id).toList(),
+  };
 }
 
 class TransactionService {
@@ -73,9 +81,8 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
   }
 
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction,
-      [List<Tag> tags = const []]) async {
-    print('Inserting or updating transaction: ${transaction}');
-
+      [List<Tag> tags = const [], int? notMassUpdate]) async {
+        print('3 --------DEBUG - notMassUpdate value: $notMassUpdate'); // Add debug print
     try {
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
@@ -89,7 +96,9 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
       if (existing != null) {
         changes = TransactionChanges(
           description: existing.title != transaction.title ? transaction.title : null,
-          categoryId: existing.categoryID != transaction.categoryID ? transaction.categoryID : null,
+          categoryName: await _getCategoryName(existing.categoryID) != await _getCategoryName(transaction.categoryID) 
+              ? await _getCategoryName(transaction.categoryID) 
+              : null,
           status: existing.status != transaction.status ? transaction.status : null,
           notes: existing.notes != transaction.notes ? transaction.notes : null,
         );
@@ -105,7 +114,7 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
         if (!setEquals(existingTagIds, newTagIds)) {
           changes = TransactionChanges(
             description: changes.description,
-            categoryId: changes.categoryId,
+            categoryName: changes.categoryName,
             status: changes.status,
             notes: changes.notes,
             tags: tags,
@@ -144,25 +153,27 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
             mode: InsertMode.insertOrReplace,
           );
 
-      await _updateTransactionTags(transaction.id, tags);
+      unawaited(_updateTransactionTags(transaction.id, tags));
 
       db.markTablesUpdated([db.accounts]);
       unawaited(fetchUserDataAtServer());
+        print('1 -------- DEBUG - notMassUpdate value: $notMassUpdate'); // Add debug print
 
-      if (existing != null && transaction.cousin != null) {
+      if (existing != null && transaction.cousin != null && notMassUpdate == null) {
+                print('2 --------DEBUG - notMassUpdate value: $notMassUpdate'); // Add debug print
+
         final cousins = await (db.select(db.transactions)
               ..where((t) => t.cousin.equals(transaction.cousin!)
                   & t.id.isNotValue(transaction.id)))
             .get();
 
-        if (cousins.isNotEmpty && changes?.hasChanges == true) {
-          print('Checking for cousins for transaction: ${transaction.id}, cousin value: ${transaction.cousin}');
-          
+        if (cousins.isNotEmpty && changes?.hasChanges == true ) {
+
           if (onCousinFound != null) {
             final shouldContinue = await onCousinFound!(
               cousins.length, 
               transaction.cousin!,
-              changes!,  // Pass the changes to the callback
+              changes!,
             );
             
             if (shouldContinue == false) {
@@ -376,5 +387,13 @@ $stackTrace
           limit: 1,
         )
         .map((event) => event.isNotEmpty);
+  }
+
+  Future<String?> _getCategoryName(String? categoryId) async {
+    if (categoryId == null) return null;
+    final category = await (db.select(db.categories)
+          ..where((c) => c.id.equals(categoryId)))
+        .getSingleOrNull();
+    return category?.name;
   }
 }

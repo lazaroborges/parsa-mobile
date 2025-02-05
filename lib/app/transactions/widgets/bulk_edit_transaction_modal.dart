@@ -11,6 +11,7 @@ import 'package:parsa/core/presentation/widgets/dates/outlinedButtonStacked.dart
 import 'package:parsa/core/presentation/widgets/modal_container.dart';
 import 'package:parsa/core/utils/date_time_picker.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/database/app_db.dart';
 
 class BulkEditTransactionModal extends StatelessWidget {
   const BulkEditTransactionModal({
@@ -78,7 +79,7 @@ class BulkEditTransactionModal extends StatelessWidget {
                       futures: transactionsToEdit.map(
                         (e) => TransactionService.instance
                             .insertOrUpdateTransaction(
-                                e.copyWith(categoryID: Value(modalRes.id))),
+                                e.copyWith(categoryID: Value(modalRes.id)), [], 1),
                       ),
                     );
                   },
@@ -102,7 +103,7 @@ class BulkEditTransactionModal extends StatelessWidget {
                         (e) => TransactionService.instance
                             .insertOrUpdateTransaction(e.copyWith(
                           status: Value(modalRes.result),
-                        )),
+                        ), [], 1),
                       ),
                     );
                   },
@@ -122,17 +123,35 @@ class BulkEditTransactionModal extends StatelessWidget {
                     includeNullTag: false,
                   ),
                 ).then(
-                  (selectedTags) {
+                  (selectedTags) async {
                     if (selectedTags == null) {
                       return;
                     }
 
                     performUpdates(
                       context,
-                      futures: transactionsToEdit.map(
-                        (e) => TransactionService.instance
-                            .insertOrUpdateTransaction(e, selectedTags.cast<Tag>()),
-                      ),
+                      futures: transactionsToEdit.map((transaction) async {
+                        // Get existing tags for this transaction
+                        final existingTags = await (AppDB.instance.select(AppDB.instance.transactionTags)
+                          ..where((t) => t.transactionID.equals(transaction.id)))
+                          .get();
+                        
+                        // Convert to Tag objects and combine with new tags
+                        final existingTagIds = existingTags.map((e) => e.tagID).toSet();
+                        final newTagsList = [
+                          ...selectedTags.cast<Tag>(),
+                          // Add existing tags that aren't in the new selection
+                          ...(await Future.wait(existingTagIds.map((id) async {
+                            final tagData = await (AppDB.instance.select(AppDB.instance.tags)
+                              ..where((t) => t.id.equals(id)))
+                              .getSingle();
+                            return Tag.fromTagInDB(tagData);
+                          }))),
+                        ].toSet().toList(); // Use Set to remove duplicates
+                        
+                        return TransactionService.instance
+                            .insertOrUpdateTransaction(transaction, newTagsList, 1);
+                      }),
                     );
                   },
                 );
