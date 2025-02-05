@@ -25,6 +25,7 @@ class TransactionListTile extends StatelessWidget {
     this.onLongPress,
     this.onTap,
     this.isSelected = false,
+    this.accountNameMaxLength,
   });
 
   final MoneyTransaction transaction;
@@ -46,6 +47,8 @@ class TransactionListTile extends StatelessWidget {
   final void Function()? onTap;
 
   final bool isSelected;
+
+  final int? accountNameMaxLength;
 
   showTransactionActions(BuildContext context, MoneyTransaction transaction) {
     showModalBottomSheet(
@@ -69,6 +72,13 @@ class TransactionListTile extends StatelessWidget {
                     ),
                   )).toList());
         });
+  }
+
+  String getAccountName() {
+    if (accountNameMaxLength != null && transaction.account.name.length > accountNameMaxLength!) {
+      return '${transaction.account.name.substring(0, accountNameMaxLength!)}...';
+    }
+    return transaction.account.name;
   }
 
   @override
@@ -160,7 +170,7 @@ class TransactionListTile extends StatelessWidget {
                       }
 
                       return Text(
-                        '${transaction.account.name} ${secondaryText.isNotEmpty ? ('• $secondaryText') : ''}',
+                        '${getAccountName()} ${secondaryText.isNotEmpty ? ('• $secondaryText') : ''}',
                         softWrap: false,
                         overflow: TextOverflow.fade,
                       );

@@ -2,18 +2,19 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/tags/tag.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
-
 
 import '../../../models/transaction/transaction_type.enum.dart';
 
@@ -34,6 +35,28 @@ typedef TransactionQueryOrderBy = OrderBy Function(
     Categories c,
     Categories);
 
+class TransactionChanges {
+  final String? description;
+  final String? categoryId;
+  final TransactionStatus? status;
+  final String? notes;
+  final List<Tag>? tags;
+
+  TransactionChanges({
+    this.description,
+    this.categoryId,
+    this.status,
+    this.notes,
+    this.tags,
+  });
+
+  bool get hasChanges => description != null || 
+      categoryId != null || 
+      status != null || 
+      notes != null || 
+      tags != null;
+}
+
 class TransactionService {
   final AppDB db;
 
@@ -41,8 +64,7 @@ class TransactionService {
   static final TransactionService instance =
       TransactionService._(AppDB.instance);
 
-  static Future<bool?> Function(int numberOfCousins, int cousinValue)? onCousinFound;
-
+static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionChanges changes)? onCousinFound;
   Future<int> insertTransaction(TransactionInDB transaction) async {
     final toReturn = await db.into(db.transactions).insert(transaction);
     db.markTablesUpdated([db.accounts]);
@@ -62,8 +84,34 @@ class TransactionService {
             ..where((t) => t.id.equals(transaction.id)))
           .getSingleOrNull();
 
-      // Only check for cousins if this is an update operation
-     
+      // Track changes if this is an update
+      TransactionChanges? changes;
+      if (existing != null) {
+        changes = TransactionChanges(
+          description: existing.title != transaction.title ? transaction.title : null,
+          categoryId: existing.categoryID != transaction.categoryID ? transaction.categoryID : null,
+          status: existing.status != transaction.status ? transaction.status : null,
+          notes: existing.notes != transaction.notes ? transaction.notes : null,
+        );
+
+        // Get existing tags for comparison
+        final existingTags = await (db.select(db.transactionTags)
+              ..where((t) => t.transactionID.equals(transaction.id)))
+            .get();
+        final existingTagIds = existingTags.map((e) => e.tagID).toSet();
+        final newTagIds = tags.map((e) => e.id).toSet();
+
+        // Only set tags if they've changed
+        if (!setEquals(existingTagIds, newTagIds)) {
+          changes = TransactionChanges(
+            description: changes.description,
+            categoryId: changes.categoryId,
+            status: changes.status,
+            notes: changes.notes,
+            tags: tags,
+          );
+        }
+      }
 
       if (existing != null) {
         print('Updating existing transaction: ${transaction.id}');
@@ -101,30 +149,28 @@ class TransactionService {
       db.markTablesUpdated([db.accounts]);
       unawaited(fetchUserDataAtServer());
 
+      if (existing != null && transaction.cousin != null) {
+        final cousins = await (db.select(db.transactions)
+              ..where((t) => t.cousin.equals(transaction.cousin!)
+                  & t.id.isNotValue(transaction.id)))
+            .get();
 
- if (existing != null && transaction.cousin != null) {
-  // Find other transactions with the same cousin value
-  final cousins = await (db.select(db.transactions)
-        ..where((t) => t.cousin.equals(transaction.cousin!)
-            & t.id.isNotValue(transaction.id)))
-      .get();
-
-  if (cousins.isNotEmpty) {
-    print('Checking for cousins for transaction: ${transaction.id}, cousin value: ${transaction.cousin}');
-    
-    if (onCousinFound != null) {
-      final shouldContinue = await onCousinFound!(cousins.length, transaction.cousin!);
-      
-      if (shouldContinue == false) {
-        throw Exception('Operation cancelled by user');
+        if (cousins.isNotEmpty && changes?.hasChanges == true) {
+          print('Checking for cousins for transaction: ${transaction.id}, cousin value: ${transaction.cousin}');
+          
+          if (onCousinFound != null) {
+            final shouldContinue = await onCousinFound!(
+              cousins.length, 
+              transaction.cousin!,
+              changes!,  // Pass the changes to the callback
+            );
+            
+            if (shouldContinue == false) {
+              throw Exception('Operation cancelled by user');
+            }
+          }
+        }
       }
-    }
-  }
-}
-
-
-
-
 
       return result;
     } catch (e, stackTrace) {

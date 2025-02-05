@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
-import 'package:parsa/app/transactions/widgets/transaction_list.dart'; // Import the TransactionListComponent
+import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 
 mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
@@ -16,59 +16,85 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
     TransactionService.onCousinFound = _handleCousinFound;
   }
 
-  Future<bool?> _handleCousinFound(int cousins, int cousinValue) async {
-    print('Cousin found: $cousins, $cousinValue ${cousinValue.runtimeType}');
-    return await showDialog<bool>(
+  Future<bool?> _handleCousinFound(int cousins, int cousinValue, TransactionChanges changes) async {
+    print('Cousin found: $cousins, $cousinValue ${cousinValue.runtimeType} $changes');
+    
+    // Build changes description
+    final List<String> changesList = [];
+    if (changes.description != null) changesList.add('descrição');
+    if (changes.categoryId != null) changesList.add('categoria');
+    if (changes.status != null) changesList.add('status');
+    if (changes.notes != null) changesList.add('notas');
+    if (changes.tags != null) changesList.add('tags');
+    
+    final changesText = changesList.isEmpty 
+        ? ''
+        : '\n\nMudanças detectadas em: ${changesList.join(', ')}.';
+
+    final result = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: Text(
           'Transações Similares',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
-          height: MediaQuery.of(context).size.height * 0.7,
+          width: MediaQuery.of(context).size.width * 1,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Existem $cousins transações similares ao grupo "$cousinValue". Você gostaria de ver e atualizar todas elas?',
+                'Existem $cousins transações similares. Você gostaria de ver e atualizar todas elas?$changesText',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: CardWithHeader(
-                  
-                  title: 'Transações Similares',
-                  bodyPadding: const EdgeInsets.all(16),
-                  body: TransactionListComponent(
+              CardWithHeader(
+                title: 'Transações Similares',
+                bodyPadding: const EdgeInsets.all(8),
+                body: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.4, // 40% of screen height
+                    minHeight: 100, // minimum height to look good
+                  ),
+                  child: TransactionListComponent(
                     heroTagBuilder: (tr) => 'cousin-alert__tr-icon-${tr.id}',
                     filters: TransactionFilters(
                       cousinFilter: cousinValue,
                     ),
+                    limit: 3,
+                    accountNameMaxLength: 8,
                     prevPage: Navigator.canPop(context) 
                         ? context.widget 
                         : const SizedBox.shrink(),
                     showGroupDivider: false,
+                    showDate: true,
                     onEmptyList: const Text('Nenhuma transação encontrada'),
                   ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              StatefulBuilder(
+                builder: (context, setState) => CheckboxListTile(
+                  value: true,
+                  onChanged: (value) => setState(() {}),
+                  title: const Text(
+                    'Aplicar a todas as transações existentes e futuras',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
                 ),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.secondary,
-            ),
-            child: const Text('Cancelar'),
-          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
+              
               backgroundColor: AppColors.of(context).primary,
             ),
             child: const Text('Continuar'),
@@ -76,6 +102,10 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
         ],
       ),
     );
+    
+    // Only return a boolean if the user explicitly chose an option
+    // Return null if dialog was dismissed
+    return result;
   }
 
   @override

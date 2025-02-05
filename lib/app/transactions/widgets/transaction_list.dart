@@ -15,10 +15,12 @@ class TransactionListComponent extends StatefulWidget {
     super.key,
     required this.filters,
     this.showGroupDivider = true,
+    this.showDate = false,
     this.periodicityInfo,
     required this.prevPage,
     this.orderBy,
     this.limit = 40,
+    this.accountNameMaxLength,
     this.onLoading = const Column(
       children: [
         LinearProgressIndicator(),
@@ -33,6 +35,7 @@ class TransactionListComponent extends StatefulWidget {
   });
 
   final TransactionFilters filters;
+  final int? accountNameMaxLength;
 
   final TransactionQueryOrderBy? orderBy;
   final int limit;
@@ -44,6 +47,8 @@ class TransactionListComponent extends StatefulWidget {
   final Widget onEmptyList;
 
   final bool showGroupDivider;
+
+  final bool showDate;
 
   /// If defined, display info about the periodicity of the recurrent transactions, and the days to the next payment. Will show the amount of the recurrency based on the specified periodicity
   final Periodicity? periodicityInfo;
@@ -178,7 +183,7 @@ class _TransactionListComponentState extends State<TransactionListComponent> {
                   transaction: transaction,
                   prevPage: widget.prevPage,
                   periodicityInfo: widget.periodicityInfo,
-                  showDate: !widget.showGroupDivider,
+                  showDate: widget.showDate,
                   showTime: widget.showGroupDivider,
                   heroTag: heroTag,
                   onTap: widget.onTap == null
@@ -189,6 +194,7 @@ class _TransactionListComponentState extends State<TransactionListComponent> {
                       : (() => widget.onLongPress!(transaction)),
                   isSelected: widget.selectedTransactions
                       .any((element) => element.id == transaction.id),
+                  accountNameMaxLength: widget.accountNameMaxLength,
                 );
               },
               separatorBuilder: (context, index) {
