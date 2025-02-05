@@ -1,19 +1,11 @@
 name: parsa
 description: controle financeiro sem esforço.
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+
 
 publish_to: none
 
-# [VersionName]+[VersionNumber] -> The version number follow the below convetion:
-#
-# XXXXX.YY.ZZZ
-#
-# The X represents the major releases, and can be up to infinity. Never start by a zero
-# The Y represents the minor releases, and can be up to 99. Always start by a zero
-# The Z represents the patch releases, and can be up to 999. Always start by a zero
-version: 2.0.7+60
+version: 2.0.7+61
 
 environment:
   flutter: 3.22.3
@@ -101,10 +93,10 @@ dev_dependencies:
 build:
   ios:
     build-name: 2.0.7
-    build-number: 60
+    build-number: 61
   android:
     build-name: 2.0.7
-    build-number: 60
+    build-number: 61
 
 
 flutter_launcher_icons:
