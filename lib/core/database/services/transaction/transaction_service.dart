@@ -17,6 +17,7 @@ import 'package:parsa/core/api/post_methods/post_user_transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 
 import '../../../models/transaction/transaction_type.enum.dart';
+import 'dart:convert';
 
 class TransactionQueryStatResult {
   int numberOfRes;
@@ -57,10 +58,10 @@ class TransactionChanges {
       tags != null;
 
   Map<String, dynamic> toJson() => {
-    if (description != null) 'description': description,
-    if (categoryName != null) 'category': categoryName,
+    if (description != null) 'description': utf8.decode(utf8.encode(description!)),
+    if (categoryName != null) 'category': utf8.decode(utf8.encode(categoryName!)),
     if (status != null) 'status': status?.name,
-    if (notes != null) 'notes': notes,
+    if (notes != null) 'notes': utf8.decode(utf8.encode(notes!)),
     if (tags != null) 'tags': tags?.map((tag) => tag.id).toList(),
   };
 }
@@ -72,7 +73,7 @@ class TransactionService {
   static final TransactionService instance =
       TransactionService._(AppDB.instance);
 
-static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionChanges changes)? onCousinFound;
+static Future<bool?> Function(int numberOfCousins, String triggeringId, int cousinValue, bool positiveInflow, TransactionChanges changes)? onCousinFound;
   Future<int> insertTransaction(TransactionInDB transaction) async {
     final toReturn = await db.into(db.transactions).insert(transaction);
     db.markTablesUpdated([db.accounts]);
@@ -82,7 +83,6 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
 
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction,
       [List<Tag> tags = const [], int? notMassUpdate]) async {
-        print('3 --------DEBUG - notMassUpdate value: $notMassUpdate'); // Add debug print
     try {
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
@@ -153,14 +153,14 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
             mode: InsertMode.insertOrReplace,
           );
 
+      bool positiveInflow = transaction.value > 0;
+
       unawaited(_updateTransactionTags(transaction.id, tags));
 
       db.markTablesUpdated([db.accounts]);
       unawaited(fetchUserDataAtServer());
-        print('1 -------- DEBUG - notMassUpdate value: $notMassUpdate'); // Add debug print
 
       if (existing != null && transaction.cousin != null && notMassUpdate == null) {
-                print('2 --------DEBUG - notMassUpdate value: $notMassUpdate'); // Add debug print
 
         final cousins = await (db.select(db.transactions)
               ..where((t) => t.cousin.equals(transaction.cousin!)
@@ -170,9 +170,15 @@ static Future<bool?> Function(int numberOfCousins, int cousinValue, TransactionC
         if (cousins.isNotEmpty && changes?.hasChanges == true ) {
 
           if (onCousinFound != null) {
+              print('ALTAS HORAS VIDA INTELIGENTE NA MADRUGADA positiveInflow: $positiveInflow');
+
             final shouldContinue = await onCousinFound!(
+
               cousins.length, 
+              transaction.id.toString(),
+              
               transaction.cousin!,
+              positiveInflow,
               changes!,
             );
             

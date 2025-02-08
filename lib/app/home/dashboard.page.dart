@@ -77,9 +77,9 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _initializeDashboard() async {
     try {
       // Ensure we check the announcement first
-      if (mounted) {
-        await FeatureAnnouncementModal.showIfNeeded(context);
-      }
+      // if (mounted) {
+      //   await FeatureAnnouncementModal.showIfNeeded(context);
+      // }
       
       // Then fetch data
       await _refreshData();

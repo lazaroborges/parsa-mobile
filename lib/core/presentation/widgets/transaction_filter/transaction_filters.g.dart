@@ -37,6 +37,8 @@ abstract class _$TransactionFiltersCWProxy {
 
   TransactionFilters cousinFilter(int? cousinFilter);
 
+  TransactionFilters positiveValuesOnly(bool? positiveValuesOnly);
+
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `TransactionFilters(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -58,6 +60,7 @@ abstract class _$TransactionFiltersCWProxy {
     List<TransactionStatus?>? status,
     Iterable<String?>? tagsIDs,
     int? cousinFilter,
+    bool? positiveValuesOnly,
   });
 }
 
@@ -125,6 +128,10 @@ class _$TransactionFiltersCWProxyImpl implements _$TransactionFiltersCWProxy {
       this(cousinFilter: cousinFilter);
 
   @override
+  TransactionFilters positiveValuesOnly(bool? positiveValuesOnly) =>
+      this(positiveValuesOnly: positiveValuesOnly);
+
+  @override
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `TransactionFilters(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -148,6 +155,7 @@ class _$TransactionFiltersCWProxyImpl implements _$TransactionFiltersCWProxy {
     Object? status = const $CopyWithPlaceholder(),
     Object? tagsIDs = const $CopyWithPlaceholder(),
     Object? cousinFilter = const $CopyWithPlaceholder(),
+    Object? positiveValuesOnly = const $CopyWithPlaceholder(),
   }) {
     return TransactionFilters(
       minDate: minDate == const $CopyWithPlaceholder()
@@ -211,6 +219,10 @@ class _$TransactionFiltersCWProxyImpl implements _$TransactionFiltersCWProxy {
           ? _value.cousinFilter
           // ignore: cast_nullable_to_non_nullable
           : cousinFilter as int?,
+      positiveValuesOnly: positiveValuesOnly == const $CopyWithPlaceholder()
+          ? _value.positiveValuesOnly
+          // ignore: cast_nullable_to_non_nullable
+          : positiveValuesOnly as bool?,
     );
   }
 }
@@ -240,6 +252,7 @@ extension $TransactionFiltersCopyWith on TransactionFilters {
     bool status = false,
     bool tagsIDs = false,
     bool cousinFilter = false,
+    bool positiveValuesOnly = false,
   }) {
     return TransactionFilters(
       minDate: minDate == true ? null : this.minDate,
@@ -257,6 +270,8 @@ extension $TransactionFiltersCopyWith on TransactionFilters {
       status: status == true ? null : this.status,
       tagsIDs: tagsIDs == true ? null : this.tagsIDs,
       cousinFilter: cousinFilter == true ? null : this.cousinFilter,
+      positiveValuesOnly:
+          positiveValuesOnly == true ? null : this.positiveValuesOnly,
     );
   }
 }

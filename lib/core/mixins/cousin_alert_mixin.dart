@@ -19,8 +19,7 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
     TransactionService.onCousinFound = _handleCousinFound;
   }
 
-  Future<bool?> _handleCousinFound(int cousins, int cousinValue, TransactionChanges changes) async {
-  
+  Future<bool?> _handleCousinFound(int cousins, String triggeringId, int cousinValue, bool positiveInflow, TransactionChanges changes) async {
   // Build changes description
   final List<String> changesList = [];
   if (changes.description != null) changesList.add('Descrição');
@@ -34,6 +33,7 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
       : '\n\nMudanças detectadas em: ${changesList.join(', ')}.';
 
   bool _applyToFuture = true; 
+  print('PROGRAMA LIBRE VOLTA JÁ positiveInflow: $positiveInflow');
 
   final result = await showDialog<bool>(
     context: context,
@@ -65,6 +65,7 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                   heroTagBuilder: (tr) => 'cousin-alert__tr-icon-${tr.id}',
                   filters: TransactionFilters(
                     cousinFilter: cousinValue,
+                    positiveValuesOnly: positiveInflow,
                   ),
                   limit: 3,
                   accountNameMaxLength: 8,
@@ -119,6 +120,7 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                 try {
                   await PostUserCousinRules.updateCousinRules(
                     cousinValue: cousinValue,
+                    triggeringId: triggeringId,
                     changes: changes.toJson(),
                     applyToFuture: _applyToFuture, // Use the _applyToFuture variable
                   );

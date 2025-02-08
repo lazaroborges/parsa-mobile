@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 614
+/// Strings: 615
 ///
-/// Built on 2025-02-05 at 11:45 UTC
+/// Built on 2025-02-06 at 00:08 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -376,6 +376,7 @@ class _TranslationsTransactionPt {
 	String delete_multiple_warning_message({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
 	String delete_multiple_success({required Object x}) => '${x} transações excluídas com sucesso';
 	String get details => 'Detalhes da transação';
+	String get transaction_cousin => 'Transações Similares';
 	late final _TranslationsTransactionNextPaymentsPt next_payments = _TranslationsTransactionNextPaymentsPt._(_root);
 	late final _TranslationsTransactionListPt list = _TranslationsTransactionListPt._(_root);
 	late final _TranslationsTransactionFiltersPt filters = _TranslationsTransactionFiltersPt._(_root);
@@ -1868,6 +1869,7 @@ extension on Translations {
 			case 'transaction.delete_multiple_warning_message': return ({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
 			case 'transaction.delete_multiple_success': return ({required Object x}) => '${x} transações excluídas com sucesso';
 			case 'transaction.details': return 'Detalhes da transação';
+			case 'transaction.transaction_cousin': return 'Transações Similares';
 			case 'transaction.next_payments.accept': return 'Aceitar';
 			case 'transaction.next_payments.skip': return 'Pular';
 			case 'transaction.next_payments.skip_success': return 'Transação pulada com sucesso';

@@ -1,12 +1,15 @@
 // lib/app/transactions/transaction_details.page.dart
 // This is the Widget that shows the info of the files.
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/tags/tags_selector.modal.dart';
 import 'package:parsa/app/transactions/label_value_info_table.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/services/exchange-rate/exchange_rate_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
@@ -21,6 +24,8 @@ import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/core/presentation/widgets/monekin_quick_actions_buttons.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/services/view-actions/transaction_view_actions_service.dart';
 import 'package:parsa/core/utils/constants.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
@@ -33,6 +38,7 @@ import 'package:parsa/app/transactions/form/dialogs/transaction_title_modal.dart
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
+import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 
 class TransactionDetailAction {
   final String label;
@@ -943,6 +949,36 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                 title: t.general.quick_actions,
                                 body: MonekinQuickActionsButton(
                                     actions: transactionDetailsActions),
+                              ),
+                            ],
+
+                            // Add related transactions section if cousin exists
+                            if (transaction.cousin != null) ...[
+                              const SizedBox(height: 16),
+                              CardWithHeader(
+                                onHeaderButtonClick: () {
+                                  RouteUtils.pushRoute(
+                                    context,
+                                    TransactionsPage(
+                                      filters: TransactionFilters(
+                                        cousinFilter: transaction.cousin,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                title: t.transaction.transaction_cousin,
+                                body: TransactionListComponent(
+                                  filters: TransactionFilters(
+                                    cousinFilter: transaction.cousin,
+                                  ),
+                                  prevPage: widget.prevPage,
+
+                                  limit: 5,
+                                  heroTagBuilder: (tr) => 'related-${tr.id}-${transaction.cousin}-${Random().nextInt(1000000)}',
+                                  onEmptyList: Center(
+                                    child: Text("Don't display this"),
+                                  ),
+                                ),
                               ),
                             ],
                           ],

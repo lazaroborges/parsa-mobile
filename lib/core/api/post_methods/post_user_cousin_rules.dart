@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 
+import '../fetch_user_transactions.dart';
+
 class PostUserCousinRules {
   static Future<bool> updateCousinRules({
     required int cousinValue,
+    required String triggeringId,
     required Map<String, dynamic> changes,
     required bool applyToFuture,
   }) async {
@@ -21,17 +25,24 @@ class PostUserCousinRules {
       final response = await http.post(
         Uri.parse('$apiEndpoint/api/cousin-rules/'),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
           'Authorization': 'Bearer ${credentials.accessToken}',
         },
         body: jsonEncode({
-          'cousin_value': cousinValue,
+          'cousin': cousinValue,
+          'triggering_id': triggeringId,
           'changes': changes,
-          'apply_to_future': applyToFuture,
+          'create_rule': applyToFuture,
+        }, toEncodable: (object) {
+          if (object is String) {
+            return utf8.decode(utf8.encode(object));
+          }
+          return object;
         }),
       );
 
       if (response.statusCode == 200) {
+        unawaited(fetchUserTransactions(null, cousinValue: cousinValue));
         return true;
       } else {
         throw Exception('Failed to update cousin rules: ${response.statusCode}');

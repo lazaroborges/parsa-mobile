@@ -18,10 +18,14 @@ import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
 
 
-Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl}) async {
+Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int? cousinValue}) async {
   String url;
   
-  if (nextPageUrl != null) {
+  
+  if (cousinValue != null) {
+    print('Fetching transactions for cousin value: $cousinValue');
+    url = '$apiEndpoint/api/transactions/?cousin=$cousinValue';
+  } else if (nextPageUrl != null) {
     // Extract just the path and query parameters from the full URL
     Uri nextUri = Uri.parse(nextPageUrl);
     url = '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
@@ -73,17 +77,6 @@ Future<void> syncTransactions(String apiResponse) async {
       return;
     }
 
-    // Add debug printing for each transaction
-    print('\nReceived transactions from API:');
-    for (var tx in apiTransactions) {
-      print('''
-    Transaction ID: ${tx.id}
-      Description: ${tx.description}
-      Amount: ${tx.amount}
-      Date: ${tx.transactionDate}
-      Cousin: ${tx.cousin}
-      ----------------------------------------''');
-    }
 
     // Ensure all tags exist
     Set<String> allTagIds = {};

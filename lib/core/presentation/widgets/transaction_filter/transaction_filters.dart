@@ -41,6 +41,8 @@ class TransactionFilters {
 
   final int? cousinFilter;
 
+  final bool? positiveValuesOnly;
+
   const TransactionFilters(
       {this.minDate,
       this.maxDate,
@@ -55,7 +57,8 @@ class TransactionFilters {
       this.categories,
       this.status,
       this.tagsIDs,
-      this.cousinFilter});
+      this.cousinFilter,
+      this.positiveValuesOnly});
 
   get hasFilter => [
         minDate,
@@ -70,6 +73,7 @@ class TransactionFilters {
         status,
         tagsIDs,
         cousinFilter,
+        positiveValuesOnly,
       ].any((element) => element != null);
 
   Stream<List<Account>> accounts() => accountsIDs != null
@@ -151,6 +155,12 @@ class TransactionFilters {
                 .toList()),
           if (cousinFilter != null)
             transaction.cousin.equals(cousinFilter!),
+          if (positiveValuesOnly != null)
+            CustomExpression(
+                positiveValuesOnly! 
+                    ? '(t.value > 0)' 
+                    : '(t.value < 0)'
+            ),
         ]);
   }
 }

@@ -288,6 +288,7 @@
     "delete.multiple.warning-message": "Essa ação é irreversível e removerá {{ x }} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados",
     "delete.multiple.success": "{{x}} transações excluídas com sucesso",
     "details": "Detalhes da transação",
+    "transaction-cousin": "Transações Similares",
     "NEXT-PAYMENTS": {
       "accept": "Aceitar",
       "skip": "Pular",
