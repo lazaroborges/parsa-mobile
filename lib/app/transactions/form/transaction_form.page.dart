@@ -586,50 +586,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                                   decimalDigits:
                                       _valueInDestinyOrDefault % 1 == 0 ? 0 : 2,
                                 ).format(_valueInDestinyOrDefault)} para a conta de destino')),
-                          if (transactionType == TransactionType.E &&
-                                  !transactionAmount.isNegative ||
-                              transactionType == TransactionType.I &&
-                                  transactionAmount.isNegative)
-                            TextButton.icon(
-                              style: buttonStyle,
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  showDragHandle: true,
-                                  builder: (context) {
-                                    return ModalContainer(
-                                      title: t.transaction.reversed.title,
-                                      titleBuilder: (title) {
-                                        return Row(
-                                          children: [
-                                            Icon(
-                                              MoneyTransaction.reversedIcon,
-                                              size: 28,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Text(title)
-                                          ],
-                                        );
-                                      },
-                                      bodyPadding: const EdgeInsets.only(
-                                        left: 16,
-                                        bottom: 8,
-                                        right: 8,
-                                      ),
-                                      body: Text(
-                                          transactionType == TransactionType.I
-                                              ? t.transaction.reversed
-                                                  .description_for_incomes
-                                              : t.transaction.reversed
-                                                  .description_for_expenses),
-                                    );
-                                  },
-                                );
-                              },
-                              label: Text(t.transaction.reversed.title_short),
-                              icon: Icon(MoneyTransaction.reversedIcon),
-                            ),
                         ],
                       );
                     }),

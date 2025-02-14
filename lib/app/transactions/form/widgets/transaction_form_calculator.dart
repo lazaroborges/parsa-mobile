@@ -12,7 +12,7 @@ class TransactionFormCalculator extends StatefulWidget {
       required this.amountToConvert,
       this.onChange,
       this.onSubmit,
-      this.showNegativeToggleButton = true});
+      this.showNegativeToggleButton = false});
 
   final double amountToConvert;
 
@@ -230,11 +230,14 @@ class _TransactionFormCalculatorState extends State<TransactionFormCalculator> {
               ? null
               : () => onButtonPress(text),
           child: text == _removeButtonID || text == 'DONE'
-              ? Icon(text == _removeButtonID
-                  ? Icons.backspace_rounded
-                  : Icons.check_rounded)
+              ? Icon(
+                  text == _removeButtonID
+                      ? Icons.backspace_rounded
+                      : Icons.check_rounded,
+                  color: textColor,
+                )
               : text == '-'
-                  ? const Icon(Icons.exposure_rounded)
+                  ? Icon(Icons.exposure_rounded, color: textColor)
                   : Text(
                       text,
                       softWrap: false,
@@ -292,8 +295,7 @@ class _TransactionFormCalculatorState extends State<TransactionFormCalculator> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               buildCalculatorButton(context, text: 'AC'),
-              if (widget.showNegativeToggleButton)
-                buildCalculatorButton(context, text: '-'),
+
               buildCalculatorButton(context,
                   bgColor: AppColors.of(context).primary,
                   text: 'DONE',

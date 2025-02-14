@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 615
 ///
-/// Built on 2025-02-14 at 11:38 UTC
+/// Built on 2025-02-14 at 18:52 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -370,10 +370,10 @@ class _TranslationsTransactionPt {
 	String get duplicate_warning_message => 'Uma transação idêntica a esta será criada com a mesma data, deseja continuar?';
 	String get duplicate_success => 'Transação clonada com sucesso';
 	String get delete => 'Excluir transação';
-	String get delete_warning_message => 'Essa ação é irreversível. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
+	String get delete_warning_message => 'Essa ação é irreversível. Prefira usar o status \'Desconsiderada\' para remover a transação das suas análises. O saldo atual de suas contas e todas as suas análises serão recalculados';
 	String get delete_success => 'Transação excluída com sucesso.';
 	String get delete_multiple => 'Excluir com sucesso';
-	String delete_multiple_warning_message({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
+	String delete_multiple_warning_message({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas análises serão recalculados';
 	String delete_multiple_success({required Object x}) => '${x} transações excluídas com sucesso';
 	String get details => 'Detalhes da transação';
 	String get transaction_cousin => 'Transações Similares';
@@ -1863,10 +1863,10 @@ extension on Translations {
 			case 'transaction.duplicate_warning_message': return 'Uma transação idêntica a esta será criada com a mesma data, deseja continuar?';
 			case 'transaction.duplicate_success': return 'Transação clonada com sucesso';
 			case 'transaction.delete': return 'Excluir transação';
-			case 'transaction.delete_warning_message': return 'Essa ação é irreversível. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
+			case 'transaction.delete_warning_message': return 'Essa ação é irreversível. Prefira usar o status \'Desconsiderada\' para remover a transação das suas análises. O saldo atual de suas contas e todas as suas análises serão recalculados';
 			case 'transaction.delete_success': return 'Transação excluída com sucesso.';
 			case 'transaction.delete_multiple': return 'Excluir com sucesso';
-			case 'transaction.delete_multiple_warning_message': return ({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas Parsaísticas serão recalculados';
+			case 'transaction.delete_multiple_warning_message': return ({required Object x}) => 'Essa ação é irreversível e removerá ${x} transações. O saldo atual de suas contas e todas as suas análises serão recalculados';
 			case 'transaction.delete_multiple_success': return ({required Object x}) => '${x} transações excluídas com sucesso';
 			case 'transaction.details': return 'Detalhes da transação';
 			case 'transaction.transaction_cousin': return 'Transações Similares';

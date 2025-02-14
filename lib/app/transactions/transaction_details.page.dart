@@ -8,6 +8,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/tags/tags_selector.modal.dart';
+import 'package:parsa/app/transactions/form/transaction_form.page.dart';
 import 'package:parsa/app/transactions/label_value_info_table.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
@@ -676,6 +677,17 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     updateCategory: updateCategory,
                     updateTitle: updateTitle,
                     context: context,
+                    onAmountTap: () {
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(
+                          builder: (context) => TransactionFormPage(
+                            transactionToEdit: transaction,
+                            mode: transaction.type,
+                          ),
+                        ),
+                      ).then((_) => setState(() {})); // Refresh the UI when returning
+                    },
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -688,20 +700,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (transaction.isReversed)
-                              translucentCard(
-                                color: AppColors.of(context).brand,
-                                body: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(
-                                    transaction.type == TransactionType.E
-                                        ? t.transaction.reversed.description_for_expenses
-                                        : t.transaction.reversed.description_for_incomes,
-                                  ),
-                                ),
-                                icon: MoneyTransaction.reversedIcon,
-                                title: t.transaction.reversed.title,
-                              ),
+
                             CardWithHeader(
                               title: t.transaction.title,
                               body: LabelValueInfoTable(
@@ -1059,6 +1058,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
     required this.updateCategory,
     required this.updateTitle,
     required this.context,
+    required this.onAmountTap,
   });
 
   final MoneyTransaction transaction;
@@ -1066,6 +1066,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
   final Function(BuildContext, MoneyTransaction) updateCategory;
   final Function(BuildContext, MoneyTransaction) updateTitle;
   final BuildContext context;
+  final VoidCallback onAmountTap;
 
   @override
   Widget build(BuildContext buildContext, double shrinkOffset, bool overlap) {
@@ -1086,23 +1087,26 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 100),
-                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                        fontSize: 34 - shrinkPercent * 16,
-                        fontWeight: FontWeight.w600,
-                        color: transaction.status == TransactionStatus.voided
-                            ? Colors.grey.shade400
-                            : transaction.type == TransactionType.T
-                                ? null
-                                : transaction.type.color(context),
-                        decoration: transaction.status == TransactionStatus.voided
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
-                  child: CurrencyDisplayer(
-                    amountToConvert: transaction.value,
-                    currency: transaction.account.currency,
+                GestureDetector(
+                  onTap: onAmountTap,
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 100),
+                    style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                      fontSize: 34 - shrinkPercent * 16,
+                      fontWeight: FontWeight.w600,
+                      color: transaction.status == TransactionStatus.voided
+                          ? Colors.grey.shade400
+                          : transaction.type == TransactionType.T
+                              ? null
+                              : transaction.type.color(context),
+                      decoration: transaction.status == TransactionStatus.voided
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
+                    child: CurrencyDisplayer(
+                      amountToConvert: transaction.value,
+                      currency: transaction.account.currency,
+                    ),
                   ),
                 ),
                 GestureDetector(
