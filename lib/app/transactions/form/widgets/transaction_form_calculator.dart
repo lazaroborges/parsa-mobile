@@ -31,7 +31,10 @@ class TransactionFormCalculator extends StatefulWidget {
 
 class _TransactionFormCalculatorState extends State<TransactionFormCalculator> {
   late String selectedAmount;
-  double get valueToNumber => double.tryParse(selectedAmount) ?? 0;
+  double get valueToNumber {
+    final value = double.tryParse(selectedAmount.replaceAll('-', '')) ?? 0;
+    return isNegative ? -value : value;
+  }
 
   late bool isNegative;
 
@@ -45,8 +48,8 @@ class _TransactionFormCalculatorState extends State<TransactionFormCalculator> {
     if (widget.amountToConvert == 0) {
       selectedAmount = '0';
     } else {
-      selectedAmount =
-          removeTrailingZeroes(widget.amountToConvert.toStringAsFixed(2));
+      selectedAmount = 
+          removeTrailingZeroes(widget.amountToConvert.abs().toStringAsFixed(2));
     }
 
     isNegative = widget.amountToConvert.isNegative;
@@ -164,8 +167,15 @@ class _TransactionFormCalculatorState extends State<TransactionFormCalculator> {
 
   void updateSelectedAmount(String newAmount) {
     setState(() {
-      selectedAmount =
-          "${isNegative ? '-' : ''}${newAmount.replaceAll('-', '')}";
+      // Remove any existing negative signs and leading zeros
+      String cleanAmount = newAmount.replaceAll('-', '').replaceFirst(RegExp(r'^0+(?=\d)'), '');
+      
+      // If amount is empty after cleaning, set to '0'
+      if (cleanAmount.isEmpty || cleanAmount == '.') {
+        cleanAmount = '0';
+      }
+
+      selectedAmount = cleanAmount;
 
       if (widget.onChange != null) {
         widget.onChange!(valueToNumber);
@@ -180,17 +190,19 @@ class _TransactionFormCalculatorState extends State<TransactionFormCalculator> {
       if (widget.onSubmit != null) {
         widget.onSubmit!();
       }
-
       return;
     }
 
     if (text == 'AC') {
       updateSelectedAmount('0');
     } else if (text == _removeButtonID) {
-      if (valueToNumber == 0) return;
-
-      updateSelectedAmount(
-          selectedAmount.substring(0, selectedAmount.length - 1));
+      if (selectedAmount == '0') return;
+      
+      String newAmount = selectedAmount.substring(0, selectedAmount.length - 1);
+      if (newAmount.isEmpty || newAmount == '-') {
+        newAmount = '0';
+      }
+      updateSelectedAmount(newAmount);
     } else if (text == '-') {
       isNegative = !isNegative;
       updateSelectedAmount(selectedAmount);
