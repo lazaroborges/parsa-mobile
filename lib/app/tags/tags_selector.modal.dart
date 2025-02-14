@@ -50,8 +50,8 @@ class _TagSelectorState extends State<TagSelector> {
 
   String searchValue = '';
 
-  final DraggableScrollableController controller =
-      DraggableScrollableController();
+  final ScrollController _scrollController = ScrollController();
+  final DraggableScrollableController controller = DraggableScrollableController();
 
   @override
   void initState() {
@@ -62,6 +62,7 @@ class _TagSelectorState extends State<TagSelector> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     controller.dispose();
 
     super.dispose();
@@ -181,9 +182,8 @@ class _TagSelectorState extends State<TagSelector> {
     return Expanded(
       child: Stack(
         children: [
-          // TODO : Shrink list??
           ListView.separated(
-            controller: scrollController,
+            controller: _scrollController,
             itemCount: snapshot.data!.length + (widget.includeNullTag ? 1 : 0),
             itemBuilder: (context, index) {
               final tag = allTags.elementAt(index);
@@ -199,19 +199,16 @@ class _TagSelectorState extends State<TagSelector> {
                   onChanged: (newValue) {
                     if (newValue == null) return;
 
-                    if (!newValue) {
-                      selectedTags
-                          .removeWhere((element) => element?.id == null);
-                    } else {
-                      selectedTags.add(null);
-                    }
-
-                    setState(() {});
+                    setState(() {
+                      if (!newValue) {
+                        selectedTags.removeWhere((element) => element?.id == null);
+                      } else {
+                        selectedTags.add(null);
+                      }
+                    });
                   },
                 );
               }
-
-              // TAG NOT NULL --> Rest of the tags:
 
               return CheckboxListTile.adaptive(
                 value: selectedTags.any((element) =>
@@ -224,14 +221,13 @@ class _TagSelectorState extends State<TagSelector> {
                 onChanged: (newValue) {
                   if (newValue == null) return;
 
-                  if (!newValue) {
-                    selectedTags
-                        .removeWhere((element) => element?.id == tag.id);
-                  } else {
-                    selectedTags.add(tag);
-                  }
-
-                  setState(() {});
+                  setState(() {
+                    if (!newValue) {
+                      selectedTags.removeWhere((element) => element?.id == tag.id);
+                    } else {
+                      selectedTags.add(tag);
+                    }
+                  });
                 },
               );
             },

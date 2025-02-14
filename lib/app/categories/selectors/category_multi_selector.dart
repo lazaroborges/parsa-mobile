@@ -46,6 +46,7 @@ class _CategoryMultiSelectorModalState
 
   final DraggableScrollableController controller =
       DraggableScrollableController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _CategoryMultiSelectorModalState
 
   @override
   void dispose() {
+    _scrollController.dispose();
     controller.dispose();
 
     super.dispose();
@@ -164,7 +166,7 @@ class _CategoryMultiSelectorModalState
       child: Stack(
         children: [
           ListView.builder(
-            controller: sc,
+            controller: _scrollController,
             itemCount: allParentCategories.length,
             itemBuilder: (context, index) {
               final category = allParentCategories.elementAt(index);
@@ -180,14 +182,14 @@ class _CategoryMultiSelectorModalState
 
               return ExpansionTile(
                 onExpansionChanged: (value) {
-                  if (value) {
-                    expandedCategoriesTiles.add(category.id);
-                  } else {
-                    expandedCategoriesTiles
-                        .removeWhere((e) => e == category.id);
-                  }
-
-                  setState(() {});
+                  setState(() {
+                    if (value) {
+                      expandedCategoriesTiles.add(category.id);
+                    } else {
+                      expandedCategoriesTiles
+                          .removeWhere((e) => e == category.id);
+                    }
+                  });
                 },
                 leading:
                     IconDisplayer.fromCategory(context, category: category),
@@ -200,16 +202,16 @@ class _CategoryMultiSelectorModalState
                           : null,
                   tristate: true,
                   onChanged: (value) {
-                    if (value == true) {
-                      selectedCategories.addAll(subcategoriesAndMainCategory);
-                    } else {
-                      selectedCategories.removeWhere((e) =>
-                          subcategoriesAndMainCategory
-                              .map((s) => s.id)
-                              .contains(e.id));
-                    }
-
-                    setState(() {});
+                    setState(() {
+                      if (value == true) {
+                        selectedCategories.addAll(subcategoriesAndMainCategory);
+                      } else {
+                        selectedCategories.removeWhere((e) =>
+                            subcategoriesAndMainCategory
+                                .map((s) => s.id)
+                                .contains(e.id));
+                      }
+                    });
                   },
                 ),
                 title: Row(
@@ -272,13 +274,13 @@ class _CategoryMultiSelectorModalState
         ),
         value: selectedCategories.map((e) => e.id).contains(category.id),
         onChanged: (value) {
-          if (value == true) {
-            selectedCategories.add(category);
-          } else {
-            selectedCategories.removeWhere((e) => e.id == category.id);
-          }
-
-          setState(() {});
+          setState(() {
+            if (value == true) {
+              selectedCategories.add(category);
+            } else {
+              selectedCategories.removeWhere((e) => e.id == category.id);
+            }
+          });
         },
       ),
     );

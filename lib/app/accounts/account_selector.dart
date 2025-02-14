@@ -44,6 +44,7 @@ class AccountSelectorModal extends StatefulWidget {
 
 class _AccountSelectorModalState extends State<AccountSelectorModal> {
   late List<Account> selectedAccounts;
+  final ScrollController _scrollController = ScrollController();
 
   String searchValue = '';
 
@@ -60,7 +61,7 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
   @override
   void dispose() {
     controller.dispose();
-
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -210,7 +211,7 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
     return Expanded(
       child: Stack(children: [
         ListView.separated(
-          controller: scrollController,
+          controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           itemCount: allAccounts.length,
           padding: const EdgeInsets.only(bottom: 16, top: 4),
@@ -241,13 +242,14 @@ class _AccountSelectorModalState extends State<AccountSelectorModal> {
                 secondary: account.displayIcon(context),
                 onChanged: (value) {
                   if (value == true) {
-                    selectedAccounts.add(account);
+                    setState(() {
+                      selectedAccounts.add(account);
+                    });
                   } else {
-                    selectedAccounts
-                        .removeWhere((element) => element.id == account.id);
+                    setState(() {
+                      selectedAccounts.removeWhere((element) => element.id == account.id);
+                    });
                   }
-
-                  setState(() {});
                 },
               );
             }
