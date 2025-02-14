@@ -63,38 +63,7 @@ class BackupSettingsPage extends StatelessWidget {
                 },
               ),
               const Spacer(),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 48 ),
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Você gostaria de importar seus dados? ',
-                          style: TextStyle(
-                            color: Color(0xFF475466),
-                            fontSize: 14,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Fale com a gente',
-                          style: TextStyle(
-                            color: Color(0xFF475466),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => openExternalURL(
-                                context, 'https://wa.me/5531972012338?text=Gostaria%20de%20importar%20meus%20dados%20no%20Parsa'),
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
+              ],
           ),
         ),
       ),
