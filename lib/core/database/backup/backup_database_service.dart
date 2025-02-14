@@ -57,8 +57,8 @@ class BackupDatabaseService {
       'Moeda',
       'Categoria',
       'Subcategoria',
-      'Considerada',
-      'Manipulada',
+      'Insights',
+      'Editada pelo usuário',
       
     ];
 
@@ -89,8 +89,8 @@ class BackupDatabaseService {
         (transaction.category?.parentCategory != null
             ? transaction.category?.name
             : ''),
-        transaction.status?.name ?? '',
-        transaction.manipulated.toString(),
+        transaction.status?.name == 'reconciled' ? 'Considerada' : 'Desconsiderada',
+        transaction.manipulated == true ? 'Sim' : 'Não',
       ];
 
       csvData += toAdd.join(separator);
@@ -108,7 +108,7 @@ class BackupDatabaseService {
           transaction.receivingAccount!.currencyId,
           'TRANSFER',
           '',
-          transaction.status?.name ?? '',
+          transaction.status?.name == 'reconciled' ? 'Considerada' : 'Desconsiderada',
           transaction.manipulated.toString(),
         ];
 
