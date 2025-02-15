@@ -119,7 +119,7 @@ class Account extends AccountInDB {
     void Function()? onTap,
   }) {
     final bool isLightMode = Theme.of(context).brightness == Brightness.light;
-
+    print('${icon.id} - ');
     return IconDisplayer(
       supportedIcon: icon,
       mainColor: getComputedColor(context).lighten(isLightMode ? 0 : 0.82),
