@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:parsa/core/models/account/account.dart';
+import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
+import 'package:parsa/i18n/translations.g.dart';
+
+
 
 import '../app_colors.dart';
 
@@ -109,6 +115,121 @@ class CardWithHeader extends StatelessWidget {
               child: body,
             ),
           )
+        ],
+      ),
+    );
+  }
+}
+
+class AccountListCard extends StatefulWidget {
+  const AccountListCard({
+    super.key,
+    required this.accounts,
+    required this.onAccountTap,
+    required this.onAddAccountTap,
+    this.title = '',
+  });
+
+  final List<Account> accounts;
+  final Function(Account) onAccountTap;
+  final VoidCallback onAddAccountTap;
+  final String title;
+
+  @override
+  State<AccountListCard> createState() => _AccountListCardState();
+}
+
+class _AccountListCardState extends State<AccountListCard> {
+  final Map<String, String> _iconPathCache = {};
+
+  Future<String> _getIconPath(String iconId) async {
+    if (_iconPathCache.containsKey(iconId)) {
+      return _iconPathCache[iconId]!;
+    }
+
+    final defaultPath = 'assets/png_icons/$iconId.png';
+    final fallbackPath = 'assets/png_icons/1.png';
+
+    try {
+      await rootBundle.load(defaultPath);
+      _iconPathCache[iconId] = defaultPath;
+      return defaultPath;
+    } catch (_) {
+      _iconPathCache[iconId] = fallbackPath;
+      return fallbackPath;
+    }
+  }
+
+  Widget _buildAccountIcon(String iconId) {
+    return FutureBuilder<String>(
+      future: _getIconPath(iconId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Image.asset(
+            'assets/png_icons/1.png',
+            width: 32,
+            height: 32,
+            fit: BoxFit.contain,
+          );
+        }
+        
+        return Image.asset(
+          snapshot.data!,
+          width: 32,
+          height: 32,
+          fit: BoxFit.contain,
+          cacheWidth: 64,
+          cacheHeight: 64,
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    
+    return CardWithHeader(
+      title: widget.title.isEmpty ? "Contas" : widget.title,
+      onHeaderButtonClick: widget.onAddAccountTap,
+      headerButtonIcon: Icons.add,
+      body: Column(
+        children: [
+          ...widget.accounts.map((account) => Column(
+            children: [
+              ListTile(
+                onTap: () => widget.onAccountTap(account),
+                leading: _buildAccountIcon(account.iconId),
+                title: Text(
+                  account.name,
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        CurrencyDisplayer(
+                          amountToConvert: account.balance,
+                          currency: account.currency,
+                        ),
+                       
+                      ],
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right, size: 20),
+                  ],
+                ),
+              ),
+              if (account != widget.accounts.last)
+                const Divider(indent: 72),
+            ],
+          )).toList(),
         ],
       ),
     );

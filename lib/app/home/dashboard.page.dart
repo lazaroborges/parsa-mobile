@@ -422,8 +422,33 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
 
-              _HorizontalScrollableAccountList(
-                dateRangeService: dateRangeService,
+              StreamBuilder<List<Account>>(
+                stream: AccountService.instance.getAccounts(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  // Filter out removed accounts
+                  final accounts = snapshot.data!.where((account) => !account.removed).toList();
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: AccountListCard(
+                      accounts: accounts,
+                      onAccountTap: (account) => RouteUtils.pushRoute(
+                        context,
+                        AccountDetailsPage(
+                          account: account,
+                          accountIconHeroTag: null,
+                        ),
+                      ),
+                      onAddAccountTap: () {
+                        RouteUtils.pushRoute(context, const AccountConnectionModal());
+                      },
+                    ),
+                  );
+                },
               ),
 
               // Move the TransactionListComponent here
@@ -806,217 +831,6 @@ class _DashboardPageState extends State<DashboardPage> {
     } else {
       return 'Boa noite!';
     }
-  }
-}
-
-class _HorizontalScrollableAccountList extends StatefulWidget {
-  const _HorizontalScrollableAccountList({
-    required this.dateRangeService,
-    super.key,
-  });
-
-  final DatePeriodState dateRangeService;
-
-  @override
-  State<_HorizontalScrollableAccountList> createState() => _HorizontalScrollableAccountListState();
-}
-
-class _HorizontalScrollableAccountListState extends State<_HorizontalScrollableAccountList> {
-  final Map<String, String> _iconPathCache = {};
-
-  Future<String> _getIconPath(String iconId) async {
-    if (_iconPathCache.containsKey(iconId)) {
-      return _iconPathCache[iconId]!;
-    }
-
-    final defaultPath = 'assets/png_icons/$iconId.png';
-    final fallbackPath = 'assets/png_icons/1.png';
-
-    try {
-      await rootBundle.load(defaultPath);
-      _iconPathCache[iconId] = defaultPath;
-      return defaultPath;
-    } catch (_) {
-      _iconPathCache[iconId] = fallbackPath;
-      return fallbackPath;
-    }
-  }
-
-  Widget _buildAccountIcon(String iconId) {
-    return FutureBuilder<String>(
-      future: _getIconPath(iconId),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Image.asset(
-            'assets/png_icons/1.png',
-            width: 45,
-            height: 45,
-            fit: BoxFit.contain,
-          );
-        }
-        
-        return Image.asset(
-          snapshot.data!,
-          width: 45,
-          height: 45,
-          fit: BoxFit.contain,
-          cacheWidth: 90, // 2x for high DPI
-          cacheHeight: 90,
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: StreamBuilder<List<Account>>(
-          stream: AccountService.instance.getAccounts(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const CircularProgressIndicator();
-            }
-
-            // Filter out removed accounts
-            final accounts = snapshot.data!.where((account) => !account.removed).toList();
-
-            return Row(
-              children: [
-                ...accounts.map((account) {
-                  return Card(
-                    margin: const EdgeInsets.only(right: 8),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Tappable(
-                      onTap: () => RouteUtils.pushRoute(
-                        context,
-                        AccountDetailsPage(
-                          account: account,
-                          accountIconHeroTag: null, // Remove Hero tag
-                        ),
-                      ),
-                      bgColor: Colors.transparent,
-                      borderRadius: 24,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: SizedBox(
-                          width: 250,
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  _buildAccountIcon(account.iconId),
-                                  const SizedBox(width: 2),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        account.name.length > 20
-                                            ? '${account.name.substring(0, 20)}'
-                                            : account.name,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium!
-                                            .copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                      Text(
-                                        account.type.title(context),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelMedium!,
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                              const Divider(height: 24),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  CurrencyDisplayer(
-                                    amountToConvert: account.balance,
-                                    currency: account.currency,
-                                    integerStyle: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge!
-                                        .copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                  if (account.isOpenFinance == true)
-                                    SizedBox(
-                                      width: 92,
-                                      child: Image.asset(
-                                        'assets/icons/supported_selectable_icons/logos/open/logo.png',
-                                      ),
-                                    )
-                                  else
-                                    const SizedBox(width: 105),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-                Opacity(
-                  opacity: 0.6,
-                  child: Tappable(
-                    onTap: () {
-                      RouteUtils.pushRoute(
-                          context, const AccountConnectionModal());
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        width: 2,
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    ),
-                    child: Card(
-                      elevation: 0,
-                      color: Colors.transparent,
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: SizedBox(
-                          width: 200,
-                          height: 93.3, // 127.3 - 32 - 2
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(t.account.form.create),
-                              const SizedBox(height: 8),
-                              const Icon(Icons.add),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            );
-          },
-        ),
-      ),
-    );
   }
 }
 
