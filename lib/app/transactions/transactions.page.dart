@@ -4,10 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/app/stats/widgets/movements_distribution/category_stats_modal.dart';
 import 'package:parsa/app/transactions/form/transaction_form.page.dart';
 import 'package:parsa/app/transactions/widgets/bulk_edit_transaction_modal.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
@@ -21,11 +23,19 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 
 class TransactionsPage extends StatefulWidget {
-  const TransactionsPage({super.key, this.filters});
+  const TransactionsPage({
+    super.key, 
+    this.filters,
+    this.categoryStatsData,
+    this.dateRangeText,
+  });
 
   final TransactionFilters? filters;
+  final TrDistributionChartItem<Category>? categoryStatsData;
+  final String? dateRangeText;
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
@@ -51,6 +61,21 @@ class _TransactionsPageState extends State<TransactionsPage> {
         setState(() {
           searchActive = false;
         });
+      }
+    });
+
+    // Show the modal if we have category stats data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.categoryStatsData != null && widget.dateRangeText != null) {
+        showModalBottomSheet(
+          context: context,
+          showDragHandle: true,
+          builder: (context) => CategoryStatsModal(
+            categoryData: widget.categoryStatsData!,
+            filters: filters,
+            dateRangeText: widget.dateRangeText!,
+          ),
+        );
       }
     });
   }

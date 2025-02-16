@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/category_stats_modal.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
@@ -349,17 +350,27 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                       size: 25,
                     ),
                     onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) {
-                            return CategoryStatsModal(
-                              categoryData: dataCategory,
-                              dateRangeText:
-                                  widget.datePeriodState.getText(context),
-                              filters: _getTransactionFilters(),
-                            );
-                          });
+                      final categoryFilter = TransactionFilters(
+                        categories: [dataCategory.category.id],
+                        minDate: widget.datePeriodState.startDate,
+                        maxDate: widget.datePeriodState.endDate,
+                        transactionTypes: [transactionsType],
+                        includeParentCategoriesInSearch: dataCategory.category.isMainCategory,
+                      );
+
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => TransactionsPage(
+                            filters: categoryFilter,
+                            categoryStatsData: TrDistributionChartItem(
+                              category: dataCategory.category,
+                              transactions: dataCategory.transactions,
+                              value: dataCategory.value,
+                            ),
+                            dateRangeText: widget.datePeriodState.getText(context),
+                          ),
+                        ),
+                      );
                     },
                   );
                 },
