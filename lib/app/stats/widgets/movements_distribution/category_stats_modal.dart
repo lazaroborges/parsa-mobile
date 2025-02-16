@@ -99,9 +99,13 @@ class CategoryStatsModal extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            categoryData.category.name,
-                            style: Theme.of(context).textTheme.headlineSmall,
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Text(
+                              categoryData.category.name,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           Text(
                             '${categoryData.transactions.length} ${t.transaction.display(n: categoryData.transactions.length)}'

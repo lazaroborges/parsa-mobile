@@ -33,6 +33,19 @@ abstract class AccountDetailsActions {
             RouteUtils.pushRoute(context, AccountFormPage(account: account)),
       ),
       ListTileActionItem(
+        label: account.hiddenByUser 
+            ? "Visualizar"
+            : "Ocultar",
+        icon: account.hiddenByUser 
+            ? Icons.visibility
+            : Icons.visibility_off,
+        onClick: () => toggleAccountVisibility(
+          context,
+          account,
+          false,
+        ),
+      ),
+      ListTileActionItem(
           label: t.transfer.create,
           icon: TransactionType.T.icon,
           onClick: account.isClosed
@@ -238,6 +251,27 @@ abstract class AccountDetailsActions {
 
     if (isConfirmed != true) return;
 
+    // Show loading snackbar
+    scaffold.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text("Seu consentimento Open Finance para o Parsa está sendo removido junto com os dados desta conta bancária. Este processo pode levar até 1 minuto para ser concluído."),
+          ],
+        ),
+        duration: const Duration(seconds: 30), // Long duration as it might take time
+      ),
+    );
+
     try {
       final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
       final credentials = await auth0Provider.credentials;
@@ -251,8 +285,8 @@ abstract class AccountDetailsActions {
           accountId, accessToken);
 
       if (success) {
-        //print the response body:
-        print(success);
+        // Hide the loading snackbar
+        scaffold.hideCurrentSnackBar();
 
         // Delete the account from the local database
         await AccountService.instance.deleteAccountFromLocalDB(accountId);
@@ -267,6 +301,8 @@ abstract class AccountDetailsActions {
         throw Exception('Failed to delete account');
       }
     } catch (err) {
+      // Hide the loading snackbar
+      scaffold.hideCurrentSnackBar();
       scaffold.showSnackBar(SnackBar(content: Text('$err')));
     }
   }
@@ -308,5 +344,41 @@ abstract class AccountDetailsActions {
         );
       }
     }));
+  }
+
+  static Future<void> toggleAccountVisibility(
+    BuildContext context,
+    Account account,
+    bool navigateBack,
+  ) async {
+    try {
+      await AccountService.instance.updateAccount(
+        account.copyWith(
+          hiddenByUser: !account.hiddenByUser,
+        ),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              !account.hiddenByUser 
+                ? "Sua conta não vai mais aparecer no Dashboard. Você pode reverter essa ação clicando novamente no mesmo botão. "
+                : "Sua conta voltará a ser visualizada no Dashboard novamente."
+            ),
+          ),
+        );
+        
+        if (navigateBack) {
+          Navigator.pop(context);
+        }
+      }
+    } catch (err) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$err')),
+        );
+      }
+    }
   }
 }

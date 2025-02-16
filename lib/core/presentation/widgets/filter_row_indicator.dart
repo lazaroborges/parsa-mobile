@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
+import 'package:parsa/core/database/services/tags/tags_service.dart';
+import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/category/category.dart';
+import 'package:parsa/core/models/supported-icon/icon_displayer.dart';
+import 'package:parsa/core/models/tags/tag.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
@@ -36,7 +41,7 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
 
   ResponsiveRowColumnItem buildChip(
     BuildContext context, {
-    required String label,
+    required Widget label,
     required void Function()? onDeleted,
   }) {
     return ResponsiveRowColumnItem(
@@ -50,10 +55,7 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
         showCheckmark: false,
         selected: true,
         onSelected: (value) => false,
-        label: Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall!,
-        ),
+        label: label,
       ),
     );
   }
@@ -91,18 +93,78 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                       if (filters.accountsIDs != null)
                         buildChip(
                           context,
-                          label:
-                              '${filters.accountsIDs!.length} ${t.general.accounts}',
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              StreamBuilder(
+                                stream: filters.accounts(),
+                                initialData: const <Account>[],
+                                builder: (context, snapshot) {
+                                  return Row(
+                                    children: [
+                                      ...snapshot.data!.map((account) => 
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 4),
+                                          child: account.displayIcon(
+                                            context,
+                                            size: 16,
+                                          ),
+                                        )
+                                      ),
+                                      Text('${snapshot.data!.length} ${t.general.accounts}'),
+                                    ],
+                                  );
+                                }
+                              ),
+                            ],
+                          ),
                           onDeleted: () {
                             filters = filters.copyWithNull(accountsIDs: true);
                             widget.onChange(filters);
                           },
                         ),
+                      if (filters.categories != null)
+                        ResponsiveRowColumnItem(
+                          child: StreamBuilder(
+                            stream: CategoryService.instance.getCategories(
+                              predicate: (catTable, parentCatTable) =>
+                                  catTable.id.isIn(filters.categories!),
+                            ),
+                            initialData: const <Category>[],
+                            builder: (context, snapshot) {
+                              return buildChip(
+                                context,
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ...snapshot.data!.map((cat) =>
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 4),
+                                        child: IconDisplayer.fromCategory(
+                                          context,
+                                          category: cat,
+                                          size: 16,
+                                        ),
+                                      )
+                                    ),
+                                    //Text('${snapshot.data!.length} ${t.general.categories}'),
+                                  ],
+                                ),
+                                onDeleted: () {
+                                  filters = filters.copyWithNull(categories: true);
+                                  widget.onChange(filters);
+                                },
+                              );
+                            }
+                          ),
+                        ),
                       if (filters.minDate != null)
                         buildChip(
                           context,
-                          label: t.transaction.filters.from_date_def(
-                              date: DateFormat.yMd().format(filters.minDate!)),
+                            label: Text(
+                              t.transaction.filters.from_date_def(
+                                  date: DateFormat.yMd().format(filters.minDate!)),
+                            ),
                           onDeleted: () {
                             filters = filters.copyWithNull(minDate: true);
                             widget.onChange(filters);
@@ -111,8 +173,10 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                       if (filters.maxDate != null)
                         buildChip(
                           context,
-                          label: t.transaction.filters.to_date_def(
+                          label: Text(
+                            t.transaction.filters.to_date_def(
                               date: DateFormat.yMd().format(filters.maxDate!)),
+                          ),
                           onDeleted: () {
                             filters = filters.copyWithNull(maxDate: true);
                             widget.onChange(filters);
@@ -121,8 +185,9 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                       if (filters.minValue != null)
                         buildChip(
                           context,
-                          label: t.transaction.filters
-                              .from_value_def(x: filters.minValue!),
+                          label: Text(
+                            t.transaction.filters.from_value_def(x: filters.minValue!),
+                          ),
                           onDeleted: () {
                             filters = filters.copyWithNull(minValue: true);
                             widget.onChange(filters);
@@ -131,8 +196,9 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                       if (filters.maxValue != null)
                         buildChip(
                           context,
-                          label: t.transaction.filters
-                              .to_value_def(x: filters.maxValue!),
+                          label: Text(
+                            t.transaction.filters.to_value_def(x: filters.maxValue!),
+                          ),
                           onDeleted: () {
                             filters = filters.copyWithNull(maxValue: true);
                             widget.onChange(filters);
@@ -141,8 +207,27 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                       if (filters.status != null)
                         buildChip(
                           context,
-                          label:
-                              '${filters.status!.length} ${t.transaction.status.display(n: filters.status!.length)}',
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ...filters.status!
+                                  .where((status) => status == TransactionStatus.reconciled || 
+                                                    status == TransactionStatus.notconsidered)
+                                  .map((status) => 
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Icon(
+                                    status.icon,
+                                    size: 16,
+                                    color: status.color,
+                                  ),
+                                )
+                              ),
+                              Text('${filters.status!.where((status) => 
+                                status == TransactionStatus.reconciled || 
+                                status == TransactionStatus.notconsidered).length} ${t.transaction.status.display(n: filters.status!.length)}'),
+                            ],
+                          ),
                           onDeleted: () {
                             filters = filters.copyWithNull(status: true);
                             widget.onChange(filters);
@@ -151,10 +236,32 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                       if (filters.tagsIDs != null)
                         buildChip(
                           context,
-                          label: filters.tagsIDs!.length == 1 &&
-                                  filters.tagsIDs!.elementAt(0) == null
-                              ? t.tags.without_tags
-                              : '${filters.tagsIDs!.length} ${t.tags.display(n: filters.tagsIDs!.length)}',
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              StreamBuilder(
+                                  stream: TagService.instance.getTags(
+                                    filter: (tbl) => tbl.id.isIn(filters.tagsIDs!.whereType<String>()),
+                                  ),
+                                initialData: const <Tag>[],
+                                builder: (context, snapshot) {
+                                  return Row(
+                                    children: [
+                                      ...snapshot.data!.map((tag) => 
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 4),
+                                          child: tag.displayIcon(size: 16),
+                                        )
+                                      ),
+                                      Text(filters.tagsIDs!.length == 1 && filters.tagsIDs!.elementAt(0) == null
+                                        ? t.tags.without_tags
+                                        : '${filters.tagsIDs!.length} ${t.tags.display(n: filters.tagsIDs!.length)}'),
+                                    ],
+                                  );
+                                }
+                              ),
+                            ],
+                          ),
                           onDeleted: () {
                             filters = filters.copyWithNull(tagsIDs: true);
                             widget.onChange(filters);
@@ -164,7 +271,14 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                         for (final trType in filters.transactionTypes!) ...[
                           buildChip(
                             context,
-                            label: trType.displayName(context, plural: true),
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(trType.icon, size: 16, color: trType.color(context)),
+                                const SizedBox(width: 4),
+                                Text(trType.displayName(context, plural: true)),
+                              ],
+                            ),
                             onDeleted: () {
                               filters = filters.copyWith(
                                   transactionTypes:
@@ -177,27 +291,7 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                             },
                           ),
                         ],
-                      if (filters.categories != null)
-                        ResponsiveRowColumnItem(
-                          child: StreamBuilder(
-                              stream: CategoryService.instance.getCategories(
-                                predicate: (catTable, parentCatTable) =>
-                                    catTable.id.isIn(filters.categories!),
-                              ),
-                              initialData: const <Category>[],
-                              builder: (context, snapshot) {
-                                return buildChip(
-                                  context,
-                                  label:
-                                      '${snapshot.data!.where((cat) => cat.isMainCategory).length} ${t.general.categories}',
-                                  onDeleted: () {
-                                    filters =
-                                        filters.copyWithNull(categories: true);
-                                    widget.onChange(filters);
-                                  },
-                                );
-                              }),
-                        )
+                     
                     ]),
               ),
             ),

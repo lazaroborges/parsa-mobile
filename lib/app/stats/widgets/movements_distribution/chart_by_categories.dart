@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/category_stats_modal.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
@@ -156,61 +157,84 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
           badgePositionPercentageOffset: .98,
           badgeWidget: !showIcon
               ? null
-              : Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: isTouched ? 1 : 0,
-                      child: Center(
-                        child: Transform.translate(
-                          offset: Offset(
-                            0,
-                            // Prevent overlapping labels when displayed on top
-                            // Divider percent by 2, because the label is in the middle
-                            // This means any label location that is past 50% will change orientation
-                            totalPercentAccumulated - percentage / 2 < 0.5
-                                ? -34
-                                : 34,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(
-                                color: ColorHex.get(element.category.color),
-                                width: 1.5,
-                              ),
-                              color: Theme.of(context).canvasColor,
+              : GestureDetector(
+                  onTap: () => _navigateToTransactions(element),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: isTouched ? 1 : 0,
+                        child: Center(
+                          child: Transform.translate(
+                            offset: Offset(
+                              0,
+                              // Prevent overlapping labels when displayed on top
+                              // Divider percent by 2, because the label is in the middle
+                              // This means any label location that is past 50% will change orientation
+                              totalPercentAccumulated - percentage / 2 < 0.5
+                                  ? -34
+                                  : 34,
                             ),
-                            child: UINumberFormatter.percentage(
-                              amountToConvert: percentage,
-                              showDecimals: false,
-                              integerStyle: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(
+                                  color: ColorHex.get(element.category.color),
+                                  width: 1.5,
+                                ),
+                                color: Theme.of(context).canvasColor,
                               ),
-                            ).getTextWidget(context),
+                              child: UINumberFormatter.percentage(
+                                amountToConvert: percentage,
+                                showDecimals: false,
+                                integerStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ).getTextWidget(context),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Container(
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context).canvasColor,
-                            border: Border.all(
-                              width: 2,
-                              color: ColorHex.get(element.category.color),
-                            )),
-                        padding: const EdgeInsets.all(6),
-                        child: element.category.icon.display(
-                            color: ColorHex.get(element.category.color))),
-                  ],
+                      Container(
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Theme.of(context).canvasColor,
+                              border: Border.all(
+                                width: 2,
+                                color: ColorHex.get(element.category.color),
+                              )),
+                          padding: const EdgeInsets.all(6),
+                          child: element.category.icon.display(
+                              color: ColorHex.get(element.category.color))),
+                    ],
+                  ),
                 ),
         );
       },
     ).toList();
+  }
+
+  void _navigateToTransactions(TrDistributionChartItem<Category> categoryData) {
+    final categoryFilter = TransactionFilters(
+      categories: [categoryData.category.id],
+      minDate: widget.datePeriodState.startDate,
+      maxDate: widget.datePeriodState.endDate,
+      transactionTypes: [transactionsType],
+      includeParentCategoriesInSearch: categoryData.category.isMainCategory,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TransactionsPage(
+          filters: categoryFilter,
+          categoryStatsData: categoryData,
+          dateRangeText: widget.datePeriodState.getText(context),
+        ),
+      ),
+    );
   }
 
   @override
@@ -320,7 +344,13 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(dataCategory.category.name),
+                        Expanded(
+                          child: Text(
+                            dataCategory.category.name,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
                         CurrencyDisplayer(amountToConvert: dataCategory.value)
                       ],
                     ),
@@ -343,17 +373,27 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                       size: 25,
                     ),
                     onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) {
-                            return CategoryStatsModal(
-                              categoryData: dataCategory,
-                              dateRangeText:
-                                  widget.datePeriodState.getText(context),
-                              filters: _getTransactionFilters(),
-                            );
-                          });
+                      final categoryFilter = TransactionFilters(
+                        categories: [dataCategory.category.id],
+                        minDate: widget.datePeriodState.startDate,
+                        maxDate: widget.datePeriodState.endDate,
+                        transactionTypes: [transactionsType],
+                        includeParentCategoriesInSearch: dataCategory.category.isMainCategory,
+                      );
+
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => TransactionsPage(
+                            filters: categoryFilter,
+                            categoryStatsData: TrDistributionChartItem(
+                              category: dataCategory.category,
+                              transactions: dataCategory.transactions,
+                              value: dataCategory.value,
+                            ),
+                            dateRangeText: widget.datePeriodState.getText(context),
+                          ),
+                        ),
+                      );
                     },
                   );
                 },
