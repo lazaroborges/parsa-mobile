@@ -312,6 +312,14 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _hiddenByUserMeta =
+      const VerificationMeta('hiddenByUser');
+  late final GeneratedColumn<bool> hiddenByUser = GeneratedColumn<bool>(
+      'hiddenByUser', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   static const VerificationMeta _currencyIdMeta =
       const VerificationMeta('currencyId');
   late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
@@ -384,6 +392,7 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
         displayOrder,
         color,
         closingDate,
+        hiddenByUser,
         currencyId,
         iban,
         swift,
@@ -457,6 +466,12 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           closingDate.isAcceptableOrUnknown(
               data['closingDate']!, _closingDateMeta));
     }
+    if (data.containsKey('hiddenByUser')) {
+      context.handle(
+          _hiddenByUserMeta,
+          hiddenByUser.isAcceptableOrUnknown(
+              data['hiddenByUser']!, _hiddenByUserMeta));
+    }
     if (data.containsKey('currencyId')) {
       context.handle(
           _currencyIdMeta,
@@ -528,6 +543,8 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           .read(DriftSqlType.string, data['${effectivePrefix}color']),
       closingDate: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}closingDate']),
+      hiddenByUser: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}hiddenByUser'])!,
       currencyId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}currencyId'])!,
       iban: attachedDatabase.typeMapping
@@ -581,6 +598,9 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
   /// The closing date of the account. After this date, no transactions can exist on it.
   final DateTime? closingDate;
 
+  /// Whether the account is hidden by the user
+  final bool hiddenByUser;
+
   /// ID of the currency used by this account and therefore all transactions contained in it
   final String currencyId;
   final String? iban;
@@ -603,6 +623,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       required this.displayOrder,
       this.color,
       this.closingDate,
+      required this.hiddenByUser,
       required this.currencyId,
       this.iban,
       this.swift,
@@ -632,6 +653,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
     if (!nullToAbsent || closingDate != null) {
       map['closingDate'] = Variable<DateTime>(closingDate);
     }
+    map['hiddenByUser'] = Variable<bool>(hiddenByUser);
     map['currencyId'] = Variable<String>(currencyId);
     if (!nullToAbsent || iban != null) {
       map['iban'] = Variable<String>(iban);
@@ -664,6 +686,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       closingDate: closingDate == null && nullToAbsent
           ? const Value.absent()
           : Value(closingDate),
+      hiddenByUser: Value(hiddenByUser),
       currencyId: Value(currencyId),
       iban: iban == null && nullToAbsent ? const Value.absent() : Value(iban),
       swift:
@@ -691,6 +714,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       displayOrder: serializer.fromJson<int>(json['displayOrder']),
       color: serializer.fromJson<String?>(json['color']),
       closingDate: serializer.fromJson<DateTime?>(json['closingDate']),
+      hiddenByUser: serializer.fromJson<bool>(json['hiddenByUser']),
       currencyId: serializer.fromJson<String>(json['currencyId']),
       iban: serializer.fromJson<String?>(json['iban']),
       swift: serializer.fromJson<String?>(json['swift']),
@@ -715,6 +739,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       'displayOrder': serializer.toJson<int>(displayOrder),
       'color': serializer.toJson<String?>(color),
       'closingDate': serializer.toJson<DateTime?>(closingDate),
+      'hiddenByUser': serializer.toJson<bool>(hiddenByUser),
       'currencyId': serializer.toJson<String>(currencyId),
       'iban': serializer.toJson<String?>(iban),
       'swift': serializer.toJson<String?>(swift),
@@ -737,6 +762,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           int? displayOrder,
           Value<String?> color = const Value.absent(),
           Value<DateTime?> closingDate = const Value.absent(),
+          bool? hiddenByUser,
           String? currencyId,
           Value<String?> iban = const Value.absent(),
           Value<String?> swift = const Value.absent(),
@@ -756,6 +782,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
         displayOrder: displayOrder ?? this.displayOrder,
         color: color.present ? color.value : this.color,
         closingDate: closingDate.present ? closingDate.value : this.closingDate,
+        hiddenByUser: hiddenByUser ?? this.hiddenByUser,
         currencyId: currencyId ?? this.currencyId,
         iban: iban.present ? iban.value : this.iban,
         swift: swift.present ? swift.value : this.swift,
@@ -781,6 +808,9 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       color: data.color.present ? data.color.value : this.color,
       closingDate:
           data.closingDate.present ? data.closingDate.value : this.closingDate,
+      hiddenByUser: data.hiddenByUser.present
+          ? data.hiddenByUser.value
+          : this.hiddenByUser,
       currencyId:
           data.currencyId.present ? data.currencyId.value : this.currencyId,
       iban: data.iban.present ? data.iban.value : this.iban,
@@ -811,6 +841,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           ..write('displayOrder: $displayOrder, ')
           ..write('color: $color, ')
           ..write('closingDate: $closingDate, ')
+          ..write('hiddenByUser: $hiddenByUser, ')
           ..write('currencyId: $currencyId, ')
           ..write('iban: $iban, ')
           ..write('swift: $swift, ')
@@ -835,6 +866,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       displayOrder,
       color,
       closingDate,
+      hiddenByUser,
       currencyId,
       iban,
       swift,
@@ -857,6 +889,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           other.displayOrder == this.displayOrder &&
           other.color == this.color &&
           other.closingDate == this.closingDate &&
+          other.hiddenByUser == this.hiddenByUser &&
           other.currencyId == this.currencyId &&
           other.iban == this.iban &&
           other.swift == this.swift &&
@@ -878,6 +911,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
   final Value<int> displayOrder;
   final Value<String?> color;
   final Value<DateTime?> closingDate;
+  final Value<bool> hiddenByUser;
   final Value<String> currencyId;
   final Value<String?> iban;
   final Value<String?> swift;
@@ -898,6 +932,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     this.displayOrder = const Value.absent(),
     this.color = const Value.absent(),
     this.closingDate = const Value.absent(),
+    this.hiddenByUser = const Value.absent(),
     this.currencyId = const Value.absent(),
     this.iban = const Value.absent(),
     this.swift = const Value.absent(),
@@ -919,6 +954,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     required int displayOrder,
     this.color = const Value.absent(),
     this.closingDate = const Value.absent(),
+    this.hiddenByUser = const Value.absent(),
     required String currencyId,
     this.iban = const Value.absent(),
     this.swift = const Value.absent(),
@@ -947,6 +983,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     Expression<int>? displayOrder,
     Expression<String>? color,
     Expression<DateTime>? closingDate,
+    Expression<bool>? hiddenByUser,
     Expression<String>? currencyId,
     Expression<String>? iban,
     Expression<String>? swift,
@@ -968,6 +1005,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       if (displayOrder != null) 'displayOrder': displayOrder,
       if (color != null) 'color': color,
       if (closingDate != null) 'closingDate': closingDate,
+      if (hiddenByUser != null) 'hiddenByUser': hiddenByUser,
       if (currencyId != null) 'currencyId': currencyId,
       if (iban != null) 'iban': iban,
       if (swift != null) 'swift': swift,
@@ -991,6 +1029,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       Value<int>? displayOrder,
       Value<String?>? color,
       Value<DateTime?>? closingDate,
+      Value<bool>? hiddenByUser,
       Value<String>? currencyId,
       Value<String?>? iban,
       Value<String?>? swift,
@@ -1011,6 +1050,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       displayOrder: displayOrder ?? this.displayOrder,
       color: color ?? this.color,
       closingDate: closingDate ?? this.closingDate,
+      hiddenByUser: hiddenByUser ?? this.hiddenByUser,
       currencyId: currencyId ?? this.currencyId,
       iban: iban ?? this.iban,
       swift: swift ?? this.swift,
@@ -1056,6 +1096,9 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     if (closingDate.present) {
       map['closingDate'] = Variable<DateTime>(closingDate.value);
     }
+    if (hiddenByUser.present) {
+      map['hiddenByUser'] = Variable<bool>(hiddenByUser.value);
+    }
     if (currencyId.present) {
       map['currencyId'] = Variable<String>(currencyId.value);
     }
@@ -1099,6 +1142,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
           ..write('displayOrder: $displayOrder, ')
           ..write('color: $color, ')
           ..write('closingDate: $closingDate, ')
+          ..write('hiddenByUser: $hiddenByUser, ')
           ..write('currencyId: $currencyId, ')
           ..write('iban: $iban, ')
           ..write('swift: $swift, ')
@@ -4854,6 +4898,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           connectorID: row.read<String>('connectorID'),
           isOpenFinance: row.read<bool>('isOpenFinance'),
           removed: row.read<bool>('removed'),
+          hiddenByUser: row.read<bool>('hiddenByUser'),
           closingDate: row.readNullable<DateTime>('closingDate'),
           description: row.readNullable<String>('description'),
           iban: row.readNullable<String>('iban'),
@@ -4906,7 +4951,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         startIndex: $arrayStartIndex);
     $arrayStartIndex += generatedlimit.amountOfVariables;
     return customSelect(
-        'SELECT t.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID", "a"."isOpenFinance" AS "nested_0.isOpenFinance", "a"."removed" AS "nested_0.removed","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","receivingAccountCurrency"."code" AS "nested_2.code", "receivingAccountCurrency"."symbol" AS "nested_2.symbol", "receivingAccountCurrency"."name" AS "nested_2.name","ra"."id" AS "nested_3.id", "ra"."name" AS "nested_3.name", "ra"."iniValue" AS "nested_3.iniValue", "ra"."date" AS "nested_3.date", "ra"."description" AS "nested_3.description", "ra"."type" AS "nested_3.type", "ra"."iconId" AS "nested_3.iconId", "ra"."displayOrder" AS "nested_3.displayOrder", "ra"."color" AS "nested_3.color", "ra"."closingDate" AS "nested_3.closingDate", "ra"."currencyId" AS "nested_3.currencyId", "ra"."iban" AS "nested_3.iban", "ra"."swift" AS "nested_3.swift", "ra"."balance" AS "nested_3.balance", "ra"."last_update_time" AS "nested_3.last_update_time", "ra"."connectorID" AS "nested_3.connectorID", "ra"."isOpenFinance" AS "nested_3.isOpenFinance", "ra"."removed" AS "nested_3.removed","c"."id" AS "nested_4.id", "c"."name" AS "nested_4.name", "c"."iconId" AS "nested_4.iconId", "c"."color" AS "nested_4.color", "c"."displayOrder" AS "nested_4.displayOrder", "c"."type" AS "nested_4.type", "c"."parentCategoryID" AS "nested_4.parentCategoryID","pc"."id" AS "nested_5.id", "pc"."name" AS "nested_5.name", "pc"."iconId" AS "nested_5.iconId", "pc"."color" AS "nested_5.color", "pc"."displayOrder" AS "nested_5.displayOrder", "pc"."type" AS "nested_5.type", "pc"."parentCategoryID" AS "nested_5.parentCategoryID", t.value * COALESCE(excRate.exchangeRate, 1) AS currentValueInPreferredCurrency, t.valueInDestiny * COALESCE(excRateOfDestiny.exchangeRate, 1) AS currentValueInDestinyInPreferredCurrency, t.id AS "\$n_0" FROM transactions AS t INNER JOIN accounts AS a ON t.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN accounts AS ra ON t.receivingAccountID = ra.id LEFT JOIN currencies AS receivingAccountCurrency ON ra.currencyId = receivingAccountCurrency.code LEFT JOIN categories AS c ON t.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRate ON a.currencyId = excRate.currencyCode LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRateOfDestiny ON ra.currencyId = excRateOfDestiny.currencyCode WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
+        'SELECT t.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."hiddenByUser" AS "nested_0.hiddenByUser", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID", "a"."isOpenFinance" AS "nested_0.isOpenFinance", "a"."removed" AS "nested_0.removed","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","receivingAccountCurrency"."code" AS "nested_2.code", "receivingAccountCurrency"."symbol" AS "nested_2.symbol", "receivingAccountCurrency"."name" AS "nested_2.name","ra"."id" AS "nested_3.id", "ra"."name" AS "nested_3.name", "ra"."iniValue" AS "nested_3.iniValue", "ra"."date" AS "nested_3.date", "ra"."description" AS "nested_3.description", "ra"."type" AS "nested_3.type", "ra"."iconId" AS "nested_3.iconId", "ra"."displayOrder" AS "nested_3.displayOrder", "ra"."color" AS "nested_3.color", "ra"."closingDate" AS "nested_3.closingDate", "ra"."hiddenByUser" AS "nested_3.hiddenByUser", "ra"."currencyId" AS "nested_3.currencyId", "ra"."iban" AS "nested_3.iban", "ra"."swift" AS "nested_3.swift", "ra"."balance" AS "nested_3.balance", "ra"."last_update_time" AS "nested_3.last_update_time", "ra"."connectorID" AS "nested_3.connectorID", "ra"."isOpenFinance" AS "nested_3.isOpenFinance", "ra"."removed" AS "nested_3.removed","c"."id" AS "nested_4.id", "c"."name" AS "nested_4.name", "c"."iconId" AS "nested_4.iconId", "c"."color" AS "nested_4.color", "c"."displayOrder" AS "nested_4.displayOrder", "c"."type" AS "nested_4.type", "c"."parentCategoryID" AS "nested_4.parentCategoryID","pc"."id" AS "nested_5.id", "pc"."name" AS "nested_5.name", "pc"."iconId" AS "nested_5.iconId", "pc"."color" AS "nested_5.color", "pc"."displayOrder" AS "nested_5.displayOrder", "pc"."type" AS "nested_5.type", "pc"."parentCategoryID" AS "nested_5.parentCategoryID", t.value * COALESCE(excRate.exchangeRate, 1) AS currentValueInPreferredCurrency, t.valueInDestiny * COALESCE(excRateOfDestiny.exchangeRate, 1) AS currentValueInDestinyInPreferredCurrency, t.id AS "\$n_0" FROM transactions AS t INNER JOIN accounts AS a ON t.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN accounts AS ra ON t.receivingAccountID = ra.id LEFT JOIN currencies AS receivingAccountCurrency ON ra.currencyId = receivingAccountCurrency.code LEFT JOIN categories AS c ON t.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRate ON a.currencyId = excRate.currencyCode LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRateOfDestiny ON ra.currencyId = excRateOfDestiny.currencyCode WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
         variables: [
           ...generatedpredicate.introducedVariables,
           ...generatedorderBy.introducedVariables,
@@ -5476,6 +5521,7 @@ typedef $AccountsCreateCompanionBuilder = AccountsCompanion Function({
   required int displayOrder,
   Value<String?> color,
   Value<DateTime?> closingDate,
+  Value<bool> hiddenByUser,
   required String currencyId,
   Value<String?> iban,
   Value<String?> swift,
@@ -5497,6 +5543,7 @@ typedef $AccountsUpdateCompanionBuilder = AccountsCompanion Function({
   Value<int> displayOrder,
   Value<String?> color,
   Value<DateTime?> closingDate,
+  Value<bool> hiddenByUser,
   Value<String> currencyId,
   Value<String?> iban,
   Value<String?> swift,
@@ -5533,6 +5580,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<int> displayOrder = const Value.absent(),
             Value<String?> color = const Value.absent(),
             Value<DateTime?> closingDate = const Value.absent(),
+            Value<bool> hiddenByUser = const Value.absent(),
             Value<String> currencyId = const Value.absent(),
             Value<String?> iban = const Value.absent(),
             Value<String?> swift = const Value.absent(),
@@ -5554,6 +5602,7 @@ class $AccountsTableManager extends RootTableManager<
             displayOrder: displayOrder,
             color: color,
             closingDate: closingDate,
+            hiddenByUser: hiddenByUser,
             currencyId: currencyId,
             iban: iban,
             swift: swift,
@@ -5575,6 +5624,7 @@ class $AccountsTableManager extends RootTableManager<
             required int displayOrder,
             Value<String?> color = const Value.absent(),
             Value<DateTime?> closingDate = const Value.absent(),
+            Value<bool> hiddenByUser = const Value.absent(),
             required String currencyId,
             Value<String?> iban = const Value.absent(),
             Value<String?> swift = const Value.absent(),
@@ -5596,6 +5646,7 @@ class $AccountsTableManager extends RootTableManager<
             displayOrder: displayOrder,
             color: color,
             closingDate: closingDate,
+            hiddenByUser: hiddenByUser,
             currencyId: currencyId,
             iban: iban,
             swift: swift,
@@ -5660,6 +5711,11 @@ class $AccountsFilterComposer extends FilterComposer<_$AppDB, Accounts> {
 
   ColumnFilters<DateTime> get closingDate => $state.composableBuilder(
       column: $state.table.closingDate,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get hiddenByUser => $state.composableBuilder(
+      column: $state.table.hiddenByUser,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -5773,6 +5829,11 @@ class $AccountsOrderingComposer extends OrderingComposer<_$AppDB, Accounts> {
 
   ColumnOrderings<DateTime> get closingDate => $state.composableBuilder(
       column: $state.table.closingDate,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get hiddenByUser => $state.composableBuilder(
+      column: $state.table.hiddenByUser,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

@@ -1,10 +1,15 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:parsa/app/accounts/all_accounts_page.dart';
+import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
+import 'package:parsa/core/presentation/widgets/monekin_reorderable_list.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
+import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
-
+import 'package:parsa/core/presentation/widgets/reorderable_drag_icon.dart';
 
 import '../app_colors.dart';
 
@@ -20,6 +25,7 @@ class CardWithHeader extends StatelessWidget {
     this.headerButtonIcon = Icons.arrow_forward_ios_rounded,
     this.bodyPadding = const EdgeInsets.all(0),
     this.isEditable = false,
+    this.onHeaderTap,
   });
 
   final Widget body;
@@ -33,6 +39,8 @@ class CardWithHeader extends StatelessWidget {
   final void Function()? onHeaderButtonClick;
 
   final bool isEditable;
+
+  final void Function()? onHeaderTap;
 
   @override
   Widget build(BuildContext context) {
@@ -63,47 +71,50 @@ class CardWithHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            clipBehavior: Clip.hardEdge,
-            padding: EdgeInsets.fromLTRB(
-                16,
-                onHeaderButtonClick != null ? 2 : iconSize - 6,
-                2,
-                onHeaderButtonClick != null ? 2 : iconSize - 6),
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-              color: AppColors.of(context).light,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
-                    if (isEditable)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Icon(
-                          Icons.edit,
-                          size: 16,
-                          color: Colors.blue[500],
-                        ),
-                      ),
-                  ],
+          GestureDetector(
+            onTap: onHeaderTap,
+            child: Container(
+              clipBehavior: Clip.hardEdge,
+              padding: EdgeInsets.fromLTRB(
+                  16,
+                  onHeaderButtonClick != null ? 2 : iconSize - 6,
+                  2,
+                  onHeaderButtonClick != null ? 2 : iconSize - 6),
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
                 ),
-                if (onHeaderButtonClick != null)
-                  IconButton(
-                    onPressed: onHeaderButtonClick,
-                    iconSize: iconSize,
-                    color: AppColors.of(context).primary,
-                    icon: Icon(headerButtonIcon),
-                  )
-              ],
+                color: AppColors.of(context).light,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(title,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w700)),
+                      if (isEditable)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: Colors.blue[500],
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (onHeaderButtonClick != null)
+                    IconButton(
+                      onPressed: onHeaderButtonClick,
+                      iconSize: iconSize,
+                      color: AppColors.of(context).primary,
+                      icon: Icon(headerButtonIcon),
+                    )
+                ],
+              ),
             ),
           ),
           const Divider(),
@@ -189,48 +200,106 @@ class _AccountListCardState extends State<AccountListCard> {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     
+    final visibleAccounts = widget.accounts.where((account) => !account.hiddenByUser).toList();
+    
     return CardWithHeader(
       title: widget.title.isEmpty ? "Contas" : widget.title,
       onHeaderButtonClick: widget.onAddAccountTap,
       headerButtonIcon: Icons.add,
-      body: Column(
-        children: [
-          ...widget.accounts.map((account) => Column(
-            children: [
-              ListTile(
-                onTap: () => widget.onAccountTap(account),
-                leading: _buildAccountIcon(account.iconId),
-                title: Text(
-                  account.name,
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.w600,
+      onHeaderTap: () => RouteUtils.pushRoute(context, const AllAccountsPage()),
+      body: MonekinReorderableList(
+        totalItemCount: visibleAccounts.length,
+        isOrderEnabled: visibleAccounts.length > 1,
+        padding: EdgeInsets.zero,
+        itemBuilder: (context, index) {
+          final account = visibleAccounts[index];
+          return Dismissible(
+            key: Key(account.id),
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 16),
+              child: const Icon(Icons.visibility_off, color: Colors.white),
+            ),
+            secondaryBackground: Container(
+              color: Colors.red,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 16),
+              child: const Icon(Icons.visibility_off, color: Colors.white),
+            ),
+            confirmDismiss: (direction) async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${account.name}foi ocultada do Menu Principal. Visite a aba "Contas" em "Menu" para poder exibi-la novamente aqui.'),
+                  action: SnackBarAction(
+                    label: 'Desfazer',
+                    onPressed: () async {
+                      await AccountService.instance.updateAccount(
+                        account.copyWith(hiddenByUser: false),
+                      );
+                    },
                   ),
                 ),
-
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        CurrencyDisplayer(
-                          amountToConvert: account.balance,
-                          currency: account.currency,
-                        ),
-                       
-                      ],
+              );
+              return true;
+            },
+            onDismissed: (direction) async {
+              await AccountService.instance.updateAccount(
+                account.copyWith(hiddenByUser: true),
+              );
+            },
+            child: Column(
+              children: [
+                ListTile(
+                  onTap: () => widget.onAccountTap(account),
+                  leading: _buildAccountIcon(account.iconId),
+                  title: Text(
+                    account.name,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right, size: 20),
-                  ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CurrencyDisplayer(
+                            amountToConvert: account.balance,
+                            currency: account.currency,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 4),
+                      visibleAccounts.length > 1 
+                          ? ReorderableDragIcon(index: index, enabled: true)
+                          : const Icon(Icons.chevron_right, size: 20),
+                    ],
+                  ),
                 ),
+                if (account != visibleAccounts.last)
+                  const Divider(indent: 72),
+              ],
+            ),
+          );
+        },
+        onReorder: (oldIndex, newIndex) async {
+          if (newIndex > oldIndex) newIndex--;
+          
+          final item = visibleAccounts.removeAt(oldIndex);
+          visibleAccounts.insert(newIndex, item);
+
+          // You'll need to add AccountService to handle the updates
+          await Future.wait(
+            visibleAccounts.mapIndexed(
+              (index, element) => AccountService.instance.updateAccount(
+                element.copyWith(displayOrder: index),
               ),
-              if (account != widget.accounts.last)
-                const Divider(indent: 72),
-            ],
-          )).toList(),
-        ],
+            ),
+          );
+        },
       ),
     );
   }

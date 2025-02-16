@@ -85,6 +85,7 @@ class Account extends AccountInDB {
     required super.connectorID,
     required super.isOpenFinance,
     required super.removed,
+    required super.hiddenByUser,
     super.closingDate,
     super.description,
     super.iban,
@@ -153,6 +154,7 @@ class Account extends AccountInDB {
         connectorID: account.connectorID,
         isOpenFinance: account.isOpenFinance,
         removed: account.removed,
+        hiddenByUser: account.hiddenByUser,
       );
 }
 
@@ -175,7 +177,7 @@ class ApiAccount {
   final int order;
   final String description;
   final bool removed;
-
+  final bool hiddenByUser;
   ApiAccount({
     required this.accountId,
     required this.bankName,
@@ -195,6 +197,7 @@ class ApiAccount {
     required this.order,
     required this.description,
     required this.removed,
+    required this.hiddenByUser,
   });
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
@@ -233,6 +236,7 @@ class ApiAccount {
       order: json['order'] ?? 90, // Default to 0 if missing
       removed: json['removed'] ?? false, // Default to false if missing
       description: json['description'] ?? '', // Default to empty string if missing
+      hiddenByUser: json['hidden_by_user'] ?? false, // Default to false if missing
     );
   }
 }

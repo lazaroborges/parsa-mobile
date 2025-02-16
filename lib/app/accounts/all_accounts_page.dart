@@ -123,7 +123,10 @@ class _AllAccountsPageState extends State<AllAccountsPage> {
                             const SizedBox(width: 4),
                             if (account.isClosed)
                               const Icon(Icons.archive_outlined,
-                                  color: Colors.amber, size: 16)
+                                  color: Colors.amber, size: 16),
+                            if (account.hiddenByUser)
+                              const Icon(Icons.visibility_off_outlined,
+                                  color: Colors.grey, size: 16)
                           ],
                         ),
                         leading: Hero(
@@ -142,7 +145,6 @@ class _AllAccountsPageState extends State<AllAccountsPage> {
                     final item = accounts.removeAt(from);
                     accounts.insert(to, item);
 
-                    print('${accounts} - ${from} - ${to}');
 
                     await Future.wait(
                       accounts.mapIndexed(

@@ -221,6 +221,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
             connectorID: '1',
             removed: false,
             isOpenFinance: false,
+            hiddenByUser: false,
           ));
         }
 

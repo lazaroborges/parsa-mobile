@@ -33,6 +33,7 @@ class PostUserAccountService {
         'lastUpdateTime': account.lastUpdateTime.toIso8601String(),
         'connectorID': account.connectorID,
         'isOpenFinance': account.isOpenFinance,
+        'hidden_by_user': account.hiddenByUser,
       };
 
       // Send POST request to the API
@@ -122,6 +123,7 @@ class PostUserAccountService {
         body: json.encode({
           'accountId': account.id,
           'order': account.displayOrder,
+          'hidden_by_user': account.hiddenByUser,
         }),
       );
 

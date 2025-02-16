@@ -104,7 +104,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       color: apiAccount.primaryColor,
       isOpenFinance: apiAccount.isOpenFinance,
       removed: apiAccount.removed ?? false,
-     
+      hiddenByUser: apiAccount.hiddenByUser,
     );
 
     localAccounts.add(account);
@@ -180,6 +180,7 @@ extension AccountExtension on Account {
       color: color,
       isOpenFinance: isOpenFinance,
       removed: removed,
+      hiddenByUser: hiddenByUser,
     );
   }
 }

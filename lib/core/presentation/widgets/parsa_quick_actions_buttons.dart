@@ -21,44 +21,64 @@ class ParsaQuickActionsButtons extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildActionButton(
-            context,
-            account.removed ? Icons.restore : Icons.remove_circle,
-            _buildMultilineText(
-              account.removed ? t.account.restore.title : t.account.remove.title
-            ),
-            () => account.removed
-                ? AccountDetailsActions.restoreAccount(
-                    context,
-                    account.id,
-                    navigateBackOnDelete,
-                  )
-                : AccountDetailsActions.removeAccount(
-                    context,
-                    account.id,
-                    navigateBackOnDelete,
-                  ),
-          ),
-          _buildActionButton(
-            context,
-            Icons.link_off,
-            _buildMultilineText(t.account.disconnect.title),
-            () => AccountDetailsActions.disconnectAccount(context, account),
-            isDisconnectAction: true,
-          ),
-
-          _buildActionButton(
-            context,
-            Icons.delete,
-            _buildMultilineText(t.account.delete_openfinance.title),
-            () => AccountDetailsActions.deleteOpenFinanceAccount(
+          Expanded(
+            child: _buildActionButton(
               context,
-              account.id,
-              navigateBackOnDelete,
+              account.hiddenByUser ? Icons.visibility : Icons.visibility_off,
+              _buildMultilineText(
+                account.hiddenByUser ? "Visualizar" : "Ocultar"
+              ),
+              () => AccountDetailsActions.toggleAccountVisibility(
+                context,
+                account,
+                false,
+              ),
             ),
-            isDeleteAction: true,
+          ),
+          Expanded(
+            child: _buildActionButton(
+              context,
+              account.removed ? Icons.restore : Icons.remove_circle,
+              _buildMultilineText(
+                account.removed ? t.account.restore.title : t.account.remove.title
+              ),
+              () => account.removed
+                  ? AccountDetailsActions.restoreAccount(
+                      context,
+                      account.id,
+                      navigateBackOnDelete,
+                    )
+                  : AccountDetailsActions.removeAccount(
+                      context,
+                      account.id,
+                      navigateBackOnDelete,
+                    ),
+            ),
+          ),
+          Expanded(
+            child: _buildActionButton(
+              context,
+              Icons.link_off,
+              _buildMultilineText(t.account.disconnect.title),
+              () => AccountDetailsActions.disconnectAccount(context, account),
+              isDisconnectAction: true,
+            ),
+          ),
+          Expanded(
+            child: _buildActionButton(
+              context,
+              Icons.delete,
+              _buildMultilineText(t.account.delete_openfinance.title),
+              () => AccountDetailsActions.deleteOpenFinanceAccount(
+                context,
+                account.id,
+                navigateBackOnDelete,
+              ),
+              isDeleteAction: true,
+            ),
           ),
         ],
       ),
@@ -105,11 +125,16 @@ class ParsaQuickActionsButtons extends StatelessWidget {
   }
 
   Widget _buildMultilineText(String text) {
-    return Column(
-      children: text.split(' ').map((word) => Text(
-        word,
-        style: const TextStyle(fontSize: 12),
-      )).toList(),
+    return SizedBox(
+      height: 40, // Fixed height for text container
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: text.split(' ').map((word) => Text(
+          word,
+          style: const TextStyle(fontSize: 12),
+          textAlign: TextAlign.center,
+        )).toList(),
+      ),
     );
   }
 }

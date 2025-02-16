@@ -340,7 +340,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         
                         
-                        if (userData?['beta_user'] == true) ...[
+                        if (true) ...[
                           const SizedBox(height: 16),
                           StreamBuilder<double>(
                             stream: AccountService.instance.getAccountsBalance(

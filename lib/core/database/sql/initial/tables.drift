@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS accounts (
     -- The closing date of the account. After this date, no transactions can exist on it.
     closingDate DATETIME,
 
+    -- Whether the account is hidden by the user
+    hiddenByUser BOOLEAN NOT NULL DEFAULT 0,
+
     -- ID of the currency used by this account and therefore all transactions contained in it
     currencyId TEXT NOT NULL REFERENCES currencies(code) ON DELETE CASCADE ON UPDATE CASCADE,
 
@@ -123,6 +126,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   payment_method TEXT, 
 
   cousin INTEGER,
+
 
   -- Whether the transacton is an income, an expense or a transfer
   type ENUMNAME(TransactionType) NOT NULL CHECK(type IN ('E', 'I', 'T')),

@@ -109,7 +109,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
       lastUpdateTime: DateTime.now(),
       isOpenFinance: false,
       removed: false,
-
+      hiddenByUser: false,
       connectorID:
           _accountToEdit?.connectorID ?? '1', // Assign a valid connectorID
     );

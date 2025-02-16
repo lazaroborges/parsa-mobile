@@ -123,42 +123,41 @@ class _FilterRowIndicatorState extends State<FilterRowIndicator> {
                             widget.onChange(filters);
                           },
                         ),
-  if (filters.categories != null)
+                      if (filters.categories != null)
                         ResponsiveRowColumnItem(
                           child: StreamBuilder(
-                              stream: CategoryService.instance.getCategories(
-                                predicate: (catTable, parentCatTable) =>
-                                    catTable.id.isIn(filters.categories!),
-                              ),
-                              initialData: const <Category>[],
-                              builder: (context, snapshot) {
-                                return buildChip(
-                                  context,
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ...snapshot.data!.where((cat) => cat.isMainCategory).map((cat) =>
-                                        Padding(
-                                          padding: const EdgeInsets.only(right: 4),
-                                          child: IconDisplayer.fromCategory(
-                                            context,
-                                            category: cat,
-                                            size: 16,
-                                          ),
-                                        )
-                                      ),
-                                      Text('${snapshot.data!.where((cat) => cat.isMainCategory).length} ${t.general.categories}'),
-                                    ],
-                                  ),
-                                  onDeleted: () {
-                                    filters =
-                                        filters.copyWithNull(categories: true);
-                                    widget.onChange(filters);
-                                  },
-                                );
-                              }),
+                            stream: CategoryService.instance.getCategories(
+                              predicate: (catTable, parentCatTable) =>
+                                  catTable.id.isIn(filters.categories!),
+                            ),
+                            initialData: const <Category>[],
+                            builder: (context, snapshot) {
+                              return buildChip(
+                                context,
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ...snapshot.data!.map((cat) =>
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 4),
+                                        child: IconDisplayer.fromCategory(
+                                          context,
+                                          category: cat,
+                                          size: 16,
+                                        ),
+                                      )
+                                    ),
+                                    //Text('${snapshot.data!.length} ${t.general.categories}'),
+                                  ],
+                                ),
+                                onDeleted: () {
+                                  filters = filters.copyWithNull(categories: true);
+                                  widget.onChange(filters);
+                                },
+                              );
+                            }
+                          ),
                         ),
-
                       if (filters.minDate != null)
                         buildChip(
                           context,

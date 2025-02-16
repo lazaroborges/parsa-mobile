@@ -33,6 +33,19 @@ abstract class AccountDetailsActions {
             RouteUtils.pushRoute(context, AccountFormPage(account: account)),
       ),
       ListTileActionItem(
+        label: account.hiddenByUser 
+            ? "Visualizar"
+            : "Ocultar",
+        icon: account.hiddenByUser 
+            ? Icons.visibility
+            : Icons.visibility_off,
+        onClick: () => toggleAccountVisibility(
+          context,
+          account,
+          false,
+        ),
+      ),
+      ListTileActionItem(
           label: t.transfer.create,
           icon: TransactionType.T.icon,
           onClick: account.isClosed
@@ -308,5 +321,41 @@ abstract class AccountDetailsActions {
         );
       }
     }));
+  }
+
+  static Future<void> toggleAccountVisibility(
+    BuildContext context,
+    Account account,
+    bool navigateBack,
+  ) async {
+    try {
+      await AccountService.instance.updateAccount(
+        account.copyWith(
+          hiddenByUser: !account.hiddenByUser,
+        ),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              !account.hiddenByUser 
+                ? "Sua conta não vai mais aparecer no Dashboard. Você pode reverter essa ação clicando novamente no mesmo botão. "
+                : "Sua conta voltará a ser visualizada no Dashboard novamente."
+            ),
+          ),
+        );
+        
+        if (navigateBack) {
+          Navigator.pop(context);
+        }
+      }
+    } catch (err) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$err')),
+        );
+      }
+    }
   }
 }
