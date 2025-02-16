@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 615
 ///
-/// Built on 2025-02-15 at 22:31 UTC
+/// Built on 2025-02-16 at 18:36 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -852,9 +852,9 @@ class _TranslationsTransactionFiltersPt {
 	// Translations
 	String get from_value => 'A partir do valor';
 	String get to_value => 'Até o valor';
-	String from_value_def({required Object x}) => 'A partir de ${x}';
+	String from_value_def({required Object x}) => 'De ${x}';
 	String to_value_def({required Object x}) => 'Até ${x}';
-	String from_date_def({required Object date}) => 'A partir de ${date}';
+	String from_date_def({required Object date}) => 'De ${date}';
 	String to_date_def({required Object date}) => 'Até ${date}';
 }
 
@@ -1898,9 +1898,9 @@ extension on Translations {
 			case 'transaction.list.bulk_edit.status': return 'Editar status';
 			case 'transaction.filters.from_value': return 'A partir do valor';
 			case 'transaction.filters.to_value': return 'Até o valor';
-			case 'transaction.filters.from_value_def': return ({required Object x}) => 'A partir de ${x}';
+			case 'transaction.filters.from_value_def': return ({required Object x}) => 'De ${x}';
 			case 'transaction.filters.to_value_def': return ({required Object x}) => 'Até ${x}';
-			case 'transaction.filters.from_date_def': return ({required Object date}) => 'A partir de ${date}';
+			case 'transaction.filters.from_date_def': return ({required Object date}) => 'De ${date}';
 			case 'transaction.filters.to_date_def': return ({required Object date}) => 'Até ${date}';
 			case 'transaction.form.validators.zero': return 'O valor de uma transação não pode ser igual a zero';
 			case 'transaction.form.validators.date_max': return 'A data selecionada é posterior à atual. A transação será adicionada como pendente';

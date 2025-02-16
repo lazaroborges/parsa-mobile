@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/details/account_details_actions.dart';
+import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
@@ -72,11 +73,15 @@ class ParsaQuickActionsButtons extends StatelessWidget {
               context,
               Icons.delete,
               _buildMultilineText(t.account.delete_openfinance.title),
-              () => AccountDetailsActions.deleteOpenFinanceAccount(
-                context,
-                account.id,
-                navigateBackOnDelete,
-              ),
+              () async {
+                await AccountDetailsActions.deleteOpenFinanceAccount(
+                  context,
+                  account.id,
+                  navigateBackOnDelete,
+                );
+                // Refresh accounts after deletion
+                await fetchUserAccounts();
+              },
               isDeleteAction: true,
             ),
           ),

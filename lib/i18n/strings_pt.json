@@ -321,9 +321,9 @@
     "FILTERS": {
       "from_value": "A partir do valor",
       "to_value": "Até o valor",
-      "from_value_def": "A partir de {{ x }}",
+      "from_value_def": "De {{ x }}",
       "to_value_def": "Até {{ x }}",
-      "from_date_def": "A partir de {{ date }}",
+      "from_date_def": "De {{ date }}",
       "to_date_def": "Até {{ date }}"
     },
     "FORM": {

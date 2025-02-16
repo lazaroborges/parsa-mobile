@@ -32,33 +32,30 @@ class IncomeExpenseComparason extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(t.general.balance),
-                StreamBuilder(
-                  stream: AccountService.instance.getAccountsBalance(
-                    filters: filters.copyWith(
-                      minDate: startDate,
-                      maxDate: endDate,
-                    ),
+          padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(t.general.balance),
+              StreamBuilder(
+                stream: AccountService.instance.getAccountsBalance(
+                  filters: filters.copyWith(
+                    minDate: startDate,
+                    maxDate: endDate,
                   ),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Skeleton(width: 35, height: 32);
-                    }
+                ),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Skeleton(width: 35, height: 32);
+                  }
 
-                    return CurrencyDisplayer(
-                        amountToConvert: snapshot.data!,
-                        integerStyle:
-                            Theme.of(context).textTheme.headlineSmall!);
-                  },
-                )
-              ],
-            )
-          ]),
+                  return CurrencyDisplayer(
+                      amountToConvert: snapshot.data!,
+                      integerStyle: Theme.of(context).textTheme.headlineSmall!);
+                },
+              )
+            ],
+          ),
         ),
         StreamBuilder(
           stream: Rx.combineLatest2(

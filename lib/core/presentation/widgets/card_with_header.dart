@@ -207,7 +207,23 @@ class _AccountListCardState extends State<AccountListCard> {
       onHeaderButtonClick: widget.onAddAccountTap,
       headerButtonIcon: Icons.add,
       onHeaderTap: () => RouteUtils.pushRoute(context, const AllAccountsPage()),
-      body: MonekinReorderableList(
+      body: visibleAccounts.isEmpty 
+          ? InkWell(
+              onTap: widget.onAddAccountTap,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Center(
+                  child: Text(
+                    "Adicione uma conta",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : MonekinReorderableList(
         totalItemCount: visibleAccounts.length,
         isOrderEnabled: visibleAccounts.length > 1,
         padding: EdgeInsets.zero,

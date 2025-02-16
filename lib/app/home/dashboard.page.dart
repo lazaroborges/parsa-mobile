@@ -11,6 +11,7 @@ import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
 import 'package:parsa/app/home/widgets/new_transaction_fl_button.dart';
 import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
+import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
@@ -77,9 +78,9 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _initializeDashboard() async {
     try {
       // Ensure we check the announcement first
-      // if (mounted) {
-      //   await FeatureAnnouncementModal.showIfNeeded(context);
-      // }
+      if (mounted) {
+        await FeatureAnnouncementModal.showIfNeeded(context);
+      }
       
       // Then fetch data
       await _refreshData();
@@ -516,34 +517,54 @@ class _DashboardPageState extends State<DashboardPage> {
                                 );
                               }),
                           const SizedBox(height: 16),
-
+                          
+                          // Add Income/Expense Comparison Card here
                           CardWithHeader(
-                            title: t.financial_health.display,
-                            onHeaderButtonClick: () => RouteUtils.pushRoute(
+                            title: t.stats.cash_flow,
+                            bodyPadding: EdgeInsets.zero,
+                            body: IncomeExpenseComparason(
+                              startDate: dateRangeService.startDate,
+                              endDate: dateRangeService.endDate,
+                            ),
+                            onHeaderButtonClick: () {
+                              RouteUtils.pushRoute(
                                 context,
                                 StatsPage(
-                                    dateRangeService: dateRangeService,
-                                    initialIndex: 2)),
-                            bodyPadding: const EdgeInsets.all(16),
-                            body: StreamBuilder(
-                              stream: FinanceHealthService().getHealthyValue(
-                                filters: TransactionFilters(
-                                  minDate: dateRangeService.startDate,
-                                  maxDate: dateRangeService.endDate,
+                                  dateRangeService: dateRangeService,
+                                  initialIndex: 2,
                                 ),
-                              ),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return const LinearProgressIndicator();
-                                }
-
-                                final financeHealthData = snapshot.data!;
-
-                                return FinanceHealthMainInfo(
-                                    financeHealthData: financeHealthData);
-                              },
-                            ),
+                              );
+                            },
                           ),
+                          // const SizedBox(height: 16),
+
+                          // CardWithHeader(
+                          //   title: t.financial_health.display,
+                          //   onHeaderButtonClick: () => RouteUtils.pushRoute(
+                          //       context,
+                          //       StatsPage(
+                          //           dateRangeService: dateRangeService,
+                          //           initialIndex: 2)),
+                          //   bodyPadding: const EdgeInsets.all(16),
+                          //   body: StreamBuilder(
+                          //     stream: FinanceHealthService().getHealthyValue(
+                          //       filters: TransactionFilters(
+                          //         minDate: dateRangeService.startDate,
+                          //         maxDate: dateRangeService.endDate,
+                          //       ),
+                          //     ),
+                          //     builder: (context, snapshot) {
+                          //       if (!snapshot.hasData) {
+                          //         return const LinearProgressIndicator();
+                          //       }
+
+                          //       final financeHealthData = snapshot.data!;
+
+                          //       return FinanceHealthMainInfo(
+                          //           financeHealthData: financeHealthData);
+                          //     },
+                          //   ),
+                          // ),
                           const SizedBox(height: 16),
 
                         ],

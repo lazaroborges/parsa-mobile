@@ -43,6 +43,7 @@ class TransactionsPage extends StatefulWidget {
 
 class _TransactionsPageState extends State<TransactionsPage> {
   late TransactionFilters filters;
+  bool isAllFilteredSelected = false;
 
   bool searchActive = false;
   FocusNode searchFocusNode = FocusNode();
@@ -144,6 +145,39 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       )
                     : Text(t.transaction.display(n: 10)),
                 actions: [
+
+                   if (filters.hasFilter || searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: Icon(
+                        isAllFilteredSelected 
+                          ? Icons.select_all 
+                          : Icons.deselect,
+                        color: isAllFilteredSelected 
+                          ? AppColors.of(context).primary 
+                          : null,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isAllFilteredSelected = !isAllFilteredSelected;
+                          if (isAllFilteredSelected) {
+                            TransactionService.instance
+                                .getTransactions(
+                                  filters: filters.copyWith(
+                                    searchValue: searchController.text,
+                                  ),
+                                )
+                                .first
+                                .then((transactions) {
+                              setState(() {
+                                selectedTransactions = transactions;
+                              });
+                            });
+                          } else {
+                            selectedTransactions = [];
+                          }
+                        });
+                      },
+                    ),
                   if (!searchActive)
                     IconButton(
                       icon: const Icon(Icons.search),
@@ -155,20 +189,22 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         searchFocusNode.requestFocus();
                       },
                     ),
+                 
                   IconButton(
-                      onPressed: () async {
-                        final modalRes = await openFilterSheetModal(
-                          context,
-                          FilterSheetModal(preselectedFilter: filters),
-                        );
+                    onPressed: () async {
+                      final modalRes = await openFilterSheetModal(
+                        context,
+                        FilterSheetModal(preselectedFilter: filters),
+                      );
 
-                        if (modalRes != null) {
-                          setState(() {
-                            filters = modalRes;
-                          });
-                        }
-                      },
-                      icon: const Icon(Icons.filter_alt_outlined)),
+                      if (modalRes != null) {
+                        setState(() {
+                          filters = modalRes;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.filter_alt_outlined),
+                  ),
                 ],
               ),
         floatingActionButton: FloatingActionButton.extended(
@@ -203,68 +239,70 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
                 return Card(
                   elevation: 2,
-                  //color: AppColors.of(context).primary,
                   margin: const EdgeInsets.all(8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                    child: DefaultTextStyle(
-                      style: Theme.of(context).textTheme.titleMedium!,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (res != null) ...[
-                            Text.rich(
-                              TextSpan(
-                                  text: selectedTransactions.isNotEmpty
-                                      ? ('${selectedTransactions.length.toStringAsFixed(0)}')
-                                      : '',
-                                  children: [
-                                    TextSpan(
-                                        text:
-                                            '${selectedTransactions.isNotEmpty ? ' / ' : ''}${res.numberOfRes} ',
-                                        style: selectedTransactions.isNotEmpty
-                                            ? smallerTextStyle
-                                            : null),
-                                    TextSpan(
-                                      text: t.transaction
-                                          .display(n: res.numberOfRes)
-                                          .toLowerCase(),
-                                    ),
-                                  ]),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (selectedTransactions.isNotEmpty) ...[
-                                  CurrencyDisplayer(
-                                    amountToConvert: selectedTransactions
-                                        .map((e) => e
-                                            .getCurrentBalanceInPreferredCurrency())
-                                        .sum,
-                                    showDecimals: false,
-                                  ),
-                                  const Text("/ ", style: smallerTextStyle)
-                                ],
-                                CurrencyDisplayer(
-                                  amountToConvert: res.valueSum,
-                                  showDecimals: selectedTransactions.isEmpty,
-                                  integerStyle: selectedTransactions.isEmpty
-                                      ? const TextStyle(inherit: true)
-                                      : smallerTextStyle,
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                    child: Column(
+                      children: [
+                        DefaultTextStyle(
+                          style: Theme.of(context).textTheme.titleMedium!,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              if (res != null) ...[
+                                Text.rich(
+                                  TextSpan(
+                                      text: selectedTransactions.isNotEmpty
+                                          ? ('${selectedTransactions.length.toStringAsFixed(0)}')
+                                          : '',
+                                      children: [
+                                        TextSpan(
+                                            text:
+                                                '${selectedTransactions.isNotEmpty ? ' / ' : ''}${res.numberOfRes} ',
+                                            style: selectedTransactions.isNotEmpty
+                                                ? smallerTextStyle
+                                                : null),
+                                        TextSpan(
+                                          text: t.transaction
+                                              .display(n: res.numberOfRes)
+                                              .toLowerCase(),
+                                        ),
+                                      ]),
                                 ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (selectedTransactions.isNotEmpty) ...[
+                                      CurrencyDisplayer(
+                                        amountToConvert: selectedTransactions
+                                            .map((e) => e
+                                                .getCurrentBalanceInPreferredCurrency())
+                                            .sum,
+                                        showDecimals: false,
+                                      ),
+                                      const Text("/ ", style: smallerTextStyle)
+                                    ],
+                                    CurrencyDisplayer(
+                                      amountToConvert: res.valueSum,
+                                      showDecimals: selectedTransactions.isEmpty,
+                                      integerStyle: selectedTransactions.isEmpty
+                                          ? const TextStyle(inherit: true)
+                                          : smallerTextStyle,
+                                    ),
+                                  ],
+                                )
                               ],
-                            )
-                          ],
-                          if (res == null) ...[
-                            const Skeleton(width: 38, height: 18),
-                            const Skeleton(width: 28, height: 18),
-                          ]
-                        ],
-                      ),
+                              if (res == null) ...[
+                                const Skeleton(width: 38, height: 18),
+                                const Skeleton(width: 28, height: 18),
+                              ]
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -341,18 +379,20 @@ class _TransactionsPageState extends State<TransactionsPage> {
   void cleanSelectedTransactions() {
     setState(() {
       selectedTransactions = [];
+      isAllFilteredSelected = false;
     });
   }
 
   void toggleTransaction(MoneyTransaction tr) {
     HapticFeedback.lightImpact();
 
-    if (selectedTransactions.any((element) => element.id == tr.id)) {
-      selectedTransactions.removeWhere((element) => element.id == tr.id);
-    } else {
-      selectedTransactions.add(tr);
-    }
-
-    setState(() {});
+    setState(() {
+      if (selectedTransactions.any((element) => element.id == tr.id)) {
+        selectedTransactions.removeWhere((element) => element.id == tr.id);
+        isAllFilteredSelected = false;
+      } else {
+        selectedTransactions.add(tr);
+      }
+    });
   }
 }
