@@ -320,7 +320,13 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(dataCategory.category.name),
+                        Expanded(
+                          child: Text(
+                            dataCategory.category.name,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
                         CurrencyDisplayer(amountToConvert: dataCategory.value)
                       ],
                     ),
