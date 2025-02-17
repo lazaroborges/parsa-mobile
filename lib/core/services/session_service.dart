@@ -29,7 +29,7 @@ class SessionService {
       if (response.statusCode == 201) {
         _hasRegisteredSession = true;
       } else {
-        print('Failed to register session: ${response.statusCode}');
+        print('Register session: ${response.statusCode}');
       }
     } catch (e) {
       print('Error registering session: $e');

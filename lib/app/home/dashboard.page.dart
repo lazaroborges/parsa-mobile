@@ -149,24 +149,7 @@ class _DashboardPageState extends State<DashboardPage> {
         appBar: EmptyAppBar(color: AppColors.of(context).light),
         floatingActionButton:
             hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
-        drawer: hideDrawerAndFloatingButton
-            ? null
-            : Drawer(
-                child: Builder(builder: (context) {
-                  final drawerItems = getDestinations(context,
-                      showHome: false, shortLabels: false);
-
-                  return HomeDrawer(
-                    drawerActions: drawerItems,
-                    onDestinationSelected: (e) {
-                      Navigator.pop(context);
-
-//                    context.router.push(drawerItems.elementAt(e).destination);
-                    },
-                    selectedIndex: -1,
-                  );
-                }),
-              ),
+        drawer: null, // Nulled and hidden the draw at version 2.0.10 
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
