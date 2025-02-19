@@ -27,7 +27,7 @@ import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categori
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({
-    super.key, 
+    super.key,
     this.filters,
     this.categoryStatsData,
     this.dateRangeText,
@@ -90,7 +90,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   @override
   Widget build(BuildContext context) {
-
     final t = Translations.of(context);
 
     return PopScope(
@@ -145,16 +144,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       )
                     : Text(t.transaction.display(n: 10)),
                 actions: [
-
-                   if (filters.hasFilter || searchController.text.isNotEmpty)
+                  if (filters.hasFilter || searchController.text.isNotEmpty)
                     IconButton(
                       icon: Icon(
-                        isAllFilteredSelected 
-                          ? Icons.select_all 
-                          : Icons.deselect,
-                        color: isAllFilteredSelected 
-                          ? AppColors.of(context).primary 
-                          : null,
+                        isAllFilteredSelected
+                            ? Icons.select_all
+                            : Icons.deselect,
+                        color: isAllFilteredSelected
+                            ? AppColors.of(context).primary
+                            : null,
                       ),
                       onPressed: () {
                         setState(() {
@@ -189,7 +187,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         searchFocusNode.requestFocus();
                       },
                     ),
-                 
                   IconButton(
                     onPressed: () async {
                       final modalRes = await openFilterSheetModal(
@@ -244,7 +241,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
                     child: Column(
                       children: [
                         DefaultTextStyle(
@@ -262,9 +260,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                         TextSpan(
                                             text:
                                                 '${selectedTransactions.isNotEmpty ? ' / ' : ''}${res.numberOfRes} ',
-                                            style: selectedTransactions.isNotEmpty
-                                                ? smallerTextStyle
-                                                : null),
+                                            style:
+                                                selectedTransactions.isNotEmpty
+                                                    ? smallerTextStyle
+                                                    : null),
                                         TextSpan(
                                           text: t.transaction
                                               .display(n: res.numberOfRes)
@@ -287,7 +286,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                     ],
                                     CurrencyDisplayer(
                                       amountToConvert: res.valueSum,
-                                      showDecimals: selectedTransactions.isEmpty,
+                                      showDecimals:
+                                          selectedTransactions.isEmpty,
                                       integerStyle: selectedTransactions.isEmpty
                                           ? const TextStyle(inherit: true)
                                           : smallerTextStyle,
