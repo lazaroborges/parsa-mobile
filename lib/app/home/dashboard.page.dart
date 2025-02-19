@@ -777,6 +777,9 @@ class _DashboardPageState extends State<DashboardPage> {
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
 
+    // Previous design used red color for negative numbers:
+    // color: isNegative ? Colors.red : Theme.of(context).textTheme.titleLarge!.color,
+
     return Container(
       key: key,
       width: screenWidth * widthMultiplier,
@@ -786,13 +789,11 @@ class _DashboardPageState extends State<DashboardPage> {
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: CurrencyDisplayer(
-          amountToConvert: balance.abs(),
+          amountToConvert: balance, // Removed .abs() to show negative sign
           integerStyle: TextStyle(
             fontSize: 32,
-            fontWeight: FontWeight.w600,
-            color: isNegative
-                ? Colors.red
-                : Theme.of(context).textTheme.titleLarge!.color,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.titleLarge!.color,
           ),
         ),
       ),
