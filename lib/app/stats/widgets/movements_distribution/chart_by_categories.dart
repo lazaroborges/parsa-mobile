@@ -16,6 +16,7 @@ import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/ui_number_formatter.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/presentation/widgets/trending_value.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
 import '../../../../core/models/transaction/transaction_type.enum.dart';
@@ -24,6 +25,7 @@ class TrDistributionChartItem<T> {
   final T category;
   List<MoneyTransaction> transactions;
   double value;
+  double trend = 0;
 
   TrDistributionChartItem({
     required this.category,
@@ -78,6 +80,17 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
         .getTransactions(filters: _getTransactionFilters())
         .first;
 
+    final previousPeriodFilters = _getTransactionFilters().copyWith(
+      minDate: widget.datePeriodState.startDate?.subtract(
+        widget.datePeriodState.endDate?.difference(widget.datePeriodState.startDate ?? DateTime.now()) ?? Duration.zero,
+      ),
+      maxDate: widget.datePeriodState.startDate,
+    );
+    
+    final previousTransactions = await transactionService
+        .getTransactions(filters: previousPeriodFilters)
+        .first;
+
     for (final transaction in transactions) {
       if (transaction.category == null) continue;
       
@@ -109,6 +122,36 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
             value: trValue,
           ),
         );
+      }
+    }
+
+    final previousPeriodTotals = <String, double>{};
+    for (final transaction in previousTransactions) {
+      if (transaction.category == null) continue;
+
+      final trValue = transaction.currentValueInPreferredCurrency *
+          (transactionsType == TransactionType.E ? -1 : 1);
+
+      final categoryToUse = widget.useSubcategories
+          ? transaction.category
+          : (transaction.category!.parentCategoryID == null
+              ? transaction.category
+              : await CategoryService.instance
+                  .getCategoryById(transaction.category!.parentCategoryID!)
+                  .first);
+
+      if (categoryToUse == null) continue;
+
+      previousPeriodTotals[categoryToUse.id] =
+          (previousPeriodTotals[categoryToUse.id] ?? 0) + trValue;
+    }
+
+    for (final item in data) {
+      final previousValue = previousPeriodTotals[item.category.id] ?? 0;
+      if (previousValue > 0) {
+        item.trend = ((item.value - previousValue) / previousValue);
+      } else {
+        item.trend = item.value > 0 ? 1 : 0;
       }
     }
 
@@ -361,10 +404,22 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                           '${dataCategory.transactions.length} ${t.transaction.display(n: dataCategory.transactions.length)}'
                               .toLowerCase(),
                         ),
-                        Text(
-                            NumberFormat.decimalPercentPattern(decimalDigits: 2)
-                                .format(getElementPercentageInTotal(
-                                    dataCategory.value, snapshot.data!)))
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TrendingValue(
+                              percentage: dataCategory.trend,
+                              fontSize: 12,
+                              decimalDigits: 0,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              NumberFormat.decimalPercentPattern(decimalDigits: 2)
+                                  .format(getElementPercentageInTotal(
+                                      dataCategory.value, snapshot.data!))
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     leading: IconDisplayer.fromCategory(

@@ -96,19 +96,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Opacity(
-                            opacity: 0.5,
-                            child: SettingCardItem(
-                              title: t.budgets.title,
-                              icon: Icons.pie_chart_rounded,
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Em breve!"),
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              },
+                          child: SettingCardItem(
+                            title: t.budgets.title,
+                            icon: Icons.pie_chart_rounded,
+                            onTap: () => RouteUtils.pushRoute(
+                              context,
+                              const BudgetsPage(),
                             ),
                           ),
                         ),

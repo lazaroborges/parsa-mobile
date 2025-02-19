@@ -49,6 +49,8 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
 import 'package:in_app_review/in_app_review.dart';
 
+import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -267,6 +269,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                               ),
                             ),
+<<<<<<< HEAD
                             ActionChip(
                               label: Text(dateRangeService.getText(context)),
                               backgroundColor:
@@ -293,10 +296,61 @@ class _DashboardPageState extends State<DashboardPage> {
                                         dateRangeService.copyWith(
                                       periodModifier: 0,
                                       datePeriod: value,
+=======
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                StreamBuilder(
+                                  stream: PrivateModeService.instance.privateModeStream,
+                                  initialData: false,
+                                  builder: (context, snapshot) {
+                                    final isPrivate = snapshot.data ?? false;
+                                    return IconButton(
+                                      icon: Icon(
+                                        isPrivate ? Icons.visibility : Icons.visibility_off,
+                                        size: 20,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                      style: IconButton.styleFrom(
+                                        padding: const EdgeInsets.all(8),
+                                      ),
+                                      onPressed: () {
+                                        PrivateModeService.instance.setPrivateMode(!isPrivate);
+                                      },
+>>>>>>> 33c83e9 (Private Mode in Dashboard Page~)
                                     );
-                                  });
-                                });
-                              },
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                ActionChip(
+                                  label: Text(dateRangeService.getText(context)),
+                                  backgroundColor: AppColors.of(context).primaryContainer,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: BorderSide(
+                                      style: BorderStyle.none,
+                                      color: AppColors.of(context).onPrimary,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    openDatePeriodModal(
+                                      context,
+                                      DatePeriodModal(
+                                        initialDatePeriod: dateRangeService.datePeriod,
+                                      ),
+                                    ).then((value) {
+                                      if (value == null) return;
+
+                                      setState(() {
+                                        dateRangeService = dateRangeService.copyWith(
+                                          periodModifier: 0,
+                                          datePeriod: value,
+                                        );
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),

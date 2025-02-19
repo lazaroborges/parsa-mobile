@@ -68,7 +68,7 @@ class _StatsPageState extends State<StatsPage> {
 
     return DefaultTabController(
       initialIndex: widget.initialIndex,
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(t.stats.title),
@@ -98,6 +98,7 @@ class _StatsPageState extends State<StatsPage> {
                 Tab(text: "${t.categories.subcategories}"),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
+                Tab(text: t.stats.balance_evolution),
               ],
               isScrollable: true),
         ),
@@ -190,6 +191,15 @@ class _StatsPageState extends State<StatsPage> {
                     )
                   ],
                 ),
+                buildContainerWithPadding([
+                  CardWithHeader(
+                    title: t.stats.balance_evolution,
+                    body: FundEvolutionLineChart(
+                      showBalanceHeader: true,
+                      dateRange: dateRangeService,
+                      filters: filters,
+                    ),
+                  ),       ]),
               ]),
             ),
           ],
