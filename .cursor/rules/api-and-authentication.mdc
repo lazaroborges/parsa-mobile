@@ -6,10 +6,10 @@ globs: *dart
     - Always retrieve valid `Auth0` credentials (`credentials.accessToken`) before making any authenticated requests.
     - If credentials are `null` or invalid, attempt a silent refresh using `auth0Provider.checkLoginStatus()` before proceeding.
 
-1. ** Use the Auth0Provider Singleton** 
+1. **Use the Auth0Provider Singleton** 
     - Access the Auth0 instance through `Auth0Provider.instance.auth0` rather than creating new `Auth0` objects.
     - Any login/logout checks should leverage `Auth0Provider` methods (e.g., `checkLoginStatus`, `logout`).
-    - Acess the Auth0Provider Singleton via Provider and don't pass it from where the post request is being called. 
+    - Acess the Auth0Provider Singleton  via Provider and don't pass it from where the post request is being called. 
 
 3. **Handle Offline Scenarios Gracefully**
     - Before making API calls, detect if the user is offline.

@@ -8,6 +8,7 @@ import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
+
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
   const TabsPage({super.key});
@@ -104,14 +105,14 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     }
   }
 
-Future<void> _fetchUserInfoServer() async {
-  try {
-    final data = await fetchUserDataAtServer();
-  } catch (e) {
-    print('Error during API login: $e');
-    // Handle error as needed
+  Future<void> _fetchUserInfoServer() async {
+    try {
+      final data = await fetchUserDataAtServer();
+    } catch (e) {
+      print('Error during API login: $e');
+      // Handle error as needed
+    }
   }
-}
 
   void changePage(MainMenuDestination destination) {
     navigationSidebarKey.currentState?.setSelectedDestination(destination);
