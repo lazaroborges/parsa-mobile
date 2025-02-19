@@ -329,7 +329,9 @@ Widget build(BuildContext context) {
           ),
         ),
       ]);
-    },
+    }, //Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here 
+    // TODO - CREATE a ~shared preferences~ variable that tracks if the user has gone through the onboarding screen 
+    // TODO - If the user has already gone through the onboarding screen, then do not show it again. 
       home: (auth0Provider.credentials != null
           ? BiometricsCheckScreen() //bring back biometrics check
           : Auth0Service(auth0Provider: auth0Provider)),
