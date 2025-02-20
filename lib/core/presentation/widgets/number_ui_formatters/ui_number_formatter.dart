@@ -69,6 +69,13 @@ class UINumberFormatter {
             DefaultTextStyle.of(context).style.fontSize) ??
         16;
 
+    // Ensure currency style has normal weight
+    final normalizedCurrencyStyle = TextStyle(
+      fontSize: valueFontSize,
+      fontWeight: FontWeight.normal,
+      color: (currencyStyle ?? integerStyle).color,
+    );
+
     final computedDecimalStyles = decimalsStyle ??
         integerStyle.copyWith(
           fontWeight: FontWeight.w300,
@@ -78,6 +85,8 @@ class UINumberFormatter {
         );
 
     List<String> parts = [];
+    bool isNegative = amountToConvert < 0;
+    double absAmount = amountToConvert.abs();
 
     if (mode == UINumberFormatterMode.currency) {
       // Remove the decimal separator from the symbol, otherwise the parts won't be splitted correctly
@@ -86,7 +95,7 @@ class UINumberFormatter {
 
       final String formattedAmount = NumberFormat.currency(
               decimalDigits: showDecimals ? 2 : 0, symbol: symbolWithoutDecSep)
-          .format(amountToConvert);
+          .format(absAmount);
 
       // Get the decimal and the integer part, and restore the original symbol
       parts = formattedAmount
@@ -108,38 +117,35 @@ class UINumberFormatter {
     }
 
     return [
-      // Currency symbol (if is before the amount):
+      // Currency symbol
       if (mode == UINumberFormatterMode.currency &&
           parts[0].contains(currency!.symbol))
         TextSpan(
-          text: currency!.symbol,
-          style: currencyStyle ?? integerStyle,
+          text: '${currency!.symbol}${isNegative ? '' : '\u200A'}',
+          style: normalizedCurrencyStyle,
         ),
 
-      // Integer part (without the symbol in currency mode):
+      // Minus sign if negative
+      if (isNegative)
+        TextSpan(
+          text: '-',
+          style: normalizedCurrencyStyle,
+        ),
+
+      // Integer part
       TextSpan(
-          text: parts[0].replaceAll(currency?.symbol ?? '', ''),
+          text: parts[0].replaceAll(currency?.symbol ?? '', '').trim(),
           style: integerStyle),
 
-      // Decimal separator:
+      // Decimal separator
       if (showDecimals && parts.length > 1)
         TextSpan(text: decimalSep, style: integerStyle),
 
-      // Decimal part (without the symbol in currency mode):
+      // Decimal part
       if (showDecimals && parts.length > 1)
         TextSpan(
           text: parts[1].replaceAll(currency?.symbol ?? '', ''),
           style: computedDecimalStyles,
-        ),
-
-      // Currency symbol (if is after the amount):
-      if (showDecimals &&
-          parts.length > 1 &&
-          mode == UINumberFormatterMode.currency &&
-          parts[1].contains(currency!.symbol))
-        TextSpan(
-          text: currency!.symbol,
-          style: currencyStyle ?? integerStyle,
         ),
     ];
   }

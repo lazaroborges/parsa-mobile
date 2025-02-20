@@ -75,7 +75,8 @@ class TransactionListTile extends StatelessWidget {
   }
 
   String getAccountName() {
-    if (accountNameMaxLength != null && transaction.account.name.length > accountNameMaxLength!) {
+    if (accountNameMaxLength != null &&
+        transaction.account.name.length > accountNameMaxLength!) {
       return '${transaction.account.name.substring(0, accountNameMaxLength!)}...';
     }
     return transaction.account.name;
@@ -113,13 +114,25 @@ class TransactionListTile extends StatelessWidget {
                   )
                 ],
                 if (transaction.isReversed) ...[
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Icon(
                     MoneyTransaction.reversedIcon,
                     size: 12,
                     color: AppColors.of(context).brand,
                   )
-                ]
+                ],
+                if (transaction.tags.isNotEmpty) ...[
+                  const SizedBox(width: 2),
+                  ...transaction.tags.take(2).map(
+                        (tag) => Padding(
+                          padding: const EdgeInsets.only(right: 1),
+                          child: tag.displayIcon(
+                            size: 12,
+                            color: tag.colorData.lighten(0.2),
+                          ),
+                        ),
+                      ),
+                ],
               ],
             ),
           ),
@@ -163,7 +176,9 @@ class TransactionListTile extends StatelessWidget {
                           periodicityInfo != null)) {
                         if (showDate) {
                           // Use this single line to format the date
-                          secondaryText = DateFormat("d 'de' MMMM 'de' yyyy", 'pt_BR').format(transaction.date.toLocal());
+                          secondaryText =
+                              DateFormat("d 'de' MMMM 'de' yyyy", 'pt_BR')
+                                  .format(transaction.date.toLocal());
                         } else {
                           secondaryText = transaction.paymentMethod ?? '';
                         }
@@ -216,7 +231,8 @@ class TransactionListTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (showTime) Text(DateFormat.Hm().format(transaction.date.toLocal())),
+            if (showTime)
+              Text(DateFormat.Hm().format(transaction.date.toLocal())),
             if (periodicityInfo != null &&
                 transaction.recurrentInfo.isRecurrent)
               Text.rich(
