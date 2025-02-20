@@ -773,7 +773,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildBalanceDisplay(BuildContext context, double balance,
       {Key? key}) {
-    final isNegative = balance < 0;
+    // final isNegative = balance < 0;
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
 
