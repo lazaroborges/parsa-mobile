@@ -28,7 +28,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
+import 'package:parsa/app/onboarding/intake.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -39,12 +39,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
-  
+
   // Add custom HTTP override for User-Agent
   HttpOverrides.global = CustomHttpOverrides();
-  
-  //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file. 
-  apiEndpoint = kReleaseMode ? 'https://app.parsa-ai.com.br' : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
+
+  //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file.
+  apiEndpoint = kReleaseMode
+      ? 'https://app.parsa-ai.com.br'
+      : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
 
   final auth0 = Auth0(
     dotenv.env['AUTH0_DOMAIN']!,
@@ -53,7 +55,8 @@ void main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = dotenv.env['SENTRY_DSN']!; // Add SENTRY_DSN to your .env file
+      options.dsn =
+          dotenv.env['SENTRY_DSN']!; // Add SENTRY_DSN to your .env file
       options.tracesSampleRate = 1.0; // Capture 100% of transactions
       options.enableAutoSessionTracking = true;
     },
@@ -70,9 +73,6 @@ void main() async {
       ),
     ),
   );
-
-
-  
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
@@ -143,7 +143,8 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   Widget build(BuildContext context) {
     // Print app version
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
-      print('------------------ APP ENTRY POINT ------------------ v${AppVersionProvider.instance.fullVersion}');
+      print(
+          '------------------ APP ENTRY POINT ------------------ v${AppVersionProvider.instance.fullVersion}');
       print('API_ENDPOINT: $apiEndpoint');
       print('App Version: ');
     });
@@ -266,77 +267,79 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     });
   }
 
-@override
-Widget build(BuildContext context) {
-  final auth0Provider = Provider.of<Auth0Provider>(context);
-  Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
+  @override
+  Widget build(BuildContext context) {
+    final auth0Provider = Provider.of<Auth0Provider>(context);
+    Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
 
-  if (isLoading) {
-    return const Center(child: CircularProgressIndicator());
-  }
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-  final ColorScheme lightColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.blue,
-    brightness: Brightness.light,
-  );
-
-  final ThemeData lightTheme = getThemeData(
-    lightColorScheme: lightColorScheme,
-    accentColor: widget.accentColor,
-  );
-
-  return MaterialApp(
-    title: 'Parsa',
-    key: ValueKey(refresh),
-    debugShowCheckedModeBanner: false,
-    locale: TranslationProvider.of(context).flutterLocale,
-    scrollBehavior: ScrollBehaviorOverride(),
-    supportedLocales: AppLocaleUtils.supportedLocales,
-    localizationsDelegates: GlobalMaterialLocalizations.delegates,
-    theme: lightTheme,
-    navigatorKey: navigatorKey,
-    navigatorObservers: [
-      MainLayoutNavObserver(),
-      DeepLinkObserver(_handleIncomingLink)
-    ],
-    builder: (context, child) {
-      return Overlay(initialEntries: [
-        OverlayEntry(
-          builder: (context) => Stack(
-            children: [
-              Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 1500),
-                    curve: Curves.easeInOutCubicEmphasized,
-                    width: widget.introSeen
-                        ? getNavigationSidebarWidth(context)
-                        : 0,
-                    color: Theme.of(context).canvasColor,
-                  ),
-                  if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
-                    Container(
-                      width: 2,
-                      height: MediaQuery.of(context).size.height,
-                      color: Theme.of(context).dividerColor,
-                    ),
-                  Expanded(child: child ?? const SizedBox.shrink()),
-                ],
-              ),
-              if (widget.introSeen)
-                NavigationSidebar(key: navigationSidebarKey)
-            ],
-          ),
-        ),
-      ]);
-    }, //Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here 
-    // TODO - CREATE a ~shared preferences~ variable that tracks if the user has gone through the onboarding screen 
-    // TODO - If the user has already gone through the onboarding screen, then do not show it again. 
-      home: (auth0Provider.credentials != null
-          ? BiometricsCheckScreen() //bring back biometrics check
-          : Auth0Service(auth0Provider: auth0Provider)),
+    final ColorScheme lightColorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: Brightness.light,
     );
-}
+
+    final ThemeData lightTheme = getThemeData(
+      lightColorScheme: lightColorScheme,
+      accentColor: widget.accentColor,
+    );
+
+    return MaterialApp(
+      title: 'Parsa',
+      key: ValueKey(refresh),
+      debugShowCheckedModeBanner: false,
+      locale: TranslationProvider.of(context).flutterLocale,
+      scrollBehavior: ScrollBehaviorOverride(),
+      supportedLocales: AppLocaleUtils.supportedLocales,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      theme: lightTheme,
+      navigatorKey: navigatorKey,
+      navigatorObservers: [
+        MainLayoutNavObserver(),
+        DeepLinkObserver(_handleIncomingLink)
+      ],
+      builder: (context, child) {
+        return Overlay(initialEntries: [
+          OverlayEntry(
+            builder: (context) => Stack(
+              children: [
+                Row(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 1500),
+                      curve: Curves.easeInOutCubicEmphasized,
+                      width: widget.introSeen
+                          ? getNavigationSidebarWidth(context)
+                          : 0,
+                      color: Theme.of(context).canvasColor,
+                    ),
+                    if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
+                      Container(
+                        width: 2,
+                        height: MediaQuery.of(context).size.height,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    Expanded(child: child ?? const SizedBox.shrink()),
+                  ],
+                ),
+                if (widget.introSeen)
+                  NavigationSidebar(key: navigationSidebarKey)
+              ],
+            ),
+          ),
+        ]);
+      },
+      // Original authentication logic (commented out for testing)
+      /*home: (auth0Provider.credentials != null
+          ? BiometricsCheckScreen()
+          : Auth0Service(auth0Provider: auth0Provider)),*/
+
+      // Temporary: Start with IntakeForm for testing
+      home: const IntakeForm(),
+    );
+  }
 
   void _handleIncomingLink(String link) {
     print('Received deep link: $link');

@@ -130,6 +130,7 @@ flutter:
     - assets/sql/migrations/
     - assets/png_icons/
     - .env
+    - lib/app/onboarding/questions.json
 
   fonts:
     - family: Nunito

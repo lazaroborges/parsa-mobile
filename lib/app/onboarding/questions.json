@@ -1,0 +1,175 @@
+{
+  "questions": [
+    {
+      "id": "objective",
+      "question": "Qual o seu objetivo principal?",
+      "type": "multiple_choice",
+      "options": [
+        {
+          "id": "manage_expenses",
+          "text": "Controlar meus gastos e sair das dívidas"
+        },
+        {
+          "id": "invest",
+          "text": "Economizar para investir"
+        },
+        {
+          "id": "analyse_expenses",
+          "text": "Análisar a fundo minhas finanças"
+        }
+      ]
+    },
+    {
+      "id": "dificulies",
+      "question": "Com que dificuldade vc controla suas finanças?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "very_easy",
+          "text": "Muito fácil"
+        },
+        {
+          "id": "easy",
+          "text": "Fácil"
+        },
+        {
+          "id": "medium",
+          "text": "Médio"
+        },
+        {
+          "id": "hard",
+          "text": "Dificil"
+        },
+        {
+          "id": "very_hard",
+          "text": "Muito dificil"
+        }
+      ]
+    },
+    {
+      "id": "expense_categories",
+      "question": "Quais métodos você já utilizou para controlar suas finanças?",
+      "type": "multiple_choice",
+      "options": [
+        {
+          "id": "manual",
+          "text": "Caderno e caneta"
+        },
+        {
+          "id": "app",
+          "text": "Aplicativo"
+        },
+        {
+          "id": "spreadsheet",
+          "text": "Planilha"
+        },
+        {
+          "id": "none",
+          "text": "Nunca controlei minhas finanças"
+        }
+      ]
+    },
+    {
+      "id": "worked_with_budget",
+      "question": "Deu certo controlar suas finanças?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "yes",
+          "text": "Sim"
+        },
+        {
+          "id": "no",
+          "text": "Não"
+        }
+      ],
+      "conditional_questions": {
+        "yes": {
+          "id": "budget_success_reason",
+          "question": "Por que deu certo?",
+          "type": "single_choice",
+          "options": [
+            {
+              "id": "discipline",
+              "text": "Mantive a disciplina"
+            },
+            {
+              "id": "easy_method",
+              "text": "O método era fácil"
+            },
+            {
+              "id": "good_income",
+              "text": "Tinha renda suficiente"
+            }
+          ]
+        },
+        "no": {
+          "id": "budget_failure_reason",
+          "question": "Por que não deu certo?",
+          "type": "single_choice",
+          "options": [
+            {
+              "id": "no_time",
+              "text": "Não tenho tempo"
+            },
+            {
+              "id": "no_interest",
+              "text": "Não tenho interesse"
+            },
+            {
+              "id": "no_money",
+              "text": "Não tenho dinheiro"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "financial_situation",
+      "question": "Qual sua situação financeira atual?",
+      "type": "grouped_single_choice",
+      "subquestions": [
+        {
+          "id": "income_type",
+          "question": "Tipo de renda:",
+          "options": [
+            {
+              "id": "constant_income",
+              "text": "Possuo renda constante"
+            },
+            {
+              "id": "variable_income",
+              "text": "Possuo renda variável"
+            },
+            {
+              "id": "no_income",
+              "text": "Não possuo renda"
+            }
+          ]
+        },
+        {
+          "id": "financial_status",
+          "question": "Status financeiro:",
+          "options": [
+            {
+              "id": "debt",
+              "text": "Estou endividado"
+            },
+            {
+              "id": "no_debt",
+              "text": "Não estou endividado, mas não sobra renda"
+            },
+            {
+              "id": "investing",
+              "text": "Estou investindo mas gostaria que sobrasse mais"
+            },
+            {
+              "id": "stable",
+              "text": "Tenho estabilidade financeira e gostaria de melhorar meus gastos"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
