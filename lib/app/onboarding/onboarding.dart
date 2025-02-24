@@ -28,23 +28,23 @@ class _OnboardingPageState extends State<OnboardingPage>
   // Define items at class level
   final List<Map<String, String>> items = [
     {
-      'header': 'Controle Financeiro sem Esforço',
+      'header': 'Controle Financeiro\nsem Esforço',
       'description1':
           'Na Parsa, acreditamos que controlar suas finanças deve ser simples e descomplicado.',
       'description2':
           'Nosso objetivo é trazer facilidade e praticidade para o seu dia a dia, permitindo que você se concentre no que realmente importa.',
       'description3':
           'Deixe o trabalho pesado conosco, enquanto você mantém o controle sem esforço.',
-      'image': 'assets/icons/app_onboarding/first.svg'
+      'image': 'assets/icons/app_onboarding/control.svg'
     },
     {
-      'header': 'Trate suas Finanças como seus Dentes',
+      'header': 'Trate suas Finanças\ncomo seus Dentes',
       'description1':
           'Automatizamos ao máximo para facilitar sua vida, mas uma boa rotina financeira exige atenção.',
       'description2':
           'Assim como você cuida dos dentes todos os dias, revisar suas finanças regularmente é essencial para mantê-las saudáveis.',
       'description3': 'Faça disso um hábito simples, mas poderoso.',
-      'image': 'assets/icons/app_onboarding/security.svg'
+      'image': 'assets/icons/app_onboarding/bend.svg'
     },
     {
       'header': 'Defina Metas Desafiadoras',
@@ -53,7 +53,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       'description2':
           'Com a Parsa, você cria objetivos personalizados e acompanha cada passo rumo a eles.',
       'description3': 'Transforme seus sonhos financeiros em resultados.',
-      'image': 'assets/icons/app_onboarding/wallet.svg'
+      'image': 'assets/icons/app_onboarding/goals.svg'
     },
   ];
 
@@ -276,8 +276,8 @@ class _OnboardingPageState extends State<OnboardingPage>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
             color: index == currentPage
-                ? appColors.primary
-                : appColors.primary
+                ? appColors.brandDark
+                : appColors.brandDark
                     .withAlpha(51), // Using withAlpha instead of withOpacity
           ),
         ),
