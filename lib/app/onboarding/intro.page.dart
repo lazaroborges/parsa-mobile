@@ -1,133 +1,278 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
 import 'package:parsa/app/settings/about_page.dart';
 import 'package:parsa/core/presentation/responsive/breakpoint_container.dart';
 import 'package:parsa/core/presentation/widgets/html_text.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 
 import '../../core/presentation/app_colors.dart';
 
-class IntroPage extends StatelessWidget {
+final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
+
+class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
 
-  Widget buildFirstSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Transform.translate(
-              offset: const Offset(-4, 0),
-              child: const DisplayAppIcon(height: 80),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Parsa',
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium!
-              .copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 8),
-        Text(t.intro.welcome_subtitle),
-        const SizedBox(height: 4),
-        Text(
-          t.intro.welcome_subtitle2,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall!
-              .copyWith(color: AppColors.of(context).primary),
-        ),
-      ],
+  @override
+  State<IntroPage> createState() => _IntroPageState();
+}
+
+class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
+  late AnimationController _logoController;
+  late AnimationController _contentController;
+  late Animation<Offset> _logoSlideAnimation;
+  late Animation<double> _logoScaleAnimation;
+  late Animation<double> _contentFadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Logo animation controller
+    _logoController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
     );
+
+    // Content fade controller
+    _contentController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    // Logo slide animation
+    _logoSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0),
+      end: const Offset(0, -0.35),
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: Curves.easeInOutCubicEmphasized,
+    ));
+
+    // Logo scale animation
+    _logoScaleAnimation = Tween<double>(
+      begin: 2.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: Curves.easeInOutCubicEmphasized,
+    ));
+
+    // Content fade animation
+    _contentFadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _contentController,
+      curve: Curves.easeOut,
+    ));
+
+    // Start animations sequence
+    Future.delayed(const Duration(seconds: 1), () {
+      _logoController.forward().then((_) {
+        _contentController.forward();
+      });
+    });
   }
 
-  Widget buildSecondSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Text(
-          t.intro.offline_descr_title,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall!
-              .copyWith(fontWeight: FontWeight.w600),
-        ),
-        Text(
-          t.intro.offline_descr,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall!
-              .copyWith(fontWeight: FontWeight.w200),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          // width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: () => RouteUtils.pushRoute(
-                context, const OnboardingPage(),
-                withReplacement: true),
-            icon: const Icon(Icons.person_2_rounded),
-            label: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(t.intro.offline_start),
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        HTMLText(
-          htmlString: t.intro.welcome_footer,
-          defaultTextStyle:
-              const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w200),
-          tags: {
-            'a': TextStyle(
-                color: Colors.blue.shade200,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w200)
-          },
-        ),
-      ],
-    );
+  @override
+  void dispose() {
+    _logoController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      throw 'Could not launch $urlString';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final appColors = AppColors.of(context);
+    final t = Translations.of(context);
+    final auth0Provider = Provider.of<Auth0Provider>(context);
+
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: BreakpointContainer(
-            mdChild: Row(
-              children: [
-                Flexible(
-                    flex: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 24),
-                      child: buildFirstSection(context),
-                    )),
-                const VerticalDivider(),
-                Flexible(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 24),
-                      child: buildSecondSection(context),
-                    )),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildFirstSection(context),
-                buildSecondSection(context),
-              ],
-            ),
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(height: constraints.maxHeight * 0.05),
+                      // Logo and Title Section grouped together
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Parsa Text - Positioned first in the stack
+                              Padding(
+                                padding: const EdgeInsets.only(top: 80),
+                                child: FadeTransition(
+                                  opacity: _contentFadeAnimation,
+                                  child: Text(
+                                    'Parsa',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge!
+                                        .copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: appColors.primary,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                              // Logo on top
+                              SlideTransition(
+                                position: _logoSlideAnimation,
+                                child: ScaleTransition(
+                                  scale: _logoScaleAnimation,
+                                  child: const DisplayAppIcon(height: 180),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Bottom Buttons Section
+                      FadeTransition(
+                        opacity: _contentFadeAnimation,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FilledButton(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                backgroundColor:
+                                    const Color(0xFF0F3375), // Brand blue color
+                              ),
+                              onPressed: () async {
+                                print('Login attempt started');
+                                try {
+                                  await auth0Provider.login();
+                                  if (context.mounted) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            TabsPage(key: tabsPageKey),
+                                      ),
+                                    );
+                                  }
+                                  print('Navigated to TabsPage');
+                                } catch (e) {
+                                  print('Login failed: $e');
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(t.auth.login_error),
+                                        backgroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text(
+                                'Fazer Login no Parsa',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          'Ao continuar, estou de acordo com os ',
+                                      style: TextStyle(
+                                        color: const Color(0xFF475466),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: 'Termos de Uso e Serviço',
+                                      style: TextStyle(
+                                        color: const Color(0xFF475466),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () => _launchURL(
+                                            'https://www.parsa-ai.com.br/termos-e-condições-de-serviço'),
+                                    ),
+                                    TextSpan(
+                                      text: ' e a ',
+                                      style: TextStyle(
+                                        color: const Color(0xFF475466),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: 'Política de Privacidade',
+                                      style: TextStyle(
+                                        color: const Color(0xFF475466),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () => _launchURL(
+                                            'https://www.parsa-ai.com.br/política-de-privacidade'),
+                                    ),
+                                    TextSpan(
+                                      text: ' do Parsa.',
+                                      style: TextStyle(
+                                        color: const Color(0xFF475466),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

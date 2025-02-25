@@ -29,6 +29,8 @@ import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:parsa/app/onboarding/onboarding.dart';
+
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -330,12 +332,18 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             ),
           ),
         ]);
-      }, //Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here
+      },
+      // Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here
       // TODO - CREATE a ~shared preferences~ variable that tracks if the user has gone through the onboarding screen
       // TODO - If the user has already gone through the onboarding screen, then do not show it again.
-      home: (auth0Provider.credentials != null
-          ? BiometricsCheckScreen() //bring back biometrics check
-          : Auth0Service(auth0Provider: auth0Provider)),
+
+      // Original authentication flow (commented out)
+      // home: (auth0Provider.credentials != null
+      //     ? BiometricsCheckScreen() //bring back biometrics check
+      //     : Auth0Service(auth0Provider: auth0Provider)),
+
+      // Direct to onboarding instead
+      home: const OnboardingPage(),
     );
   }
 
