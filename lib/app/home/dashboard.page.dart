@@ -149,8 +149,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
-        floatingActionButton:
-            hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
+        // Botão de nova transação comentado
+        // floatingActionButton:
+        //     hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
         drawer: null, // Nulled and hidden the draw at version 2.0.10
         body: RefreshIndicator(
           onRefresh: _refreshData,
@@ -162,7 +163,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor),
                 child: Card(
-                  margin: const EdgeInsets.only(bottom: 24),
+                  margin: const EdgeInsets.only(bottom: 12),
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(16),
@@ -471,7 +472,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       .toList();
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: AccountListCard(
                       accounts: accounts,
                       onAccountTap: (account) => RouteUtils.pushRoute(
@@ -490,10 +492,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 },
               ),
 
-              // Move the TransactionListComponent here
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: CardWithHeader(
                   title: t.home.last_transactions,
                   onHeaderButtonClick: () {
@@ -531,14 +532,14 @@ class _DashboardPageState extends State<DashboardPage> {
 
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: ResponsiveRowColumn.withSymetricSpacing(
                   direction:
                       BreakPoint.of(context).isLargerThan(BreakpointID.md)
                           ? Axis.horizontal
                           : Axis.vertical,
                   rowCrossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 16,
+                  spacing: 8,
                   children: [
                     ResponsiveRowColumnItem(
                       rowFit: FlexFit.tight,
@@ -557,8 +558,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       initialIndex: 0),
                                 );
                               }),
-                          const SizedBox(height: 16),
-
+                          const SizedBox(height: 12),
                           // Add Income/Expense Comparison Card here
                           CardWithHeader(
                             title: t.stats.cash_flow,
@@ -606,7 +606,6 @@ class _DashboardPageState extends State<DashboardPage> {
                           //     },
                           //   ),
                           // ),
-                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -773,23 +772,19 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildBalanceDisplay(BuildContext context, double balance,
       {Key? key}) {
-    final isNegative = balance < 0;
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
-
-    // Previous design used red color for negative numbers:
-    // color: isNegative ? Colors.red : Theme.of(context).textTheme.titleLarge!.color,
 
     return Container(
       key: key,
       width: screenWidth * widthMultiplier,
-      height: 54, // Fixed height to prevent layout shifts
+      height: 54,
       alignment: Alignment.centerLeft,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: CurrencyDisplayer(
-          amountToConvert: balance, // Removed .abs() to show negative sign
+          amountToConvert: balance,
           integerStyle: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w500,
