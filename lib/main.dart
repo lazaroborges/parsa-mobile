@@ -28,7 +28,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:parsa/app/onboarding/intake.dart';
+
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -330,14 +330,12 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             ),
           ),
         ]);
-      },
-      // Original authentication logic (commented out for testing)
-      /*home: (auth0Provider.credentials != null
-          ? BiometricsCheckScreen()
-          : Auth0Service(auth0Provider: auth0Provider)),*/
-
-      // Temporary: Start with IntakeForm for testing
-      home: const IntakeForm(),
+      }, //Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here
+      // TODO - CREATE a ~shared preferences~ variable that tracks if the user has gone through the onboarding screen
+      // TODO - If the user has already gone through the onboarding screen, then do not show it again.
+      home: (auth0Provider.credentials != null
+          ? BiometricsCheckScreen() //bring back biometrics check
+          : Auth0Service(auth0Provider: auth0Provider)),
     );
   }
 
