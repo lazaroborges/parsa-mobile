@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 615
 ///
-/// Built on 2025-02-19 at 16:38 UTC
+/// Built on 2025-02-25 at 18:29 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1398,7 +1398,7 @@ class _TranslationsGeneralTimePeriodicityPt {
 
 	// Translations
 	String get display => 'Recorrência';
-	String get no_repeat => 'Sem repetição';
+	String get no_repeat => 'Definir Minhas Datas';
 	String repeat({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 		one: 'Repetição',
 		other: 'Repetições',
@@ -1668,7 +1668,7 @@ extension on Translations {
 				other: 'Semanas',
 			);
 			case 'general.time.periodicity.display': return 'Recorrência';
-			case 'general.time.periodicity.no_repeat': return 'Sem repetição';
+			case 'general.time.periodicity.no_repeat': return 'Definir Minhas Datas';
 			case 'general.time.periodicity.repeat': return ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n,
 				one: 'Repetição',
 				other: 'Repetições',

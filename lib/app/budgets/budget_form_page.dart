@@ -20,6 +20,9 @@ import '../../core/models/account/account.dart';
 import '../../core/presentation/widgets/count_indicator.dart';
 import '../../core/presentation/widgets/form_fields/list_tile_field.dart';
 import '../../core/presentation/widgets/persistent_footer_button.dart';
+import '../../app/tags/tags_selector.modal.dart';
+import '../../core/database/services/tags/tags_service.dart';
+import '../../core/models/tags/tag.dart';
 
 class BudgetFormPage extends StatefulWidget {
   const BudgetFormPage({super.key, this.budgetToEdit, required this.prevPage});
@@ -49,6 +52,8 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
 
   DateTime startDate = DateTime.now();
   DateTime? endDate;
+
+  List<Tag>? tags;
 
   submitForm() {
     final t = Translations.of(context);
@@ -80,6 +85,7 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
       endDate: intervalPeriod == null ? endDate : null,
       categories: categories?.map((e) => e.id).toList(),
       accounts: accounts?.map((e) => e.id).toList(),
+      tags: tags?.map((e) => e.id).toList(),
     );
 
     if (isEditMode) {
@@ -134,6 +140,14 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
             .first;
 
     intervalPeriod = budget.intervalPeriod;
+
+    tags = budget.tags == null
+        ? null
+        : await TagService.instance
+            .getTags(
+              filter: (p0) => p0.id.isIn(budget.tags!),
+            )
+            .first;
 
     setState(() {});
   }
@@ -288,14 +302,16 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
               StreamBuilder(
                 stream: AccountService.instance.getAccounts(),
                 builder: (context, snapshot) {
-                  List<Account>? selectedAccounts = accounts == null
-                      ? snapshot.data
-                      : (snapshot.data ?? [])
-                          .where(
-                            (element) =>
-                                accounts!.map((e) => e.id).contains(element.id),
-                          )
-                          .toList();
+                  List<Account>? selectedAccounts = accounts;
+                  if (snapshot.hasData) {
+                    selectedAccounts = accounts == null
+                        ? null
+                        : snapshot.data!
+                            .where((element) => accounts!
+                                .map((e) => e.id)
+                                .contains(element.id))
+                            .toList();
+                  }
 
                   return ListTileField(
                     title: t.general.accounts,
@@ -328,15 +344,16 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
               StreamBuilder(
                   stream: CategoryService.instance.getCategories(),
                   builder: (context, snapshot) {
-                    List<Category>? selectedCategories = categories == null
-                        ? snapshot.data
-                        : (snapshot.data ?? [])
-                            .where(
-                              (element) => categories!
+                    List<Category>? selectedCategories = categories;
+                    if (snapshot.hasData) {
+                      selectedCategories = categories == null
+                          ? null
+                          : snapshot.data!
+                              .where((element) => categories!
                                   .map((e) => e.id)
-                                  .contains(element.id),
-                            )
-                            .toList();
+                                  .contains(element.id))
+                              .toList();
+                    }
 
                     return ListTileField(
                       title: t.general.categories,
@@ -367,6 +384,52 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                       },
                     );
                   }),
+              const SizedBox(height: 16),
+              StreamBuilder(
+                stream: TagService.instance.getTags(),
+                builder: (context, snapshot) {
+                  List<Tag>? selectedTags = tags;
+                  if (snapshot.hasData) {
+                    selectedTags = tags == null
+                        ? null
+                        : snapshot.data!
+                            .where((element) =>
+                                tags!.map((e) => e.id).contains(element.id))
+                            .toList();
+                  }
+
+                  return ListTileField(
+                    title: t.tags.display(n: 2),
+                    leading: Icon(Tag.icon),
+                    trailing: CountIndicatorWithExpandArrow(
+                      countToDisplay: tags?.length,
+                    ),
+                    subtitle: tags != null
+                        ? selectedTags!
+                            .map((e) => e.name)
+                            .printFormatted()
+                        : t.account.select.all,
+                    onTap: () {
+                      showTagListModal(
+                        context,
+                        modal: TagSelector(
+                          selectedTags: selectedTags ?? [],
+                          allowEmptySubmit: true,
+                          includeNullTag: false,
+                        ),
+                      ).then((selection) {
+                        if (selection == null) return;
+
+                        setState(() {
+                          tags = selection.length == snapshot.data!.length
+                              ? null
+                              : selection.cast<Tag>();
+                        });
+                      });
+                    },
+                  );
+                },
+              ),
               const SizedBox(height: 24),
             ],
           ),

@@ -4406,6 +4406,203 @@ class BudgetAccountCompanion extends UpdateCompanion<BudgetAccountData> {
   }
 }
 
+class BudgetTag extends Table with TableInfo<BudgetTag, BudgetTagData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  BudgetTag(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _budgetIDMeta =
+      const VerificationMeta('budgetID');
+  late final GeneratedColumn<String> budgetID = GeneratedColumn<String>(
+      'budgetID', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES budgets(id)ON UPDATE CASCADE ON DELETE CASCADE');
+  static const VerificationMeta _tagIDMeta = const VerificationMeta('tagID');
+  late final GeneratedColumn<String> tagID = GeneratedColumn<String>(
+      'tagID', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES tags(id)ON UPDATE CASCADE ON DELETE CASCADE');
+  @override
+  List<GeneratedColumn> get $columns => [budgetID, tagID];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budgetTag';
+  @override
+  VerificationContext validateIntegrity(Insertable<BudgetTagData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('budgetID')) {
+      context.handle(_budgetIDMeta,
+          budgetID.isAcceptableOrUnknown(data['budgetID']!, _budgetIDMeta));
+    } else if (isInserting) {
+      context.missing(_budgetIDMeta);
+    }
+    if (data.containsKey('tagID')) {
+      context.handle(
+          _tagIDMeta, tagID.isAcceptableOrUnknown(data['tagID']!, _tagIDMeta));
+    } else if (isInserting) {
+      context.missing(_tagIDMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  BudgetTagData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetTagData(
+      budgetID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}budgetID'])!,
+      tagID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagID'])!,
+    );
+  }
+
+  @override
+  BudgetTag createAlias(String alias) {
+    return BudgetTag(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class BudgetTagData extends DataClass implements Insertable<BudgetTagData> {
+  final String budgetID;
+  final String tagID;
+  const BudgetTagData({required this.budgetID, required this.tagID});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['budgetID'] = Variable<String>(budgetID);
+    map['tagID'] = Variable<String>(tagID);
+    return map;
+  }
+
+  BudgetTagCompanion toCompanion(bool nullToAbsent) {
+    return BudgetTagCompanion(
+      budgetID: Value(budgetID),
+      tagID: Value(tagID),
+    );
+  }
+
+  factory BudgetTagData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetTagData(
+      budgetID: serializer.fromJson<String>(json['budgetID']),
+      tagID: serializer.fromJson<String>(json['tagID']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'budgetID': serializer.toJson<String>(budgetID),
+      'tagID': serializer.toJson<String>(tagID),
+    };
+  }
+
+  BudgetTagData copyWith({String? budgetID, String? tagID}) => BudgetTagData(
+        budgetID: budgetID ?? this.budgetID,
+        tagID: tagID ?? this.tagID,
+      );
+  BudgetTagData copyWithCompanion(BudgetTagCompanion data) {
+    return BudgetTagData(
+      budgetID: data.budgetID.present ? data.budgetID.value : this.budgetID,
+      tagID: data.tagID.present ? data.tagID.value : this.tagID,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetTagData(')
+          ..write('budgetID: $budgetID, ')
+          ..write('tagID: $tagID')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(budgetID, tagID);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetTagData &&
+          other.budgetID == this.budgetID &&
+          other.tagID == this.tagID);
+}
+
+class BudgetTagCompanion extends UpdateCompanion<BudgetTagData> {
+  final Value<String> budgetID;
+  final Value<String> tagID;
+  final Value<int> rowid;
+  const BudgetTagCompanion({
+    this.budgetID = const Value.absent(),
+    this.tagID = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BudgetTagCompanion.insert({
+    required String budgetID,
+    required String tagID,
+    this.rowid = const Value.absent(),
+  })  : budgetID = Value(budgetID),
+        tagID = Value(tagID);
+  static Insertable<BudgetTagData> custom({
+    Expression<String>? budgetID,
+    Expression<String>? tagID,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (budgetID != null) 'budgetID': budgetID,
+      if (tagID != null) 'tagID': tagID,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BudgetTagCompanion copyWith(
+      {Value<String>? budgetID, Value<String>? tagID, Value<int>? rowid}) {
+    return BudgetTagCompanion(
+      budgetID: budgetID ?? this.budgetID,
+      tagID: tagID ?? this.tagID,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (budgetID.present) {
+      map['budgetID'] = Variable<String>(budgetID.value);
+    }
+    if (tagID.present) {
+      map['tagID'] = Variable<String>(tagID.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetTagCompanion(')
+          ..write('budgetID: $budgetID, ')
+          ..write('tagID: $tagID, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class UserSettings extends Table with TableInfo<UserSettings, UserSetting> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4845,6 +5042,7 @@ abstract class _$AppDB extends GeneratedDatabase {
   late final Budgets budgets = Budgets(this);
   late final BudgetCategory budgetCategory = BudgetCategory(this);
   late final BudgetAccount budgetAccount = BudgetAccount(this);
+  late final BudgetTag budgetTag = BudgetTag(this);
   late final UserSettings userSettings = UserSettings(this);
   late final AppData appData = AppData(this);
   Selectable<Account> getAccountsWithFullData(
@@ -5224,6 +5422,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         budgets,
         budgetCategory,
         budgetAccount,
+        budgetTag,
         userSettings,
         appData
       ];
@@ -5382,6 +5581,34 @@ abstract class _$AppDB extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.update),
             result: [
               TableUpdate('budgetAccount', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('budgets',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('budgets',
+                limitUpdateKind: UpdateKind.update),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('tags',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('tags',
+                limitUpdateKind: UpdateKind.update),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.update),
             ],
           ),
         ],
@@ -6790,6 +7017,19 @@ class $TagsFilterComposer extends FilterComposer<_$AppDB, Tags> {
                 $state.db.transactionTags, joinBuilder, parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter budgetTagRefs(
+      ComposableFilter Function($BudgetTagFilterComposer f) f) {
+    final $BudgetTagFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.budgetTag,
+        getReferencedColumn: (t) => t.tagID,
+        builder: (joinBuilder, parentComposers) => $BudgetTagFilterComposer(
+            ComposerState(
+                $state.db, $state.db.budgetTag, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $TagsOrderingComposer extends OrderingComposer<_$AppDB, Tags> {
@@ -7059,6 +7299,19 @@ class $BudgetsFilterComposer extends FilterComposer<_$AppDB, Budgets> {
                 parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter budgetTagRefs(
+      ComposableFilter Function($BudgetTagFilterComposer f) f) {
+    final $BudgetTagFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.budgetTag,
+        getReferencedColumn: (t) => t.budgetID,
+        builder: (joinBuilder, parentComposers) => $BudgetTagFilterComposer(
+            ComposerState(
+                $state.db, $state.db.budgetTag, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $BudgetsOrderingComposer extends OrderingComposer<_$AppDB, Budgets> {
@@ -7308,6 +7561,109 @@ class $BudgetAccountOrderingComposer
   }
 }
 
+typedef $BudgetTagCreateCompanionBuilder = BudgetTagCompanion Function({
+  required String budgetID,
+  required String tagID,
+  Value<int> rowid,
+});
+typedef $BudgetTagUpdateCompanionBuilder = BudgetTagCompanion Function({
+  Value<String> budgetID,
+  Value<String> tagID,
+  Value<int> rowid,
+});
+
+class $BudgetTagTableManager extends RootTableManager<
+    _$AppDB,
+    BudgetTag,
+    BudgetTagData,
+    $BudgetTagFilterComposer,
+    $BudgetTagOrderingComposer,
+    $BudgetTagCreateCompanionBuilder,
+    $BudgetTagUpdateCompanionBuilder> {
+  $BudgetTagTableManager(_$AppDB db, BudgetTag table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $BudgetTagFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $BudgetTagOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> budgetID = const Value.absent(),
+            Value<String> tagID = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BudgetTagCompanion(
+            budgetID: budgetID,
+            tagID: tagID,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String budgetID,
+            required String tagID,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BudgetTagCompanion.insert(
+            budgetID: budgetID,
+            tagID: tagID,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $BudgetTagFilterComposer extends FilterComposer<_$AppDB, BudgetTag> {
+  $BudgetTagFilterComposer(super.$state);
+  $BudgetsFilterComposer get budgetID {
+    final $BudgetsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.budgetID,
+        referencedTable: $state.db.budgets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $BudgetsFilterComposer(
+            ComposerState(
+                $state.db, $state.db.budgets, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $TagsFilterComposer get tagID {
+    final $TagsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagID,
+        referencedTable: $state.db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $TagsFilterComposer(
+            ComposerState(
+                $state.db, $state.db.tags, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $BudgetTagOrderingComposer extends OrderingComposer<_$AppDB, BudgetTag> {
+  $BudgetTagOrderingComposer(super.$state);
+  $BudgetsOrderingComposer get budgetID {
+    final $BudgetsOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.budgetID,
+        referencedTable: $state.db.budgets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $BudgetsOrderingComposer(
+            ComposerState(
+                $state.db, $state.db.budgets, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $TagsOrderingComposer get tagID {
+    final $TagsOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagID,
+        referencedTable: $state.db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $TagsOrderingComposer(
+            ComposerState(
+                $state.db, $state.db.tags, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
 typedef $UserSettingsCreateCompanionBuilder = UserSettingsCompanion Function({
   required SettingKey settingKey,
   Value<String?> settingValue,
@@ -7485,6 +7841,8 @@ class $AppDBManager {
       $BudgetCategoryTableManager(_db, _db.budgetCategory);
   $BudgetAccountTableManager get budgetAccount =>
       $BudgetAccountTableManager(_db, _db.budgetAccount);
+  $BudgetTagTableManager get budgetTag =>
+      $BudgetTagTableManager(_db, _db.budgetTag);
   $UserSettingsTableManager get userSettings =>
       $UserSettingsTableManager(_db, _db.userSettings);
   $AppDataTableManager get appData => $AppDataTableManager(_db, _db.appData);

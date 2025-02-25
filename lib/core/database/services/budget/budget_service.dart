@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:parsa/core/api/post_methods/post_user_budget.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 
@@ -18,6 +19,12 @@ class BudgetServive {
           startDate: budget.startDate,
           endDate: budget.endDate));
 
+      if (budget.tags != null) {
+        for (final tag in budget.tags!) {
+          await db.into(db.budgetTag).insert(BudgetTagData(budgetID: budget.id, tagID: tag));
+        }
+      }
+
       if (budget.categories != null) {
         for (final category in budget.categories!) {
           await db.into(db.budgetCategory).insert(
@@ -30,6 +37,15 @@ class BudgetServive {
           await db.into(db.budgetAccount).insert(
               BudgetAccountData(budgetID: budget.id, accountID: account));
         }
+      }
+      
+      // Post budget to server
+      try {
+        await PostUserBudget.postBudget(budget: budget);
+      } catch (e) {
+        print('Error posting budget to server: $e');
+        // Continue even if server sync fails
+        // Local data is already saved
       }
 
       return true;
@@ -55,9 +71,7 @@ class BudgetServive {
   Future<bool> updateBudget(Budget budget) {
     return db.transaction(() async {
       await deleteBudget(budget.id);
-
       await insertBudget(budget);
-
       return true;
     });
   }
