@@ -110,7 +110,7 @@ flutter:
 
   assets:
     - assets/resources/
-    - assets/icons/app_onboarding/
+    - assets/icons/onboarding/
     - assets/icons/avatars/
     - assets/icons/currency_flags/
     - assets/icons/page_states/

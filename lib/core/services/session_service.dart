@@ -18,14 +18,15 @@ class SessionService {
       final response = await http.post(
         Uri.parse('$apiEndpoint/api/sessions/'),
         headers: {
-          'Authorization': 'Bearer ${Auth0Provider.instance.credentials?.accessToken}',
+          'Authorization':
+              'Bearer ${Auth0Provider.instance.credentials?.accessToken}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
           'session_start': "Hello server",
         }),
       );
-      
+
       if (response.statusCode == 201) {
         _hasRegisteredSession = true;
       } else {

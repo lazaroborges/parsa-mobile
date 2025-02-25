@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
-import 'package:parsa/app/onboarding/onboarding.dart';
 import 'package:parsa/app/settings/about_page.dart';
-import 'package:parsa/core/presentation/responsive/breakpoint_container.dart';
-import 'package:parsa/core/presentation/widgets/html_text.dart';
-import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -160,11 +156,20 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            FilledButton(
-                              style: FilledButton.styleFrom(
+                            // Updated Button Styling
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
                                 minimumSize: const Size.fromHeight(48),
-                                backgroundColor:
-                                    const Color(0xFF0F3375), // Brand blue color
+                                backgroundColor: appColors.brandLight,
+                                foregroundColor: Colors.white,
+                                elevation: 4,
+                                shadowColor:
+                                    appColors.brandLight.withOpacity(0.6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                               ),
                               onPressed: () async {
                                 print('Login attempt started');
@@ -197,32 +202,36 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 'Fazer Login no Parsa',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 16),
+                            // Updated Text Styling
                             Padding(
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                                  const EdgeInsets.symmetric(horizontal: 8),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
                                     TextSpan(
                                       text:
                                           'Ao continuar, estou de acordo com os ',
-                                      style: TextStyle(
-                                        color: const Color(0xFF475466),
+                                      style: const TextStyle(
+                                        color: Color(0xFF25282B),
                                         fontSize: 14,
+                                        fontFamily: 'Nunito',
                                         fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                     TextSpan(
                                       text: 'Termos de Uso e Serviço',
-                                      style: TextStyle(
-                                        color: const Color(0xFF475466),
+                                      style: const TextStyle(
+                                        color: Color(0xFF25282B),
                                         fontSize: 14,
+                                        fontFamily: 'Nunito',
                                         fontWeight: FontWeight.w700,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -232,17 +241,19 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     ),
                                     TextSpan(
                                       text: ' e a ',
-                                      style: TextStyle(
-                                        color: const Color(0xFF475466),
+                                      style: const TextStyle(
+                                        color: Color(0xFF25282B),
                                         fontSize: 14,
+                                        fontFamily: 'Nunito',
                                         fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                     TextSpan(
                                       text: 'Política de Privacidade',
-                                      style: TextStyle(
-                                        color: const Color(0xFF475466),
+                                      style: const TextStyle(
+                                        color: Color(0xFF25282B),
                                         fontSize: 14,
+                                        fontFamily: 'Nunito',
                                         fontWeight: FontWeight.w700,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -252,9 +263,10 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     ),
                                     TextSpan(
                                       text: ' do Parsa.',
-                                      style: TextStyle(
-                                        color: const Color(0xFF475466),
+                                      style: const TextStyle(
+                                        color: Color(0xFF25282B),
                                         fontSize: 14,
+                                        fontFamily: 'Nunito',
                                         fontWeight: FontWeight.w400,
                                       ),
                                     ),

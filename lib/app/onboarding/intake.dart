@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:parsa/core/presentation/app_colors.dart';
+import 'package:parsa/app/onboarding/question_styles.dart';
 
 class IntakeForm extends StatefulWidget {
   const IntakeForm({Key? key}) : super(key: key);
@@ -10,139 +11,170 @@ class IntakeForm extends StatefulWidget {
   _IntakeFormState createState() => _IntakeFormState();
 }
 
-class _IntakeFormState extends State<IntakeForm> {
+class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
   List<dynamic>? questions;
   int currentQuestionIndex = 0;
   Map<String, dynamic> answers = {};
-  late SharedPreferences prefs;
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  bool isLoading = true;
+
+  // Animation controllers
+  late AnimationController _pageTransitionController;
+  late Animation<Offset> _questionSlideInAnimation;
+
+  // Track previous question for animation direction
+  int previousQuestionIndex = 0;
+  bool get isForwardNavigation => currentQuestionIndex > previousQuestionIndex;
 
   @override
   void initState() {
     super.initState();
-    loadQuestions();
-    initSharedPreferences();
+    _initializeAnimations();
+    _initialize();
   }
 
-  Future<void> initSharedPreferences() async {
-    prefs = await SharedPreferences.getInstance();
+  void _initializeAnimations() {
+    _pageTransitionController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    // Slide in from right animation
+    _questionSlideInAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _pageTransitionController,
+      curve: Curves.easeOutCubic,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _pageTransitionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initialize() async {
+    await loadQuestions();
+    await loadSavedAnswers();
+    setState(() {
+      isLoading = false;
+    });
+    // Start with animation completed
+    _pageTransitionController.value = 1.0;
+  }
+
+  Future<void> loadSavedAnswers() async {
+    // Load previously saved answers if they exist
+    final savedAnswers = await asyncPrefs.getString('intake_answers');
+    if (savedAnswers != null) {
+      setState(() {
+        answers = json.decode(savedAnswers);
+      });
+    }
   }
 
   Future<void> loadQuestions() async {
     try {
-      String jsonString = await DefaultAssetBundle.of(context)
+      final String questionsJson = await DefaultAssetBundle.of(context)
           .loadString('lib/app/onboarding/questions.json');
       setState(() {
-        questions = json.decode(jsonString)['questions'];
+        final data = json.decode(questionsJson);
+        questions = data['questions'];
       });
     } catch (e) {
       print('Error loading questions: $e');
-      // Handle error appropriately
+      // Fallback to empty list
+      setState(() {
+        questions = [];
+      });
     }
-  }
-
-  double get progress {
-    if (questions == null) return 0.0;
-    return (currentQuestionIndex + 1) / questions!.length;
   }
 
   Future<void> saveAnswer(String questionId, dynamic answer) async {
-    answers[questionId] = answer;
-    await prefs.setString('intake_answers', json.encode(answers));
-  }
+    setState(() {
+      answers[questionId] = answer;
+    });
 
-  @override
-  Widget buildProgressBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Column(
-        children: [
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: AppColors.of(context).brandLight.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.of(context).brandDark,
-            ),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Questão ${currentQuestionIndex + 1} de ${questions!.length}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.of(context).brandDark,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildQuestion(Map<String, dynamic> question) {
-    switch (question['type']) {
-      case 'single_choice':
-        return SingleChoiceQuestion(
-          question: question,
-          onAnswer: (answer) {
-            saveAnswer(question['id'], answer);
-            moveToNextQuestion();
-          },
-        );
-      case 'multiple_choice':
-        return MultipleChoiceQuestion(
-          question: question,
-          onAnswer: (answers) {
-            saveAnswer(question['id'], answers);
-            moveToNextQuestion();
-          },
-        );
-      case 'grouped_single_choice':
-        return GroupedSingleChoiceQuestion(
-          question: question,
-          onAnswer: (answers) {
-            saveAnswer(question['id'], answers);
-            moveToNextQuestion();
-          },
-        );
-      default:
-        return const SizedBox.shrink();
-    }
+    // Save to SharedPreferences asynchronously
+    await asyncPrefs.setString('intake_answers', json.encode(answers));
   }
 
   void moveToNextQuestion() {
     if (currentQuestionIndex < questions!.length - 1) {
       setState(() {
+        previousQuestionIndex = currentQuestionIndex;
         currentQuestionIndex++;
       });
+
+      // Run the animation
+      _pageTransitionController.forward(from: 0.0);
     } else {
-      // Navigate to next screen after completing all questions
-      Navigator.pushReplacementNamed(context, '/home');
+      // All questions answered - proceed to next screen
+      completeIntakeForm();
+    }
+  }
+
+  void moveToPreviousQuestion() {
+    if (currentQuestionIndex > 0) {
+      setState(() {
+        previousQuestionIndex = currentQuestionIndex;
+        currentQuestionIndex--;
+      });
+
+      // Run the animation
+      _pageTransitionController.forward(from: 0.0);
+    }
+  }
+
+  Future<void> completeIntakeForm() async {
+    // Mark intake form as completed with timestamp
+    await asyncPrefs.setBool('intake_form_completed', true);
+    await asyncPrefs.setString(
+        'intake_completion_time', DateTime.now().toIso8601String());
+
+    // Navigate to the next screen
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (questions == null) {
-      return Scaffold(
+    if (isLoading || questions == null || questions!.isEmpty) {
+      return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.of(context).brandDark,
-            ),
-          ),
+          child: CircularProgressIndicator(),
         ),
       );
     }
 
     return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 0, // Remove app bar space
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Column(
           children: [
             buildProgressBar(),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: buildQuestion(questions![currentQuestionIndex]),
+              child: AnimatedBuilder(
+                animation: _pageTransitionController,
+                builder: (context, child) {
+                  // Get the current question data
+                  final question = questions![currentQuestionIndex];
+
+                  return SlideTransition(
+                    position: _questionSlideInAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: buildQuestion(question),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -150,346 +182,102 @@ class _IntakeFormState extends State<IntakeForm> {
       ),
     );
   }
-}
 
-// Question type widgets
-class SingleChoiceQuestion extends StatelessWidget {
-  final Map<String, dynamic> question;
-  final Function(String) onAnswer;
-
-  const SingleChoiceQuestion({
-    Key? key,
-    required this.question,
-    required this.onAnswer,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget buildProgressBar() {
     final appColors = AppColors.of(context);
+    final totalQuestions = questions?.length ?? 1;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          question['question'],
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: appColors.brandDark,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Nunito',
-              ),
-        ),
-        const SizedBox(height: 24),
-        ...question['options']
-            .map<Widget>(
-              (option) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildOptionButton(
-                  context: context,
-                  option: option,
-                  onTap: () => onAnswer(option['id']),
-                  isSelected: false,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Back button - only show when not on first question
+          currentQuestionIndex > 0
+              ? IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_rounded,
+                    color: appColors.brandDark,
+                  ),
+                  onPressed: moveToPreviousQuestion,
+                )
+              : const SizedBox(width: 40), // Placeholder for alignment
+
+          // Dots indicator
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                totalQuestions,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: index == currentQuestionIndex ? 24 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    color: index == currentQuestionIndex
+                        ? appColors.brandDark
+                        : appColors.brandDark.withAlpha(51),
+                    boxShadow: index == currentQuestionIndex
+                        ? [
+                            BoxShadow(
+                              color: appColors.brandDark.withOpacity(0.3),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ]
+                        : null,
+                  ),
                 ),
               ),
-            )
-            .toList(),
-      ],
-    );
-  }
-}
+            ),
+          ),
 
-Widget _buildOptionButton({
-  required BuildContext context,
-  required Map<String, dynamic> option,
-  required VoidCallback onTap,
-  required bool isSelected,
-}) {
-  final appColors = AppColors.of(context);
-
-  return ElevatedButton(
-    onPressed: onTap,
-    style: ElevatedButton.styleFrom(
-      backgroundColor: isSelected
-          ? appColors.brandDark
-          : appColors.brandLight.withOpacity(0.1),
-      foregroundColor: isSelected ? Colors.white : appColors.brandDark,
-      minimumSize: const Size.fromHeight(64),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isSelected ? appColors.brandDark : appColors.brandLight,
-          width: 1.5,
-        ),
+          // Empty space on the right to balance the back button
+          const SizedBox(width: 40),
+        ],
       ),
-      elevation: 0,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            option['text'],
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontFamily: 'Nunito',
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-          ),
-        ),
-        if (isSelected)
-          Icon(
-            Icons.check_circle_rounded,
-            color: Colors.white,
-            size: 24,
-          ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
-class MultipleChoiceQuestion extends StatefulWidget {
-  final Map<String, dynamic> question;
-  final Function(List<String>) onAnswer;
+  Widget buildQuestion(Map<String, dynamic> question) {
+    final questionId = question['id'];
+    final savedAnswer = answers[questionId];
 
-  const MultipleChoiceQuestion({
-    Key? key,
-    required this.question,
-    required this.onAnswer,
-  }) : super(key: key);
-
-  @override
-  _MultipleChoiceQuestionState createState() => _MultipleChoiceQuestionState();
-}
-
-class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
-  final Set<String> selectedAnswers = {};
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = AppColors.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.question['question'],
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: appColors.brandDark,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 20),
-        ...widget.question['options']
-            .map<Widget>(
-              (option) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (selectedAnswers.contains(option['id'])) {
-                        selectedAnswers.remove(option['id']);
-                      } else {
-                        selectedAnswers.add(option['id']);
-                      }
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedAnswers.contains(option['id'])
-                        ? appColors.brand
-                        : appColors.brand.withAlpha(10),
-                    foregroundColor: selectedAnswers.contains(option['id'])
-                        ? Colors.white
-                        : appColors.brandDark,
-                    minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: appColors.brand,
-                        width: 1,
-                      ),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        option['text'],
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      if (selectedAnswers.contains(option['id']))
-                        const Icon(Icons.check, size: 20),
-                    ],
-                  ),
-                ),
-              ),
-            )
-            .toList(),
-        const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: selectedAnswers.isNotEmpty
-              ? () => widget.onAnswer(selectedAnswers.toList())
+    switch (question['type']) {
+      case 'single_choice':
+        return SingleChoiceQuestion(
+          question: question,
+          initialAnswer: savedAnswer as String?,
+          onAnswer: (answer) {
+            saveAnswer(questionId, answer);
+            moveToNextQuestion();
+          },
+        );
+      case 'multiple_choice':
+        return MultipleChoiceQuestion(
+          question: question,
+          initialAnswers:
+              savedAnswer != null ? List<String>.from(savedAnswer) : null,
+          onAnswer: (answers) {
+            saveAnswer(questionId, answers);
+            moveToNextQuestion();
+          },
+        );
+      case 'grouped_single_choice':
+        return GroupedSingleChoiceQuestion(
+          question: question,
+          initialAnswers: savedAnswer != null
+              ? Map<String, String>.from(savedAnswer)
               : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: appColors.brandDark,
-            foregroundColor: Colors.white,
-            minimumSize: const Size.fromHeight(56),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 0,
-            disabledBackgroundColor: appColors.brandLight,
-          ),
-          child: const Text(
-            'Continuar',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class GroupedSingleChoiceQuestion extends StatefulWidget {
-  final Map<String, dynamic> question;
-  final Function(Map<String, String>) onAnswer;
-
-  const GroupedSingleChoiceQuestion({
-    Key? key,
-    required this.question,
-    required this.onAnswer,
-  }) : super(key: key);
-
-  @override
-  _GroupedSingleChoiceQuestionState createState() =>
-      _GroupedSingleChoiceQuestionState();
-}
-
-class _GroupedSingleChoiceQuestionState
-    extends State<GroupedSingleChoiceQuestion> {
-  final Map<String, String> answers = {};
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = AppColors.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.question['question'],
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: appColors.brandDark,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 20),
-        Expanded(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: widget.question['subquestions']
-                  .map<Widget>(
-                    (subquestion) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          subquestion['question'],
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: appColors.brandDark,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...subquestion['options']
-                            .map<Widget>(
-                              (option) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      answers[subquestion['id']] = option['id'];
-                                    });
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        answers[subquestion['id']] ==
-                                                option['id']
-                                            ? appColors.brand
-                                            : appColors.brand.withAlpha(10),
-                                    foregroundColor:
-                                        answers[subquestion['id']] ==
-                                                option['id']
-                                            ? Colors.white
-                                            : appColors.brandDark,
-                                    minimumSize: const Size.fromHeight(56),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      side: BorderSide(
-                                        color: appColors.brand,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        option['text'],
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                      if (answers[subquestion['id']] ==
-                                          option['id'])
-                                        const Icon(Icons.check, size: 20),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 16.0),
-            child: ElevatedButton(
-              onPressed:
-                  answers.length == widget.question['subquestions'].length
-                      ? () => widget.onAnswer(answers)
-                      : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: appColors.brandDark,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-                disabledBackgroundColor: appColors.brandLight,
-              ),
-              child: const Text(
-                'Continuar',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+          onAnswer: (answers) {
+            saveAnswer(questionId, answers);
+            moveToNextQuestion();
+          },
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }

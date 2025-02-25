@@ -15,8 +15,10 @@ class OnboardingPage extends StatefulWidget {
 class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
   int currentPage = 0;
+  int previousPage = 0;
   bool isFirstAccess = true;
   late AnimationController _logoController;
+  late AnimationController _pageTransitionController;
   late Animation<double> _logoScaleAnimation;
   late Animation<Offset> _imageSlideAnimation;
   late Animation<Offset> _titleSlideAnimation;
@@ -24,36 +26,35 @@ class _OnboardingPageState extends State<OnboardingPage>
   late Animation<double> _controlsFadeAnimation;
   late Animation<double> _welcomeTextFadeAnimation;
   late Animation<Offset> _buttonSlideAnimation;
+  late Animation<Offset> _pageButtonSlideAnimation;
 
   // Define items at class level
   final List<Map<String, String>> items = [
     {
-      'header': 'Controle Financeiro\nsem Esforço',
+      'header': 'Controle Financeiro\nSem Esforço',
       'description1':
-          'Na Parsa, acreditamos que controlar suas finanças deve ser simples e descomplicado.',
+          'Acreditamos que gerenciar suas finanças deve ser fácil e intuitivo.',
       'description2':
-          'Nosso objetivo é trazer facilidade e praticidade para o seu dia a dia, permitindo que você se concentre no que realmente importa.',
-      'description3':
-          'Deixe o trabalho pesado conosco, enquanto você mantém o controle sem esforço.',
-      'image': 'assets/icons/app_onboarding/control.svg'
+          'Deixe todo o trabalho com a gente, e aproveite seu tempo com o que realmente importa.',
+      'description3': '',
+      'image': 'assets/icons/onboarding/onboarding1.svg'
     },
     {
-      'header': 'Trate suas Finanças\ncomo seus Dentes',
+      'header': 'Trate Suas Finanças\nComo Seus Dentes',
       'description1':
-          'Automatizamos ao máximo para facilitar sua vida, mas uma boa rotina financeira exige atenção.',
-      'description2':
-          'Assim como você cuida dos dentes todos os dias, revisar suas finanças regularmente é essencial para mantê-las saudáveis.',
-      'description3': 'Faça disso um hábito simples, mas poderoso.',
-      'image': 'assets/icons/app_onboarding/bend.svg'
+          'Automatizamos tudo para facilitar sua vida, mas assim como escovar os dentes, você precisa cuidar das suas finanças todos os dias.',
+      'description2': '',
+      'description3': '',
+      'image': 'assets/icons/onboarding/onboarding2.svg'
     },
     {
-      'header': 'Defina Metas Desafiadoras',
+      'header': 'Metas Ambiciosas,\nResultados Reais',
       'description1':
-          'Acompanhar sua situação financeira é importante, mas para crescer, é preciso mais: metas claras e desafiadoras.',
+          'Na Parsa, você define metas financeiras desafiadoras, acompanha seu progresso e transforma seus sonhos em realidade.',
       'description2':
-          'Com a Parsa, você cria objetivos personalizados e acompanha cada passo rumo a eles.',
-      'description3': 'Transforme seus sonhos financeiros em resultados.',
-      'image': 'assets/icons/app_onboarding/goals.svg'
+          'Grandes conquistas começam com pequenos passos bem planejados.',
+      'description3': '',
+      'image': 'assets/icons/onboarding/onboarding3.svg'
     },
   ];
 
@@ -66,6 +67,11 @@ class _OnboardingPageState extends State<OnboardingPage>
   void _setupAnimations() {
     _logoController = AnimationController(
       duration: const Duration(milliseconds: 3500),
+      vsync: this,
+    );
+
+    _pageTransitionController = AnimationController(
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
@@ -94,7 +100,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     ));
 
     _bodyTextSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 3.0),
+      begin: const Offset(0, 3.5),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _logoController,
@@ -118,11 +124,19 @@ class _OnboardingPageState extends State<OnboardingPage>
     ));
 
     _buttonSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 30),
+      begin: const Offset(0, 2.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _logoController,
-      curve: const Interval(0.8, 1.0, curve: Curves.easeOutCubic),
+      curve: const Interval(0.8, 1.0, curve: Curves.elasticOut),
+    ));
+
+    _pageButtonSlideAnimation = Tween<Offset>(
+      begin: const Offset(1.5, 0), // Slide in from right
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _pageTransitionController,
+      curve: Curves.easeOutCubic,
     ));
 
     Future.delayed(const Duration(milliseconds: 1500), () {
@@ -146,208 +160,277 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void dispose() {
     _logoController.dispose();
+    _pageTransitionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
+    final size = MediaQuery.of(context).size;
+    final padding = MediaQuery.of(context).padding;
+
+    // Calculate responsive dimensions
+    final imageHeight = size.height * 0.25;
+    final contentPadding = EdgeInsets.symmetric(
+      horizontal: size.width * 0.06,
+      vertical: size.height * 0.02,
+    );
+
+    // Calculate the exact half of available screen height (accounting for status bar)
+    final halfScreenHeight = (size.height - padding.top - padding.bottom) / 2;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Initial Logo and Welcome Text
-          if (isFirstAccess)
-            Center(
-              child: AnimatedBuilder(
-                animation: _logoController,
-                builder: (context, child) {
-                  if (_logoController.value < 0.2) {
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Initial Logo and Welcome Text
+            if (isFirstAccess)
+              Center(
+                child: AnimatedBuilder(
+                  animation: _logoController,
+                  builder: (context, child) {
+                    if (_logoController.value < 0.2) {
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          DisplayAppIcon(height: imageHeight),
+                          SizedBox(height: size.height * 0.03),
+                          Transform.translate(
+                            offset: const Offset(0, -40),
+                            child: _buildWelcomeText(context, appColors),
+                          ),
+                        ],
+                      );
+                    }
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const DisplayAppIcon(height: 200),
-                        const SizedBox(height: 24),
-                        _buildWelcomeText(context, appColors),
+                        ScaleTransition(
+                          scale: _logoScaleAnimation,
+                          child: DisplayAppIcon(height: imageHeight),
+                        ),
+                        SizedBox(height: size.height * 0.03),
+                        Transform.translate(
+                          offset: const Offset(0, -40),
+                          child: FadeTransition(
+                            opacity: _welcomeTextFadeAnimation,
+                            child: _buildWelcomeText(context, appColors),
+                          ),
+                        ),
                       ],
                     );
-                  }
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ScaleTransition(
-                        scale: _logoScaleAnimation,
-                        child: const DisplayAppIcon(height: 200),
-                      ),
-                      const SizedBox(height: 24),
-                      FadeTransition(
-                        opacity: _welcomeTextFadeAnimation,
-                        child: _buildWelcomeText(context, appColors),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-
-          // Main Content
-          PageView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: items.length,
-            onPageChanged: (index) {
-              setState(() {
-                currentPage = index;
-                if (isFirstAccess) {
-                  isFirstAccess = false;
-                }
-              });
-            },
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Image with slide animation
-                    isFirstAccess && index == 0
-                        ? SlideTransition(
-                            position: _imageSlideAnimation,
-                            child: _buildImage(item['image']),
-                          )
-                        : _buildImage(item['image']),
-                    const SizedBox(
-                        height: 32), // Reduced spacing between image and text
-                    // Title and body text
-                    isFirstAccess && index == 0
-                        ? _buildAnimatedText(item, context)
-                        : _buildStaticText(item, context),
-                  ],
+                  },
                 ),
-              );
-            },
-          ),
-
-          // Progress Indicator at top
-          Positioned(
-            top: 48,
-            left: 0,
-            right: 0,
-            child: isFirstAccess
-                ? FadeTransition(
-                    opacity: _controlsFadeAnimation,
-                    child: _buildProgressIndicator(items.length, appColors),
-                  )
-                : _buildProgressIndicator(items.length, appColors),
-          ),
-
-          // Start Journey Button with adjusted positioning for last card
-          if (currentPage == items.length - 1)
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: MediaQuery.of(context).padding.bottom +
-                  32, // Adjusted bottom padding
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 40), // Extra spacing above button
-                  SlideTransition(
-                    position: _buttonSlideAnimation,
-                    child: _buildStartJourneyButton(appColors),
-                  ),
-                ],
               ),
+
+            // Main Content
+            PageView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: items.length,
+              onPageChanged: (index) {
+                setState(() {
+                  previousPage = currentPage;
+                  currentPage = index;
+
+                  // Reset and run page transition animation when moving to/from last page
+                  if ((currentPage == items.length - 1 &&
+                          previousPage == items.length - 2) ||
+                      (currentPage == items.length - 2 &&
+                          previousPage == items.length - 1)) {
+                    _pageTransitionController.reset();
+                    _pageTransitionController.forward();
+                  }
+
+                  if (isFirstAccess) {
+                    isFirstAccess = false;
+                  }
+                });
+              },
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return Column(
+                  children: [
+                    // Top half container with fixed height for image
+                    SizedBox(
+                      height: halfScreenHeight,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SizedBox(height: size.height * 0.05 + 20),
+                          Expanded(
+                            child: Center(
+                              child: isFirstAccess && index == 0
+                                  ? SlideTransition(
+                                      position: _imageSlideAnimation,
+                                      child: _buildImage(
+                                          item['image'], imageHeight),
+                                    )
+                                  : _buildImage(item['image'], imageHeight),
+                            ),
+                          ),
+                          SizedBox(height: size.height * 0.02),
+                        ],
+                      ),
+                    ),
+
+                    // Bottom half for text content with proper padding
+                    Expanded(
+                      child: Padding(
+                        padding: contentPadding,
+                        child: isFirstAccess && index == 0
+                            ? _buildAnimatedText(item, context, size)
+                            : _buildStaticText(item, context, size),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
-        ],
+
+            // Progress Indicator at top
+            Positioned(
+              top: size.height * 0.02,
+              left: 0,
+              right: 0,
+              child: isFirstAccess
+                  ? FadeTransition(
+                      opacity: _controlsFadeAnimation,
+                      child: _buildProgressIndicator(items.length, appColors),
+                    )
+                  : _buildProgressIndicator(items.length, appColors),
+            ),
+
+            // Start Journey Button with adjusted positioning for last card
+            if (currentPage == items.length - 1)
+              Positioned(
+                left: size.width * 0.06,
+                right: size.width * 0.06,
+                bottom: padding.bottom + size.height * 0.04,
+                child: previousPage == items.length - 2
+                    ? SlideTransition(
+                        position: _pageButtonSlideAnimation,
+                        child: _buildStartJourneyButton(appColors, size),
+                      )
+                    : isFirstAccess
+                        ? SlideTransition(
+                            position: _buttonSlideAnimation,
+                            child: _buildStartJourneyButton(appColors, size),
+                          )
+                        : _buildStartJourneyButton(appColors, size),
+              ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildProgressIndicator(int itemCount, AppColors appColors) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        itemCount,
-        (index) => Container(
-          width: index == currentPage ? 24 : 8,
-          height: 8,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            color: index == currentPage
-                ? appColors.brandDark
-                : appColors.brandDark
-                    .withAlpha(51), // Using withAlpha instead of withOpacity
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          itemCount,
+          (index) => AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: index == currentPage ? 24 : 8,
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25),
+              color: index == currentPage
+                  ? appColors.brandDark
+                  : appColors.brandDark.withAlpha(51),
+              boxShadow: index == currentPage
+                  ? [
+                      BoxShadow(
+                        color: appColors.brandDark.withAlpha(51),
+                        offset: const Offset(0, 1),
+                        blurRadius: 2,
+                      ),
+                    ]
+                  : null,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildImage(String? imagePath) {
+  Widget _buildImage(String? imagePath, double height) {
     return SvgPicture.asset(
       imagePath ?? 'assets/icons/app_onboarding/first.svg',
-      height: 200,
+      height: height,
+      fit: BoxFit.contain,
     );
   }
 
-  Widget _buildAnimatedText(Map<String, dynamic> item, BuildContext context) {
-    final appColors = AppColors.of(context);
-    final bool isLastCard = currentPage == items.length - 1;
+  Widget _buildAnimatedText(
+      Map<String, dynamic> item, BuildContext context, Size size) {
+    final double headerSize = size.width * 0.055;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SlideTransition(
           position: _titleSlideAnimation,
           child: Text(
             item['header'],
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: appColors.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: isLastCard ? 24 : 28,
-                  height: 1.2,
-                ),
+            style: TextStyle(
+              color: const Color(0xFF25282B),
+              fontWeight: FontWeight.w900,
+              fontSize: headerSize,
+              fontFamily: 'Nunito',
+              height: 1.2,
+            ),
             textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(height: 16), // Increased spacing
+        SizedBox(height: size.height * 0.03),
         SlideTransition(
           position: _bodyTextSlideAnimation,
           child: Column(
             children: [
               Text(
                 item['description1'],
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: appColors.onSurface.withAlpha(179),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
+                style: TextStyle(
+                  color: const Color(0xFF25282B),
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
+                  fontFamily: 'Nunito',
+                  height: 1.5,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8), // Added spacing between descriptions
-              Text(
-                item['description2'],
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: appColors.onSurface.withAlpha(179),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                item['description3'],
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: appColors.onSurface.withAlpha(179),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                textAlign: TextAlign.center,
-              ),
+              if (item['description2']!.isNotEmpty)
+                SizedBox(height: size.height * 0.015),
+              if (item['description2']!.isNotEmpty)
+                Text(
+                  item['description2']!,
+                  style: TextStyle(
+                    color: const Color(0xFF25282B),
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
+                    fontFamily: 'Nunito',
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              if (item['description3']!.isNotEmpty)
+                SizedBox(height: size.height * 0.015),
+              if (item['description3']!.isNotEmpty)
+                Text(
+                  item['description3']!,
+                  style: TextStyle(
+                    color: const Color(0xFF25282B),
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
+                    fontFamily: 'Nunito',
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
             ],
           ),
         ),
@@ -355,90 +438,127 @@ class _OnboardingPageState extends State<OnboardingPage>
     );
   }
 
-  Widget _buildStaticText(Map<String, dynamic> item, BuildContext context) {
-    final appColors = AppColors.of(context);
-    final bool isLastCard = currentPage == items.length - 1;
+  Widget _buildStaticText(
+      Map<String, dynamic> item, BuildContext context, Size size) {
+    final double headerSize = size.width * 0.055;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           item['header'],
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: appColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: isLastCard ? 24 : 28,
-                height: 1.2,
-              ),
+          style: TextStyle(
+            color: const Color(0xFF25282B),
+            fontWeight: FontWeight.w900,
+            fontSize: headerSize,
+            fontFamily: 'Nunito',
+            height: 1.2,
+          ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: size.height * 0.03),
         Text(
           item['description1'],
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: appColors.onSurface.withAlpha(179),
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-                height: 1.5,
-              ),
+          style: TextStyle(
+            color: const Color(0xFF25282B),
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+            fontFamily: 'Nunito',
+            height: 1.5,
+          ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
-        Text(
-          item['description2'],
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: appColors.onSurface.withAlpha(179),
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-                height: 1.5,
-              ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          item['description3'],
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: appColors.onSurface.withAlpha(179),
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-                height: 1.5,
-              ),
-          textAlign: TextAlign.center,
-        ),
+        if (item['description2']!.isNotEmpty)
+          SizedBox(height: size.height * 0.015),
+        if (item['description2']!.isNotEmpty)
+          Text(
+            item['description2']!,
+            style: TextStyle(
+              color: const Color(0xFF25282B),
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+              fontFamily: 'Nunito',
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        if (item['description3']!.isNotEmpty)
+          SizedBox(height: size.height * 0.015),
+        if (item['description3']!.isNotEmpty)
+          Text(
+            item['description3']!,
+            style: TextStyle(
+              color: const Color(0xFF25282B),
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+              fontFamily: 'Nunito',
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
       ],
     );
   }
 
-  Widget _buildStartJourneyButton(AppColors appColors) {
-    return FilledButton(
-      onPressed: introFinished,
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-        backgroundColor: appColors.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 0,
+  Widget _buildStartJourneyButton(AppColors appColors, Size size) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          // 3D shadow effect
+          BoxShadow(
+            color: appColors.brandDark.withOpacity(0.3),
+            offset: const Offset(0, 4),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: appColors.brandDark.withOpacity(0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: Text(
-        'Começar Jornada',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: appColors.onPrimary, // Using onPrimary for better contrast
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
+      child: ElevatedButton(
+        onPressed: introFinished,
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(double.infinity, size.height * 0.065),
+          backgroundColor:
+              appColors.brandLight, // Using brandLight from AppColors
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+          padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
+        ),
+        child: Text(
+          'Começar Jornada!',
+          style: TextStyle(
+            fontWeight: FontWeight.w900, // Nunito Black
+            fontSize: size.width * 0.042, // Responsive font size
+            fontFamily: 'Nunito',
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildWelcomeText(BuildContext context, AppColors appColors) {
+    final size = MediaQuery.of(context).size;
+    final double headerSize = size.width * 0.055; // Responsive header size
+
     return Text(
       'Bem-vindo ao Parsa',
-      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: appColors.primary,
-            fontWeight: FontWeight.w600,
-            fontSize: 28,
-            height: 1.2,
-          ),
+      style: TextStyle(
+        color: const Color(0xFF25282B),
+        fontWeight: FontWeight.w900, // Nunito Black
+        fontSize: headerSize, // Responsive size
+        fontFamily: 'Nunito',
+        height: 1.2,
+      ),
       textAlign: TextAlign.center,
     );
   }
