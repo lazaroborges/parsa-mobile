@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/models/date-utils/periodicity.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/core/database/services/category/category_service.dart';
 
 class ApiBudget {
   final String id;
@@ -171,6 +173,7 @@ List<Budget> convertBudgetsToLocal(List<ApiBudget> apiBudgets) {
 
 Future<void> insertBudgetsIntoDB(List<Budget> budgets) async {
   final budgetService = BudgetServive.instance;
+  final categoryService = CategoryService.instance;
   
   for (final budget in budgets) {
     try {
@@ -190,18 +193,36 @@ Future<void> insertBudgetsIntoDB(List<Budget> budgets) async {
         endDate: budget.endDate,
       );
       
+      // First insert/update the budget without categories
       if (existingBudget != null) {
-        // Update existing budget without categories and skip server sync
         await budgetService.updateBudget(budgetWithoutCategories, skipServerSync: true);
       } else {
-        // Insert new budget without categories and skip server sync
         await budgetService.insertBudget(budgetWithoutCategories, skipServerSync: true);
       }
       
-      // Log the categories that couldn't be processed
+      // Now handle the categories - map category names to IDs
       if (budget.categories != null && budget.categories!.isNotEmpty) {
-        print('Note: Budget ${budget.id} has categories that need to be mapped: ${budget.categories}');
-        // Here you would need to map category names to IDs if you want to associate them
+        List<String> categoryIds = [];
+        
+        // For each category name, find the corresponding category ID
+        for (String categoryName in budget.categories!) {
+          final category = await categoryService.getCategoryByName(categoryName).first;
+          if (category != null) {
+            categoryIds.add(category.id);
+            
+            // Insert the budget-category relationship
+            await budgetService.db.into(budgetService.db.budgetCategory).insert(
+              BudgetCategoryData(
+                budgetID: budget.id,
+                categoryID: category.id
+              )
+            );
+          } else {
+            print('Category not found for name: $categoryName');
+          }
+        }
+        
+        print('Mapped categories for budget ${budget.id}: ${categoryIds.length} of ${budget.categories!.length} found');
       }
     } catch (e) {
       print('Error saving budget ${budget.id}: $e');
