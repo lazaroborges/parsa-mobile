@@ -342,15 +342,15 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       // TODO - If the user has already gone through the onboarding screen, then do not show it again.
 
       // Original authentication flow (commented out)
-      // home: (auth0Provider.credentials != null
-      //     ? BiometricsCheckScreen() //bring back biometrics check
-      //     : Auth0Service(auth0Provider: auth0Provider)),
+      home: (auth0Provider.credentials != null
+          ? BiometricsCheckScreen() //bring back biometrics check
+          : Auth0Service(auth0Provider: auth0Provider)),
 
       // Direct to onboarding instead
-      home: auth0Provider.credentials != null
-          ? const IntakeForm() // Show intake form for authenticated users
-          : Auth0Service(
-              auth0Provider: auth0Provider), // Start with authentication
+      //   home: auth0Provider.credentials != null
+      //       ? const IntakeForm() // Show intake form for authenticated users
+      //       : Auth0Service(
+      //           auth0Provider: auth0Provider), // Start with authentication
     );
   }
 

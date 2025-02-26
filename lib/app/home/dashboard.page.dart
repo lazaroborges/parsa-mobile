@@ -777,19 +777,50 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       key: key,
       width: screenWidth * widthMultiplier,
-      height: 54,
+      height: 56,
       alignment: Alignment.centerLeft,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: CurrencyDisplayer(
-          amountToConvert: balance,
-          integerStyle: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).textTheme.titleLarge!.color,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 48,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: CurrencyDisplayer(
+                amountToConvert: balance,
+                integerStyle: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.titleLarge!.color,
+                ),
+              ),
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.only(top: 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (int i = 0; i < BalanceType.values.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                    child: Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: i == currentBalanceType.index
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).disabledColor.withOpacity(0.4),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

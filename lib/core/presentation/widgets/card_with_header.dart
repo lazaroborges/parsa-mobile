@@ -54,9 +54,9 @@ class CardWithHeader extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppColors.of(context).shadowColorLight,
-            blurRadius: cardWithHeaderRadius,
+            blurRadius: 8,
             offset: const Offset(0, 0),
-            spreadRadius: 4,
+            spreadRadius: 2,
           ),
         ],
       ),
@@ -183,7 +183,7 @@ class _AccountListCardState extends State<AccountListCard> {
             fit: BoxFit.contain,
           );
         }
-        
+
         return Image.asset(
           snapshot.data!,
           width: 32,
@@ -196,18 +196,61 @@ class _AccountListCardState extends State<AccountListCard> {
     );
   }
 
+  String _cleanAccountName(String accountName) {
+    // List of common Brazilian bank names to remove from the beginning
+    final bankNames = [
+      'Itaú',
+      'Nubank Empresas',
+      'Nubank',
+      'Banco do Brasil',
+      'Bradesco',
+      'Santander',
+      'Caixa',
+      'Caixa Econômica',
+      'Inter',
+      'BTG',
+      'BTG Pactual',
+      'C6 Bank',
+      'XP',
+      'Neon',
+      'PicPay',
+      'Original',
+      'Banrisul',
+      'Sicoob',
+      'Next',
+      'BS2',
+      'BV',
+      'Banco BV',
+      'Will Bank',
+      'Mercado Pago',
+      'PagBank',
+    ];
+
+    // Check if the account name starts with any bank name (case insensitive)
+    for (final bankName in bankNames) {
+      final pattern = RegExp('^$bankName\\s+', caseSensitive: false);
+      if (pattern.hasMatch(accountName)) {
+        return accountName.replaceFirst(pattern, '');
+      }
+    }
+
+    return accountName;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    
-    final visibleAccounts = widget.accounts.where((account) => !account.hiddenByUser).toList();
-    
+
+    final visibleAccounts =
+        widget.accounts.where((account) => !account.hiddenByUser).toList();
+
     return CardWithHeader(
       title: widget.title.isEmpty ? "Contas" : widget.title,
       onHeaderButtonClick: widget.onAddAccountTap,
       headerButtonIcon: Icons.add,
       onHeaderTap: () => RouteUtils.pushRoute(context, const AllAccountsPage()),
-      body: visibleAccounts.isEmpty 
+      bodyPadding: EdgeInsets.zero,
+      body: visibleAccounts.isEmpty
           ? InkWell(
               onTap: widget.onAddAccountTap,
               child: const Padding(
@@ -224,99 +267,109 @@ class _AccountListCardState extends State<AccountListCard> {
               ),
             )
           : MonekinReorderableList(
-        totalItemCount: visibleAccounts.length,
-        isOrderEnabled: visibleAccounts.length > 1,
-        padding: EdgeInsets.zero,
-        itemBuilder: (context, index) {
-          final account = visibleAccounts[index];
-          return Dismissible(
-            key: Key(account.id),
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 16),
-              child: const Icon(Icons.visibility_off, color: Colors.white),
-            ),
-            secondaryBackground: Container(
-              color: Colors.red,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.only(left: 16),
-              child: const Icon(Icons.visibility_off, color: Colors.white),
-            ),
-            confirmDismiss: (direction) async {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${account.name}foi ocultada do Menu Principal. Visite a aba "Contas" em "Menu" para poder exibi-la novamente aqui.'),
-                  action: SnackBarAction(
-                    label: 'Desfazer',
-                    onPressed: () async {
-                      await AccountService.instance.updateAccount(
-                        account.copyWith(hiddenByUser: false),
-                      );
-                    },
+              totalItemCount: visibleAccounts.length,
+              isOrderEnabled: visibleAccounts.length > 1,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                final account = visibleAccounts[index];
+                return Dismissible(
+                  key: Key(account.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16),
+                    child:
+                        const Icon(Icons.visibility_off, color: Colors.white),
                   ),
-                ),
-              );
-              return true;
-            },
-            onDismissed: (direction) async {
-              await AccountService.instance.updateAccount(
-                account.copyWith(hiddenByUser: true),
-              );
-            },
-            child: Column(
-              children: [
-                ListTile(
-                  onTap: () => widget.onAccountTap(account),
-                  leading: _buildAccountIcon(account.iconId),
-                  title: Text(
-                    account.name,
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  secondaryBackground: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.only(left: 16),
+                    child:
+                        const Icon(Icons.visibility_off, color: Colors.white),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          CurrencyDisplayer(
-                            amountToConvert: account.balance,
-                            currency: account.currency,
-                          ),
-                        ],
+                  confirmDismiss: (direction) async {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            '${account.name}foi ocultada do Menu Principal. Visite a aba "Contas" em "Menu" para poder exibi-la novamente aqui.'),
+                        action: SnackBarAction(
+                          label: 'Desfazer',
+                          onPressed: () async {
+                            await AccountService.instance.updateAccount(
+                              account.copyWith(hiddenByUser: false),
+                            );
+                          },
+                        ),
                       ),
-                      const SizedBox(width: 4),
-                      visibleAccounts.length > 1 
-                          ? ReorderableDragIcon(index: index, enabled: true)
-                          : const Icon(Icons.chevron_right, size: 20),
+                    );
+                    return true;
+                  },
+                  onDismissed: (direction) async {
+                    await AccountService.instance.updateAccount(
+                      account.copyWith(hiddenByUser: true),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      ListTile(
+                        onTap: () => widget.onAccountTap(account),
+                        leading: _buildAccountIcon(account.iconId),
+                        title: Text(
+                          _cleanAccountName(account.name),
+                          style:
+                              Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                CurrencyDisplayer(
+                                  amountToConvert: account.balance,
+                                  currency: account.currency,
+                                  integerStyle: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: account.type == AccountType.credit
+                                        ? Colors.red
+                                        : Theme.of(context)
+                                            .textTheme
+                                            .titleLarge!
+                                            .color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (account != visibleAccounts.last)
+                        const Divider(indent: 72),
                     ],
                   ),
-                ),
-                if (account != visibleAccounts.last)
-                  const Divider(indent: 72),
-              ],
-            ),
-          );
-        },
-        onReorder: (oldIndex, newIndex) async {
-          if (newIndex > oldIndex) newIndex--;
-          
-          final item = visibleAccounts.removeAt(oldIndex);
-          visibleAccounts.insert(newIndex, item);
+                );
+              },
+              onReorder: (oldIndex, newIndex) async {
+                if (newIndex > oldIndex) newIndex--;
 
-          // You'll need to add AccountService to handle the updates
-          await Future.wait(
-            visibleAccounts.mapIndexed(
-              (index, element) => AccountService.instance.updateAccount(
-                element.copyWith(displayOrder: index),
-              ),
+                final item = visibleAccounts.removeAt(oldIndex);
+                visibleAccounts.insert(newIndex, item);
+
+                // You'll need to add AccountService to handle the updates
+                await Future.wait(
+                  visibleAccounts.mapIndexed(
+                    (index, element) => AccountService.instance.updateAccount(
+                      element.copyWith(displayOrder: index),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
