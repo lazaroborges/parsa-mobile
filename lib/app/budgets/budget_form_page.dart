@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/app/accounts/account_selector.dart';
 import 'package:parsa/app/categories/selectors/category_multi_selector.dart';
+import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
@@ -141,13 +142,23 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
 
     intervalPeriod = budget.intervalPeriod;
 
-    tags = budget.tags == null
-        ? null
-        : await TagService.instance
-            .getTags(
-              filter: (p0) => p0.id.isIn(budget.tags!),
-            )
+    // Direct database query to get the tags for this budget
+    if (budget.id != null) {
+      final tagIds = await (AppDB.instance.select(AppDB.instance.budgetTag)
+        ..where((tbl) => tbl.budgetID.equals(budget.id)))
+        .map((row) => row.tagID)
+        .get();
+      
+      if (tagIds.isNotEmpty) {
+        tags = await TagService.instance
+            .getTags(filter: (tag) => tag.id.isIn(tagIds))
             .first;
+      } else {
+        tags = null;
+      }
+    } else {
+      tags = null;
+    }
 
     setState(() {});
   }
@@ -385,45 +396,47 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                     );
                   }),
               const SizedBox(height: 16),
-              StreamBuilder(
+              StreamBuilder<List<Tag>>(
                 stream: TagService.instance.getTags(),
                 builder: (context, snapshot) {
-                  List<Tag>? selectedTags = tags;
-                  if (snapshot.hasData) {
-                    selectedTags = tags == null
-                        ? null
-                        : snapshot.data!
-                            .where((element) =>
-                                tags!.map((e) => e.id).contains(element.id))
-                            .toList();
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
                   }
-
+                  
+                  // Get all available tags
+                  final allTags = snapshot.data!;
+                  
+                  // Create a list of currently selected tag IDs
+                  final selectedTagIds = tags?.map((t) => t.id).toSet() ?? {};
+                  
                   return ListTileField(
                     title: t.tags.display(n: 2),
                     leading: Icon(Tag.icon),
                     trailing: CountIndicatorWithExpandArrow(
                       countToDisplay: tags?.length,
                     ),
-                    subtitle: tags != null
-                        ? selectedTags!
-                            .map((e) => e.name)
-                            .printFormatted()
-                        : t.account.select.all,
+                    subtitle: tags == null
+                        ? t.account.select.all
+                        : (tags!.isEmpty
+                            ? t.tags.no_tags
+                            : tags!.map((e) => e.name).printFormatted()),
                     onTap: () {
                       showTagListModal(
                         context,
                         modal: TagSelector(
-                          selectedTags: selectedTags ?? [],
+                          selectedTags: tags ?? [],
                           allowEmptySubmit: true,
                           includeNullTag: false,
                         ),
                       ).then((selection) {
                         if (selection == null) return;
-
+                        
                         setState(() {
-                          tags = selection.length == snapshot.data!.length
-                              ? null
-                              : selection.cast<Tag>();
+                          if (selection.isEmpty || selection.length == allTags.length) {
+                            tags = null;
+                          } else {
+                            tags = selection.cast<Tag>();
+                          }
                         });
                       });
                     },
