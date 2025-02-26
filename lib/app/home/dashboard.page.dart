@@ -105,7 +105,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
     try {
       await Future.wait([
-        fetchUserAccounts(),
           fetchUserTransactions(null),
       ]);
       unawaited(fetchUserDataAtServer());  // Trul
