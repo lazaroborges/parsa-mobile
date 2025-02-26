@@ -340,12 +340,12 @@ class _OnboardingPageState extends State<OnboardingPage>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(25),
               color: index == currentPage
-                  ? appColors.brandDark
-                  : appColors.brandDark.withAlpha(51),
+                  ? appColors.brand
+                  : appColors.brand.withAlpha(51),
               boxShadow: index == currentPage
                   ? [
                       BoxShadow(
-                        color: appColors.brandDark.withAlpha(51),
+                        color: appColors.brand.withAlpha(51),
                         offset: const Offset(0, 1),
                         blurRadius: 2,
                       ),
@@ -507,13 +507,13 @@ class _OnboardingPageState extends State<OnboardingPage>
         boxShadow: [
           // 3D shadow effect
           BoxShadow(
-            color: appColors.brandDark.withOpacity(0.3),
+            color: appColors.brand.withOpacity(0.3),
             offset: const Offset(0, 4),
             blurRadius: 8,
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: appColors.brandDark.withOpacity(0.1),
+            color: appColors.brand.withOpacity(0.1),
             offset: const Offset(0, 2),
             blurRadius: 4,
             spreadRadius: 0,
@@ -524,8 +524,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         onPressed: introFinished,
         style: ElevatedButton.styleFrom(
           minimumSize: Size(double.infinity, size.height * 0.065),
-          backgroundColor:
-              appColors.brandLight, // Using brandLight from AppColors
+          backgroundColor: appColors.brand, // Using brandLight from AppColors
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -536,7 +535,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         child: Text(
           'Começar Jornada!',
           style: TextStyle(
-            fontWeight: FontWeight.w900, // Nunito Black
+            fontWeight: FontWeight.w700, // Nunito Black
             fontSize: size.width * 0.042, // Responsive font size
             fontFamily: 'Nunito',
             letterSpacing: 0.5,
@@ -554,7 +553,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       'Bem-vindo ao Parsa',
       style: TextStyle(
         color: const Color(0xFF25282B),
-        fontWeight: FontWeight.w900, // Nunito Black
+        fontWeight: FontWeight.w700, // Nunito Black
         fontSize: headerSize, // Responsive size
         fontFamily: 'Nunito',
         height: 1.2,

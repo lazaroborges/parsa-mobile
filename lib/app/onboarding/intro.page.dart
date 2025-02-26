@@ -160,11 +160,10 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size.fromHeight(48),
-                                backgroundColor: appColors.brandLight,
+                                backgroundColor: appColors.brand,
                                 foregroundColor: Colors.white,
                                 elevation: 4,
-                                shadowColor:
-                                    appColors.brandLight.withOpacity(0.6),
+                                shadowColor: appColors.brand.withOpacity(0.6),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -199,20 +198,20 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 }
                               },
                               child: const Text(
-                                'Fazer Login no Parsa',
+                                'Fazer Login',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontFamily: 'Nunito',
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
                             // Updated Text Styling
                             Padding(
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
+                                  const EdgeInsets.symmetric(horizontal: 4),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
@@ -232,7 +231,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
                                       recognizer: TapGestureRecognizer()
@@ -254,7 +253,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
                                       recognizer: TapGestureRecognizer()
@@ -275,7 +274,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                           ],
                         ),
                       ),

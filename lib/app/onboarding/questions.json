@@ -87,38 +87,58 @@
         "yes": {
           "id": "budget_success_reason",
           "question": "Por que deu certo?",
-          "type": "single_choice",
+          "type": "multiple_choice",
           "options": [
             {
-              "id": "discipline",
-              "text": "Mantive a disciplina"
+              "id": "previsibilidade",
+              "text": "Previsibilidade Financeira"
             },
             {
-              "id": "easy_method",
-              "text": "O método era fácil"
+              "id": "sincronizacao",
+              "text": "Sincronização Automática"
             },
             {
-              "id": "good_income",
-              "text": "Tinha renda suficiente"
+              "id": "facilidade",
+              "text": "Facilidade de acompanhar todos os gastos"
+            },
+            {
+              "id": "facilidade_uso",
+              "text": "Facilidade de uso"
+            },
+            {
+              "id": "facilidade_entendimento",
+              "text": "Facilidade de entendimento"
+            },
+            {
+              "id": "personalizacao",
+              "text": "Personalização"
             }
           ]
         },
         "no": {
           "id": "budget_failure_reason",
           "question": "Por que não deu certo?",
-          "type": "single_choice",
+          "type": "multiple_choice",
           "options": [
             {
-              "id": "no_time",
-              "text": "Não tenho tempo"
+              "id": "no_previsibility",
+              "text": "Falta de previsibilidade"
             },
             {
-              "id": "no_interest",
-              "text": "Não tenho interesse"
+              "id": "manual_work",
+              "text": "Muito trabalho manual"
             },
             {
-              "id": "no_money",
-              "text": "Não tenho dinheiro"
+              "id": "need_to_classify",
+              "text": "Necessidade de classificar gastos"
+            },
+            {
+              "id": "need_to_review",
+              "text": "Necessidade de revisão constante"
+            },
+            {
+              "id": "difficulty_using",
+              "text": "Dificuldade de uso"
             }
           ]
         }
@@ -131,7 +151,7 @@
       "subquestions": [
         {
           "id": "income_type",
-          "question": "Tipo de renda:",
+          "question": "Tipo de renda",
           "options": [
             {
               "id": "constant_income",
@@ -149,7 +169,7 @@
         },
         {
           "id": "financial_status",
-          "question": "Status financeiro:",
+          "question": "Status financeiro",
           "options": [
             {
               "id": "debt",

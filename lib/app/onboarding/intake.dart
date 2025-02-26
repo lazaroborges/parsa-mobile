@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/onboarding/question_styles.dart';
+import 'package:parsa/app/layout/tabs.dart';
+
+final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
 class IntakeForm extends StatefulWidget {
   const IntakeForm({Key? key}) : super(key: key);
@@ -15,16 +17,21 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
   List<dynamic>? questions;
   int currentQuestionIndex = 0;
   Map<String, dynamic> answers = {};
-  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  Map<String, dynamic>? currentConditionalQuestion;
   bool isLoading = true;
+  bool isCurrentQuestionValid = false;
 
   // Animation controllers
   late AnimationController _pageTransitionController;
-  late Animation<Offset> _questionSlideInAnimation;
+  late Animation<Offset> _forwardSlideAnimation;
+  late Animation<Offset> _backwardSlideAnimation;
 
   // Track previous question for animation direction
   int previousQuestionIndex = 0;
   bool get isForwardNavigation => currentQuestionIndex > previousQuestionIndex;
+
+  // Flag to prevent setState during build
+  bool _isBuilding = false;
 
   @override
   void initState() {
@@ -39,9 +46,18 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    // Slide in from right animation
-    _questionSlideInAnimation = Tween<Offset>(
+    // Slide in from right animation (for moving forward)
+    _forwardSlideAnimation = Tween<Offset>(
       begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _pageTransitionController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // Slide in from left animation (for moving backward)
+    _backwardSlideAnimation = Tween<Offset>(
+      begin: const Offset(-1.0, 0.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _pageTransitionController,
@@ -57,22 +73,11 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
 
   Future<void> _initialize() async {
     await loadQuestions();
-    await loadSavedAnswers();
     setState(() {
       isLoading = false;
     });
     // Start with animation completed
     _pageTransitionController.value = 1.0;
-  }
-
-  Future<void> loadSavedAnswers() async {
-    // Load previously saved answers if they exist
-    final savedAnswers = await asyncPrefs.getString('intake_answers');
-    if (savedAnswers != null) {
-      setState(() {
-        answers = json.decode(savedAnswers);
-      });
-    }
   }
 
   Future<void> loadQuestions() async {
@@ -92,89 +97,279 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> saveAnswer(String questionId, dynamic answer) async {
+  void saveAnswer(String questionId, dynamic answer) {
+    if (!mounted) return;
+
     setState(() {
       answers[questionId] = answer;
     });
+  }
 
-    // Save to SharedPreferences asynchronously
-    await asyncPrefs.setString('intake_answers', json.encode(answers));
+  void completeIntakeForm() {
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => TabsPage(key: tabsPageKey),
+        ),
+      );
+    }
   }
 
   void moveToNextQuestion() {
-    if (currentQuestionIndex < questions!.length - 1) {
-      setState(() {
-        previousQuestionIndex = currentQuestionIndex;
-        currentQuestionIndex++;
-      });
+    if (!isCurrentQuestionValid) return;
 
-      // Run the animation
-      _pageTransitionController.forward(from: 0.0);
-    } else {
-      // All questions answered - proceed to next screen
-      completeIntakeForm();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (currentConditionalQuestion != null) {
+        setState(() {
+          currentConditionalQuestion = null;
+          previousQuestionIndex = currentQuestionIndex;
+          currentQuestionIndex++;
+        });
+        _pageTransitionController.forward(from: 0.0);
+        return;
+      }
+
+      final currentQuestion = questions![currentQuestionIndex];
+      if (currentQuestion.containsKey('conditional_questions')) {
+        final questionId = currentQuestion['id'];
+        final answer = answers[questionId];
+
+        if (answer != null &&
+            currentQuestion['conditional_questions'].containsKey(answer)) {
+          setState(() {
+            currentConditionalQuestion =
+                currentQuestion['conditional_questions'][answer];
+          });
+          _pageTransitionController.forward(from: 0.0);
+          return;
+        }
+      }
+
+      if (currentQuestionIndex < questions!.length - 1) {
+        setState(() {
+          previousQuestionIndex = currentQuestionIndex;
+          currentQuestionIndex++;
+          isCurrentQuestionValid = false;
+        });
+        _pageTransitionController.forward(from: 0.0);
+      } else {
+        completeIntakeForm();
+      }
+    });
   }
 
   void moveToPreviousQuestion() {
-    if (currentQuestionIndex > 0) {
-      setState(() {
-        previousQuestionIndex = currentQuestionIndex;
-        currentQuestionIndex--;
-      });
+    if (currentQuestionIndex == 0 && currentConditionalQuestion == null) return;
 
-      // Run the animation
-      _pageTransitionController.forward(from: 0.0);
-    }
-  }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
 
-  Future<void> completeIntakeForm() async {
-    // Mark intake form as completed with timestamp
-    await asyncPrefs.setBool('intake_form_completed', true);
-    await asyncPrefs.setString(
-        'intake_completion_time', DateTime.now().toIso8601String());
-
-    // Navigate to the next screen
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
+      if (currentConditionalQuestion != null) {
+        setState(() {
+          currentConditionalQuestion = null;
+          _pageTransitionController.forward(from: 0.0);
+        });
+      } else {
+        final newIndex = currentQuestionIndex - 1;
+        setState(() {
+          previousQuestionIndex = currentQuestionIndex;
+          currentQuestionIndex = newIndex;
+          final questionId = questions![newIndex]['id'];
+          isCurrentQuestionValid = answers.containsKey(questionId);
+          _pageTransitionController.forward(from: 0.0);
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    _isBuilding = true;
+
     if (isLoading || questions == null || questions!.isEmpty) {
-      return const Scaffold(
+      _isBuilding = false;
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            color: AppColors.of(context).brand,
+          ),
         ),
       );
     }
 
+    final currentQuestion =
+        currentConditionalQuestion ?? questions![currentQuestionIndex];
+    final canGoBack =
+        currentQuestionIndex > 0 || currentConditionalQuestion != null;
+
+    final appColors = AppColors.of(context);
+    final totalQuestions = questions?.length ?? 1;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final horizontalPadding = screenWidth * 0.05;
+    final verticalPadding = screenHeight * 0.015;
+    final dotWidth = screenWidth * 0.02;
+    final activeDotWidth = screenWidth * 0.06;
+    final dotHeight = screenHeight * 0.01;
+    final dotSpacing = screenWidth * 0.008;
+
+    // Reset the building flag after build completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _isBuilding = false;
+    });
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        toolbarHeight: 0, // Remove app bar space
+        toolbarHeight: 0,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            buildProgressBar(),
-            Expanded(
-              child: AnimatedBuilder(
-                animation: _pageTransitionController,
-                builder: (context, child) {
-                  // Get the current question data
-                  final question = questions![currentQuestionIndex];
-
-                  return SlideTransition(
-                    position: _questionSlideInAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: buildQuestion(question),
+            // Progress dots and back button
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      size: screenWidth * 0.06,
+                      color: canGoBack
+                          ? appColors.brandLight
+                          : appColors.brandLight.withAlpha(51),
                     ),
-                  );
-                },
+                    onPressed: canGoBack ? moveToPreviousQuestion : null,
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        totalQuestions,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: index == currentQuestionIndex
+                              ? activeDotWidth
+                              : dotWidth,
+                          height: dotHeight,
+                          margin: EdgeInsets.symmetric(horizontal: dotSpacing),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            color: index == currentQuestionIndex
+                                ? appColors.brand
+                                : appColors.brand.withAlpha(51),
+                            boxShadow: index == currentQuestionIndex
+                                ? [
+                                    BoxShadow(
+                                      color: appColors.brand.withAlpha(51),
+                                      offset: Offset(0, screenHeight * 0.001),
+                                      blurRadius: screenWidth * 0.005,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: screenWidth * 0.1),
+                ],
+              ),
+            ),
+            // Question content and next button
+            Expanded(
+              child: Stack(
+                children: [
+                  AnimatedBuilder(
+                    animation: _pageTransitionController,
+                    builder: (context, child) {
+                      return SlideTransition(
+                        position: isForwardNavigation
+                            ? _forwardSlideAnimation
+                            : _backwardSlideAnimation,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: buildQuestion(currentQuestion),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Continue button
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: isCurrentQuestionValid
+                            ? [
+                                BoxShadow(
+                                  color: appColors.brand.withOpacity(0.3),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 8,
+                                  spreadRadius: 0,
+                                ),
+                                BoxShadow(
+                                  color: appColors.brand.withOpacity(0.1),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                  spreadRadius: 0,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      margin: const EdgeInsets.all(20),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: ElevatedButton(
+                          onPressed: isCurrentQuestionValid
+                              ? moveToNextQuestion
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isCurrentQuestionValid
+                                ? appColors.brand
+                                : Colors.grey.shade200,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text(
+                            'Continuar',
+                            style: TextStyle(
+                              color: isCurrentQuestionValid
+                                  ? Colors.white
+                                  : Colors.grey.shade500,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              fontFamily: 'Nunito',
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -183,101 +378,88 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
     );
   }
 
-  Widget buildProgressBar() {
-    final appColors = AppColors.of(context);
-    final totalQuestions = questions?.length ?? 1;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Back button - only show when not on first question
-          currentQuestionIndex > 0
-              ? IconButton(
-                  icon: Icon(
-                    Icons.arrow_back_rounded,
-                    color: appColors.brandDark,
-                  ),
-                  onPressed: moveToPreviousQuestion,
-                )
-              : const SizedBox(width: 40), // Placeholder for alignment
-
-          // Dots indicator
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                totalQuestions,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: index == currentQuestionIndex ? 24 : 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
-                    color: index == currentQuestionIndex
-                        ? appColors.brandDark
-                        : appColors.brandDark.withAlpha(51),
-                    boxShadow: index == currentQuestionIndex
-                        ? [
-                            BoxShadow(
-                              color: appColors.brandDark.withOpacity(0.3),
-                              offset: const Offset(0, 1),
-                              blurRadius: 2,
-                            ),
-                          ]
-                        : null,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Empty space on the right to balance the back button
-          const SizedBox(width: 40),
-        ],
-      ),
-    );
-  }
-
   Widget buildQuestion(Map<String, dynamic> question) {
     final questionId = question['id'];
     final savedAnswer = answers[questionId];
 
+    // Check validity without immediate setState
+    final bool questionHasAnswer = answers.containsKey(questionId);
+
+    // Only schedule an update if needed and not during build
+    if (questionHasAnswer != isCurrentQuestionValid) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_isBuilding) {
+          setState(() {
+            isCurrentQuestionValid = questionHasAnswer;
+          });
+        }
+      });
+    }
+
+    // Create question widget based on question type
     switch (question['type']) {
       case 'single_choice':
         return SingleChoiceQuestion(
           question: question,
           initialAnswer: savedAnswer as String?,
           onAnswer: (answer) {
-            saveAnswer(questionId, answer);
-            moveToNextQuestion();
+            _safeStateUpdate(() => saveAnswer(questionId, answer));
+          },
+          onValidityChanged: (isValid) {
+            _safeStateUpdate(() {
+              setState(() => isCurrentQuestionValid = isValid);
+            });
           },
         );
       case 'multiple_choice':
+        List<String>? initialAnswers;
+        if (savedAnswer != null) {
+          if (savedAnswer is List) {
+            initialAnswers = List<String>.from(savedAnswer);
+          } else if (savedAnswer is Map) {
+            initialAnswers =
+                (savedAnswer as Map).values.cast<String>().toList();
+          }
+        }
+
         return MultipleChoiceQuestion(
           question: question,
-          initialAnswers:
-              savedAnswer != null ? List<String>.from(savedAnswer) : null,
+          initialAnswers: initialAnswers,
           onAnswer: (answers) {
-            saveAnswer(questionId, answers);
-            moveToNextQuestion();
+            _safeStateUpdate(() => saveAnswer(questionId, answers));
+          },
+          onValidityChanged: (isValid) {
+            _safeStateUpdate(() {
+              setState(() => isCurrentQuestionValid = isValid);
+            });
           },
         );
       case 'grouped_single_choice':
         return GroupedSingleChoiceQuestion(
           question: question,
-          initialAnswers: savedAnswer != null
-              ? Map<String, String>.from(savedAnswer)
-              : null,
+          initialAnswers: savedAnswer as Map<String, String>?,
           onAnswer: (answers) {
-            saveAnswer(questionId, answers);
-            moveToNextQuestion();
+            _safeStateUpdate(() => saveAnswer(questionId, answers));
+          },
+          onValidityChanged: (isValid) {
+            _safeStateUpdate(() {
+              setState(() => isCurrentQuestionValid = isValid);
+            });
           },
         );
       default:
         return const SizedBox.shrink();
+    }
+  }
+
+  // Helper method to safely update state
+  void _safeStateUpdate(VoidCallback callback) {
+    if (_isBuilding) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) callback();
+      });
+    } else {
+      callback();
     }
   }
 }

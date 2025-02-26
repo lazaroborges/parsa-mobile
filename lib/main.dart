@@ -29,6 +29,8 @@ import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:parsa/app/onboarding/intake.dart';
+
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -53,26 +55,30 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn =
-          dotenv.env['SENTRY_DSN']!; // Add SENTRY_DSN to your .env file
-      options.tracesSampleRate = 1.0; // Capture 100% of transactions
-      options.enableAutoSessionTracking = true;
-    },
-    appRunner: () => runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
-          ChangeNotifierProvider(
-            create: (_) => Auth0Provider(auth0: auth0),
-          ),
-          ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
-        ],
-        child: const MonekinAppEntryPoint(),
+  final app = MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
+      ChangeNotifierProvider(
+        create: (_) => Auth0Provider(auth0: auth0),
       ),
-    ),
+      ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
+    ],
+    child: const MonekinAppEntryPoint(),
   );
+
+  if (kReleaseMode) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = dotenv.env['SENTRY_DSN']!;
+        options.tracesSampleRate = 1.0;
+        options.profilesSampleRate = 1.0;
+        options.enableAutoSessionTracking = true;
+      },
+      appRunner: () => runApp(app),
+    );
+  } else {
+    runApp(app);
+  }
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
@@ -330,12 +336,21 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             ),
           ),
         ]);
-      }, //Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here
+      },
+      // Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here
       // TODO - CREATE a ~shared preferences~ variable that tracks if the user has gone through the onboarding screen
       // TODO - If the user has already gone through the onboarding screen, then do not show it again.
-      home: (auth0Provider.credentials != null
-          ? BiometricsCheckScreen() //bring back biometrics check
-          : Auth0Service(auth0Provider: auth0Provider)),
+
+      // Original authentication flow (commented out)
+      // home: (auth0Provider.credentials != null
+      //     ? BiometricsCheckScreen() //bring back biometrics check
+      //     : Auth0Service(auth0Provider: auth0Provider)),
+
+      // Direct to onboarding instead
+      home: auth0Provider.credentials != null
+          ? const IntakeForm() // Show intake form for authenticated users
+          : Auth0Service(
+              auth0Provider: auth0Provider), // Start with authentication
     );
   }
 
