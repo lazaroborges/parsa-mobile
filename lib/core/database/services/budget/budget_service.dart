@@ -9,7 +9,7 @@ class BudgetServive {
   BudgetServive._(this.db);
   static final BudgetServive instance = BudgetServive._(AppDB.instance);
 
-  Future<bool> insertBudget(Budget budget) {
+  Future<bool> insertBudget(Budget budget, {bool skipServerSync = false}) {
     return db.transaction(() async {
       await db.into(db.budgets).insert(BudgetInDB(
           id: budget.id,
@@ -39,13 +39,15 @@ class BudgetServive {
         }
       }
       
-      // Post budget to server
-      try {
-        await PostUserBudget.postBudget(budget: budget);
-      } catch (e) {
-        print('Error posting budget to server: $e');
-        // Continue even if server sync fails
-        // Local data is already saved
+      // Post budget to server only if skipServerSync is false
+      if (!skipServerSync) {
+        try {
+          await PostUserBudget.postBudget(budget: budget);
+        } catch (e) {
+          print('Error posting budget to server: $e');
+          // Continue even if server sync fails
+          // Local data is already saved
+        }
       }
 
       return true;
@@ -68,10 +70,10 @@ class BudgetServive {
     });
   }
 
-  Future<bool> updateBudget(Budget budget) {
+  Future<bool> updateBudget(Budget budget, {bool skipServerSync = false}) {
     return db.transaction(() async {
       await deleteBudget(budget.id);
-      await insertBudget(budget);
+      await insertBudget(budget, skipServerSync: skipServerSync);
       return true;
     });
   }

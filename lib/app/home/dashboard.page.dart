@@ -41,13 +41,14 @@ import '../../core/presentation/app_colors.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
 
-import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
 import 'package:in_app_review/in_app_review.dart';
+
+import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -106,6 +107,7 @@ class _DashboardPageState extends State<DashboardPage> {
     try {
       await Future.wait([
           fetchUserTransactions(null),
+          fetchUserBudgets(context), 
       ]);
       unawaited(fetchUserDataAtServer());  // Trul
     } catch (e) {

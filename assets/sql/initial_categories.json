@@ -402,13 +402,7 @@
       {
         "icon": "casino",
         "names": {
-          "pt": "Loteria"
-        }
-      },
-      {
-        "icon": "casino",
-        "names": {
-          "pt": "Apostas online"
+          "pt": "Loteria e Apostas online"
         }
       }
     ]
