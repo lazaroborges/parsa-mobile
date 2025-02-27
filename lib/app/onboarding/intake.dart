@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/onboarding/question_styles.dart';
 import 'package:parsa/app/layout/tabs.dart';
@@ -15,11 +16,13 @@ class IntakeForm extends StatefulWidget {
 
 class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
   List<dynamic>? questions;
+  Map<String, dynamic>? metadata;
   int currentQuestionIndex = 0;
   Map<String, dynamic> answers = {};
   Map<String, dynamic>? currentConditionalQuestion;
   bool isLoading = true;
   bool isCurrentQuestionValid = false;
+  bool isSendingData = false;
 
   // Animation controllers
   late AnimationController _pageTransitionController;
@@ -87,12 +90,14 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
       setState(() {
         final data = json.decode(questionsJson);
         questions = data['questions'];
+        metadata = data['metadata'];
       });
     } catch (e) {
       print('Error loading questions: $e');
       // Fallback to empty list
       setState(() {
         questions = [];
+        metadata = {'version': '1.0'};
       });
     }
   }
@@ -105,8 +110,53 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
     });
   }
 
-  void completeIntakeForm() {
+  Future<void> sendIntakeAnswers() async {
+    if (isSendingData) return;
+
+    setState(() {
+      isSendingData = true;
+    });
+
+    try {
+      // Format answers data for submission
+      final Map<String, dynamic> formattedAnswers = {
+        'answers': answers,
+        'timestamp': DateTime.now().toIso8601String(),
+        'version': metadata?['version'] ?? '1.0',
+        'questionnaire_last_updated': metadata?['lastUpdated'],
+      };
+
+      // Using RequestCatcher for testing
+      final response = await http.post(
+        Uri.parse('https://intake.requestcatcher.com/test'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(formattedAnswers),
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print('Intake answers sent successfully: ${response.body}');
+      } else {
+        print(
+            'Failed to send intake answers: ${response.statusCode}, ${response.body}');
+        // Handle error, potentially retry or store locally
+      }
+    } catch (e) {
+      print('Error sending intake answers: $e');
+      // Handle connection errors, potentially store answers locally
+    } finally {
+      setState(() {
+        isSendingData = false;
+      });
+    }
+  }
+
+  void completeIntakeForm() async {
     if (mounted) {
+      // Send answers to server before navigating
+      await sendIntakeAnswers();
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => TabsPage(key: tabsPageKey),
@@ -188,7 +238,7 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     _isBuilding = true;
 
-    if (isLoading || questions == null || questions!.isEmpty) {
+    if (isLoading || questions == null || questions!.isEmpty || isSendingData) {
       _isBuilding = false;
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -359,7 +409,7 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
                               color: isCurrentQuestionValid
                                   ? Colors.white
                                   : Colors.grey.shade500,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.bold,
                               fontSize: 16,
                               fontFamily: 'Nunito',
                               letterSpacing: 0.5,
@@ -382,8 +432,20 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
     final questionId = question['id'];
     final savedAnswer = answers[questionId];
 
-    // Check validity without immediate setState
-    final bool questionHasAnswer = answers.containsKey(questionId);
+    // Special validation for grouped_single_choice
+    bool questionHasAnswer = false;
+    if (question['type'] == 'grouped_single_choice') {
+      // Check if all subquestions are answered
+      if (savedAnswer is Map<String, String>) {
+        questionHasAnswer =
+            savedAnswer.length == question['subquestions'].length;
+      } else {
+        questionHasAnswer = false;
+      }
+    } else {
+      // Standard validation for other question types
+      questionHasAnswer = answers.containsKey(questionId);
+    }
 
     // Only schedule an update if needed and not during build
     if (questionHasAnswer != isCurrentQuestionValid) {

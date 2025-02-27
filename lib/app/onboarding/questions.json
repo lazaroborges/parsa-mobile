@@ -1,27 +1,32 @@
 {
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2023-11-15",
+    "description": "Financial intake questionnaire"
+  },
   "questions": [
     {
-      "id": "objective",
+      "id": "financial_goal",
       "question": "Qual o seu objetivo principal?",
       "type": "multiple_choice",
       "options": [
         {
-          "id": "manage_expenses",
+          "id": "control_expenses",
           "text": "Controlar meus gastos e sair das dívidas"
         },
         {
-          "id": "invest",
+          "id": "save_invest",
           "text": "Economizar para investir"
         },
         {
-          "id": "analyse_expenses",
+          "id": "analyze_finances",
           "text": "Análisar a fundo minhas finanças"
         }
       ]
     },
     {
-      "id": "dificulies",
-      "question": "Com que dificuldade vc controla suas finanças?",
+      "id": "finance_difficulty",
+      "question": "Com que dificuldade você controla suas finanças?",
       "type": "single_choice",
       "options": [
         {
@@ -38,25 +43,25 @@
         },
         {
           "id": "hard",
-          "text": "Dificil"
+          "text": "Difícil"
         },
         {
           "id": "very_hard",
-          "text": "Muito dificil"
+          "text": "Muito difícil"
         }
       ]
     },
     {
-      "id": "expense_categories",
+      "id": "previous_methods",
       "question": "Quais métodos você já utilizou para controlar suas finanças?",
       "type": "multiple_choice",
       "options": [
         {
-          "id": "manual",
+          "id": "paper_pen",
           "text": "Caderno e caneta"
         },
         {
-          "id": "app",
+          "id": "mobile_app",
           "text": "Aplicativo"
         },
         {
@@ -70,7 +75,7 @@
       ]
     },
     {
-      "id": "worked_with_budget",
+      "id": "previous_success",
       "question": "Deu certo controlar suas finanças?",
       "type": "single_choice",
       "options": [
@@ -85,43 +90,43 @@
       ],
       "conditional_questions": {
         "yes": {
-          "id": "budget_success_reason",
+          "id": "success_reasons",
           "question": "Por que deu certo?",
           "type": "multiple_choice",
           "options": [
             {
-              "id": "previsibilidade",
+              "id": "financial_predictability",
               "text": "Previsibilidade Financeira"
             },
             {
-              "id": "sincronizacao",
+              "id": "auto_sync",
               "text": "Sincronização Automática"
             },
             {
-              "id": "facilidade",
+              "id": "expense_tracking",
               "text": "Facilidade de acompanhar todos os gastos"
             },
             {
-              "id": "facilidade_uso",
+              "id": "ease_of_use",
               "text": "Facilidade de uso"
             },
             {
-              "id": "facilidade_entendimento",
+              "id": "understandability",
               "text": "Facilidade de entendimento"
             },
             {
-              "id": "personalizacao",
+              "id": "customization",
               "text": "Personalização"
             }
           ]
         },
         "no": {
-          "id": "budget_failure_reason",
+          "id": "failure_reasons",
           "question": "Por que não deu certo?",
           "type": "multiple_choice",
           "options": [
             {
-              "id": "no_previsibility",
+              "id": "lack_predictability",
               "text": "Falta de previsibilidade"
             },
             {
@@ -129,15 +134,15 @@
               "text": "Muito trabalho manual"
             },
             {
-              "id": "need_to_classify",
+              "id": "classification_burden",
               "text": "Necessidade de classificar gastos"
             },
             {
-              "id": "need_to_review",
+              "id": "constant_review",
               "text": "Necessidade de revisão constante"
             },
             {
-              "id": "difficulty_using",
+              "id": "usability_issues",
               "text": "Dificuldade de uso"
             }
           ]
@@ -172,11 +177,11 @@
           "question": "Status financeiro",
           "options": [
             {
-              "id": "debt",
+              "id": "in_debt",
               "text": "Estou endividado"
             },
             {
-              "id": "no_debt",
+              "id": "breaking_even",
               "text": "Não estou endividado, mas não sobra renda"
             },
             {
@@ -184,7 +189,7 @@
               "text": "Estou investindo mas gostaria que sobrasse mais"
             },
             {
-              "id": "stable",
+              "id": "financially_stable",
               "text": "Tenho estabilidade financeira e gostaria de melhorar meus gastos"
             }
           ]
