@@ -8,7 +8,6 @@ import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
-import 'package:parsa/app/home/widgets/new_transaction_fl_button.dart';
 import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
@@ -49,6 +48,7 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -63,16 +63,11 @@ class _DashboardPageState extends State<DashboardPage> {
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
 
-  void _toggleBalanceType() {
-    setState(() {
-      currentBalanceType = BalanceType
-          .values[(currentBalanceType.index + 1) % BalanceType.values.length];
-    });
-  }
-
   @override
   void initState() {
     super.initState();
+    _loadBalanceType();
+    _initializePrivateMode();
     _initializeDashboard();
   }
 
@@ -134,6 +129,46 @@ class _DashboardPageState extends State<DashboardPage> {
         await inAppReview.requestReview();
       }
     }
+  }
+
+  Future<void> _loadBalanceType() async {
+    final balanceTypeStr =
+        await SharedPreferencesAsync.instance.getBalanceType();
+
+    // Convert string to enum
+    switch (balanceTypeStr) {
+      case 'available':
+        currentBalanceType = BalanceType.available;
+        break;
+      case 'total':
+        currentBalanceType = BalanceType.total;
+        break;
+      case 'future':
+        currentBalanceType = BalanceType.future;
+        break;
+      default:
+        currentBalanceType = BalanceType.available;
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _initializePrivateMode() async {
+    await PrivateModeService.instance.initializePrivateMode();
+  }
+
+  void _toggleBalanceType() {
+    setState(() {
+      currentBalanceType = BalanceType
+          .values[(currentBalanceType.index + 1) % BalanceType.values.length];
+
+      // Save the balance type preference
+      SharedPreferencesAsync.instance.setBalanceType(
+        currentBalanceType.name, // 'available', 'total', or 'future'
+      );
+    });
   }
 
   @override
