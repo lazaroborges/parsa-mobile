@@ -28,6 +28,10 @@ class BudgetCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const Radius radius = Radius.circular(14);
     final t = Translations.of(context);
+    final titleStyle = Theme.of(context)
+        .textTheme
+        .titleMedium!
+        .copyWith(fontWeight: FontWeight.w600);
 
     return Tappable(
       margin: isHeader
@@ -56,10 +60,7 @@ class BudgetCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DefaultTextStyle(
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(fontWeight: FontWeight.w600),
+                  style: titleStyle,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -81,7 +82,7 @@ class BudgetCard extends StatelessWidget {
                   ),
                 ),
                 DefaultTextStyle(
-                  style: const TextStyle(
+                  style: titleStyle.copyWith(
                     fontWeight: FontWeight.w300,
                   ),
                   child: Row(
@@ -191,7 +192,7 @@ class BudgetCard extends StatelessWidget {
                         PeriodType.cycle) ...[
                   const SizedBox(height: 6),
                   DefaultTextStyle(
-                    style: Theme.of(context).textTheme.labelMedium!,
+                    style: titleStyle.copyWith(fontSize: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

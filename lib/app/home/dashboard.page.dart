@@ -54,6 +54,7 @@ import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
 import 'package:parsa/app/budgets/budgets_page.dart';
 import 'package:parsa/app/budgets/components/budget_card.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/app/budgets/budget_form_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -647,12 +648,21 @@ class _DashboardPageState extends State<DashboardPage> {
                                 final budgets = snapshot.data!;
 
                                 if (budgets.isEmpty) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Text(
-                                      t.budgets.no_budgets,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.grey),
+                                  return InkWell(
+                                    onTap: () {
+                                      // Navigate to budget creation page
+                                      RouteUtils.pushRoute(
+                                          context,
+                                          const BudgetFormPage(
+                                              prevPage: DashboardPage()));
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Text(
+                                        t.budgets.no_budgets,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
                                     ),
                                   );
                                 }
