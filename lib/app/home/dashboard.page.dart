@@ -50,6 +50,11 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 
+import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
+import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/components/budget_card.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -593,7 +598,6 @@ class _DashboardPageState extends State<DashboardPage> {
                                 );
                               }),
                           const SizedBox(height: 12),
-                          // Add Income/Expense Comparison Card here
                           CardWithHeader(
                             title: t.stats.cash_flow,
                             bodyPadding: EdgeInsets.zero,
@@ -611,35 +615,68 @@ class _DashboardPageState extends State<DashboardPage> {
                               );
                             },
                           ),
-                          // const SizedBox(height: 16),
+                          const SizedBox(height: 12),
+                          CardWithHeader(
+                            title: t.stats.by_tags,
+                            body: TagStats(
+                              filters: TransactionFilters(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate,
+                              ),
+                            ),
+                            onHeaderButtonClick: () {
+                              RouteUtils.pushRoute(
+                                context,
+                                StatsPage(
+                                  dateRangeService: dateRangeService,
+                                  initialIndex: 0, // First tab contains tags
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          CardWithHeader(
+                            title: t.budgets.title,
+                            body: StreamBuilder(
+                              stream: BudgetServive.instance.getBudgets(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const LinearProgressIndicator();
+                                }
 
-                          // CardWithHeader(
-                          //   title: t.financial_health.display,
-                          //   onHeaderButtonClick: () => RouteUtils.pushRoute(
-                          //       context,
-                          //       StatsPage(
-                          //           dateRangeService: dateRangeService,
-                          //           initialIndex: 2)),
-                          //   bodyPadding: const EdgeInsets.all(16),
-                          //   body: StreamBuilder(
-                          //     stream: FinanceHealthService().getHealthyValue(
-                          //       filters: TransactionFilters(
-                          //         minDate: dateRangeService.startDate,
-                          //         maxDate: dateRangeService.endDate,
-                          //       ),
-                          //     ),
-                          //     builder: (context, snapshot) {
-                          //       if (!snapshot.hasData) {
-                          //         return const LinearProgressIndicator();
-                          //       }
+                                final budgets = snapshot.data!;
 
-                          //       final financeHealthData = snapshot.data!;
+                                if (budgets.isEmpty) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text(
+                                      t.budgets.no_budgets,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  );
+                                }
 
-                          //       return FinanceHealthMainInfo(
-                          //           financeHealthData: financeHealthData);
-                          //     },
-                          //   ),
-                          // ),
+                                return ListView.builder(
+                                  padding: const EdgeInsets.all(8),
+                                  itemCount: budgets.length > 3
+                                      ? 3
+                                      : budgets
+                                          .length, // Limit to 3 budgets on dashboard
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final budget = budgets[index];
+                                    return BudgetCard(budget: budget);
+                                  },
+                                );
+                              },
+                            ),
+                            onHeaderButtonClick: () {
+                              RouteUtils.pushRoute(
+                                  context, const BudgetsPage());
+                            },
+                          ),
                         ],
                       ),
                     ),
