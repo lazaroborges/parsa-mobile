@@ -202,7 +202,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontFamily: 'Nunito',
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
                                 ),
                               ),

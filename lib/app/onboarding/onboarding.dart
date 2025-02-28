@@ -535,7 +535,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         child: Text(
           'Começar Jornada!',
           style: TextStyle(
-            fontWeight: FontWeight.w700, // Nunito Black
+            fontWeight: FontWeight.bold,
             fontSize: size.width * 0.042, // Responsive font size
             fontFamily: 'Nunito',
             letterSpacing: 0.5,
