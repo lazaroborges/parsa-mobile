@@ -189,7 +189,6 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
         if (cousins.isNotEmpty && changes?.hasChanges == true ) {
 
           if (onCousinFound != null) {
-              print('ALTAS HORAS VIDA INTELIGENTE NA MADRUGADA positiveInflow: $positiveInflow');
 
             final shouldContinue = await onCousinFound!(
 

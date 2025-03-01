@@ -10,7 +10,14 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 
 class PluggyConnectorPage extends StatefulWidget {
-  const PluggyConnectorPage({super.key});
+  final String? accountId;
+  final bool isUpdate;
+
+  const PluggyConnectorPage({
+    super.key, 
+    this.accountId,
+    this.isUpdate = false,
+  });
 
   @override
   _PluggyConnectorPageState createState() => _PluggyConnectorPageState();
@@ -29,50 +36,64 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
   }
 
   Future<void> _openConnectUrl(BuildContext context) async {
-  try {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
 
-    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-    final credentials = await auth0Provider.credentials;
+      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+      final credentials = await auth0Provider.credentials;
 
-    if (credentials == null) {
-      throw Exception('No credentials available');
-    }
-
-    // Make the request with the token in headers
-    final response = await http.get(
-      Uri.parse('$apiEndpoint/open/connect-mobile/'),
-      headers: {
-        'Authorization': 'Bearer ${credentials.accessToken}',
-      },
-    );
-
-    // Assuming the response contains the URL to redirect to
-    if (response.statusCode == 200) {
-      final url = Uri.parse(json.decode(response.body)['redirect_url']);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
-        Navigator.of(context).pop();
+      if (credentials == null) {
+        throw Exception('No credentials available');
       }
-    } else {
-      throw Exception('Failed to get redirect URL');
+
+      // Determine which endpoint to use based on whether this is an update
+      final String endpoint = widget.isUpdate 
+          ? '$apiEndpoint/open/connect-mobile-update/' 
+          : '$apiEndpoint/open/connect-mobile/';
+      
+      // For updates, use POST with accountId in the body
+      final response = widget.isUpdate && widget.accountId != null
+          ? await http.post(
+              Uri.parse(endpoint),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ${credentials.accessToken}',
+              },
+              body: jsonEncode({
+                'accountId': widget.accountId,
+              }),
+            )
+          : await http.get(
+              Uri.parse(endpoint),
+              headers: {
+                'Authorization': 'Bearer ${credentials.accessToken}',
+              },
+            );
+
+      // Assuming the response contains the URL to redirect to
+      if (response.statusCode == 200) {
+        final url = Uri.parse(json.decode(response.body)['redirect_url']);
+        if (await canLaunchUrl(url)) {
+          await launchUrl(
+            url,
+            mode: LaunchMode.inAppWebView,
+          );
+          Navigator.of(context).pop();
+        }
+      } else {
+        throw Exception('Failed to get redirect URL: ${response.statusCode} - ${response.body}');
+      }
+
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
-
-  } catch (e) {
-    setState(() {
-      _error = e.toString();
-      _isLoading = false;
-    });
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {

@@ -222,6 +222,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
             removed: false,
             isOpenFinance: false,
             hiddenByUser: false,
+            hasMFA: false,
           ));
         }
 

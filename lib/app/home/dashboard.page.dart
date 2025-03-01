@@ -50,6 +50,11 @@ import 'package:in_app_review/in_app_review.dart';
 
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 
+import 'package:parsa/core/api/fetch_user_accounts.dart';
+import 'package:parsa/core/api/fetch_user_tags_service.dart';
+
+import 'dart:async' show unawaited;
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -105,11 +110,21 @@ class _DashboardPageState extends State<DashboardPage> {
     });
 
     try {
+      // First fetch user data
+      unawaited(fetchUserDataAtServer());
+      
+      // Then fetch accounts and tags before transactions and budget
       await Future.wait([
-          fetchUserTransactions(null),
-          fetchUserBudgets(context), 
+        fetchUserAccounts(),
+        fetchUserTags(context),
       ]);
-      unawaited(fetchUserDataAtServer());  // Trul
+
+      // Finally fetch transactions and budgets
+      await Future.wait([
+        fetchUserTransactions(null),
+        fetchUserBudgets(context), 
+      ]);
+     
     } catch (e) {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
@@ -387,7 +402,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                           ),
                                           builder: (context, value, child) {
                                             return Text(
-                                              '${(value * 100).toStringAsFixed(1)}% dos rendimentos gastos.',
+                                              '${(value * 100).toStringAsFixed(1)}% da receita gasta.',
                                               style: Theme.of(context).textTheme.bodySmall,
                                             );
                                           },
@@ -612,7 +627,7 @@ class _DashboardPageState extends State<DashboardPage> {
     String getTooltipMessage() {
       switch (currentBalanceType) {
         case BalanceType.available:
-          return 'Saldo disponível para uso imediato. Inclui as suas contas correntes e carteiras manuais, descontando os gastos no cartão de crédito. Este é o dinheiro que você pode utilizar imediatamente';
+          return 'Saldo disponível para uso imediato. Inclui a soma de todas as contas correntes e carteiras manuais.';
         case BalanceType.total:
           return 'Saldo disponível com reservas de emergência. Inclui a soma de todas as contas correntes mais reservas imediatas (como Poupança e Caixinhas) menos cartão de crédito. Este é o dinheiro que você possui disponível em caso de emergências.';
         case BalanceType.future:

@@ -110,6 +110,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
       isOpenFinance: false,
       removed: false,
       hiddenByUser: false,
+      hasMFA: false,
       connectorID:
           _accountToEdit?.connectorID ?? '1', // Assign a valid connectorID
     );
