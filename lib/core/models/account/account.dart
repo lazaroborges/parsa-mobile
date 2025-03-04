@@ -86,6 +86,7 @@ class Account extends AccountInDB {
     required super.isOpenFinance,
     required super.removed,
     required super.hiddenByUser,
+    required super.hasMFA,
     super.closingDate,
     super.description,
     super.iban,
@@ -155,6 +156,7 @@ class Account extends AccountInDB {
         isOpenFinance: account.isOpenFinance,
         removed: account.removed,
         hiddenByUser: account.hiddenByUser,
+        hasMFA: account.hasMFA,
       );
 }
 
@@ -178,6 +180,8 @@ class ApiAccount {
   final String description;
   final bool removed;
   final bool hiddenByUser;
+  final bool hasMFA;
+  
   ApiAccount({
     required this.accountId,
     required this.bankName,
@@ -198,6 +202,7 @@ class ApiAccount {
     required this.description,
     required this.removed,
     required this.hiddenByUser,
+    this.hasMFA = false,
   });
 
   factory ApiAccount.fromJson(Map<String, dynamic> json) {
@@ -237,6 +242,7 @@ class ApiAccount {
       removed: json['removed'] ?? false, // Default to false if missing
       description: json['description'] ?? '', // Default to empty string if missing
       hiddenByUser: json['hidden_by_user'] ?? false, // Default to false if missing
+      hasMFA: json['has_mfa'] ?? false, // Default to false if missing
     );
   }
 }

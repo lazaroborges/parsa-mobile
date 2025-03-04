@@ -12,13 +12,15 @@ import '../transaction/transaction_type.enum.dart';
 class Budget extends BudgetInDB {
   List<String>? categories;
   List<String>? accounts;
+  List<String>? tags;
 
   Budget({
     required super.id,
     required super.name,
     required super.limitAmount,
-    required List<String>? categories,
-    required List<String>? accounts,
+    List<String>? categories,
+    List<String>? accounts,
+    List<String>? tags,
     super.intervalPeriod,
     super.startDate,
     super.endDate,
@@ -27,6 +29,8 @@ class Budget extends BudgetInDB {
         categories != null && categories.isEmpty ? null : categories;
 
     this.accounts = accounts != null && accounts.isEmpty ? null : accounts;
+    
+    this.tags = tags != null && tags.isEmpty ? null : tags;
   }
 
   DateTimeRange get currentDateRange {
@@ -77,6 +81,7 @@ class Budget extends BudgetInDB {
         maxDate: currentDateRange.end,
         categories: categories,
         accountsIDs: accounts,
+        tagsIDs: tags,
       );
 
   /// Get the amount of money relative to this budget for a given date

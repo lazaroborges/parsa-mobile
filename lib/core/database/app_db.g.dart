@@ -320,6 +320,13 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
       requiredDuringInsert: false,
       $customConstraints: 'NOT NULL DEFAULT 0',
       defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _hasMFAMeta = const VerificationMeta('hasMFA');
+  late final GeneratedColumn<bool> hasMFA = GeneratedColumn<bool>(
+      'hasMFA', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   static const VerificationMeta _currencyIdMeta =
       const VerificationMeta('currencyId');
   late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
@@ -393,6 +400,7 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
         color,
         closingDate,
         hiddenByUser,
+        hasMFA,
         currencyId,
         iban,
         swift,
@@ -472,6 +480,10 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           hiddenByUser.isAcceptableOrUnknown(
               data['hiddenByUser']!, _hiddenByUserMeta));
     }
+    if (data.containsKey('hasMFA')) {
+      context.handle(_hasMFAMeta,
+          hasMFA.isAcceptableOrUnknown(data['hasMFA']!, _hasMFAMeta));
+    }
     if (data.containsKey('currencyId')) {
       context.handle(
           _currencyIdMeta,
@@ -545,6 +557,8 @@ class Accounts extends Table with TableInfo<Accounts, AccountInDB> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}closingDate']),
       hiddenByUser: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}hiddenByUser'])!,
+      hasMFA: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}hasMFA'])!,
       currencyId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}currencyId'])!,
       iban: attachedDatabase.typeMapping
@@ -601,6 +615,9 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
   /// Whether the account is hidden by the user
   final bool hiddenByUser;
 
+  /// Whether the account has MFA enabled
+  final bool hasMFA;
+
   /// ID of the currency used by this account and therefore all transactions contained in it
   final String currencyId;
   final String? iban;
@@ -624,6 +641,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       this.color,
       this.closingDate,
       required this.hiddenByUser,
+      required this.hasMFA,
       required this.currencyId,
       this.iban,
       this.swift,
@@ -654,6 +672,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       map['closingDate'] = Variable<DateTime>(closingDate);
     }
     map['hiddenByUser'] = Variable<bool>(hiddenByUser);
+    map['hasMFA'] = Variable<bool>(hasMFA);
     map['currencyId'] = Variable<String>(currencyId);
     if (!nullToAbsent || iban != null) {
       map['iban'] = Variable<String>(iban);
@@ -687,6 +706,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           ? const Value.absent()
           : Value(closingDate),
       hiddenByUser: Value(hiddenByUser),
+      hasMFA: Value(hasMFA),
       currencyId: Value(currencyId),
       iban: iban == null && nullToAbsent ? const Value.absent() : Value(iban),
       swift:
@@ -715,6 +735,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       color: serializer.fromJson<String?>(json['color']),
       closingDate: serializer.fromJson<DateTime?>(json['closingDate']),
       hiddenByUser: serializer.fromJson<bool>(json['hiddenByUser']),
+      hasMFA: serializer.fromJson<bool>(json['hasMFA']),
       currencyId: serializer.fromJson<String>(json['currencyId']),
       iban: serializer.fromJson<String?>(json['iban']),
       swift: serializer.fromJson<String?>(json['swift']),
@@ -740,6 +761,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       'color': serializer.toJson<String?>(color),
       'closingDate': serializer.toJson<DateTime?>(closingDate),
       'hiddenByUser': serializer.toJson<bool>(hiddenByUser),
+      'hasMFA': serializer.toJson<bool>(hasMFA),
       'currencyId': serializer.toJson<String>(currencyId),
       'iban': serializer.toJson<String?>(iban),
       'swift': serializer.toJson<String?>(swift),
@@ -763,6 +785,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           Value<String?> color = const Value.absent(),
           Value<DateTime?> closingDate = const Value.absent(),
           bool? hiddenByUser,
+          bool? hasMFA,
           String? currencyId,
           Value<String?> iban = const Value.absent(),
           Value<String?> swift = const Value.absent(),
@@ -783,6 +806,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
         color: color.present ? color.value : this.color,
         closingDate: closingDate.present ? closingDate.value : this.closingDate,
         hiddenByUser: hiddenByUser ?? this.hiddenByUser,
+        hasMFA: hasMFA ?? this.hasMFA,
         currencyId: currencyId ?? this.currencyId,
         iban: iban.present ? iban.value : this.iban,
         swift: swift.present ? swift.value : this.swift,
@@ -811,6 +835,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       hiddenByUser: data.hiddenByUser.present
           ? data.hiddenByUser.value
           : this.hiddenByUser,
+      hasMFA: data.hasMFA.present ? data.hasMFA.value : this.hasMFA,
       currencyId:
           data.currencyId.present ? data.currencyId.value : this.currencyId,
       iban: data.iban.present ? data.iban.value : this.iban,
@@ -842,6 +867,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           ..write('color: $color, ')
           ..write('closingDate: $closingDate, ')
           ..write('hiddenByUser: $hiddenByUser, ')
+          ..write('hasMFA: $hasMFA, ')
           ..write('currencyId: $currencyId, ')
           ..write('iban: $iban, ')
           ..write('swift: $swift, ')
@@ -867,6 +893,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
       color,
       closingDate,
       hiddenByUser,
+      hasMFA,
       currencyId,
       iban,
       swift,
@@ -890,6 +917,7 @@ class AccountInDB extends DataClass implements Insertable<AccountInDB> {
           other.color == this.color &&
           other.closingDate == this.closingDate &&
           other.hiddenByUser == this.hiddenByUser &&
+          other.hasMFA == this.hasMFA &&
           other.currencyId == this.currencyId &&
           other.iban == this.iban &&
           other.swift == this.swift &&
@@ -912,6 +940,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
   final Value<String?> color;
   final Value<DateTime?> closingDate;
   final Value<bool> hiddenByUser;
+  final Value<bool> hasMFA;
   final Value<String> currencyId;
   final Value<String?> iban;
   final Value<String?> swift;
@@ -933,6 +962,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     this.color = const Value.absent(),
     this.closingDate = const Value.absent(),
     this.hiddenByUser = const Value.absent(),
+    this.hasMFA = const Value.absent(),
     this.currencyId = const Value.absent(),
     this.iban = const Value.absent(),
     this.swift = const Value.absent(),
@@ -955,6 +985,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     this.color = const Value.absent(),
     this.closingDate = const Value.absent(),
     this.hiddenByUser = const Value.absent(),
+    this.hasMFA = const Value.absent(),
     required String currencyId,
     this.iban = const Value.absent(),
     this.swift = const Value.absent(),
@@ -984,6 +1015,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     Expression<String>? color,
     Expression<DateTime>? closingDate,
     Expression<bool>? hiddenByUser,
+    Expression<bool>? hasMFA,
     Expression<String>? currencyId,
     Expression<String>? iban,
     Expression<String>? swift,
@@ -1006,6 +1038,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       if (color != null) 'color': color,
       if (closingDate != null) 'closingDate': closingDate,
       if (hiddenByUser != null) 'hiddenByUser': hiddenByUser,
+      if (hasMFA != null) 'hasMFA': hasMFA,
       if (currencyId != null) 'currencyId': currencyId,
       if (iban != null) 'iban': iban,
       if (swift != null) 'swift': swift,
@@ -1030,6 +1063,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       Value<String?>? color,
       Value<DateTime?>? closingDate,
       Value<bool>? hiddenByUser,
+      Value<bool>? hasMFA,
       Value<String>? currencyId,
       Value<String?>? iban,
       Value<String?>? swift,
@@ -1051,6 +1085,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
       color: color ?? this.color,
       closingDate: closingDate ?? this.closingDate,
       hiddenByUser: hiddenByUser ?? this.hiddenByUser,
+      hasMFA: hasMFA ?? this.hasMFA,
       currencyId: currencyId ?? this.currencyId,
       iban: iban ?? this.iban,
       swift: swift ?? this.swift,
@@ -1099,6 +1134,9 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
     if (hiddenByUser.present) {
       map['hiddenByUser'] = Variable<bool>(hiddenByUser.value);
     }
+    if (hasMFA.present) {
+      map['hasMFA'] = Variable<bool>(hasMFA.value);
+    }
     if (currencyId.present) {
       map['currencyId'] = Variable<String>(currencyId.value);
     }
@@ -1143,6 +1181,7 @@ class AccountsCompanion extends UpdateCompanion<AccountInDB> {
           ..write('color: $color, ')
           ..write('closingDate: $closingDate, ')
           ..write('hiddenByUser: $hiddenByUser, ')
+          ..write('hasMFA: $hasMFA, ')
           ..write('currencyId: $currencyId, ')
           ..write('iban: $iban, ')
           ..write('swift: $swift, ')
@@ -4406,6 +4445,203 @@ class BudgetAccountCompanion extends UpdateCompanion<BudgetAccountData> {
   }
 }
 
+class BudgetTag extends Table with TableInfo<BudgetTag, BudgetTagData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  BudgetTag(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _budgetIDMeta =
+      const VerificationMeta('budgetID');
+  late final GeneratedColumn<String> budgetID = GeneratedColumn<String>(
+      'budgetID', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES budgets(id)ON UPDATE CASCADE ON DELETE CASCADE');
+  static const VerificationMeta _tagIDMeta = const VerificationMeta('tagID');
+  late final GeneratedColumn<String> tagID = GeneratedColumn<String>(
+      'tagID', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES tags(id)ON UPDATE CASCADE ON DELETE CASCADE');
+  @override
+  List<GeneratedColumn> get $columns => [budgetID, tagID];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budgetTag';
+  @override
+  VerificationContext validateIntegrity(Insertable<BudgetTagData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('budgetID')) {
+      context.handle(_budgetIDMeta,
+          budgetID.isAcceptableOrUnknown(data['budgetID']!, _budgetIDMeta));
+    } else if (isInserting) {
+      context.missing(_budgetIDMeta);
+    }
+    if (data.containsKey('tagID')) {
+      context.handle(
+          _tagIDMeta, tagID.isAcceptableOrUnknown(data['tagID']!, _tagIDMeta));
+    } else if (isInserting) {
+      context.missing(_tagIDMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  BudgetTagData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetTagData(
+      budgetID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}budgetID'])!,
+      tagID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagID'])!,
+    );
+  }
+
+  @override
+  BudgetTag createAlias(String alias) {
+    return BudgetTag(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class BudgetTagData extends DataClass implements Insertable<BudgetTagData> {
+  final String budgetID;
+  final String tagID;
+  const BudgetTagData({required this.budgetID, required this.tagID});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['budgetID'] = Variable<String>(budgetID);
+    map['tagID'] = Variable<String>(tagID);
+    return map;
+  }
+
+  BudgetTagCompanion toCompanion(bool nullToAbsent) {
+    return BudgetTagCompanion(
+      budgetID: Value(budgetID),
+      tagID: Value(tagID),
+    );
+  }
+
+  factory BudgetTagData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetTagData(
+      budgetID: serializer.fromJson<String>(json['budgetID']),
+      tagID: serializer.fromJson<String>(json['tagID']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'budgetID': serializer.toJson<String>(budgetID),
+      'tagID': serializer.toJson<String>(tagID),
+    };
+  }
+
+  BudgetTagData copyWith({String? budgetID, String? tagID}) => BudgetTagData(
+        budgetID: budgetID ?? this.budgetID,
+        tagID: tagID ?? this.tagID,
+      );
+  BudgetTagData copyWithCompanion(BudgetTagCompanion data) {
+    return BudgetTagData(
+      budgetID: data.budgetID.present ? data.budgetID.value : this.budgetID,
+      tagID: data.tagID.present ? data.tagID.value : this.tagID,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetTagData(')
+          ..write('budgetID: $budgetID, ')
+          ..write('tagID: $tagID')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(budgetID, tagID);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetTagData &&
+          other.budgetID == this.budgetID &&
+          other.tagID == this.tagID);
+}
+
+class BudgetTagCompanion extends UpdateCompanion<BudgetTagData> {
+  final Value<String> budgetID;
+  final Value<String> tagID;
+  final Value<int> rowid;
+  const BudgetTagCompanion({
+    this.budgetID = const Value.absent(),
+    this.tagID = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BudgetTagCompanion.insert({
+    required String budgetID,
+    required String tagID,
+    this.rowid = const Value.absent(),
+  })  : budgetID = Value(budgetID),
+        tagID = Value(tagID);
+  static Insertable<BudgetTagData> custom({
+    Expression<String>? budgetID,
+    Expression<String>? tagID,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (budgetID != null) 'budgetID': budgetID,
+      if (tagID != null) 'tagID': tagID,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BudgetTagCompanion copyWith(
+      {Value<String>? budgetID, Value<String>? tagID, Value<int>? rowid}) {
+    return BudgetTagCompanion(
+      budgetID: budgetID ?? this.budgetID,
+      tagID: tagID ?? this.tagID,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (budgetID.present) {
+      map['budgetID'] = Variable<String>(budgetID.value);
+    }
+    if (tagID.present) {
+      map['tagID'] = Variable<String>(tagID.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetTagCompanion(')
+          ..write('budgetID: $budgetID, ')
+          ..write('tagID: $tagID, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class UserSettings extends Table with TableInfo<UserSettings, UserSetting> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4845,6 +5081,7 @@ abstract class _$AppDB extends GeneratedDatabase {
   late final Budgets budgets = Budgets(this);
   late final BudgetCategory budgetCategory = BudgetCategory(this);
   late final BudgetAccount budgetAccount = BudgetAccount(this);
+  late final BudgetTag budgetTag = BudgetTag(this);
   late final UserSettings userSettings = UserSettings(this);
   late final AppData appData = AppData(this);
   Selectable<Account> getAccountsWithFullData(
@@ -4899,6 +5136,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           isOpenFinance: row.read<bool>('isOpenFinance'),
           removed: row.read<bool>('removed'),
           hiddenByUser: row.read<bool>('hiddenByUser'),
+          hasMFA: row.read<bool>('hasMFA'),
           closingDate: row.readNullable<DateTime>('closingDate'),
           description: row.readNullable<String>('description'),
           iban: row.readNullable<String>('iban'),
@@ -4951,7 +5189,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         startIndex: $arrayStartIndex);
     $arrayStartIndex += generatedlimit.amountOfVariables;
     return customSelect(
-        'SELECT t.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."hiddenByUser" AS "nested_0.hiddenByUser", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID", "a"."isOpenFinance" AS "nested_0.isOpenFinance", "a"."removed" AS "nested_0.removed","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","receivingAccountCurrency"."code" AS "nested_2.code", "receivingAccountCurrency"."symbol" AS "nested_2.symbol", "receivingAccountCurrency"."name" AS "nested_2.name","ra"."id" AS "nested_3.id", "ra"."name" AS "nested_3.name", "ra"."iniValue" AS "nested_3.iniValue", "ra"."date" AS "nested_3.date", "ra"."description" AS "nested_3.description", "ra"."type" AS "nested_3.type", "ra"."iconId" AS "nested_3.iconId", "ra"."displayOrder" AS "nested_3.displayOrder", "ra"."color" AS "nested_3.color", "ra"."closingDate" AS "nested_3.closingDate", "ra"."hiddenByUser" AS "nested_3.hiddenByUser", "ra"."currencyId" AS "nested_3.currencyId", "ra"."iban" AS "nested_3.iban", "ra"."swift" AS "nested_3.swift", "ra"."balance" AS "nested_3.balance", "ra"."last_update_time" AS "nested_3.last_update_time", "ra"."connectorID" AS "nested_3.connectorID", "ra"."isOpenFinance" AS "nested_3.isOpenFinance", "ra"."removed" AS "nested_3.removed","c"."id" AS "nested_4.id", "c"."name" AS "nested_4.name", "c"."iconId" AS "nested_4.iconId", "c"."color" AS "nested_4.color", "c"."displayOrder" AS "nested_4.displayOrder", "c"."type" AS "nested_4.type", "c"."parentCategoryID" AS "nested_4.parentCategoryID","pc"."id" AS "nested_5.id", "pc"."name" AS "nested_5.name", "pc"."iconId" AS "nested_5.iconId", "pc"."color" AS "nested_5.color", "pc"."displayOrder" AS "nested_5.displayOrder", "pc"."type" AS "nested_5.type", "pc"."parentCategoryID" AS "nested_5.parentCategoryID", t.value * COALESCE(excRate.exchangeRate, 1) AS currentValueInPreferredCurrency, t.valueInDestiny * COALESCE(excRateOfDestiny.exchangeRate, 1) AS currentValueInDestinyInPreferredCurrency, t.id AS "\$n_0" FROM transactions AS t INNER JOIN accounts AS a ON t.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN accounts AS ra ON t.receivingAccountID = ra.id LEFT JOIN currencies AS receivingAccountCurrency ON ra.currencyId = receivingAccountCurrency.code LEFT JOIN categories AS c ON t.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRate ON a.currencyId = excRate.currencyCode LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRateOfDestiny ON ra.currencyId = excRateOfDestiny.currencyCode WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
+        'SELECT t.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."hiddenByUser" AS "nested_0.hiddenByUser", "a"."hasMFA" AS "nested_0.hasMFA", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID", "a"."isOpenFinance" AS "nested_0.isOpenFinance", "a"."removed" AS "nested_0.removed","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","receivingAccountCurrency"."code" AS "nested_2.code", "receivingAccountCurrency"."symbol" AS "nested_2.symbol", "receivingAccountCurrency"."name" AS "nested_2.name","ra"."id" AS "nested_3.id", "ra"."name" AS "nested_3.name", "ra"."iniValue" AS "nested_3.iniValue", "ra"."date" AS "nested_3.date", "ra"."description" AS "nested_3.description", "ra"."type" AS "nested_3.type", "ra"."iconId" AS "nested_3.iconId", "ra"."displayOrder" AS "nested_3.displayOrder", "ra"."color" AS "nested_3.color", "ra"."closingDate" AS "nested_3.closingDate", "ra"."hiddenByUser" AS "nested_3.hiddenByUser", "ra"."hasMFA" AS "nested_3.hasMFA", "ra"."currencyId" AS "nested_3.currencyId", "ra"."iban" AS "nested_3.iban", "ra"."swift" AS "nested_3.swift", "ra"."balance" AS "nested_3.balance", "ra"."last_update_time" AS "nested_3.last_update_time", "ra"."connectorID" AS "nested_3.connectorID", "ra"."isOpenFinance" AS "nested_3.isOpenFinance", "ra"."removed" AS "nested_3.removed","c"."id" AS "nested_4.id", "c"."name" AS "nested_4.name", "c"."iconId" AS "nested_4.iconId", "c"."color" AS "nested_4.color", "c"."displayOrder" AS "nested_4.displayOrder", "c"."type" AS "nested_4.type", "c"."parentCategoryID" AS "nested_4.parentCategoryID","pc"."id" AS "nested_5.id", "pc"."name" AS "nested_5.name", "pc"."iconId" AS "nested_5.iconId", "pc"."color" AS "nested_5.color", "pc"."displayOrder" AS "nested_5.displayOrder", "pc"."type" AS "nested_5.type", "pc"."parentCategoryID" AS "nested_5.parentCategoryID", t.value * COALESCE(excRate.exchangeRate, 1) AS currentValueInPreferredCurrency, t.valueInDestiny * COALESCE(excRateOfDestiny.exchangeRate, 1) AS currentValueInDestinyInPreferredCurrency, t.id AS "\$n_0" FROM transactions AS t INNER JOIN accounts AS a ON t.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN accounts AS ra ON t.receivingAccountID = ra.id LEFT JOIN currencies AS receivingAccountCurrency ON ra.currencyId = receivingAccountCurrency.code LEFT JOIN categories AS c ON t.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRate ON a.currencyId = excRate.currencyCode LEFT JOIN (SELECT currencyCode, exchangeRate FROM exchangeRates AS er WHERE date = (SELECT MAX(date) FROM exchangeRates WHERE currencyCode = er.currencyCode AND DATE <= DATE(\'now\')) ORDER BY currencyCode) AS excRateOfDestiny ON ra.currencyId = excRateOfDestiny.currencyCode WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
         variables: [
           ...generatedpredicate.introducedVariables,
           ...generatedorderBy.introducedVariables,
@@ -5224,6 +5462,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         budgets,
         budgetCategory,
         budgetAccount,
+        budgetTag,
         userSettings,
         appData
       ];
@@ -5384,6 +5623,34 @@ abstract class _$AppDB extends GeneratedDatabase {
               TableUpdate('budgetAccount', kind: UpdateKind.update),
             ],
           ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('budgets',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('budgets',
+                limitUpdateKind: UpdateKind.update),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('tags',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('tags',
+                limitUpdateKind: UpdateKind.update),
+            result: [
+              TableUpdate('budgetTag', kind: UpdateKind.update),
+            ],
+          ),
         ],
       );
   @override
@@ -5522,6 +5789,7 @@ typedef $AccountsCreateCompanionBuilder = AccountsCompanion Function({
   Value<String?> color,
   Value<DateTime?> closingDate,
   Value<bool> hiddenByUser,
+  Value<bool> hasMFA,
   required String currencyId,
   Value<String?> iban,
   Value<String?> swift,
@@ -5544,6 +5812,7 @@ typedef $AccountsUpdateCompanionBuilder = AccountsCompanion Function({
   Value<String?> color,
   Value<DateTime?> closingDate,
   Value<bool> hiddenByUser,
+  Value<bool> hasMFA,
   Value<String> currencyId,
   Value<String?> iban,
   Value<String?> swift,
@@ -5581,6 +5850,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<String?> color = const Value.absent(),
             Value<DateTime?> closingDate = const Value.absent(),
             Value<bool> hiddenByUser = const Value.absent(),
+            Value<bool> hasMFA = const Value.absent(),
             Value<String> currencyId = const Value.absent(),
             Value<String?> iban = const Value.absent(),
             Value<String?> swift = const Value.absent(),
@@ -5603,6 +5873,7 @@ class $AccountsTableManager extends RootTableManager<
             color: color,
             closingDate: closingDate,
             hiddenByUser: hiddenByUser,
+            hasMFA: hasMFA,
             currencyId: currencyId,
             iban: iban,
             swift: swift,
@@ -5625,6 +5896,7 @@ class $AccountsTableManager extends RootTableManager<
             Value<String?> color = const Value.absent(),
             Value<DateTime?> closingDate = const Value.absent(),
             Value<bool> hiddenByUser = const Value.absent(),
+            Value<bool> hasMFA = const Value.absent(),
             required String currencyId,
             Value<String?> iban = const Value.absent(),
             Value<String?> swift = const Value.absent(),
@@ -5647,6 +5919,7 @@ class $AccountsTableManager extends RootTableManager<
             color: color,
             closingDate: closingDate,
             hiddenByUser: hiddenByUser,
+            hasMFA: hasMFA,
             currencyId: currencyId,
             iban: iban,
             swift: swift,
@@ -5716,6 +5989,11 @@ class $AccountsFilterComposer extends FilterComposer<_$AppDB, Accounts> {
 
   ColumnFilters<bool> get hiddenByUser => $state.composableBuilder(
       column: $state.table.hiddenByUser,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get hasMFA => $state.composableBuilder(
+      column: $state.table.hasMFA,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -5834,6 +6112,11 @@ class $AccountsOrderingComposer extends OrderingComposer<_$AppDB, Accounts> {
 
   ColumnOrderings<bool> get hiddenByUser => $state.composableBuilder(
       column: $state.table.hiddenByUser,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get hasMFA => $state.composableBuilder(
+      column: $state.table.hasMFA,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -6790,6 +7073,19 @@ class $TagsFilterComposer extends FilterComposer<_$AppDB, Tags> {
                 $state.db.transactionTags, joinBuilder, parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter budgetTagRefs(
+      ComposableFilter Function($BudgetTagFilterComposer f) f) {
+    final $BudgetTagFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.budgetTag,
+        getReferencedColumn: (t) => t.tagID,
+        builder: (joinBuilder, parentComposers) => $BudgetTagFilterComposer(
+            ComposerState(
+                $state.db, $state.db.budgetTag, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $TagsOrderingComposer extends OrderingComposer<_$AppDB, Tags> {
@@ -7059,6 +7355,19 @@ class $BudgetsFilterComposer extends FilterComposer<_$AppDB, Budgets> {
                 parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter budgetTagRefs(
+      ComposableFilter Function($BudgetTagFilterComposer f) f) {
+    final $BudgetTagFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.budgetTag,
+        getReferencedColumn: (t) => t.budgetID,
+        builder: (joinBuilder, parentComposers) => $BudgetTagFilterComposer(
+            ComposerState(
+                $state.db, $state.db.budgetTag, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $BudgetsOrderingComposer extends OrderingComposer<_$AppDB, Budgets> {
@@ -7308,6 +7617,109 @@ class $BudgetAccountOrderingComposer
   }
 }
 
+typedef $BudgetTagCreateCompanionBuilder = BudgetTagCompanion Function({
+  required String budgetID,
+  required String tagID,
+  Value<int> rowid,
+});
+typedef $BudgetTagUpdateCompanionBuilder = BudgetTagCompanion Function({
+  Value<String> budgetID,
+  Value<String> tagID,
+  Value<int> rowid,
+});
+
+class $BudgetTagTableManager extends RootTableManager<
+    _$AppDB,
+    BudgetTag,
+    BudgetTagData,
+    $BudgetTagFilterComposer,
+    $BudgetTagOrderingComposer,
+    $BudgetTagCreateCompanionBuilder,
+    $BudgetTagUpdateCompanionBuilder> {
+  $BudgetTagTableManager(_$AppDB db, BudgetTag table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $BudgetTagFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $BudgetTagOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> budgetID = const Value.absent(),
+            Value<String> tagID = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BudgetTagCompanion(
+            budgetID: budgetID,
+            tagID: tagID,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String budgetID,
+            required String tagID,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BudgetTagCompanion.insert(
+            budgetID: budgetID,
+            tagID: tagID,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $BudgetTagFilterComposer extends FilterComposer<_$AppDB, BudgetTag> {
+  $BudgetTagFilterComposer(super.$state);
+  $BudgetsFilterComposer get budgetID {
+    final $BudgetsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.budgetID,
+        referencedTable: $state.db.budgets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $BudgetsFilterComposer(
+            ComposerState(
+                $state.db, $state.db.budgets, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $TagsFilterComposer get tagID {
+    final $TagsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagID,
+        referencedTable: $state.db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $TagsFilterComposer(
+            ComposerState(
+                $state.db, $state.db.tags, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $BudgetTagOrderingComposer extends OrderingComposer<_$AppDB, BudgetTag> {
+  $BudgetTagOrderingComposer(super.$state);
+  $BudgetsOrderingComposer get budgetID {
+    final $BudgetsOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.budgetID,
+        referencedTable: $state.db.budgets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $BudgetsOrderingComposer(
+            ComposerState(
+                $state.db, $state.db.budgets, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $TagsOrderingComposer get tagID {
+    final $TagsOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagID,
+        referencedTable: $state.db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $TagsOrderingComposer(
+            ComposerState(
+                $state.db, $state.db.tags, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
 typedef $UserSettingsCreateCompanionBuilder = UserSettingsCompanion Function({
   required SettingKey settingKey,
   Value<String?> settingValue,
@@ -7485,6 +7897,8 @@ class $AppDBManager {
       $BudgetCategoryTableManager(_db, _db.budgetCategory);
   $BudgetAccountTableManager get budgetAccount =>
       $BudgetAccountTableManager(_db, _db.budgetAccount);
+  $BudgetTagTableManager get budgetTag =>
+      $BudgetTagTableManager(_db, _db.budgetTag);
   $UserSettingsTableManager get userSettings =>
       $UserSettingsTableManager(_db, _db.userSettings);
   $AppDataTableManager get appData => $AppDataTableManager(_db, _db.appData);

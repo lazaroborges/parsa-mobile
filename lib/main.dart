@@ -72,6 +72,7 @@ void main() async {
         options.dsn = dotenv.env['SENTRY_DSN']!;
         options.tracesSampleRate = 1.0;
         options.profilesSampleRate = 1.0;
+
         options.enableAutoSessionTracking = true;
       },
       appRunner: () => runApp(app),

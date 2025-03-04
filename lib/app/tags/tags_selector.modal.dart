@@ -212,7 +212,7 @@ class _TagSelectorState extends State<TagSelector> {
 
               return CheckboxListTile.adaptive(
                 value: selectedTags.any((element) =>
-                    element != null && element.id == tag.id || element == tag),
+                    element != null && element.id == tag.id),
                 secondary: tag.displayIcon(),
                 title: Text(tag.name),
                 subtitle: !tag.description.isNullOrEmpty

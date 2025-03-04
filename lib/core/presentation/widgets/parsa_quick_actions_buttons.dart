@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/details/account_details_actions.dart';
+import 'package:parsa/app/accounts/pluggy_connector.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/i18n/translations.g.dart';
+
 
 class ParsaQuickActionsButtons extends StatelessWidget {
   const ParsaQuickActionsButtons({
@@ -25,6 +27,24 @@ class ParsaQuickActionsButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (account.hasMFA)
+            Expanded(
+              child: _buildActionButton(
+                context,
+                Icons.refresh,
+                _buildMultilineText("Atualizar"),
+                () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => PluggyConnectorPage(
+                        accountId: account.id,
+                        isUpdate: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           Expanded(
             child: _buildActionButton(
               context,

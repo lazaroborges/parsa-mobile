@@ -33,8 +33,8 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
         ? ''
         : '\n\nMudanças detectadas em: ${changesList.join(', ')}.';
 
+
     bool _applyToFuture = true;
-    print('PROGRAMA LIBRE VOLTA JÁ positiveInflow: $positiveInflow');
 
     final result = await showDialog<bool>(
       context: context,

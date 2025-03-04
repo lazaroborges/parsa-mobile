@@ -36,7 +36,7 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
     }
   }
 
-  print('Requesting URL: $url'); // Add this for debugging
+  //print('Requesting URL: $url'); // Add this for debugging
   
   final auth0Provider = Auth0Provider.instance;
   final credentials = await auth0Provider.credentials;
@@ -96,7 +96,7 @@ Future<void> syncTransactions(String apiResponse) async {
     // Step 3: Batch insert or update into the database
     await insertTransactionsIntoDB(localTransactions);
 
-    print('Transactions synced successfully.');
+    //print('Transactions synced successfully.');
   } catch (e) {
     print('Error syncing transactions: $e');
     // Handle the error as needed
@@ -304,8 +304,8 @@ Future<void> insertTransactionsIntoDB(
         }
       }
     });
-    print(
-        'Batch insert or update successful for ${transactions.length} transactions.');
+   // print(
+     //   'Batch insert or update successful for ${transactions.length} transactions.');
     db.markTablesUpdated([db.transactions, db.transactionTags]);
   } catch (e) {
     print('Failed to batch insert or update transactions: $e');
