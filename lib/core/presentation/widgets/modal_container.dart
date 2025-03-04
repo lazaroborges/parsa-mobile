@@ -42,9 +42,10 @@ class ModalContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-          bottom: responseToKeyboard
-              ? MediaQuery.of(context).viewInsets.bottom
-              : 0),
+        bottom: responseToKeyboard
+            ? MediaQuery.of(context).viewInsets.bottom
+            : MediaQuery.of(context).viewPadding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

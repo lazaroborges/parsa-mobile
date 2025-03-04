@@ -18,7 +18,6 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 
-
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -78,7 +77,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: t.more.subscribe.description,
                     icon: Icons.subscriptions,
                     mainAxis: Axis.horizontal,
-                      onTap: () => ServerHealthCheck.checkServerHealthAndNavigate(context),
+                    onTap: () =>
+                        ServerHealthCheck.checkServerHealthAndNavigate(context),
                   ),
                   //bring back the donate button
                   if (BreakPoint.of(context)
@@ -105,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        // const SizedBox(width: 8),
                         // Expanded(
                         //   child: SettingCardItem(
                         //     title: t.recurrent_transactions.title_short,

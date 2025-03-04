@@ -8,7 +8,6 @@ import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
-import 'package:parsa/app/home/widgets/new_transaction_fl_button.dart';
 import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
@@ -48,12 +47,23 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
 import 'package:in_app_review/in_app_review.dart';
 
+import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
+
+import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
+import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/components/budget_card.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/app/budgets/budget_form_page.dart';
+
+
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 
 import 'dart:async' show unawaited;
+
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -68,6 +78,7 @@ class _DashboardPageState extends State<DashboardPage> {
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
 
+
   void _toggleBalanceType() {
     setState(() {
       currentBalanceType = BalanceType.values[
@@ -75,9 +86,12 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+
   @override
   void initState() {
     super.initState();
+    _loadBalanceType();
+    _initializePrivateMode();
     _initializeDashboard();
   }
 
@@ -151,6 +165,46 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> _loadBalanceType() async {
+    final balanceTypeStr =
+        await SharedPreferencesAsync.instance.getBalanceType();
+
+    // Convert string to enum
+    switch (balanceTypeStr) {
+      case 'available':
+        currentBalanceType = BalanceType.available;
+        break;
+      case 'total':
+        currentBalanceType = BalanceType.total;
+        break;
+      case 'future':
+        currentBalanceType = BalanceType.future;
+        break;
+      default:
+        currentBalanceType = BalanceType.available;
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _initializePrivateMode() async {
+    await PrivateModeService.instance.initializePrivateMode();
+  }
+
+  void _toggleBalanceType() {
+    setState(() {
+      currentBalanceType = BalanceType
+          .values[(currentBalanceType.index + 1) % BalanceType.values.length];
+
+      // Save the balance type preference
+      SharedPreferencesAsync.instance.setBalanceType(
+        currentBalanceType.name, // 'available', 'total', or 'future'
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final userData = context.watch<UserDataProvider>().userData;
@@ -163,8 +217,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
-        floatingActionButton:
-            hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
+        // Botão de nova transação comentado
+        // floatingActionButton:
+        //     hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
         drawer: null, // Nulled and hidden the draw at version 2.0.10
         body: RefreshIndicator(
           onRefresh: _refreshData,
@@ -175,7 +230,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 style:
                     TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
                 child: Card(
-                  margin: const EdgeInsets.only(bottom: 24),
+                  margin: const EdgeInsets.only(bottom: 12),
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(16),
@@ -208,7 +263,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
                                           backgroundImage: NetworkImage(
                                               userData['avatar_url']),
-
                                           radius: 18,
                                         )
                                       else
@@ -478,7 +532,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   final accounts = snapshot.data!.where((account) => !account.removed).toList();
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: AccountListCard(
                       accounts: accounts,
                       onAccountTap: (account) => RouteUtils.pushRoute(
@@ -496,9 +551,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 },
               ),
 
-              // Move the TransactionListComponent here
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
                 child: CardWithHeader(
                   title: t.home.last_transactions,
                   onHeaderButtonClick: () {
@@ -534,13 +591,16 @@ class _DashboardPageState extends State<DashboardPage> {
               // ------------- STATS GENERAL CARDS --------------
 
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
                 child: ResponsiveRowColumn.withSymetricSpacing(
                   direction: BreakPoint.of(context).isLargerThan(BreakpointID.md)
                       ? Axis.horizontal
                       : Axis.vertical,
                   rowCrossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 16,
+                  spacing: 8,
                   children: [
   
                     ResponsiveRowColumnItem(
@@ -560,9 +620,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                       initialIndex: 0),
                                 );
                               }),
-                          const SizedBox(height: 16),
-                          
-                          // Add Income/Expense Comparison Card here
+
+                          const SizedBox(height: 12),
+
                           CardWithHeader(
                             title: t.stats.cash_flow,
                             bodyPadding: EdgeInsets.zero,
@@ -580,6 +640,78 @@ class _DashboardPageState extends State<DashboardPage> {
                               );
                             },
                           ),
+                          const SizedBox(height: 12),
+                          CardWithHeader(
+                            title: t.stats.by_tags,
+                            body: TagStats(
+                              filters: TransactionFilters(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate,
+                              ),
+                            ),
+                            onHeaderButtonClick: () {
+                              RouteUtils.pushRoute(
+                                context,
+                                StatsPage(
+                                  dateRangeService: dateRangeService,
+                                  initialIndex: 0, // First tab contains tags
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          CardWithHeader(
+                            title: t.budgets.title,
+                            body: StreamBuilder(
+                              stream: BudgetServive.instance.getBudgets(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const LinearProgressIndicator();
+                                }
+
+                                final budgets = snapshot.data!;
+
+                                if (budgets.isEmpty) {
+                                  return InkWell(
+                                    onTap: () {
+                                      // Navigate to budget creation page
+                                      RouteUtils.pushRoute(
+                                          context,
+                                          const BudgetFormPage(
+                                              prevPage: DashboardPage()));
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Text(
+                                        t.budgets.no_budgets,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                return ListView.builder(
+                                  padding: const EdgeInsets.all(8),
+                                  itemCount: budgets.length > 3
+                                      ? 3
+                                      : budgets
+                                          .length, // Limit to 3 budgets on dashboard
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final budget = budgets[index];
+                                    return BudgetCard(budget: budget);
+                                  },
+                                );
+                              },
+                            ),
+                            onHeaderButtonClick: () {
+                              RouteUtils.pushRoute(
+                                  context, const BudgetsPage());
+                            },
+                          ),
+
                           // const SizedBox(height: 16),
 
                           // CardWithHeader(
@@ -609,7 +741,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           //     },
                           //   ),
                           // ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 16), //This might be an issue.
+
 
                         ],
                       ),
@@ -772,30 +905,59 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildBalanceDisplay(BuildContext context, double balance, {Key? key}) {
-    final isNegative = balance < 0;
+  Widget _buildBalanceDisplay(BuildContext context, double balance,
+      {Key? key}) {
+
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
-
-    // Previous design used red color for negative numbers:
-    // color: isNegative ? Colors.red : Theme.of(context).textTheme.titleLarge!.color,
 
     return Container(
       key: key,
       width: screenWidth * widthMultiplier,
-      height: 54, // Fixed height to prevent layout shifts
+      height: 56,
       alignment: Alignment.centerLeft,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: CurrencyDisplayer(
-          amountToConvert: balance, // Removed .abs() to show negative sign
-          integerStyle: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).textTheme.titleLarge!.color,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 48,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: CurrencyDisplayer(
+                amountToConvert: balance,
+                integerStyle: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.titleLarge!.color,
+                ),
+              ),
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.only(top: 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (int i = 0; i < BalanceType.values.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                    child: Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: i == currentBalanceType.index
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).disabledColor.withOpacity(0.4),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

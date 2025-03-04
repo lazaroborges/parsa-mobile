@@ -204,13 +204,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   ),
                 ],
               ),
-        floatingActionButton: FloatingActionButton.extended(
-          icon: const Icon(Icons.add_rounded),
-          label: Text(t.transaction.create),
+        floatingActionButton: FloatingActionButton(
           onPressed: () => RouteUtils.pushRoute(
             context,
             const TransactionFormPage(),
           ),
+          child: const Icon(Icons.add_rounded),
         ),
         body: Column(
           children: [

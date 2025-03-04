@@ -5,7 +5,9 @@ description: controle financeiro sem esforço.
 
 publish_to: none
 
+
 version: 2.0.11+77
+
 
 environment:
   flutter: 3.22.3
@@ -93,11 +95,13 @@ dev_dependencies:
 
 build:
   ios:
+
     build-name: 2.0.11
     build-number: 77
   android:
     build-name: 2.0.11
     build-number: 77
+
 
 
 flutter_launcher_icons:
@@ -110,7 +114,7 @@ flutter:
 
   assets:
     - assets/resources/
-    - assets/icons/app_onboarding/
+    - assets/icons/onboarding/
     - assets/icons/avatars/
     - assets/icons/currency_flags/
     - assets/icons/page_states/
@@ -131,6 +135,7 @@ flutter:
     - assets/sql/migrations/
     - assets/png_icons/
     - .env
+    - lib/app/onboarding/questions.json
 
   fonts:
     - family: Nunito

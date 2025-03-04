@@ -10,7 +10,6 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 
-
 class TagStats extends StatelessWidget {
   const TagStats({super.key, required this.filters});
 

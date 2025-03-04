@@ -8,7 +8,6 @@ import 'package:parsa/main.dart';
 import 'package:http/http.dart' as http;
 
 class AuthMethods {
-
   // Fetch user profile data
   static Future<void> fetchUserProfile(Auth0 auth0) async {
     try {
@@ -50,7 +49,8 @@ class AuthMethods {
       if (response.statusCode == 200) {
         print('Logout successful');
       } else {
-        print('Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
+        print(
+            'Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
       }
 
       // Clear database tables
@@ -76,7 +76,8 @@ class AuthMethods {
         context,
         MaterialPageRoute(
             builder: (context) => Auth0Service(
-                auth0Provider: Auth0Provider.instance)), // Replace with your login page widget
+                auth0Provider: Auth0Provider
+                    .instance)), // Replace with your login page widget
         (Route<dynamic> route) => false,
       );
       print('User logged out and navigated to LoginPage');

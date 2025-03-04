@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2023-11-15",
+    "description": "Financial intake questionnaire"
+  },
+  "questions": [
+    {
+      "id": "financial_goal",
+      "question": "Qual o seu objetivo principal?",
+      "type": "multiple_choice",
+      "options": [
+        {
+          "id": "control_expenses",
+          "text": "Controlar meus gastos e sair das dívidas"
+        },
+        {
+          "id": "save_invest",
+          "text": "Economizar para investir"
+        },
+        {
+          "id": "analyze_finances",
+          "text": "Análisar a fundo minhas finanças"
+        }
+      ]
+    },
+    {
+      "id": "finance_difficulty",
+      "question": "Com que dificuldade você controla suas finanças?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "very_easy",
+          "text": "Muito fácil"
+        },
+        {
+          "id": "easy",
+          "text": "Fácil"
+        },
+        {
+          "id": "medium",
+          "text": "Médio"
+        },
+        {
+          "id": "hard",
+          "text": "Difícil"
+        },
+        {
+          "id": "very_hard",
+          "text": "Muito difícil"
+        }
+      ]
+    },
+    {
+      "id": "previous_methods",
+      "question": "Quais métodos você já utilizou para controlar suas finanças?",
+      "type": "multiple_choice",
+      "options": [
+        {
+          "id": "paper_pen",
+          "text": "Caderno e caneta"
+        },
+        {
+          "id": "mobile_app",
+          "text": "Aplicativo"
+        },
+        {
+          "id": "spreadsheet",
+          "text": "Planilha"
+        },
+        {
+          "id": "none",
+          "text": "Nunca controlei minhas finanças"
+        }
+      ]
+    },
+    {
+      "id": "previous_success",
+      "question": "Deu certo controlar suas finanças?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "yes",
+          "text": "Sim"
+        },
+        {
+          "id": "no",
+          "text": "Não"
+        }
+      ],
+      "conditional_questions": {
+        "yes": {
+          "id": "success_reasons",
+          "question": "Por que deu certo?",
+          "type": "multiple_choice",
+          "options": [
+            {
+              "id": "financial_forecasting",
+              "text": "Previsibilidade Financeira"
+            },
+            {
+              "id": "auto_sync",
+              "text": "Sincronização Automática"
+            },
+            {
+              "id": "expense_tracking",
+              "text": "Facilidade de acompanhar todos os gastos"
+            },
+            {
+              "id": "ease_of_use",
+              "text": "Facilidade de uso"
+            },
+            {
+              "id": "understandability",
+              "text": "Facilidade de entendimento"
+            },
+            {
+              "id": "customization",
+              "text": "Personalização"
+            }
+          ]
+        },
+        "no": {
+          "id": "failure_reasons",
+          "question": "Por que não deu certo?",
+          "type": "multiple_choice",
+          "options": [
+            {
+              "id": "lack_predictability",
+              "text": "Falta de previsibilidade"
+            },
+            {
+              "id": "manual_work",
+              "text": "Muito trabalho manual"
+            },
+            {
+              "id": "classification_burden",
+              "text": "Necessidade de classificar gastos"
+            },
+            {
+              "id": "constant_review",
+              "text": "Necessidade de revisão constante"
+            },
+            {
+              "id": "usability_issues",
+              "text": "Dificuldade de uso"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "financial_situation",
+      "question": "Qual sua situação financeira atual?",
+      "type": "grouped_single_choice",
+      "subquestions": [
+        {
+          "id": "income_type",
+          "question": "Tipo de renda",
+          "options": [
+            {
+              "id": "constant_income",
+              "text": "Possuo renda constante"
+            },
+            {
+              "id": "variable_income",
+              "text": "Possuo renda variável"
+            },
+            {
+              "id": "no_income",
+              "text": "Não possuo renda"
+            }
+          ]
+        },
+        {
+          "id": "financial_status",
+          "question": "Status financeiro",
+          "options": [
+            {
+              "id": "in_debt",
+              "text": "Estou endividado"
+            },
+            {
+              "id": "breaking_even",
+              "text": "Não estou endividado, mas não sobra renda"
+            },
+            {
+              "id": "investing",
+              "text": "Estou investindo mas gostaria que sobrasse mais"
+            },
+            {
+              "id": "financially_stable",
+              "text": "Tenho estabilidade financeira e gostaria de melhorar meus gastos"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -18,7 +18,10 @@ The app uses Material Design 3 but has its theme configuration spread across mul
 ## Custom Colors Extension
 @lib/core/presentation/app_colors.dart
 - Defines `AppColors` extending `ThemeExtension`
-- Contains brand color constant `brandBlue = Color(0xFF0F3375)`
+- Contains brand color constants:
+  - `brandBlue = Color(0xFF1c64f2)`
+  - `brandDarkblue = Color(0xFF1724c9)`
+  - `brandLightBlue = Color(0xFF30a8ff)`
 - Manages custom color palette including:
   - danger/success colors
   - brand colors

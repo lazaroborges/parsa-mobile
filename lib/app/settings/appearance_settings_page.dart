@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/settings/widgets/language_selector.dart';
-import 'package:parsa/app/settings/widgets/supported_locales.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 import 'widgets/settings_list_separator.dart';
 
@@ -193,31 +192,30 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                       Text(t.settings.security.private_mode_at_launch_descr),
                   secondary: const Icon(Icons.phonelink_lock_outlined),
                   value: snapshot.data ?? false,
-                  onChanged: (bool value) {
-                    PrivateModeService.instance
-                        .setPrivateModeAtLaunch(value)
-                        .then((i) {
-                      setState(() {});
-                    });
+                  onChanged: (bool value) async {
+                    // Update using the service which handles both DB and SharedPreferences
+                    await PrivateModeService.instance
+                        .setPrivateModeAtLaunch(value);
+                    setState(() {});
                   },
                 );
               },
             ),
-            StreamBuilder(
-                stream: PrivateModeService.instance.privateModeStream,
-                builder: (context, snapshot) {
-                  return SwitchListTile(
-                    title: Text(t.settings.security.private_mode),
-                    subtitle: Text(t.settings.security.private_mode_descr),
-                    secondary: const Icon(Icons.lock),
-                    value: snapshot.data ?? false,
-                    onChanged: (bool value) {
-                      setState(() {
-                        PrivateModeService.instance.setPrivateMode(value);
-                      });
-                    },
-                  );
-                }),
+            // PrivateMode button disabled for now
+            // StreamBuilder(
+            //     stream: PrivateModeService.instance.privateModeStream,
+            //     builder: (context, snapshot) {
+            //       return SwitchListTile(
+            //         title: Text(t.settings.security.private_mode),
+            //         subtitle: Text(t.settings.security.private_mode_descr),
+            //         secondary: const Icon(Icons.lock),
+            //         value: snapshot.data ?? false,
+            //         onChanged: (bool value) {
+            //           PrivateModeService.instance.setPrivateMode(value);
+            //           setState(() {});
+            //         },
+            //       );
+            //     }),
           ],
         ),
       ),
