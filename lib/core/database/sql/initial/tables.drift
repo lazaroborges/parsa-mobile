@@ -60,6 +60,9 @@ CREATE TABLE IF NOT EXISTS accounts (
     -- Whether the account is hidden by the user
     hiddenByUser BOOLEAN NOT NULL DEFAULT 0,
 
+    -- Whether the account has MFA enabled
+    hasMFA BOOLEAN NOT NULL DEFAULT 0,
+
     -- ID of the currency used by this account and therefore all transactions contained in it
     currencyId TEXT NOT NULL REFERENCES currencies(code) ON DELETE CASCADE ON UPDATE CASCADE,
 
@@ -230,6 +233,11 @@ CREATE TABLE IF NOT EXISTS budgetCategory (
 CREATE TABLE IF NOT EXISTS budgetAccount (
   budgetID TEXT NOT NULL REFERENCES budgets(id) ON DELETE CASCADE ON UPDATE CASCADE,
   accountID TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS budgetTag (
+  budgetID TEXT NOT NULL REFERENCES budgets(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  tagID TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS userSettings (

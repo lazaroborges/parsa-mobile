@@ -5,7 +5,7 @@ description: controle financeiro sem esforço.
 
 publish_to: none
 
-version: 2.0.9+67
+version: 2.0.11+77
 
 environment:
   flutter: 3.22.3
@@ -19,10 +19,11 @@ dependencies:
     sdk: flutter
 
   # flutter_auth: ^1.1.0
-  auth0_flutter: ^1.7.0
+  auth0_flutter: ^1.8.0
   flutter_appauth: ^7.0.0
   flutter_dotenv: ^5.1.0
-  flutter_pluggy_connect: ^3.0.0
+  flutter_pluggy_connect: ^3.0.1
+  webview_flutter: ^4.10.0
 
   # General
   cupertino_icons: ^1.0.0
@@ -92,11 +93,11 @@ dev_dependencies:
 
 build:
   ios:
-    build-name: 2.0.9
-    build-number: 67
+    build-name: 2.0.11
+    build-number: 77
   android:
-    build-name: 2.0.9
-    build-number: 67
+    build-name: 2.0.11
+    build-number: 77
 
 
 flutter_launcher_icons:

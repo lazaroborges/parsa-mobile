@@ -83,49 +83,46 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
                   Tab(text: t.transaction.display(n: 1)),
                 ]),
                 actions: [
-                  MonekinPopupMenuButton(actionItems: [
-                    ListTileActionItem(
-                      label: t.budgets.form.edit,
-                      icon: Icons.edit,
-                      onClick: () {
-                        RouteUtils.pushRoute(
-                          context,
-                          BudgetFormPage(
-                              prevPage: const BudgetsPage(),
-                              budgetToEdit: budget),
-                        );
-                      },
-                    ),
-                    ListTileActionItem(
-                      label: t.general.delete,
-                      icon: Icons.delete,
-                      role: ListTileActionRole.delete,
-                      onClick: () {
-                        confirmDialog(
-                          context,
-                          dialogTitle: t.budgets.delete,
-                          contentParagraphs: [Text(t.budgets.delete_warning)],
-                          confirmationText: t.general.confirm,
-                          icon: Icons.delete,
-                        ).then((confirmed) {
-                          if (confirmed != true) return;
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: t.budgets.form.edit,
+                    onPressed: () {
+                      RouteUtils.pushRoute(
+                        context,
+                        BudgetFormPage(
+                            prevPage: const BudgetsPage(),
+                            budgetToEdit: budget),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    tooltip: t.general.delete,
+                    onPressed: () {
+                      confirmDialog(
+                        context,
+                        dialogTitle: t.budgets.delete,
+                        contentParagraphs: [Text(t.budgets.delete_warning)],
+                        confirmationText: t.general.confirm,
+                        icon: Icons.delete,
+                      ).then((confirmed) {
+                        if (confirmed != true) return;
 
-                          BudgetServive.instance
-                              .deleteBudget(budget.id)
-                              .then((value) {
-                            Navigator.pop(context);
+                        BudgetServive.instance
+                            .deleteBudget(budget.id)
+                            .then((value) {
+                          Navigator.pop(context);
 
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(t.budgets.delete),
-                            ));
-                          }).catchError((err) {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text('$err')));
-                          });
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(t.budgets.delete),
+                          ));
+                        }).catchError((err) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text('$err')));
                         });
-                      },
-                    )
-                  ])
+                      });
+                    },
+                  ),
                 ],
               ),
               body: TabBarView(children: [

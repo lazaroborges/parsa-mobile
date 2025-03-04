@@ -82,7 +82,7 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
   }
 
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction,
-      [List<Tag> tags = const [], int? notMassUpdate]) async {
+      [List<Tag>? tags, int? notMassUpdate]) async {
     try {
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
@@ -90,6 +90,24 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
       final existing = await (db.select(db.transactions)
             ..where((t) => t.id.equals(transaction.id)))
           .getSingleOrNull();
+
+      // If no tags provided and transaction exists, get existing tags
+      List<Tag> tagsToUse = tags ?? [];
+      if (tags == null && existing != null) {
+        final existingTags = await (db.select(db.transactionTags)
+              ..where((t) => t.transactionID.equals(transaction.id)))
+            .get();
+        
+        // Get full tag objects for each existing tag ID
+        tagsToUse = await Future.wait(
+          existingTags.map((t) async {
+            final tagData = await (db.select(db.tags)
+                  ..where((tag) => tag.id.equals(t.tagID)))
+                .getSingle();
+            return Tag.fromTagInDB(tagData);
+          }),
+        );
+      }
 
       // Track changes if this is an update
       TransactionChanges? changes;
@@ -103,22 +121,23 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
           notes: existing.notes != transaction.notes ? transaction.notes : null,
         );
 
-        // Get existing tags for comparison
-        final existingTags = await (db.select(db.transactionTags)
-              ..where((t) => t.transactionID.equals(transaction.id)))
-            .get();
-        final existingTagIds = existingTags.map((e) => e.tagID).toSet();
-        final newTagIds = tags.map((e) => e.id).toSet();
+        // Only compare tags if they were explicitly provided
+        if (tags != null) {
+          final existingTags = await (db.select(db.transactionTags)
+                ..where((t) => t.transactionID.equals(transaction.id)))
+              .get();
+          final existingTagIds = existingTags.map((e) => e.tagID).toSet();
+          final newTagIds = tags.map((e) => e.id).toSet();
 
-        // Only set tags if they've changed
-        if (!setEquals(existingTagIds, newTagIds)) {
-          changes = TransactionChanges(
-            description: changes.description,
-            categoryName: changes.categoryName,
-            status: changes.status,
-            notes: changes.notes,
-            tags: tags,
-          );
+          if (!setEquals(existingTagIds, newTagIds)) {
+            changes = TransactionChanges(
+              description: changes.description,
+              categoryName: changes.categoryName,
+              status: changes.status,
+              notes: changes.notes,
+              tags: tags,
+            );
+          }
         }
       }
 
@@ -128,7 +147,7 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
             accessToken: credentials!.accessToken,
-            tags: tags,
+            tags: tagsToUse,
             method: 'PUT');
 
         if (!isPosted) {
@@ -140,7 +159,7 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
             accessToken: credentials!.accessToken,
-            tags: tags,
+            tags: tagsToUse,
             method: 'POST');
 
         if (!isPosted) {
@@ -155,7 +174,7 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
 
       bool positiveInflow = transaction.value > 0;
 
-      unawaited(_updateTransactionTags(transaction.id, tags));
+      unawaited(_updateTransactionTags(transaction.id, tagsToUse));
 
       db.markTablesUpdated([db.accounts]);
       unawaited(fetchUserDataAtServer());
@@ -170,7 +189,6 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
         if (cousins.isNotEmpty && changes?.hasChanges == true ) {
 
           if (onCousinFound != null) {
-              print('ALTAS HORAS VIDA INTELIGENTE NA MADRUGADA positiveInflow: $positiveInflow');
 
             final shouldContinue = await onCousinFound!(
 

@@ -93,7 +93,7 @@
       },
       "PERIODICITY": {
         "display": "Recorrência",
-        "no-repeat": "Sem repetição",
+        "no-repeat": "Definir Minhas Datas",
         "repeat": {
           "one": "Repetição",
           "other": "Repetições"

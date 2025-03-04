@@ -51,28 +51,30 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = dotenv.env['SENTRY_DSN']!; // Add SENTRY_DSN to your .env file
-      options.tracesSampleRate = 1.0; // Capture 100% of transactions
-      options.enableAutoSessionTracking = true;
-    },
-    appRunner: () => runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
-          ChangeNotifierProvider(
-            create: (_) => Auth0Provider(auth0: auth0),
-          ),
-          ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
-        ],
-        child: const MonekinAppEntryPoint(),
+  final app = MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
+      ChangeNotifierProvider(
+        create: (_) => Auth0Provider(auth0: auth0),
       ),
-    ),
+      ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
+    ],
+    child: const MonekinAppEntryPoint(),
   );
 
-
-  
+  if (kReleaseMode) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = dotenv.env['SENTRY_DSN']!;
+        options.tracesSampleRate = 1.0;
+      options.profilesSampleRate = 1.0;
+        options.enableAutoSessionTracking = true;
+      },
+      appRunner: () => runApp(app),
+    );
+  } else {
+    runApp(app);
+  }
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
