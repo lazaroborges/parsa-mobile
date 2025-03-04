@@ -165,7 +165,7 @@ class _DashboardPageState extends State<DashboardPage> {
         appBar: EmptyAppBar(color: AppColors.of(context).light),
         floatingActionButton:
             hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
-        drawer: null, // Nulled and hidden the draw at version 2.0.10 
+        drawer: null, // Nulled and hidden the draw at version 2.0.10
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
@@ -203,10 +203,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                     if (BreakPoint.of(context)
                                         .isSmallerThan(BreakpointID.md)) ...[
                                       if (userData != null &&
-                                          userData!['avatar_url'] != null)
+                                          userData['avatar_url'] != null)
                                         CircleAvatar(
-                                          backgroundImage:
-                                              NetworkImage(userData!['avatar_url']),
+
+                                          backgroundImage: NetworkImage(
+                                              userData['avatar_url']),
+
                                           radius: 18,
                                         )
                                       else
@@ -236,7 +238,15 @@ class _DashboardPageState extends State<DashboardPage> {
                                                 .getSetting(SettingKey.userName),
                                             builder: (context, snapshot) {
                                               if (userData != null &&
-                                                  userData!['first_name'] != null) {
+
+                                                  userData['first_name'] !=
+                                                      null) {
+                                                final firstName = utf8.decode(
+                                                    userData['first_name']
+                                                        .toString()
+                                                        .runes
+                                                        .toList());
+
                                                 return Text(
                                                   utf8.decode(
                                                       userData!['first_name']
@@ -275,34 +285,69 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                               ),
                             ),
-                            ActionChip(
-                              label: Text(dateRangeService.getText(context)),
-                              backgroundColor:
-                                  AppColors.of(context).primaryContainer,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                side: BorderSide(
-                                  style: BorderStyle.none,
-                                  color: AppColors.of(context).onPrimary,
-                                ),
-                              ),
-                              onPressed: () {
-                                openDatePeriodModal(
-                                  context,
-                                  DatePeriodModal(
-                                    initialDatePeriod: dateRangeService.datePeriod,
-                                  ),
-                                ).then((value) {
-                                  if (value == null) return;
 
-                                  setState(() {
-                                    dateRangeService = dateRangeService.copyWith(
-                                      periodModifier: 0,
-                                      datePeriod: value,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                StreamBuilder(
+                                  stream: PrivateModeService
+                                      .instance.privateModeStream,
+                                  initialData: false,
+                                  builder: (context, snapshot) {
+                                    final isPrivate = snapshot.data ?? false;
+                                    return IconButton(
+                                      icon: Icon(
+                                        isPrivate
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                        size: 20,
+                                        color: Colors.grey[500],
+                                      ),
+                                      style: IconButton.styleFrom(
+                                        padding: const EdgeInsets.all(8),
+                                      ),
+                                      onPressed: () {
+                                        PrivateModeService.instance
+                                            .setPrivateMode(!isPrivate);
+                                      },
                                     );
-                                  });
-                                });
-                              },
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                ActionChip(
+                                  label:
+                                      Text(dateRangeService.getText(context)),
+                                  backgroundColor:
+                                      AppColors.of(context).primaryContainer,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: BorderSide(
+                                      style: BorderStyle.none,
+                                      color: AppColors.of(context).onPrimary,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    openDatePeriodModal(
+                                      context,
+                                      DatePeriodModal(
+                                        initialDatePeriod:
+                                            dateRangeService.datePeriod,
+                                      ),
+                                    ).then((value) {
+                                      if (value == null) return;
+
+                                      setState(() {
+                                        dateRangeService =
+                                            dateRangeService.copyWith(
+                                          periodModifier: 0,
+                                          datePeriod: value,
+                                        );
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
+
                             ),
                           ],
                         ),
@@ -732,6 +777,9 @@ class _DashboardPageState extends State<DashboardPage> {
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
 
+    // Previous design used red color for negative numbers:
+    // color: isNegative ? Colors.red : Theme.of(context).textTheme.titleLarge!.color,
+
     return Container(
       key: key,
       width: screenWidth * widthMultiplier,
@@ -741,13 +789,11 @@ class _DashboardPageState extends State<DashboardPage> {
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: CurrencyDisplayer(
-          amountToConvert: balance.abs(),
+          amountToConvert: balance, // Removed .abs() to show negative sign
           integerStyle: TextStyle(
             fontSize: 32,
-            fontWeight: FontWeight.w600,
-            color: isNegative
-                ? Colors.red
-                : Theme.of(context).textTheme.titleLarge!.color,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.titleLarge!.color,
           ),
         ),
       ),
