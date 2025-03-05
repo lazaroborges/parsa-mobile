@@ -209,7 +209,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 20),
                             // Updated Text Styling
                             Padding(
                               padding:
@@ -276,7 +276,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                           ],
                         ),
                       ),

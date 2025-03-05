@@ -342,7 +342,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       
       // New home implementation with sequential checks
       home: FutureBuilder<bool>(
-        future: SharedPreferencesAsync.instance.getOnboarded(),
+        //future: SharedPreferencesAsync.instance.getOnboarded(),
+        future: Future.value(false), // Temporarily force onboarding to show
         builder: (context, onboardingSnapshot) {
           if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

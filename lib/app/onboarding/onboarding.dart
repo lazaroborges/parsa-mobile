@@ -67,7 +67,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   void _setupAnimations() {
     _logoController = AnimationController(
-      duration: const Duration(milliseconds: 3500),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
@@ -140,7 +140,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       curve: Curves.easeOutCubic,
     ));
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         _logoController.forward();
       }
@@ -309,7 +309,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               Positioned(
                 left: size.width * 0.06,
                 right: size.width * 0.06,
-                bottom: padding.bottom + size.height * 0.04,
+                bottom: padding.bottom,
                 child: previousPage == items.length - 2
                     ? SlideTransition(
                         position: _pageButtonSlideAnimation,
@@ -553,16 +553,17 @@ class _OnboardingPageState extends State<OnboardingPage>
         onPressed: introFinished,
         style: ElevatedButton.styleFrom(
           minimumSize: Size(double.infinity, size.height * 0.065),
-          backgroundColor: appColors.brand, // Using brandLight from AppColors
-          foregroundColor: Colors.white,
+          backgroundColor: appColors.brand, // Changed from primary to brand
+          foregroundColor: Colors.white, // Changed to white to match intro.page.dart
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0,
+          elevation: 4, // Added elevation to match intro.page.dart
+          shadowColor: appColors.brand.withOpacity(0.6), // Added shadowColor to match intro.page.dart
           padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
         ),
         child: Text(
-          'Começar Jornada!',
+          'Vamos começar?',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: size.width * 0.042, // Responsive font size
