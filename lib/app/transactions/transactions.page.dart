@@ -24,6 +24,7 @@ import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({
@@ -144,6 +145,28 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       )
                     : Text(t.transaction.display(n: 10)),
                 actions: [
+                  // Add private mode toggle
+                  StreamBuilder(
+                    stream: PrivateModeService.instance.privateModeStream,
+                    initialData: false,
+                    builder: (context, snapshot) {
+                      final isPrivate = snapshot.data ?? false;
+                      return IconButton(
+                        icon: Icon(
+                          isPrivate ? Icons.visibility : Icons.visibility_off,
+                          size: 20,
+                          color: Colors.grey[500],
+                        ),
+                        style: IconButton.styleFrom(
+                          padding: const EdgeInsets.all(8),
+                        ),
+                        onPressed: () {
+                          PrivateModeService.instance
+                              .setPrivateMode(!isPrivate);
+                        },
+                      );
+                    },
+                  ),
                   if (filters.hasFilter || searchController.text.isNotEmpty)
                     IconButton(
                       icon: Icon(

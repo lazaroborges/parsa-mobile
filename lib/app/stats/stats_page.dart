@@ -14,6 +14,7 @@ import 'package:parsa/core/presentation/widgets/persistent_footer_button.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 
@@ -73,6 +74,26 @@ class _StatsPageState extends State<StatsPage> {
         appBar: AppBar(
           title: Text(t.stats.title),
           actions: [
+            StreamBuilder(
+              stream: PrivateModeService.instance.privateModeStream,
+              initialData: false,
+              builder: (context, snapshot) {
+                final isPrivate = snapshot.data ?? false;
+                return IconButton(
+                  icon: Icon(
+                    isPrivate ? Icons.visibility : Icons.visibility_off,
+                    size: 20,
+                    color: Colors.grey[500],
+                  ),
+                  style: IconButton.styleFrom(
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  onPressed: () {
+                    PrivateModeService.instance.setPrivateMode(!isPrivate);
+                  },
+                );
+              },
+            ),
             IconButton(
                 onPressed: () async {
                   final modalRes = await openFilterSheetModal(
@@ -199,7 +220,8 @@ class _StatsPageState extends State<StatsPage> {
                       dateRange: dateRangeService,
                       filters: filters,
                     ),
-                  ),       ]),
+                  ),
+                ]),
               ]),
             ),
           ],
