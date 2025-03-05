@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/main.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 
 class PluggyConnectorPage extends StatefulWidget {
@@ -14,7 +12,7 @@ class PluggyConnectorPage extends StatefulWidget {
   final bool isUpdate;
 
   const PluggyConnectorPage({
-    super.key, 
+    super.key,
     this.accountId,
     this.isUpdate = false,
   });
@@ -36,26 +34,24 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
   }
 
   Future<void> _openConnectUrl(BuildContext context) async {
-
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
 
+      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+      final credentials = await auth0Provider.credentials;
 
-    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-    final credentials = await auth0Provider.credentials;
-
-    if (credentials == null) {
-      throw Exception('No credentials available');
-    }
+      if (credentials == null) {
+        throw Exception('No credentials available');
+      }
 
       // Determine which endpoint to use based on whether this is an update
-      final String endpoint = widget.isUpdate 
-          ? '$apiEndpoint/open/connect-mobile-update/' 
+      final String endpoint = widget.isUpdate
+          ? '$apiEndpoint/open/connect-mobile-update/'
           : '$apiEndpoint/open/connect-mobile/';
-      
+
       // For updates, use POST with accountId in the body
       final response = widget.isUpdate && widget.accountId != null
           ? await http.post(
@@ -86,26 +82,16 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
           Navigator.of(context).pop();
         }
       } else {
-        throw Exception('Failed to get redirect URL: ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Failed to get redirect URL: ${response.statusCode} - ${response.body}');
       }
-
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
-
     }
-
-  } catch (e) {
-    setState(() {
-      _error = e.toString();
-      _isLoading = false;
-    });
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {

@@ -56,14 +56,12 @@ import 'package:parsa/app/budgets/components/budget_card.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/app/budgets/budget_form_page.dart';
 
-
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 
 import 'dart:async' show unawaited;
-
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -77,15 +75,6 @@ class _DashboardPageState extends State<DashboardPage> {
   bool isLoading = false;
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
-
-
-  void _toggleBalanceType() {
-    setState(() {
-      currentBalanceType = BalanceType.values[
-          (currentBalanceType.index + 1) % BalanceType.values.length];
-    });
-  }
-
 
   @override
   void initState() {
@@ -101,10 +90,10 @@ class _DashboardPageState extends State<DashboardPage> {
       if (mounted) {
         await FeatureAnnouncementModal.showIfNeeded(context);
       }
-      
+
       // Then fetch data
       await _refreshData();
-      
+
       // Add small delay to ensure userData is loaded and UI is stable
       if (mounted) {
         await Future.delayed(const Duration(seconds: 2));
@@ -117,7 +106,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _refreshData() async {
     if (!mounted) return;
-    
+
     setState(() {
       isLoading = true;
       isLoadingTransactions = true;
@@ -126,7 +115,7 @@ class _DashboardPageState extends State<DashboardPage> {
     try {
       // First fetch user data
       unawaited(fetchUserDataAtServer());
-      
+
       // Then fetch accounts and tags before transactions and budget
       await Future.wait([
         fetchUserAccounts(),
@@ -136,9 +125,8 @@ class _DashboardPageState extends State<DashboardPage> {
       // Finally fetch transactions and budgets
       await Future.wait([
         fetchUserTransactions(null),
-        fetchUserBudgets(context), 
+        fetchUserBudgets(context),
       ]);
-     
     } catch (e) {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
@@ -154,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _checkAndShowReviewDialog() async {
     final userData = context.read<UserDataProvider>().userData;
-    
+
     if (userData != null && userData['ask_feedback'] == true) {
       final InAppReview inAppReview = InAppReview.instance;
 
@@ -224,11 +212,12 @@ class _DashboardPageState extends State<DashboardPage> {
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(), // Use ClampingScrollPhysics here
+            physics:
+                const ClampingScrollPhysics(), // Use ClampingScrollPhysics here
             child: Column(children: [
               DefaultTextStyle.merge(
-                style:
-                    TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
+                style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor),
                 child: Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: const RoundedRectangleBorder(
@@ -260,7 +249,6 @@ class _DashboardPageState extends State<DashboardPage> {
                                       if (userData != null &&
                                           userData['avatar_url'] != null)
                                         CircleAvatar(
-
                                           backgroundImage: NetworkImage(
                                               userData['avatar_url']),
                                           radius: 18,
@@ -276,7 +264,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                       const SizedBox(width: 8),
                                     ],
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           _getGreeting(),
@@ -289,10 +278,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                         ),
                                         StreamBuilder(
                                             stream: UserSettingService.instance
-                                                .getSetting(SettingKey.userName),
+                                                .getSetting(
+                                                    SettingKey.userName),
                                             builder: (context, snapshot) {
                                               if (userData != null &&
-
                                                   userData['first_name'] !=
                                                       null) {
                                                 final firstName = utf8.decode(
@@ -311,7 +300,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                                       .textTheme
                                                       .titleSmall!
                                                       .copyWith(
-                                                        fontWeight: FontWeight.w600,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                         fontSize: 18,
                                                       ),
                                                 );
@@ -328,7 +318,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                                     .textTheme
                                                     .titleSmall!
                                                     .copyWith(
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                       fontSize: 18,
                                                     ),
                                               );
@@ -339,7 +330,6 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                               ),
                             ),
-
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
@@ -401,7 +391,6 @@ class _DashboardPageState extends State<DashboardPage> {
                                   },
                                 ),
                               ],
-
                             ),
                           ],
                         ),
@@ -437,8 +426,6 @@ class _DashboardPageState extends State<DashboardPage> {
                             );
                           },
                         ),
-                        
-                        
                         if (true) ...[
                           const SizedBox(height: 16),
                           StreamBuilder<double>(
@@ -451,7 +438,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             builder: (context, incomeSnapshot) {
                               return StreamBuilder<double>(
-                                stream: AccountService.instance.getAccountsBalance(
+                                stream:
+                                    AccountService.instance.getAccountsBalance(
                                   filters: TransactionFilters(
                                     minDate: dateRangeService.startDate,
                                     maxDate: dateRangeService.endDate,
@@ -459,21 +447,25 @@ class _DashboardPageState extends State<DashboardPage> {
                                   ),
                                 ),
                                 builder: (context, expenseSnapshot) {
-                                  if (!incomeSnapshot.hasData || !expenseSnapshot.hasData) {
+                                  if (!incomeSnapshot.hasData ||
+                                      !expenseSnapshot.hasData) {
                                     return const LinearProgressIndicator();
                                   }
 
                                   final income = incomeSnapshot.data!.abs();
                                   final expenses = expenseSnapshot.data!.abs();
-                                  final percentage = income > 0 ? (expenses / income) : 0.0;
+                                  final percentage =
+                                      income > 0 ? (expenses / income) : 0.0;
 
                                   return Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 2, vertical: 1),
                                     width: double.infinity,
                                     child: Column(
                                       children: [
                                         TweenAnimationBuilder<double>(
-                                          duration: const Duration(milliseconds: 1500),
+                                          duration: const Duration(
+                                              milliseconds: 1500),
                                           curve: Curves.easeInOut,
                                           tween: Tween<double>(
                                             begin: 0,
@@ -481,11 +473,15 @@ class _DashboardPageState extends State<DashboardPage> {
                                           ),
                                           builder: (context, value, child) {
                                             return ClipRRect(
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                               child: LinearProgressIndicator(
                                                 value: value,
-                                                backgroundColor: Colors.green.withOpacity(0.9),
-                                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                                                backgroundColor: Colors.green
+                                                    .withOpacity(0.9),
+                                                valueColor:
+                                                    const AlwaysStoppedAnimation<
+                                                        Color>(Colors.red),
                                                 minHeight: 16,
                                               ),
                                             );
@@ -493,7 +489,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                         ),
                                         const SizedBox(height: 2),
                                         TweenAnimationBuilder<double>(
-                                          duration: const Duration(milliseconds: 1500),
+                                          duration: const Duration(
+                                              milliseconds: 1500),
                                           curve: Curves.easeInOut,
                                           tween: Tween<double>(
                                             begin: 0,
@@ -502,7 +499,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                           builder: (context, value, child) {
                                             return Text(
                                               '${(value * 100).toStringAsFixed(1)}% da receita gasta.',
-                                              style: Theme.of(context).textTheme.bodySmall,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall,
                                             );
                                           },
                                         ),
@@ -514,7 +513,6 @@ class _DashboardPageState extends State<DashboardPage> {
                             },
                           ),
                         ],
-                      
                       ],
                     ),
                   ),
@@ -529,7 +527,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   }
 
                   // Filter out removed accounts
-                  final accounts = snapshot.data!.where((account) => !account.removed).toList();
+                  final accounts = snapshot.data!
+                      .where((account) => !account.removed)
+                      .toList();
 
                   return Padding(
                     padding:
@@ -544,7 +544,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                       ),
                       onAddAccountTap: () {
-                        RouteUtils.pushRoute(context, const AccountConnectionModal());
+                        RouteUtils.pushRoute(
+                            context, const AccountConnectionModal());
                       },
                     ),
                   );
@@ -552,10 +553,8 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               Padding(
-
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-
                 child: CardWithHeader(
                   title: t.home.last_transactions,
                   onHeaderButtonClick: () {
@@ -563,7 +562,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   },
                   body: DashboardTransactionList(
                     child: TransactionListComponent(
-                      heroTagBuilder: (tr) => 'dashboard-page__tr-icon-${tr.id}',
+                      heroTagBuilder: (tr) =>
+                          'dashboard-page__tr-icon-${tr.id}',
                       filters: TransactionFilters(
                         status: TransactionStatus.notIn({
                           TransactionStatus.pending,
@@ -591,18 +591,16 @@ class _DashboardPageState extends State<DashboardPage> {
               // ------------- STATS GENERAL CARDS --------------
 
               Padding(
-
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-
                 child: ResponsiveRowColumn.withSymetricSpacing(
-                  direction: BreakPoint.of(context).isLargerThan(BreakpointID.md)
-                      ? Axis.horizontal
-                      : Axis.vertical,
+                  direction:
+                      BreakPoint.of(context).isLargerThan(BreakpointID.md)
+                          ? Axis.horizontal
+                          : Axis.vertical,
                   rowCrossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
-  
                     ResponsiveRowColumnItem(
                       rowFit: FlexFit.tight,
                       child: Column(
@@ -742,8 +740,6 @@ class _DashboardPageState extends State<DashboardPage> {
                           //   ),
                           // ),
                           const SizedBox(height: 16), //This might be an issue.
-
-
                         ],
                       ),
                     ),
@@ -820,7 +816,7 @@ class _DashboardPageState extends State<DashboardPage> {
         onLongPress: () {
           final RenderBox box = context.findRenderObject() as RenderBox;
           final Offset position = box.localToGlobal(Offset.zero);
-          
+
           showMenu(
             context: context,
             position: RelativeRect.fromLTRB(
@@ -884,17 +880,20 @@ class _DashboardPageState extends State<DashboardPage> {
                   BalanceType.available => _buildBalanceDisplay(
                       context,
                       userData?['balance_available']?.toDouble() ?? 0.0,
-                      key: ValueKey('available-balance-${currentBalanceType.index}'),
+                      key: ValueKey(
+                          'available-balance-${currentBalanceType.index}'),
                     ),
                   BalanceType.total => _buildBalanceDisplay(
                       context,
                       userData?['balance_total']?.toDouble() ?? 0.0,
-                      key: ValueKey('total-balance-${currentBalanceType.index}'),
+                      key:
+                          ValueKey('total-balance-${currentBalanceType.index}'),
                     ),
                   BalanceType.future => _buildBalanceDisplay(
                       context,
                       userData?['balance_future']?.toDouble() ?? 0.0,
-                      key: ValueKey('future-balance-${currentBalanceType.index}'),
+                      key: ValueKey(
+                          'future-balance-${currentBalanceType.index}'),
                     ),
                 },
               ),
@@ -907,7 +906,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildBalanceDisplay(BuildContext context, double balance,
       {Key? key}) {
-
     double screenWidth = MediaQuery.of(context).size.width;
     double widthMultiplier = 0.45;
 
@@ -1081,7 +1079,8 @@ class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
 class DashboardTransactionList extends StatelessWidget {
   final TransactionListComponent child;
 
-  const DashboardTransactionList({Key? key, required this.child}) : super(key: key);
+  const DashboardTransactionList({Key? key, required this.child})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1114,4 +1113,3 @@ enum BalanceType {
     }
   }
 }
-
