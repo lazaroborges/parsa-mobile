@@ -338,39 +338,38 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           ),
         ]);
       },
-      home: const IntakeForm(),
       // New home implementation with sequential checks
-      // home: FutureBuilder<bool>(
-      //   future: SharedPreferencesAsync.instance.getOnboarded(),
-      //   builder: (context, onboardingSnapshot) {
-      //     if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     }
+      home: FutureBuilder<bool>(
+        future: SharedPreferencesAsync.instance.getOnboarded(),
+        builder: (context, onboardingSnapshot) {
+          if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      //     // Step 1: Check if user has completed onboarding
-      //     final bool isOnboarded = onboardingSnapshot.data ?? false;
+          // Step 1: Check if user has completed onboarding
+          final bool isOnboarded = onboardingSnapshot.data ?? false;
 
-      //     if (!isOnboarded) {
-      //       // User hasn't completed onboarding, show OnboardingPage
-      //       return const OnboardingPage();
-      //     }
+          if (!isOnboarded) {
+            // User hasn't completed onboarding, show OnboardingPage
+            return const OnboardingPage();
+          }
 
-      //     // Step 2: Check authentication status
-      //     if (auth0Provider.credentials == null) {
-      //       // User is not authenticated, show Auth0Service
-      //       return Auth0Service(auth0Provider: auth0Provider);
-      //     } else {
-      //       // User is authenticated, check biometrics
-      //       return BiometricsCheckScreen(
-      //         onBiometricsVerified: () {
-      //           // Step 3: Check if user has completed intake form
-      //           // This will be called after biometrics verification
-      //           _checkIntakeFormCompletion(context);
-      //         },
-      //       );
-      //     }
-      //   },
-      // ),
+          // Step 2: Check authentication status
+          if (auth0Provider.credentials == null) {
+            // User is not authenticated, show Auth0Service
+            return Auth0Service(auth0Provider: auth0Provider);
+          } else {
+            // User is authenticated, check biometrics
+            return BiometricsCheckScreen(
+              onBiometricsVerified: () {
+                // Step 3: Check if user has completed intake form
+                // This will be called after biometrics verification
+                _checkIntakeFormCompletion(context);
+              },
+            );
+          }
+        },
+      ),
     );
   }
 
