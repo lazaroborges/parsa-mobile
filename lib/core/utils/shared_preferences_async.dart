@@ -10,6 +10,8 @@ class SharedPreferencesAsync {
   // Keys for preferences
   static const String keyPrivateModeAtLaunch = 'privateModeAtLaunch';
   static const String keyBalanceType = 'balanceType';
+  static const String keyOnboarded = 'onboarded';
+  static const String keyIntakeCompleted = 'intakeCompleted';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -109,5 +111,25 @@ class SharedPreferencesAsync {
   /// Get balance type preference
   Future<String> getBalanceType() async {
     return await getString(keyBalanceType) ?? 'available';
+  }
+
+  /// Set onboarded preference
+  Future<bool> setOnboarded(bool value) async {
+    return setBool(keyOnboarded, value);
+  }
+
+  /// Get onboarded preference
+  Future<bool> getOnboarded() async {
+    return await getBool(keyOnboarded) ?? false;
+  }
+
+  /// Set intake form completion status
+  Future<bool> setIntakeCompleted(bool value) async {
+    return setBool(keyIntakeCompleted, value);
+  }
+
+  /// Get intake form completion status
+  Future<bool> getIntakeCompleted() async {
+    return await getBool(keyIntakeCompleted) ?? false;
   }
 }

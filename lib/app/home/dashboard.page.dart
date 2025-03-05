@@ -498,7 +498,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                           ),
                                           builder: (context, value, child) {
                                             return Text(
-                                              '${(value * 100).toStringAsFixed(1)}% da receita gasta.',
+                                              '${(value * 100).toStringAsFixed(1)}% da renda gasta.',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodySmall,

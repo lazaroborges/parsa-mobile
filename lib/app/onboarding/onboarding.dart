@@ -4,6 +4,7 @@ import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/app/settings/about_page.dart';
 import '../../core/presentation/app_colors.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -149,10 +150,12 @@ class _OnboardingPageState extends State<OnboardingPage>
   void introFinished() {
     AppDataService.instance.setAppDataItem(AppDataKey.introSeen, '1').then(
       (value) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const IntroPage()),
-        );
+        SharedPreferencesAsync.instance.setOnboarded(true).then((_) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const IntroPage()),
+          );
+        });
       },
     );
   }
@@ -173,7 +176,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     // Calculate responsive dimensions
     final imageHeight = size.height * 0.25;
     final contentPadding = EdgeInsets.symmetric(
-      horizontal: size.width * 0.06,
+      horizontal: size.width * 0.10,
       vertical: size.height * 0.02,
     );
 
@@ -368,70 +371,81 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _buildAnimatedText(
       Map<String, dynamic> item, BuildContext context, Size size) {
-    final double headerSize = size.width * 0.055;
+    final double headerSize = size.width * 0.065;
+    final double bodySize = 16.0;
+    final Color headerColor = const Color(0xFF25282B);
+    final Color bodyColor = const Color(0xFF52575C);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SlideTransition(
           position: _titleSlideAnimation,
-          child: Text(
-            item['header'],
-            style: TextStyle(
-              color: const Color(0xFF25282B),
-              fontWeight: FontWeight.w900,
-              fontSize: headerSize,
-              fontFamily: 'Nunito',
-              height: 1.2,
+          child: Container(
+            width: double.infinity,
+            margin: EdgeInsets.only(bottom: size.height * 0.03),
+            child: Text(
+              item['header'],
+              style: TextStyle(
+                color: headerColor,
+                fontWeight: FontWeight.w900,
+                fontSize: headerSize,
+                fontFamily: 'Nunito',
+                height: 1.3,
+                letterSpacing: -0.5,
+              ),
+              textAlign: TextAlign.left,
             ),
-            textAlign: TextAlign.center,
           ),
         ),
-        SizedBox(height: size.height * 0.03),
         SlideTransition(
           position: _bodyTextSlideAnimation,
-          child: Column(
-            children: [
-              Text(
-                item['description1'],
-                style: TextStyle(
-                  color: const Color(0xFF25282B),
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14,
-                  fontFamily: 'Nunito',
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (item['description2']!.isNotEmpty)
-                SizedBox(height: size.height * 0.015),
-              if (item['description2']!.isNotEmpty)
+          child: Container(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  item['description2']!,
+                  item['description1'],
                   style: TextStyle(
-                    color: const Color(0xFF25282B),
+                    color: bodyColor,
                     fontWeight: FontWeight.w400,
-                    fontSize: 14,
+                    fontSize: bodySize,
                     fontFamily: 'Nunito',
                     height: 1.5,
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.left,
                 ),
-              if (item['description3']!.isNotEmpty)
-                SizedBox(height: size.height * 0.015),
-              if (item['description3']!.isNotEmpty)
-                Text(
-                  item['description3']!,
-                  style: TextStyle(
-                    color: const Color(0xFF25282B),
-                    fontWeight: FontWeight.w400,
-                    fontSize: 14,
-                    fontFamily: 'Nunito',
-                    height: 1.5,
+                if (item['description2']!.isNotEmpty)
+                  SizedBox(height: size.height * 0.02),
+                if (item['description2']!.isNotEmpty)
+                  Text(
+                    item['description2']!,
+                    style: TextStyle(
+                      color: bodyColor,
+                      fontWeight: FontWeight.w400,
+                      fontSize: bodySize,
+                      fontFamily: 'Nunito',
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.left,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-            ],
+                if (item['description3']!.isNotEmpty)
+                  SizedBox(height: size.height * 0.02),
+                if (item['description3']!.isNotEmpty)
+                  Text(
+                    item['description3']!,
+                    style: TextStyle(
+                      color: bodyColor,
+                      fontWeight: FontWeight.w400,
+                      fontSize: bodySize,
+                      fontFamily: 'Nunito',
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+              ],
+            ),
           ),
         ),
       ],
@@ -440,62 +454,77 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _buildStaticText(
       Map<String, dynamic> item, BuildContext context, Size size) {
-    final double headerSize = size.width * 0.055;
+    final double headerSize = size.width * 0.065;
+    final double bodySize = 16.0;
+    final Color headerColor = const Color(0xFF25282B);
+    final Color bodyColor = const Color(0xFF52575C);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          item['header'],
-          style: TextStyle(
-            color: const Color(0xFF25282B),
-            fontWeight: FontWeight.w900,
-            fontSize: headerSize,
-            fontFamily: 'Nunito',
-            height: 1.2,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: size.height * 0.03),
-        Text(
-          item['description1'],
-          style: TextStyle(
-            color: const Color(0xFF25282B),
-            fontWeight: FontWeight.w400,
-            fontSize: 14,
-            fontFamily: 'Nunito',
-            height: 1.5,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        if (item['description2']!.isNotEmpty)
-          SizedBox(height: size.height * 0.015),
-        if (item['description2']!.isNotEmpty)
-          Text(
-            item['description2']!,
+        Container(
+          width: double.infinity,
+          margin: EdgeInsets.only(bottom: size.height * 0.03),
+          child: Text(
+            item['header'],
             style: TextStyle(
-              color: const Color(0xFF25282B),
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
+              color: headerColor,
+              fontWeight: FontWeight.w900,
+              fontSize: headerSize,
               fontFamily: 'Nunito',
-              height: 1.5,
+              height: 1.3,
+              letterSpacing: -0.5,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
           ),
-        if (item['description3']!.isNotEmpty)
-          SizedBox(height: size.height * 0.015),
-        if (item['description3']!.isNotEmpty)
-          Text(
-            item['description3']!,
-            style: TextStyle(
-              color: const Color(0xFF25282B),
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-              fontFamily: 'Nunito',
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
+        ),
+        Container(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item['description1'],
+                style: TextStyle(
+                  color: bodyColor,
+                  fontWeight: FontWeight.w400,
+                  fontSize: bodySize,
+                  fontFamily: 'Nunito',
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              if (item['description2']!.isNotEmpty)
+                SizedBox(height: size.height * 0.02),
+              if (item['description2']!.isNotEmpty)
+                Text(
+                  item['description2']!,
+                  style: TextStyle(
+                    color: bodyColor,
+                    fontWeight: FontWeight.w400,
+                    fontSize: bodySize,
+                    fontFamily: 'Nunito',
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              if (item['description3']!.isNotEmpty)
+                SizedBox(height: size.height * 0.02),
+              if (item['description3']!.isNotEmpty)
+                Text(
+                  item['description3']!,
+                  style: TextStyle(
+                    color: bodyColor,
+                    fontWeight: FontWeight.w400,
+                    fontSize: bodySize,
+                    fontFamily: 'Nunito',
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -547,16 +576,17 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _buildWelcomeText(BuildContext context, AppColors appColors) {
     final size = MediaQuery.of(context).size;
-    final double headerSize = size.width * 0.055; // Responsive header size
+    final double headerSize = size.width * 0.065;
 
     return Text(
       'Bem-vindo ao Parsa',
       style: TextStyle(
         color: const Color(0xFF25282B),
-        fontWeight: FontWeight.w700, // Nunito Black
-        fontSize: headerSize, // Responsive size
+        fontWeight: FontWeight.w900,
+        fontSize: headerSize,
         fontFamily: 'Nunito',
-        height: 1.2,
+        height: 1.3,
+        letterSpacing: -0.5,
       ),
       textAlign: TextAlign.center,
     );
