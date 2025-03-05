@@ -36,20 +36,18 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
   }
 
   Future<void> _openConnectUrl(BuildContext context) async {
-
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
 
+      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
+      final credentials = await auth0Provider.credentials;
 
-    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-    final credentials = await auth0Provider.credentials;
-
-    if (credentials == null) {
-      throw Exception('No credentials available');
-    }
+      if (credentials == null) {
+        throw Exception('No credentials available');
+      }
 
       // Determine which endpoint to use based on whether this is an update
       final String endpoint = widget.isUpdate 
@@ -94,18 +92,8 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
         _error = e.toString();
         _isLoading = false;
       });
-
     }
-
-  } catch (e) {
-    setState(() {
-      _error = e.toString();
-      _isLoading = false;
-    });
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {

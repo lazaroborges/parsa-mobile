@@ -79,12 +79,13 @@ class _DashboardPageState extends State<DashboardPage> {
   BalanceType currentBalanceType = BalanceType.available;
 
 
-  void _toggleBalanceType() {
-    setState(() {
-      currentBalanceType = BalanceType.values[
-          (currentBalanceType.index + 1) % BalanceType.values.length];
-    });
-  }
+// Deprecated Lázaro Version - to be deleted 
+  // void _toggleBalanceType() {
+  //   setState(() {
+  //     currentBalanceType = BalanceType.values[
+  //         (currentBalanceType.index + 1) % BalanceType.values.length];
+  //   });
+  // }
 
 
   @override
@@ -501,7 +502,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                           ),
                                           builder: (context, value, child) {
                                             return Text(
-                                              '${(value * 100).toStringAsFixed(1)}% da receita gasta.',
+                                              '${(value * 100).toStringAsFixed(1)}% da renda gasta.',
                                               style: Theme.of(context).textTheme.bodySmall,
                                             );
                                           },

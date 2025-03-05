@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/onboarding/question_styles.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/main.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
@@ -126,11 +128,15 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
         'questionnaire_last_updated': metadata?['lastUpdated'],
       };
 
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+
       // Using RequestCatcher for testing
       final response = await http.post(
-        Uri.parse('https://intake.requestcatcher.com/test'),
+        Uri.parse('$apiEndpoint/users/intake/}'),
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${credentials?.accessToken}',
         },
         body: jsonEncode(formattedAnswers),
       );

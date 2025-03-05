@@ -4,7 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:parsa/core/services/auth/biometrics_service.dart';
 
 class BiometricsCheckScreen extends StatefulWidget {
-  const BiometricsCheckScreen({Key? key}) : super(key: key);
+  final VoidCallback? onBiometricsVerified;
+
+  const BiometricsCheckScreen({
+    Key? key,
+    this.onBiometricsVerified,
+  }) : super(key: key);
 
   @override
   _BiometricsCheckScreenState createState() => _BiometricsCheckScreenState();

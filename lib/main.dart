@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/app/onboarding/onboarding.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -18,6 +19,7 @@ import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
@@ -72,7 +74,6 @@ void main() async {
         options.dsn = dotenv.env['SENTRY_DSN']!;
         options.tracesSampleRate = 1.0;
         options.profilesSampleRate = 1.0;
-
         options.enableAutoSessionTracking = true;
       },
       appRunner: () => runApp(app),
@@ -338,20 +339,39 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           ),
         ]);
       },
-      // Multiplexes the user accordingly to his login status (Auth0 and/or Biometrics) - TODO interject the onboard here
-      // TODO - CREATE a ~shared preferences~ variable that tracks if the user has gone through the onboarding screen
-      // TODO - If the user has already gone through the onboarding screen, then do not show it again.
-
-      // Original authentication flow (commented out)
-      home: (auth0Provider.credentials != null
-          ? BiometricsCheckScreen() //bring back biometrics check
-          : Auth0Service(auth0Provider: auth0Provider)),
-
-      // Direct to onboarding instead
-      // home: auth0Provider.credentials != null
-      //     ? const IntakeForm() // Show intake form for authenticated users
-      //     : Auth0Service(
-      //         auth0Provider: auth0Provider), // Start with authentication
+      
+      // New home implementation with sequential checks
+      home: FutureBuilder<bool>(
+        future: SharedPreferencesAsync.instance.getOnboarded(),
+        builder: (context, onboardingSnapshot) {
+          if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          // Step 1: Check if user has completed onboarding
+          final bool isOnboarded = onboardingSnapshot.data ?? false;
+          
+          if (!isOnboarded) {
+            // User hasn't completed onboarding, show OnboardingPage
+            return const OnboardingPage();
+          }
+          
+          // Step 2: Check authentication status
+          if (auth0Provider.credentials == null) {
+            // User is not authenticated, show Auth0Service
+            return Auth0Service(auth0Provider: auth0Provider);
+          } else {
+            // User is authenticated, check biometrics
+            return BiometricsCheckScreen(
+              onBiometricsVerified: () {
+                // Step 3: Check if user has completed intake form
+                // This will be called after biometrics verification
+                _checkIntakeFormCompletion(context);
+              },
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -361,5 +381,25 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       context,
       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
     );
+  }
+
+  // Helper method to check intake form completion and navigate accordingly
+  void _checkIntakeFormCompletion(BuildContext context) {
+    // We'll use SharedPreferences to check if intake form is completed
+    SharedPreferencesAsync.instance.getIntakeCompleted().then((isIntakeCompleted) {
+      if (isIntakeCompleted) {
+        // If intake is completed, go to main app (TabsPage)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+        );
+      } else {
+        // If intake is not completed, show IntakeForm
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const IntakeForm()),
+        );
+      }
+    });
   }
 }
