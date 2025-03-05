@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
+import 'package:parsa/app/onboarding/intake.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -30,8 +31,6 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import 'package:parsa/app/onboarding/intake.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -339,39 +338,39 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           ),
         ]);
       },
-      
+      home: const IntakeForm(),
       // New home implementation with sequential checks
-      home: FutureBuilder<bool>(
-        future: SharedPreferencesAsync.instance.getOnboarded(),
-        builder: (context, onboardingSnapshot) {
-          if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          // Step 1: Check if user has completed onboarding
-          final bool isOnboarded = onboardingSnapshot.data ?? false;
-          
-          if (!isOnboarded) {
-            // User hasn't completed onboarding, show OnboardingPage
-            return const OnboardingPage();
-          }
-          
-          // Step 2: Check authentication status
-          if (auth0Provider.credentials == null) {
-            // User is not authenticated, show Auth0Service
-            return Auth0Service(auth0Provider: auth0Provider);
-          } else {
-            // User is authenticated, check biometrics
-            return BiometricsCheckScreen(
-              onBiometricsVerified: () {
-                // Step 3: Check if user has completed intake form
-                // This will be called after biometrics verification
-                _checkIntakeFormCompletion(context);
-              },
-            );
-          }
-        },
-      ),
+      // home: FutureBuilder<bool>(
+      //   future: SharedPreferencesAsync.instance.getOnboarded(),
+      //   builder: (context, onboardingSnapshot) {
+      //     if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
+      //       return const Center(child: CircularProgressIndicator());
+      //     }
+
+      //     // Step 1: Check if user has completed onboarding
+      //     final bool isOnboarded = onboardingSnapshot.data ?? false;
+
+      //     if (!isOnboarded) {
+      //       // User hasn't completed onboarding, show OnboardingPage
+      //       return const OnboardingPage();
+      //     }
+
+      //     // Step 2: Check authentication status
+      //     if (auth0Provider.credentials == null) {
+      //       // User is not authenticated, show Auth0Service
+      //       return Auth0Service(auth0Provider: auth0Provider);
+      //     } else {
+      //       // User is authenticated, check biometrics
+      //       return BiometricsCheckScreen(
+      //         onBiometricsVerified: () {
+      //           // Step 3: Check if user has completed intake form
+      //           // This will be called after biometrics verification
+      //           _checkIntakeFormCompletion(context);
+      //         },
+      //       );
+      //     }
+      //   },
+      // ),
     );
   }
 
@@ -386,7 +385,9 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   // Helper method to check intake form completion and navigate accordingly
   void _checkIntakeFormCompletion(BuildContext context) {
     // We'll use SharedPreferences to check if intake form is completed
-    SharedPreferencesAsync.instance.getIntakeCompleted().then((isIntakeCompleted) {
+    SharedPreferencesAsync.instance
+        .getIntakeCompleted()
+        .then((isIntakeCompleted) {
       if (isIntakeCompleted) {
         // If intake is completed, go to main app (TabsPage)
         Navigator.pushReplacement(
