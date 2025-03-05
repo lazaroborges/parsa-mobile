@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -342,8 +343,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       
       // New home implementation with sequential checks
       home: FutureBuilder<bool>(
-        //future: SharedPreferencesAsync.instance.getOnboarded(),
-        future: Future.value(false), // Temporarily force onboarding to show
+        future: SharedPreferencesAsync.instance.getOnboarded(),
+        //future: Future.value(false), // Temporarily force onboarding to show
         builder: (context, onboardingSnapshot) {
           if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -359,8 +360,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           
           // Step 2: Check authentication status
           if (auth0Provider.credentials == null) {
-            // User is not authenticated, show Auth0Service
-            return Auth0Service(auth0Provider: auth0Provider);
+            // User is not authenticated, show IntroPage instead of Auth0Service
+            return const IntroPage();
           } else {
             // User is authenticated, check biometrics
             return BiometricsCheckScreen(

@@ -552,21 +552,21 @@ class _OnboardingPageState extends State<OnboardingPage>
       child: ElevatedButton(
         onPressed: introFinished,
         style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, size.height * 0.065),
-          backgroundColor: appColors.brand, // Changed from primary to brand
-          foregroundColor: Colors.white, // Changed to white to match intro.page.dart
+          minimumSize: const Size.fromHeight(48),
+          backgroundColor: appColors.brand,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 4, // Added elevation to match intro.page.dart
-          shadowColor: appColors.brand.withOpacity(0.6), // Added shadowColor to match intro.page.dart
-          padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
+          elevation: 4,
+          shadowColor: appColors.brand.withOpacity(0.6),
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
         child: Text(
           'Vamos começar?',
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: size.width * 0.042, // Responsive font size
+            fontSize: 16,
             fontFamily: 'Nunito',
             letterSpacing: 0.5,
           ),

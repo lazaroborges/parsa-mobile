@@ -7,7 +7,7 @@
   "questions": [
     {
       "id": "financial_goal",
-      "question": "Qual o seu objetivo principal?",
+      "question": "Qual o seu objetivo principal no Parsa?",
       "type": "multiple_choice",
       "options": [
         {
@@ -26,7 +26,7 @@
     },
     {
       "id": "finance_difficulty",
-      "question": "Com que dificuldade você controla suas finanças?",
+      "question": "Qual é o nível de dificuldade que você encontra para controlar suas finanças?",
       "type": "single_choice",
       "options": [
         {
@@ -76,7 +76,7 @@
     },
     {
       "id": "previous_success",
-      "question": "Deu certo controlar suas finanças?",
+      "question": "Estes métodos deram certo para você?",
       "type": "single_choice",
       "options": [
         {
@@ -182,7 +182,7 @@
             },
             {
               "id": "breaking_even",
-              "text": "Não estou endividado, mas não sobra renda"
+              "text": "Não estou endividado, mas não sobra para investir"
             },
             {
               "id": "investing",

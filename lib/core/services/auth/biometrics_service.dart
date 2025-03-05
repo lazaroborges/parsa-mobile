@@ -9,7 +9,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
-
+import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 class BiometricsService {
   final LocalAuthentication _localAuth = LocalAuthentication();
 
@@ -33,10 +33,18 @@ class BiometricsService {
 
     if (isAuthenticated) {
       unawaited(SessionService.instance.registerUserSession());
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => TabsPage()),
-      );
+      
+      // Find the BiometricsCheckScreen widget and call its callback
+      final biometricsWidget = context.findAncestorWidgetOfExactType<BiometricsCheckScreen>();
+      if (biometricsWidget?.onBiometricsVerified != null) {
+        biometricsWidget!.onBiometricsVerified!();
+      } else {
+        // Fallback to direct navigation if callback is not available
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => TabsPage()),
+        );
+      }
     } else {
       try {
         await AuthMethods.logout(context, Auth0Provider.instance.auth0);
