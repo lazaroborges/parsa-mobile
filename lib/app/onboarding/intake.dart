@@ -133,7 +133,7 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
 
       // Using RequestCatcher for testing
       final response = await http.post(
-        Uri.parse('$apiEndpoint/users/intake/}'),
+        Uri.parse('$apiEndpoint/users/intake/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${credentials?.accessToken}',
