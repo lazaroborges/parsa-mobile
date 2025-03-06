@@ -67,7 +67,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   void _setupAnimations() {
     _logoController = AnimationController(
-      duration: const Duration(milliseconds: 3500),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
@@ -140,7 +140,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       curve: Curves.easeOutCubic,
     ));
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         _logoController.forward();
       }
@@ -309,7 +309,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               Positioned(
                 left: size.width * 0.06,
                 right: size.width * 0.06,
-                bottom: padding.bottom + size.height * 0.04,
+                bottom: padding.bottom,
                 child: previousPage == items.length - 2
                     ? SlideTransition(
                         position: _pageButtonSlideAnimation,
@@ -552,20 +552,21 @@ class _OnboardingPageState extends State<OnboardingPage>
       child: ElevatedButton(
         onPressed: introFinished,
         style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, size.height * 0.065),
-          backgroundColor: appColors.brand, // Using brandLight from AppColors
+          minimumSize: const Size.fromHeight(48),
+          backgroundColor: appColors.brand,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0,
-          padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
+          elevation: 4,
+          shadowColor: appColors.brand.withOpacity(0.6),
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
         child: Text(
-          'Começar Jornada!',
-          style: TextStyle(
+          'Vamos começar?',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: size.width * 0.042, // Responsive font size
+            fontSize: 16,
             fontFamily: 'Nunito',
             letterSpacing: 0.5,
           ),

@@ -31,3 +31,16 @@ Future<Map<String, dynamic>> fetchUserDataAtServer() async {
     throw Exception('Failed to load user data');
   }
 }
+
+// New function to check if the questionnaire is filled
+Future<bool> checkQuestionnaireStatus() async {
+  try {
+    final userData = await fetchUserDataAtServer();
+    // Check if filled_questionary exists and is true
+    return userData['filled_questionary'] == true;
+  } catch (e) {
+    print('Error checking questionnaire status: $e');
+    // Default to false if there's an error
+    return false;
+  }
+}

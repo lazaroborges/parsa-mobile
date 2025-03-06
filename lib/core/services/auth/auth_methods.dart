@@ -6,6 +6,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:parsa/app/onboarding/intro.page.dart';
 
 class AuthMethods {
   // Fetch user profile data
@@ -75,9 +76,7 @@ class AuthMethods {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-            builder: (context) => Auth0Service(
-                auth0Provider: Auth0Provider
-                    .instance)), // Replace with your login page widget
+            builder: (context) => const IntroPage()),
         (Route<dynamic> route) => false,
       );
       print('User logged out and navigated to LoginPage');

@@ -3,7 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/app/onboarding/intake.dart';
 import 'package:parsa/app/settings/about_page.dart';
+import 'package:parsa/core/api/fetch_user_data_server.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -33,13 +37,13 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
 
     // Logo animation controller
     _logoController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 750),
       vsync: this,
     );
 
     // Content fade controller
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
@@ -177,15 +181,40 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 try {
                                   await auth0Provider.login();
                                   if (context.mounted) {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            TabsPage(key: tabsPageKey),
-                                      ),
-                                    );
+                                    // Fetch user data after login
+                                    await fetchUserDataAtServer();
+                                    
+                                    // Get user data from provider
+                                    final userData = Provider.of<UserDataProvider>(context, listen: false).userData;
+                                    
+                                    // Check if filled_questionaire is true
+                                    if (userData != null && userData['filled_questionaire'] == true) {
+                                      print("USER DATA: $userData , ${userData['filled_questionaire']}");
+                                      // If questionnaire is filled, go directly to TabsPage
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+                                      );
+                                    } else {
+                                      print("Questionnaire not filled, redirecting to intake form");
+                                      // Check if intake form is completed
+                                      final isIntakeCompleted = await SharedPreferencesAsync.instance.getIntakeCompleted();
+                                      if (isIntakeCompleted) {
+                                        // If intake is completed, go to main app (TabsPage)
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+                                        );
+                                      } else {
+                                        // If intake is not completed, show IntakeForm
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const IntakeForm()),
+                                        );
+                                      }
+                                    }
                                   }
-                                  print('Navigated to TabsPage');
+                                  print('Navigation after login completed');
                                 } catch (e) {
                                   print('Login failed: $e');
                                   if (context.mounted) {
@@ -209,7 +238,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 20),
                             // Updated Text Styling
                             Padding(
                               padding:
@@ -276,7 +305,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                           ],
                         ),
                       ),

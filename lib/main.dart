@@ -8,8 +8,10 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
 import 'package:parsa/app/onboarding/intake.dart';
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -341,6 +343,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       // New home implementation with sequential checks
       home: FutureBuilder<bool>(
         future: SharedPreferencesAsync.instance.getOnboarded(),
+        //future: Future.value(false), // Temporarily force onboarding to show
         builder: (context, onboardingSnapshot) {
           if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -356,15 +359,36 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
 
           // Step 2: Check authentication status
           if (auth0Provider.credentials == null) {
-            // User is not authenticated, show Auth0Service
-            return Auth0Service(auth0Provider: auth0Provider);
+            // User is not authenticated, show IntroPage
+            return const IntroPage();
           } else {
             // User is authenticated, check biometrics
             return BiometricsCheckScreen(
-              onBiometricsVerified: () {
-                // Step 3: Check if user has completed intake form
-                // This will be called after biometrics verification
-                _checkIntakeFormCompletion(context);
+              onBiometricsVerified: () async {
+                // Fetch user data from server
+                await fetchUserDataAtServer();
+
+                // Get user data from provider - it will never be null as per your requirement
+                final userData =
+                    Provider.of<UserDataProvider>(context, listen: false)
+                        .userData;
+
+                // Check if filled_questionaire (with 'e') is true
+                if (userData != null &&
+                    userData['filled_questionaire'] == true) {
+                  print(
+                      "USER DATA: $userData , ${userData['filled_questionaire']}");
+                  // If questionnaire is filled, go directly to TabsPage
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TabsPage(key: tabsPageKey)),
+                  );
+                } else {
+                  print("WHY AM I HERE?");
+                  // If questionnaire is not filled, continue with intake form check
+                  _checkIntakeFormCompletion(context);
+                }
               },
             );
           }
