@@ -290,12 +290,14 @@ class _DashboardPageState extends State<DashboardPage> {
                                                         .runes
                                                         .toList());
 
+                                                // Capitalize first letter
+                                                final capitalizedName = firstName
+                                                        .isEmpty
+                                                    ? ''
+                                                    : '${firstName[0].toUpperCase()}${firstName.substring(1)}';
+
                                                 return Text(
-                                                  utf8.decode(
-                                                      userData!['first_name']
-                                                          .toString()
-                                                          .runes
-                                                          .toList()),
+                                                  capitalizedName,
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .titleSmall!
