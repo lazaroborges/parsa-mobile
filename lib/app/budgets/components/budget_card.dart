@@ -4,11 +4,11 @@ import 'package:parsa/app/budgets/budget_details_page.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/models/date-utils/period_type.dart';
+import 'package:parsa/core/models/date-utils/periodicity.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/widgets/animated_progress_bar.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/skeleton.dart';
-import 'package:parsa/core/presentation/widgets/tappable.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/i18n/translations.g.dart';
@@ -18,216 +18,205 @@ class BudgetCard extends StatelessWidget {
     super.key,
     required this.budget,
     this.isHeader = false,
+    this.showDivider = false,
   });
 
   final Budget budget;
-
   final bool isHeader;
+  final bool showDivider;
 
   @override
   Widget build(BuildContext context) {
-    const Radius radius = Radius.circular(14);
     final t = Translations.of(context);
     final titleStyle = Theme.of(context)
         .textTheme
         .titleMedium!
         .copyWith(fontWeight: FontWeight.w600);
+    final subtitleStyle = Theme.of(context)
+        .textTheme
+        .bodyMedium!
+        .copyWith(fontWeight: FontWeight.w300);
 
-    return Tappable(
-      margin: isHeader
-          ? const EdgeInsets.all(0)
-          : const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      bgColor: AppColors.of(context).light.lighten(),
-      shape: RoundedRectangleBorder(
-        borderRadius: isHeader
-            ? const BorderRadius.only(
-                bottomLeft: radius,
-                bottomRight: radius,
-              )
-            : const BorderRadius.all(radius),
-      ),
-      onTap: isHeader
-          ? null
-          : () =>
-              RouteUtils.pushRoute(context, BudgetDetailsPage(budget: budget)),
-      child: Card(
-          margin: const EdgeInsets.all(0),
-          color: Colors.transparent,
-          elevation: 0,
+    return Column(
+      children: [
+        // Add divider above card (instead of below)
+        if (showDivider)
+          Divider(
+            height: 1,
+            thickness: 0.5,
+            indent: 16,
+            endIndent: 16,
+            color: Colors.grey.withOpacity(0.3),
+          ),
+        InkWell(
+          onTap: isHeader
+              ? null
+              : () => RouteUtils.pushRoute(
+                  context, BudgetDetailsPage(budget: budget)),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DefaultTextStyle(
-                  style: titleStyle,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(budget.name),
-                      StreamBuilder(
-                          stream: budget.currentValue,
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const Skeleton(width: 25, height: 18);
-                            }
-
-                            return CurrencyDisplayer(
-                              amountToConvert:
-                                  budget.limitAmount - snapshot.data!,
-                              showDecimals: false,
-                            );
-                          }),
-                    ],
-                  ),
-                ),
-                DefaultTextStyle(
-                  style: titleStyle.copyWith(
-                    fontWeight: FontWeight.w300,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        budget.intervalPeriod?.allThePeriodsText(context) ??
-                            '${DateFormat.yMMMd().format(budget.currentDateRange.start)} - ${DateFormat.yMMMd().format(budget.currentDateRange.end)}',
-                      ),
-                      Row(
-                        children: [
-                          Text(t.budgets.from_budgeted.toLowerCase()),
-                          CurrencyDisplayer(
-                            amountToConvert: budget.limitAmount,
-                            showDecimals: false,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Builder(builder: (context) {
-                  const double barWidth = 16;
-                  final Color labelColor =
-                      Theme.of(context).colorScheme.tertiary;
-
-                  return LayoutBuilder(builder: (context, constraints) {
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        StreamBuilder(
-                          stream: budget.percentageAlreadyUsed,
-                          builder: (context, snapshot) {
-                            final budgetValue = snapshot.data;
-
-                            return AnimatedProgressBar(
-                              width: barWidth,
-                              radius: 24,
-                              value: budgetValue != null && budgetValue >= 1
-                                  ? 1
-                                  : budgetValue ?? 0,
-                              color: budgetValue != null && budgetValue >= 1
-                                  ? AppColors.of(context).danger
-                                  : null,
-                            );
-                          },
+                // ROW 1: Título e periodicidade
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Título e periodicidade
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: titleStyle,
+                          children: [
+                            TextSpan(text: budget.name),
+                            TextSpan(
+                              text: budget.intervalPeriod != null
+                                  ? " - ${_getPeriodicityText(budget.intervalPeriod!, context)}"
+                                  : " - ${t.general.time.periodicity.no_repeat}",
+                              style: titleStyle.copyWith(
+                                fontWeight: FontWeight.w300,
+                                fontSize: titleStyle.fontSize! * 0.9,
+                              ),
+                            ),
+                          ],
                         ),
-                        if (budget.isActiveBudget)
-                          Positioned(
-                            top: -4,
-                            left: constraints.maxWidth *
-                                budget.todayPercent /
-                                100,
-                            child: Stack(
-                              children: [
-                                Transform.translate(
-                                  offset: const Offset(0, -barWidth),
-                                  child: FractionalTranslation(
-                                    translation: Offset(
-                                        budget.todayPercent < 10
-                                            ? 0.8
-                                            : budget.todayPercent > 90
-                                                ? -0.8
-                                                : -0.5,
-                                        0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: labelColor,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      child: Text(
-                                        t.general.today,
-                                        softWrap: false,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall!
-                                            .copyWith(
-                                              fontWeight: FontWeight.w300,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onTertiary,
-                                            ),
-                                      ),
-                                    ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 6),
+
+                // ROW 2: Dias restantes (com ícone)
+                _buildRemainingDaysIndicator(context, subtitleStyle),
+
+                const SizedBox(height: 8),
+
+                // ROW 3 & 4: Barra de progresso e valores
+                StreamBuilder<double>(
+                  stream: budget.currentValue,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const LinearProgressIndicator();
+                    }
+
+                    final currentValue = snapshot.data!;
+                    final remainingAmount = budget.limitAmount - currentValue;
+                    final percentage = currentValue / budget.limitAmount;
+                    final isOverBudget = currentValue > budget.limitAmount;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ROW 3: Barra de progresso com porcentagem no final
+                        Stack(
+                          children: [
+                            // Barra de progresso
+                            AnimatedProgressBar(
+                              width: 8, // Reduced height
+                              radius: 12, // Reduced radius
+                              value: percentage > 1 ? 1 : percentage,
+                              color: percentage > 1
+                                  ? AppColors.of(context).danger
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                            // Porcentagem no final da barra
+                            Positioned(
+                              right: 0,
+                              top: -2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outline
+                                        .withOpacity(0.2),
+                                    width: 0.5,
                                   ),
                                 ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: Container(
-                                    width: 2.5,
-                                    height: barWidth + 4,
-                                    color: labelColor,
+                                child: Text(
+                                  "${(percentage * 100).toStringAsFixed(0)}%",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                    color: isOverBudget
+                                        ? AppColors.of(context).danger
+                                        : Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // ROW 4: Valores atuais/totais e valor restante
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Valor atual / valor total
+                            RichText(
+                              text: TextSpan(
+                                style: subtitleStyle,
+                                children: [
+                                  TextSpan(
+                                    text: NumberFormat.currency(
+                                      symbol: 'R\$',
+                                      decimalDigits: 0,
+                                    ).format(currentValue),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isOverBudget
+                                          ? AppColors.of(context).danger
+                                          : null,
+                                    ),
+                                  ),
+                                  const TextSpan(text: '/'),
+                                  TextSpan(
+                                    text: NumberFormat.currency(
+                                      symbol: 'R\$',
+                                      decimalDigits: 0,
+                                    ).format(budget.limitAmount),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Valor restante ou estouro
+                            Row(
+                              children: [
+                                Text(
+                                  isOverBudget ? "Passou " : "Restam ",
+                                  style: subtitleStyle,
+                                ),
+                                CurrencyDisplayer(
+                                  amountToConvert: isOverBudget
+                                      ? remainingAmount.abs()
+                                      : remainingAmount,
+                                  showDecimals: false,
+                                  integerStyle: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: isOverBudget
+                                        ? AppColors.of(context).danger
+                                        : Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
+                          ],
+                        ),
                       ],
                     );
-                  });
-                }),
-                if (isHeader &&
-                    budget.periodState.datePeriod.periodType ==
-                        PeriodType.cycle) ...[
-                  const SizedBox(height: 6),
-                  DefaultTextStyle(
-                    style: titleStyle.copyWith(fontSize: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(DateFormat.yMMMd()
-                            .format(budget.currentDateRange.start)),
-                        Text(DateFormat.yMMMd()
-                            .format(budget.currentDateRange.end)),
-                      ],
-                    ),
-                  ),
-                ],
-                if (budget.isPastBudget || budget.isFutureBudget) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.circle,
-                        size: 12,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        budget.isPastBudget
-                            ? '${budget.daysToTheEnd.abs()} ${t.budgets.since_expiration}'
-                            : '${budget.daysToTheStart} ${t.budgets.days_to_start}',
-                        style:
-                            Theme.of(context).textTheme.labelMedium!.copyWith(
-                                  fontWeight: FontWeight.w300,
-                                ),
-                      )
-                    ],
-                  )
-                ],
+                  },
+                ),
+
                 if (isHeader && budget.isActiveBudget) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -238,20 +227,20 @@ class BudgetCard extends StatelessWidget {
                           return StreamBuilder(
                               stream: budget.currentValue,
                               builder: (context, budgetCurrentValue) {
+                                final dailyAmount = (budget.limitAmount -
+                                            (budgetCurrentValue.data ?? 0)) >
+                                        0
+                                    ? (budget.limitAmount -
+                                            (budgetCurrentValue.data ?? 0)) /
+                                        budget.daysToTheEnd
+                                    : 0.0;
+
                                 return Text(
                                   t.budgets.details.expend_diary_left(
                                     dailyAmount: NumberFormat.currency(
                                       symbol: snapshot.data?.symbol ?? '',
                                       decimalDigits: 0,
-                                    ).format(((budget.limitAmount -
-                                                (budgetCurrentValue.data ??
-                                                    0)) >
-                                            0)
-                                        ? ((budget.limitAmount -
-                                                (budgetCurrentValue.data ??
-                                                    0)) /
-                                            budget.daysToTheEnd)
-                                        : 0),
+                                    ).format(dailyAmount),
                                     remainingDays: budget.daysToTheEnd,
                                   ),
                                   textAlign: TextAlign.center,
@@ -260,13 +249,118 @@ class BudgetCard extends StatelessWidget {
                                 );
                               });
                         },
-                      )
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ],
             ),
-          )),
+          ),
+        ),
+      ],
     );
+  }
+
+  // Helper method to build the remaining days indicator (simplified)
+  Widget _buildRemainingDaysIndicator(BuildContext context, TextStyle style) {
+    final t = Translations.of(context);
+    final theme = Theme.of(context);
+
+    if (budget.daysToTheEnd < 0) {
+      // Período encerrado
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.access_time_rounded,
+            size: 14,
+            color: Colors.amber.shade800,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Período Encerrado',
+            style: style.copyWith(
+              color: Colors.amber.shade800,
+            ),
+          ),
+        ],
+      );
+    } else if (budget.isActiveBudget) {
+      // Dias restantes para orçamento ativo
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.calendar_today_rounded,
+            size: 14,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            "Restam ${budget.daysToTheEnd} dias",
+            style: style.copyWith(
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      );
+    } else if (budget.isPastBudget) {
+      // Orçamento passado
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.history_rounded,
+            size: 14,
+            color: Colors.amber.shade800,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${budget.daysToTheEnd.abs()} ${t.budgets.since_expiration}',
+            style: style.copyWith(
+              color: Colors.amber.shade800,
+            ),
+          ),
+        ],
+      );
+    } else if (budget.isFutureBudget) {
+      // Orçamento futuro
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.update_rounded,
+            size: 14,
+            color: Colors.blue.shade800,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${budget.daysToTheStart} ${t.budgets.days_to_start}',
+            style: style.copyWith(
+              color: Colors.blue.shade800,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Fallback
+    return const SizedBox.shrink();
+  }
+
+  String _getPeriodicityText(Periodicity periodicity, BuildContext context) {
+    final t = Translations.of(context);
+    switch (periodicity) {
+      case Periodicity.day:
+        return t.general.time.all.diary;
+      case Periodicity.week:
+        return t.general.time.all.weekly;
+      case Periodicity.month:
+        return t.general.time.all.monthly;
+      case Periodicity.year:
+        return t.general.time.all.annually;
+      default:
+        return t.general.time.periodicity.no_repeat;
+    }
   }
 }

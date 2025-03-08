@@ -145,10 +145,10 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
     // Direct database query to get the tags for this budget
     if (budget.id != null) {
       final tagIds = await (AppDB.instance.select(AppDB.instance.budgetTag)
-        ..where((tbl) => tbl.budgetID.equals(budget.id)))
-        .map((row) => row.tagID)
-        .get();
-      
+            ..where((tbl) => tbl.budgetID.equals(budget.id)))
+          .map((row) => row.tagID)
+          .get();
+
       if (tagIds.isNotEmpty) {
         tags = await TagService.instance
             .getTags(filter: (tag) => tag.id.isIn(tagIds))
@@ -318,9 +318,8 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                     selectedAccounts = accounts == null
                         ? null
                         : snapshot.data!
-                            .where((element) => accounts!
-                                .map((e) => e.id)
-                                .contains(element.id))
+                            .where((element) =>
+                                accounts!.map((e) => e.id).contains(element.id))
                             .toList();
                   }
 
@@ -402,13 +401,13 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                   if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  
+
                   // Get all available tags
                   final allTags = snapshot.data!;
-                  
+
                   // Create a list of currently selected tag IDs
                   final selectedTagIds = tags?.map((t) => t.id).toSet() ?? {};
-                  
+
                   return ListTileField(
                     title: t.tags.display(n: 2),
                     leading: Icon(Tag.icon),
@@ -430,9 +429,10 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                         ),
                       ).then((selection) {
                         if (selection == null) return;
-                        
+
                         setState(() {
-                          if (selection.isEmpty || selection.length == allTags.length) {
+                          if (selection.isEmpty ||
+                              selection.length == allTags.length) {
                             tags = null;
                           } else {
                             tags = selection.cast<Tag>();
