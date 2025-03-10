@@ -74,26 +74,6 @@ class _StatsPageState extends State<StatsPage> {
         appBar: AppBar(
           title: Text(t.stats.title),
           actions: [
-            StreamBuilder(
-              stream: PrivateModeService.instance.privateModeStream,
-              initialData: false,
-              builder: (context, snapshot) {
-                final isPrivate = snapshot.data ?? false;
-                return IconButton(
-                  icon: Icon(
-                    isPrivate ? Icons.visibility : Icons.visibility_off,
-                    size: 20,
-                    color: Colors.grey[500],
-                  ),
-                  style: IconButton.styleFrom(
-                    padding: const EdgeInsets.all(8),
-                  ),
-                  onPressed: () {
-                    PrivateModeService.instance.setPrivateMode(!isPrivate);
-                  },
-                );
-              },
-            ),
             IconButton(
                 onPressed: () async {
                   final modalRes = await openFilterSheetModal(

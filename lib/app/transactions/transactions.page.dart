@@ -145,28 +145,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       )
                     : Text(t.transaction.display(n: 10)),
                 actions: [
-                  // Add private mode toggle
-                  StreamBuilder(
-                    stream: PrivateModeService.instance.privateModeStream,
-                    initialData: false,
-                    builder: (context, snapshot) {
-                      final isPrivate = snapshot.data ?? false;
-                      return IconButton(
-                        icon: Icon(
-                          isPrivate ? Icons.visibility : Icons.visibility_off,
-                          size: 20,
-                          color: Colors.grey[500],
-                        ),
-                        style: IconButton.styleFrom(
-                          padding: const EdgeInsets.all(8),
-                        ),
-                        onPressed: () {
-                          PrivateModeService.instance
-                              .setPrivateMode(!isPrivate);
-                        },
-                      );
-                    },
-                  ),
                   if (filters.hasFilter || searchController.text.isNotEmpty)
                     IconButton(
                       icon: Icon(

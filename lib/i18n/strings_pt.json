@@ -115,11 +115,12 @@
         "Custom": "Intervalo personalizado"
       },
       "ALL": {
-        "diary": "Todos os dias",
-        "Monthly": "Todos os meses",
-        "Annually": "Todos os anos",
-        "Quaterly": "Todos os trimestres",
-        "Weekly": "Todas as semanas"
+        "diary": "Diário",
+        "Monthly": "Mensal",
+        "Biweekly": "Quinzenal",
+        "Annually": "Anual",
+        "Quaterly": "Trimestral",
+        "Weekly": "Semanal"
       }
     },
     "TRANSACTION-ORDER": {
