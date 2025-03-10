@@ -310,32 +310,41 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         DeepLinkObserver(_handleIncomingLink)
       ],
       builder: (context, child) {
+        // Get system padding for debugging
+        final EdgeInsets systemPadding = MediaQuery.of(context).padding;
+        print(
+            'BUILDER: System padding - bottom: ${systemPadding.bottom}, top: ${systemPadding.top}');
+
         return Overlay(initialEntries: [
           OverlayEntry(
-            builder: (context) => Stack(
-              children: [
-                Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeInOutCubicEmphasized,
-                      width: widget.introSeen
-                          ? getNavigationSidebarWidth(context)
-                          : 0,
-                      color: Theme.of(context).canvasColor,
-                    ),
-                    if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
-                      Container(
-                        width: 2,
-                        height: MediaQuery.of(context).size.height,
-                        color: Theme.of(context).dividerColor,
+            builder: (context) => SafeArea(
+              bottom:
+                  true, // Apply bottom padding to account for system navigation bar
+              child: Stack(
+                children: [
+                  Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeInOutCubicEmphasized,
+                        width: widget.introSeen
+                            ? getNavigationSidebarWidth(context)
+                            : 0,
+                        color: Theme.of(context).canvasColor,
                       ),
-                    Expanded(child: child ?? const SizedBox.shrink()),
-                  ],
-                ),
-                if (widget.introSeen)
-                  NavigationSidebar(key: navigationSidebarKey)
-              ],
+                      if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
+                        Container(
+                          width: 2,
+                          height: MediaQuery.of(context).size.height,
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      Expanded(child: child ?? const SizedBox.shrink()),
+                    ],
+                  ),
+                  if (widget.introSeen)
+                    NavigationSidebar(key: navigationSidebarKey)
+                ],
+              ),
             ),
           ),
         ]);
