@@ -6,7 +6,7 @@
 /// Locales: 1
 /// Strings: 616
 ///
-/// Built on 2025-03-10 at 17:34 UTC
+/// Built on 2025-03-10 at 19:06 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -556,7 +556,7 @@ class _TranslationsBudgetsPt {
 	String get days_left => 'dias restantes';
 	String get days_to_start => 'dias para começar';
 	String get since_expiration => 'dias desde a expiração';
-	String get no_budgets => 'Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+	String get no_budgets => 'Parece não haver orçamentos nesse período para exibir nesta seção. Comece criando um orçamento clicando aqui.';
 	String get delete => 'Excluir orçamento';
 	String get delete_warning => 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 	late final _TranslationsBudgetsFormPt form = _TranslationsBudgetsFormPt._(_root);
@@ -2136,7 +2136,7 @@ extension on Translations {
 			case 'budgets.days_left': return 'dias restantes';
 			case 'budgets.days_to_start': return 'dias para começar';
 			case 'budgets.since_expiration': return 'dias desde a expiração';
-			case 'budgets.no_budgets': return 'Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+			case 'budgets.no_budgets': return 'Parece não haver orçamentos nesse período para exibir nesta seção. Comece criando um orçamento clicando aqui.';
 			case 'budgets.delete': return 'Excluir orçamento';
 			case 'budgets.delete_warning': return 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 			case 'budgets.form.title': return 'Adicionar um orçamento';

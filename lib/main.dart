@@ -45,6 +45,12 @@ void main() async {
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
 
+  // Set preferred orientations to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   // Add custom HTTP override for User-Agent
   HttpOverrides.global = CustomHttpOverrides();
 
