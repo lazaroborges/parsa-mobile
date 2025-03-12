@@ -16,4 +16,16 @@ class UserDataProvider extends ChangeNotifier {
     _userData = data;
     notifyListeners();
   }
+
+  void updateUserData(Map<String, dynamic> updates) {
+    if (_userData == null) {
+      _userData = {};
+    }
+    
+    // Update the userData with the new values
+    _userData!.addAll(updates);
+    
+    // Notify listeners about the change
+    notifyListeners();
+  }
 }

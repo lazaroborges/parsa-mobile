@@ -841,66 +841,91 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           );
         },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  currentBalanceType.getTitle(context),
-                  style: Theme.of(context).textTheme.labelSmall!,
-                ),
-                const SizedBox(width: 4),
-                Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: Icon(
-                    Icons.info_outline,
-                    size: 14,
-                    color: Theme.of(context).textTheme.labelSmall!.color,
+        // Add horizontal drag gesture detector
+        child: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            // Check the velocity to determine direction
+            if (details.primaryVelocity == null) return;
+            
+            setState(() {
+              if (details.primaryVelocity! > 0) {
+                // Swiped right - go to previous balance type
+                currentBalanceType = BalanceType.values[
+                    (currentBalanceType.index - 1 + BalanceType.values.length) % 
+                    BalanceType.values.length];
+              } else {
+                // Swiped left - go to next balance type
+                currentBalanceType = BalanceType.values[
+                    (currentBalanceType.index + 1) % BalanceType.values.length];
+              }
+              
+              // Save the balance type preference
+              SharedPreferencesAsync.instance.setBalanceType(
+                currentBalanceType.name,
+              );
+            });
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    currentBalanceType.getTitle(context),
+                    style: Theme.of(context).textTheme.labelSmall!,
                   ),
-                ),
-              ],
-            ),
-            if (!accounts.hasData) ...[
-              const Skeleton(width: 70, height: 54),
-            ],
-            if (accounts.hasData) ...[
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.0, 0.1),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
+                  const SizedBox(width: 4),
+                  Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 14,
+                      color: Theme.of(context).textTheme.labelSmall!.color,
                     ),
-                  );
-                },
-                child: switch (currentBalanceType) {
-                  BalanceType.available => _buildBalanceDisplay(
-                      context,
-                      userData?['balance_available']?.toDouble() ?? 0.0,
-                      key: ValueKey('available-balance-${currentBalanceType.index}'),
-                    ),
-                  BalanceType.total => _buildBalanceDisplay(
-                      context,
-                      userData?['balance_total']?.toDouble() ?? 0.0,
-                      key: ValueKey('total-balance-${currentBalanceType.index}'),
-                    ),
-                  BalanceType.future => _buildBalanceDisplay(
-                      context,
-                      userData?['balance_future']?.toDouble() ?? 0.0,
-                      key: ValueKey('future-balance-${currentBalanceType.index}'),
-                    ),
-                },
+                  ),
+                ],
               ),
-            ]
-          ],
+              if (!accounts.hasData) ...[
+                const Skeleton(width: 70, height: 54),
+              ],
+              if (accounts.hasData) ...[
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.0, 0.1),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: switch (currentBalanceType) {
+                    BalanceType.available => _buildBalanceDisplay(
+                        context,
+                        userData?['balance_available']?.toDouble() ?? 0.0,
+                        key: ValueKey('available-balance-${currentBalanceType.index}'),
+                      ),
+                    BalanceType.total => _buildBalanceDisplay(
+                        context,
+                        userData?['balance_total']?.toDouble() ?? 0.0,
+                        key: ValueKey('total-balance-${currentBalanceType.index}'),
+                      ),
+                    BalanceType.future => _buildBalanceDisplay(
+                        context,
+                        userData?['balance_future']?.toDouble() ?? 0.0,
+                        key: ValueKey('future-balance-${currentBalanceType.index}'),
+                      ),
+                  },
+                ),
+              ]
+            ],
+          ),
         ),
       ),
     );
