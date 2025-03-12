@@ -33,7 +33,7 @@ class Auth0Provider extends ChangeNotifier {
       notifyListeners();
       unawaited(SessionService.instance.registerUserSession());
     } catch (e) {
-      print('Login failed: $e');
+      print('Login failed ---: $e');
       rethrow;
     }
   }

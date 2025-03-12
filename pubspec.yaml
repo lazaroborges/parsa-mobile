@@ -6,7 +6,7 @@ description: controle financeiro sem esforço.
 publish_to: none
 
 
-version: 2.0.11+77
+version: 2.0.11+78
 
 
 environment:
@@ -97,10 +97,10 @@ build:
   ios:
 
     build-name: 2.0.11
-    build-number: 77
+    build-number: 78
   android:
     build-name: 2.0.11
-    build-number: 77
+    build-number: 78
 
 
 
