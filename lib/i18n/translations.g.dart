@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 615
+/// Strings: 616
 ///
-/// Built on 2025-03-04 at 19:58 UTC
+/// Built on 2025-03-10 at 19:06 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -556,7 +556,7 @@ class _TranslationsBudgetsPt {
 	String get days_left => 'dias restantes';
 	String get days_to_start => 'dias para começar';
 	String get since_expiration => 'dias desde a expiração';
-	String get no_budgets => 'Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+	String get no_budgets => 'Parece não haver orçamentos nesse período para exibir nesta seção. Comece criando um orçamento clicando aqui.';
 	String get delete => 'Excluir orçamento';
 	String get delete_warning => 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 	late final _TranslationsBudgetsFormPt form = _TranslationsBudgetsFormPt._(_root);
@@ -1434,11 +1434,12 @@ class _TranslationsGeneralTimeAllPt {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-	String get diary => 'Todos os dias';
-	String get monthly => 'Todos os meses';
-	String get annually => 'Todos os anos';
-	String get quaterly => 'Todos os trimestres';
-	String get weekly => 'Todas as semanas';
+	String get diary => 'Diário';
+	String get monthly => 'Mensal';
+	String get biweekly => 'Quinzenal';
+	String get annually => 'Anual';
+	String get quaterly => 'Trimestral';
+	String get weekly => 'Semanal';
 }
 
 // Path: financial_health.review.descr
@@ -1686,11 +1687,12 @@ extension on Translations {
 			case 'general.time.current.weekly': return 'Esta semana';
 			case 'general.time.current.infinite': return 'Para sempre';
 			case 'general.time.current.custom': return 'Intervalo personalizado';
-			case 'general.time.all.diary': return 'Todos os dias';
-			case 'general.time.all.monthly': return 'Todos os meses';
-			case 'general.time.all.annually': return 'Todos os anos';
-			case 'general.time.all.quaterly': return 'Todos os trimestres';
-			case 'general.time.all.weekly': return 'Todas as semanas';
+			case 'general.time.all.diary': return 'Diário';
+			case 'general.time.all.monthly': return 'Mensal';
+			case 'general.time.all.biweekly': return 'Quinzenal';
+			case 'general.time.all.annually': return 'Anual';
+			case 'general.time.all.quaterly': return 'Trimestral';
+			case 'general.time.all.weekly': return 'Semanal';
 			case 'general.transaction_order.display': return 'Ordenar transações';
 			case 'general.transaction_order.category': return 'Por categoria';
 			case 'general.transaction_order.quantity': return 'Por quantidade';
@@ -2134,7 +2136,7 @@ extension on Translations {
 			case 'budgets.days_left': return 'dias restantes';
 			case 'budgets.days_to_start': return 'dias para começar';
 			case 'budgets.since_expiration': return 'dias desde a expiração';
-			case 'budgets.no_budgets': return 'Os dados de orçamentos ainda não são salvos na nuvem. Parece não haver orçamentos para exibir nesta seção. Comece criando um orçamento clicando no botão abaixo';
+			case 'budgets.no_budgets': return 'Parece não haver orçamentos nesse período para exibir nesta seção. Comece criando um orçamento clicando aqui.';
 			case 'budgets.delete': return 'Excluir orçamento';
 			case 'budgets.delete_warning': return 'Essa ação é irreversível. Categorias e transações referentes a esta cota não serão excluídas';
 			case 'budgets.form.title': return 'Adicionar um orçamento';

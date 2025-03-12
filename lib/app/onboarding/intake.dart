@@ -6,6 +6,8 @@ import 'package:parsa/app/onboarding/question_styles.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
@@ -163,9 +165,13 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
       // Send answers to server before navigating
       await sendIntakeAnswers();
 
+      //Mark intake as completed in SharedPreferences
+      await SharedPreferencesAsync.instance.setIntakeCompleted(true);
+
+      // Navigate to subscription page instead of directly going to TabsPage
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => TabsPage(key: tabsPageKey),
+          builder: (context) => PremiumWidget(),
         ),
       );
     }

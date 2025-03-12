@@ -9,8 +9,6 @@ import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_di
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
-import 'package:parsa/core/presentation/widgets/reorderable_drag_icon.dart';
-
 import '../app_colors.dart';
 
 /// The radius of the `CardWithHeader` widget, a very useful widget through the app
@@ -159,7 +157,7 @@ class _AccountListCardState extends State<AccountListCard> {
     }
 
     final defaultPath = 'assets/png_icons/$iconId.png';
-    final fallbackPath = 'assets/png_icons/1.png';
+    const fallbackPath = 'assets/png_icons/1.png';
 
     try {
       await rootBundle.load(defaultPath);
@@ -245,7 +243,7 @@ class _AccountListCardState extends State<AccountListCard> {
         widget.accounts.where((account) => !account.hiddenByUser).toList();
 
     return CardWithHeader(
-      title: widget.title.isEmpty ? "Contas" : widget.title,
+      title: widget.title.isEmpty ? 'Contas' : widget.title,
       onHeaderButtonClick: widget.onAddAccountTap,
       headerButtonIcon: Icons.add,
       onHeaderTap: () => RouteUtils.pushRoute(context, const AllAccountsPage()),
@@ -257,7 +255,7 @@ class _AccountListCardState extends State<AccountListCard> {
                 padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                 child: Center(
                   child: Text(
-                    "Adicione uma conta",
+                    'Adicione uma conta',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 16,

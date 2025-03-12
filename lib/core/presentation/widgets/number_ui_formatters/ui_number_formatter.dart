@@ -126,7 +126,7 @@ class UINumberFormatter {
         ),
 
       // Minus sign if negative
-      if (isNegative)
+      if (mode == UINumberFormatterMode.currency && isNegative)
         TextSpan(
           text: '-',
           style: normalizedCurrencyStyle,

@@ -147,47 +147,63 @@ class CategoryStatsModal extends StatelessWidget {
           ),
         ),
         const Divider(),
-        FutureBuilder(
-          future: getSubcategoriesData(context),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const LinearProgressIndicator();
-            }
+        Flexible(
+          child: FutureBuilder(
+            future: getSubcategoriesData(context),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const LinearProgressIndicator();
+              }
 
-            final subcategories = snapshot.data!;
+              final subcategories = snapshot.data!;
 
-            // Filter subcategories with negative values to correctly display the bars:
-            final totalSum =
-                subcategories.where((e) => e.value > 0).map((e) => e.value).sum;
+              // Filter subcategories with negative values to correctly display the bars:
+              final totalSum = subcategories
+                  .where((e) => e.value > 0)
+                  .map((e) => e.value)
+                  .sum;
 
-            return Column(
-              children: List.generate(subcategories.length, (index) {
-                final subcategoryData = subcategories[index];
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: subcategories.length,
+                itemBuilder: (context, index) {
+                  final subcategoryData = subcategories[index];
 
-                return ListTile(
-                  leading: IconDisplayer.fromCategory(
-                    context,
-                    category: Category.fromDB(
-                      categoryData.category
-                          .copyWith(iconId: subcategoryData.icon.id),
-                      categoryData.category,
+                  return ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    leading: IconDisplayer.fromCategory(
+                      context,
+                      category: Category.fromDB(
+                        categoryData.category
+                            .copyWith(iconId: subcategoryData.icon.id),
+                        categoryData.category,
+                      ),
                     ),
-                  ),
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(subcategoryData.name),
-                      CurrencyDisplayer(amountToConvert: subcategoryData.value)
-                    ],
-                  ),
-                  subtitle: AnimatedProgressBar(
-                    value: max(subcategoryData.value / totalSum, 0),
-                    color: ColorHex.get(categoryData.category.color),
-                  ),
-                );
-              }),
-            );
-          },
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            subcategoryData.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        CurrencyDisplayer(
+                            amountToConvert: subcategoryData.value)
+                      ],
+                    ),
+                    subtitle: AnimatedProgressBar(
+                      value: max(subcategoryData.value / totalSum, 0),
+                      color: ColorHex.get(categoryData.category.color),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         )
       ],
     );

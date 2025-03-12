@@ -158,7 +158,6 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
           children: allDestinations.map((e) => e.destination).toList(),
         );
       }),
-      // selectedDestination?.destination ?? const SizedBox.shrink(),
     );
   }
 }
