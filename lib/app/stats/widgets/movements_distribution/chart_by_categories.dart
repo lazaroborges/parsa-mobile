@@ -82,18 +82,20 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
 
     final previousPeriodFilters = _getTransactionFilters().copyWith(
       minDate: widget.datePeriodState.startDate?.subtract(
-        widget.datePeriodState.endDate?.difference(widget.datePeriodState.startDate ?? DateTime.now()) ?? Duration.zero,
+        widget.datePeriodState.endDate?.difference(
+                widget.datePeriodState.startDate ?? DateTime.now()) ??
+            Duration.zero,
       ),
       maxDate: widget.datePeriodState.startDate,
     );
-    
+
     final previousTransactions = await transactionService
         .getTransactions(filters: previousPeriodFilters)
         .first;
 
     for (final transaction in transactions) {
       if (transaction.category == null) continue;
-      
+
       final trValue = transaction.currentValueInPreferredCurrency *
           (transactionsType == TransactionType.E ? -1 : 1);
 
@@ -220,7 +222,8 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                                   : 34,
                             ),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 5),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(5),
                                 border: Border.all(
@@ -413,11 +416,10 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                               decimalDigits: 0,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              NumberFormat.decimalPercentPattern(decimalDigits: 2)
-                                  .format(getElementPercentageInTotal(
-                                      dataCategory.value, snapshot.data!))
-                            ),
+                            Text(NumberFormat.decimalPercentPattern(
+                                    decimalDigits: 2)
+                                .format(getElementPercentageInTotal(
+                                    dataCategory.value, snapshot.data!))),
                           ],
                         ),
                       ],
@@ -433,7 +435,8 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                         minDate: widget.datePeriodState.startDate,
                         maxDate: widget.datePeriodState.endDate,
                         transactionTypes: [transactionsType],
-                        includeParentCategoriesInSearch: dataCategory.category.isMainCategory,
+                        includeParentCategoriesInSearch:
+                            dataCategory.category.isMainCategory,
                       );
 
                       Navigator.of(context).push(
@@ -445,7 +448,8 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
                               transactions: dataCategory.transactions,
                               value: dataCategory.value,
                             ),
-                            dateRangeText: widget.datePeriodState.getText(context),
+                            dateRangeText:
+                                widget.datePeriodState.getText(context),
                           ),
                         ),
                       );

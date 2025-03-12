@@ -11,7 +11,8 @@ import 'package:parsa/core/api/post_methods/post_subscriptions.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
-
+import 'package:parsa/app/layout/tabs.dart';
+import 'package:parsa/app/onboarding/intake.dart';
 
 class PremiumWidget extends StatefulWidget {
   @override
@@ -83,11 +84,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         'premium_monthly11',
         'premium_yearly',
       };
-      
+
       print('Attempting to query products: $productIds');
-      final ProductDetailsResponse response = 
+      final ProductDetailsResponse response =
           await _inAppPurchase.queryProductDetails(productIds);
-      
+
       print('=== STORE RESPONSE ===');
       print('Products found: ${response.productDetails.length}');
 
@@ -132,7 +133,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   Future<void> _checkSubscriptionStatus() async {
     if (_isRestoringPurchases) return;
-    
+
     try {
       setState(() => _isRestoringPurchases = true);
       await _inAppPurchase.restorePurchases();
@@ -147,7 +148,6 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
-
     // Track processed product IDs for iOS restoration
     Set<String> processedProductIds = {};
 
@@ -163,9 +163,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       _processedPurchases.add(purchaseId);
 
       // For iOS restoration, check if we already processed this product type
-      if (Theme.of(context).platform == TargetPlatform.iOS && 
+      if (Theme.of(context).platform == TargetPlatform.iOS &&
           purchaseDetails.status == PurchaseStatus.restored) {
-        
         // Skip if we already processed this product type
         if (processedProductIds.contains(productId)) {
           continue;
@@ -212,7 +211,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
           _verifyAndDeliverPurchase(purchaseDetails, 'restored');
           break;
         case PurchaseStatus.error:
-    _handleErrorPurchase(purchaseDetails);
+          _handleErrorPurchase(purchaseDetails);
           break;
         default:
           _handleUnknownPurchase(purchaseDetails);
@@ -237,12 +236,14 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     });
   }
 
-  Future<void> _verifyAndDeliverPurchase(PurchaseDetails purchaseDetails, String status) async {
-    if ((purchaseDetails.productID == 'premium_monthly1' && hasMonthlySubscription) ||
-        (purchaseDetails.productID == 'premium_yearly' && hasYearlySubscription)) {
+  Future<void> _verifyAndDeliverPurchase(
+      PurchaseDetails purchaseDetails, String status) async {
+    if ((purchaseDetails.productID == 'premium_monthly1' &&
+            hasMonthlySubscription) ||
+        (purchaseDetails.productID == 'premium_yearly' &&
+            hasYearlySubscription)) {
       return;
     }
-
 
     // print('Starting purchase verification...');
     // print('------Purchase STATUS: ${purchaseDetails.productID} ${purchaseDetails.status}');
@@ -250,7 +251,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     // Update subscription status immediately if successful
     if (status == 'successful') {
       _updateSubscriptionStatus(purchaseDetails.productID);
-      
+
       // Show success message to user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Assinatura realizada com sucesso!')),
@@ -259,13 +260,13 @@ class _PremiumWidgetState extends State<PremiumWidget> {
       // Navigate to success page ONLY for new purchases
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => SubscriptionSuccessPage(),
+          builder: (context) => const SubscriptionSuccessPage(),
         ),
       );
-    } else if (status == 'restored')  {
+    } else if (status == 'restored') {
       _updateSubscriptionStatus(purchaseDetails.productID);
       // Just show a snackbar for restored purchases
-      if (!_alreadySaidRestored) { 
+      if (!_alreadySaidRestored) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Assinatura restaurada com sucesso!')),
         );
@@ -285,8 +286,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
         '_verifyAndDeliverPurchase',
       );
 
-
-      print('------------------- purchasePost_code: $purchasePost_code ${purchaseDetails.status}') ;
+      print(
+          '------------------- purchasePost_code: $purchasePost_code ${purchaseDetails.status}');
     } catch (e) {
       print('Failed to sync purchase with server: $e');
     }
@@ -294,46 +295,52 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     if (purchasePost_code == 'created') {
       //print a snackbar with the purchasePost_code
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(duration: Duration(seconds: 3), content: Text('Assinatura confirmada com sucesso!')),
+        SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Assinatura confirmada com sucesso!')),
       );
-    }
-    else if (purchasePost_code == 'confirmed' && !_alreadySaidRestored) {
+    } else if (purchasePost_code == 'confirmed' && !_alreadySaidRestored) {
       //print a snackbar with the purchasePost_code
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(duration: Duration(seconds: 3), content: Text('Assinatura resgatada com sucesso!')),
+        SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Assinatura resgatada com sucesso!')),
       );
       _alreadySaidRestored = true;
-    }
-    else if (purchasePost_code == 'forbidden' && !_alreadySaidRestored) {
+    } else if (purchasePost_code == 'forbidden' && !_alreadySaidRestored) {
       //print a snackbar with the purchasePost_code
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(duration: Duration(seconds: 5), content: Text('Assinatura não confirmada. Pode ser que esta conta App Store tenha sido usado primeiro com outro usuário Parsa e não pode ser reutilizada com outra conta Parsa. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
+        SnackBar(
+            duration: Duration(seconds: 5),
+            content: Text(
+                'Assinatura não confirmada. Pode ser que esta conta App Store tenha sido usado primeiro com outro usuário Parsa e não pode ser reutilizada com outra conta Parsa. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
       );
       _alreadySaidRestored = true;
-    }
-    else {
+    } else {
       if (!_alreadySaidRestored) {
         //print a snackbar with the purchasePost_code
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: Duration(seconds: 5), content: Text('Operação não autorizada. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
+          SnackBar(
+              duration: Duration(seconds: 5),
+              content: Text(
+                  'Operação não autorizada. Em casos de dúvidas, entre em contato com o suporte no menu de Informações.')),
         );
         _alreadySaidRestored = true;
-      }
-      else {
+      } else {
         print('alreadySaidRestored: $_alreadySaidRestored');
       }
     }
-
-
   }
 
   Future<void> _handlePendingPurchase(PurchaseDetails purchaseDetails) async {
     print('----------Purchase is pending for ${purchaseDetails.purchaseID}');
-    
+
     // Optionally show a pending UI to the user
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sua compra está sendo processada. Um momento por favor.'),
-      duration: Duration(seconds: 5),
+      SnackBar(
+        content:
+            Text('Sua compra está sendo processada. Um momento por favor.'),
+        duration: Duration(seconds: 5),
       ),
     );
 
@@ -367,12 +374,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     // Send the error status to the server
     try {
       await PostSubscriptions.sendPurchaseToServerPOST(
-        purchaseDetails,
-        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        mobilePurchaseStatus,
-        selectedPlan,
-        "_handleErrorPurchase"
-      );
+          purchaseDetails,
+          Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+          mobilePurchaseStatus,
+          selectedPlan,
+          "_handleErrorPurchase");
     } catch (e) {
       print('Failed to sync error purchase with server: $e');
       // Optionally handle the failure
@@ -381,7 +387,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   Future<void> _handleUnknownPurchase(PurchaseDetails purchaseDetails) async {
     print('Unknown purchase status for ${purchaseDetails.productID}');
-    
+
     // Treat it as failed
     setState(() {
       _error = 'Compra desconhecida.';
@@ -390,11 +396,10 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     // Send the failed status to the server
     try {
       await PostSubscriptions.sendPurchaseToServerPOST(
-        purchaseDetails,
-        Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
-        'failed',
-        '_handleUnknownPurchase'
-      );
+          purchaseDetails,
+          Theme.of(context).platform == TargetPlatform.iOS ? 'ios' : 'android',
+          'failed',
+          '_handleUnknownPurchase');
     } catch (e) {
       print('Failed to sync unknown purchase with server: $e');
       // Optionally handle the failure
@@ -404,38 +409,42 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   Future<void> _buySubscription(ProductDetails product) async {
     try {
       developer.log('Initiating purchase for product: ${product.id}');
-      
+
       // Clear pending transactions for iOS only
       if (Theme.of(context).platform == TargetPlatform.iOS) {
         developer.log('iOS platform detected - clearing pending transactions');
         final transactions = await SKPaymentQueueWrapper().transactions();
         for (var transaction in transactions) {
-          developer.log('Clearing pending transaction: ${transaction.transactionIdentifier}');
+          developer.log(
+              'Clearing pending transaction: ${transaction.transactionIdentifier}');
           developer.log('Transaction state: ${transaction.transactionState}');
           await SKPaymentQueueWrapper().finishTransaction(transaction);
         }
       }
-      
+
       final PurchaseParam purchaseParam = PurchaseParam(
         productDetails: product,
       );
-      
+
       // For subscriptions, use buyNonConsumable or buySubscription as appropriate
       final bool success = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
-      
+
       developer.log('Purchase initiation result: $success');
-      
+
       if (!success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível iniciar a compra. Tente novamente.')),
+          SnackBar(
+              content:
+                  Text('Não foi possível iniciar a compra. Tente novamente.')),
         );
       }
     } catch (e, stackTrace) {
       developer.log('Purchase error', error: e, stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao processar a compra. Tente novamente.')),
+        SnackBar(
+            content: Text('Falha ao processar a compra. Tente novamente.')),
       );
     }
   }
@@ -459,15 +468,18 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     if (Platform.isIOS) {
       url = 'https://apps.apple.com/account/subscriptions';
     } else {
-      url = 'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
+      url =
+          'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
     }
-    
+
     if (await canLaunchUrlString(url)) {
       await launchUrlString(url);
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível abrir a página de gerenciamento de assinaturas')),
+          const SnackBar(
+              content: Text(
+                  'Não foi possível abrir a página de gerenciamento de assinaturas')),
         );
       }
     }
@@ -481,7 +493,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     // Determine if the purchase button should be enabled
     bool isPurchaseButtonEnabled = selectedPlan != null &&
         !((selectedPlan == 'premium_monthly1' && hasMonthlySubscription) ||
-          (selectedPlan == 'premium_yearly' && hasYearlySubscription));
+            (selectedPlan == 'premium_yearly' && hasYearlySubscription));
 
     return Scaffold(
       body: _isLoading
@@ -498,7 +510,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                             width: MediaQuery.of(context).size.width,
                             decoration: BoxDecoration(
                               image: const DecorationImage(
-                                image: AssetImage('assets/resources/container_background.png'),
+                                image: AssetImage(
+                                    'assets/resources/container_background.png'),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -506,12 +519,24 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                SizedBox(height: MediaQuery.of(context).padding.top + 8), // Add status bar height + extra padding
+                                SizedBox(
+                                    height: MediaQuery.of(context).padding.top +
+                                        8), // Add status bar height + extra padding
                                 Row(
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 255, 255, 255)),
-                                      onPressed: () => Navigator.of(context).pop(),
+                                      icon: const Icon(Icons.arrow_back,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255)),
+                                      onPressed: () {
+                                        // Navigate to TabsPage instead of just popping
+                                        Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                TabsPage(key: tabsPageKey),
+                                          ),
+                                        );
+                                      },
                                     ),
                                     const Spacer(), // This pushes the header to center
                                     Image.asset(
@@ -519,21 +544,25 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                       height: 40,
                                     ),
                                     const Spacer(), // This maintains the center position
-                                    const SizedBox(width: 48), // Same width as IconButton for balance
+                                    const SizedBox(
+                                        width:
+                                            48), // Same width as IconButton for balance
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 Center(
                                   child: Image.asset(
                                     'assets/resources/app_image.png',
-                                    height: screenHeight * 0.3 > 280 ? 280 : screenHeight * 0.3,
+                                    height: screenHeight * 0.3 > 280
+                                        ? 280
+                                        : screenHeight * 0.3,
                                     fit: BoxFit.contain,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          
+
                           // Rest of the content with original padding
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -568,45 +597,69 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                     GestureDetector(
                                       onTap: hasMonthlySubscription
                                           ? null
-                                          : () => setState(() => selectedPlan = 'premium_monthly1'),
+                                          : () => setState(() => selectedPlan =
+                                              'premium_monthly1'),
                                       child: Container(
                                         width: double.infinity,
                                         padding: const EdgeInsets.all(16),
                                         decoration: ShapeDecoration(
                                           color: hasMonthlySubscription
                                               ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade50 : Colors.white),
+                                              : (selectedPlan ==
+                                                      'premium_monthly1'
+                                                  ? Colors.blue.shade50
+                                                  : Colors.white),
                                           shape: RoundedRectangleBorder(
                                             side: BorderSide(
                                               width: 1,
                                               color: hasMonthlySubscription
                                                   ? Colors.grey
-                                                  : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
+                                                  : (selectedPlan ==
+                                                          'premium_monthly1'
+                                                      ? Colors.blue.shade200
+                                                      : Color(0xFFE4E7EC)),
                                             ),
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
-                                              hasMonthlySubscription ? 'Plano Mensal (Ativo)' : 'Plano Mensal',
+                                              hasMonthlySubscription
+                                                  ? 'Plano Mensal (Ativo)'
+                                                  : 'Plano Mensal',
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade700 : Color(0xFF344053)),
+                                                    : (selectedPlan ==
+                                                            'premium_monthly1'
+                                                        ? Colors.blue.shade700
+                                                        : Color(0xFF344053)),
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                             Text(
-                                              _products.where((p) => p.id == 'premium_monthly1').isNotEmpty
-                                                  ? _formatPrice(_products.firstWhere((p) => p.id == 'premium_monthly1'))
+                                              _products
+                                                      .where((p) =>
+                                                          p.id ==
+                                                          'premium_monthly1')
+                                                      .isNotEmpty
+                                                  ? _formatPrice(_products
+                                                      .firstWhere((p) =>
+                                                          p.id ==
+                                                          'premium_monthly1'))
                                                   : '-',
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_monthly1' ? Colors.blue.shade600 : Color(0xFF667084)),
+                                                    : (selectedPlan ==
+                                                            'premium_monthly1'
+                                                        ? Colors.blue.shade600
+                                                        : Color(0xFF667084)),
                                                 fontSize: 14,
                                               ),
                                             ),
@@ -619,61 +672,97 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                     GestureDetector(
                                       onTap: hasYearlySubscription
                                           ? null
-                                          : () => setState(() => selectedPlan = 'premium_yearly'),
+                                          : () => setState(() =>
+                                              selectedPlan = 'premium_yearly'),
                                       child: Container(
                                         width: double.infinity,
                                         padding: const EdgeInsets.all(16),
                                         decoration: ShapeDecoration(
                                           color: hasYearlySubscription
                                               ? Colors.grey.shade300
-                                              : (selectedPlan == 'premium_yearly' ? Colors.blue.shade50 : Colors.white),
+                                              : (selectedPlan ==
+                                                      'premium_yearly'
+                                                  ? Colors.blue.shade50
+                                                  : Colors.white),
                                           shape: RoundedRectangleBorder(
                                             side: BorderSide(
                                               width: 1,
                                               color: hasYearlySubscription
                                                   ? Colors.grey
-                                                  : (selectedPlan == 'premium_yearly' ? Colors.blue.shade200 : Color(0xFFE4E7EC)),
+                                                  : (selectedPlan ==
+                                                          'premium_yearly'
+                                                      ? Colors.blue.shade200
+                                                      : Color(0xFFE4E7EC)),
                                             ),
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  hasYearlySubscription ? 'Plano Anual (Ativo)' : 'Plano Anual',
+                                                  hasYearlySubscription
+                                                      ? 'Plano Anual (Ativo)'
+                                                      : 'Plano Anual',
                                                   style: TextStyle(
                                                     color: hasYearlySubscription
                                                         ? Colors.grey
-                                                        : (selectedPlan == 'premium_yearly' ? Colors.blue.shade700 : Color(0xFF344053)),
+                                                        : (selectedPlan ==
+                                                                'premium_yearly'
+                                                            ? Colors
+                                                                .blue.shade700
+                                                            : Color(
+                                                                0xFF344053)),
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
                                                 Text(
-                                                  _products.where((p) => p.id == 'premium_yearly').isNotEmpty
+                                                  _products
+                                                          .where((p) =>
+                                                              p.id ==
+                                                              'premium_yearly')
+                                                          .isNotEmpty
                                                       ? '*Cobrança anual única de ${_products.firstWhere((p) => p.id == 'premium_yearly').price}'
                                                       : '*Cobrança anual única',
                                                   style: TextStyle(
                                                     color: hasYearlySubscription
                                                         ? Colors.grey
-                                                        : (selectedPlan == 'premium_yearly' ? Colors.blue.shade600 : Color(0xFF667084)),
+                                                        : (selectedPlan ==
+                                                                'premium_yearly'
+                                                            ? Colors
+                                                                .blue.shade600
+                                                            : Color(
+                                                                0xFF667084)),
                                                     fontSize: 10,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             Text(
-                                              _products.where((p) => p.id == 'premium_yearly').isNotEmpty
-                                                  ? _formatYearlyPrice(_products.firstWhere((p) => p.id == 'premium_yearly'))
+                                              _products
+                                                      .where((p) =>
+                                                          p.id ==
+                                                          'premium_yearly')
+                                                      .isNotEmpty
+                                                  ? _formatYearlyPrice(_products
+                                                      .firstWhere((p) =>
+                                                          p.id ==
+                                                          'premium_yearly'))
                                                   : '-',
                                               style: TextStyle(
                                                 color: hasYearlySubscription
                                                     ? Colors.grey
-                                                    : (selectedPlan == 'premium_yearly' ? Colors.blue.shade600 : Color(0xFF667084)),
+                                                    : (selectedPlan ==
+                                                            'premium_yearly'
+                                                        ? Colors.blue.shade600
+                                                        : Color(0xFF667084)),
                                                 fontSize: 14,
                                               ),
                                             ),
@@ -690,24 +779,32 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                   child: ElevatedButton(
                                     onPressed: isPurchaseButtonEnabled
                                         ? () {
-                                            print('selectedPlan: $selectedPlan');
+                                            print(
+                                                'selectedPlan: $selectedPlan');
                                             try {
-                                              final product = _products.firstWhere(
-                                                (prod) => prod.id == selectedPlan,
+                                              final product =
+                                                  _products.firstWhere(
+                                                (prod) =>
+                                                    prod.id == selectedPlan,
                                               );
                                               _buySubscription(product);
                                             } catch (e) {
                                               print('Product not found: $e');
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Plano selecionado não está disponível')),
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(
+                                                        'Plano selecionado não está disponível')),
                                               );
                                             }
                                           }
                                         : null,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blue.shade700,
-                                      disabledBackgroundColor: Colors.blue.shade700,
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      disabledBackgroundColor:
+                                          Colors.blue.shade700,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -730,15 +827,18 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                     TextSpan(
                                       children: [
                                         TextSpan(
-                                          text: 'Lista de Bancos Disponíveis para Integração.',
+                                          text:
+                                              'Lista de Bancos Disponíveis para Integração.',
                                           style: TextStyle(
                                             color: Color(0xFF475466),
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
+                                            decoration:
+                                                TextDecoration.underline,
                                           ),
                                           recognizer: TapGestureRecognizer()
-                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/bancos')),
+                                            ..onTap = () => launchUrl(Uri.parse(
+                                                'https://www.parsa-ai.com.br/bancos')),
                                         ),
                                       ],
                                     ),
@@ -753,7 +853,8 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                     TextSpan(
                                       children: [
                                         TextSpan(
-                                          text: 'Ao continuar, estou de acordo com os ',
+                                          text:
+                                              'Ao continuar, estou de acordo com os ',
                                           style: TextStyle(
                                             color: Color(0xFF475466),
                                             fontSize: 14,
@@ -766,10 +867,12 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                             color: Color(0xFF475466),
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
+                                            decoration:
+                                                TextDecoration.underline,
                                           ),
                                           recognizer: TapGestureRecognizer()
-                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/termos-e-condi%C3%A7%C3%B5es-de-servi%C3%A7o')),
+                                            ..onTap = () => launchUrl(Uri.parse(
+                                                'https://www.parsa-ai.com.br/termos-e-condi%C3%A7%C3%B5es-de-servi%C3%A7o')),
                                         ),
                                         TextSpan(
                                           text: ' e a ',
@@ -785,10 +888,12 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                             color: Color(0xFF475466),
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
+                                            decoration:
+                                                TextDecoration.underline,
                                           ),
                                           recognizer: TapGestureRecognizer()
-                                            ..onTap = () => launchUrl(Uri.parse('https://www.parsa-ai.com.br/pol%C3%ADtica-de-privacidade')),
+                                            ..onTap = () => launchUrl(Uri.parse(
+                                                'https://www.parsa-ai.com.br/pol%C3%ADtica-de-privacidade')),
                                         ),
                                         TextSpan(
                                           text: ' do Parsa.',

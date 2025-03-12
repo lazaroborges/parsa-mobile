@@ -109,6 +109,7 @@ class _SingleChoiceQuestionState extends State<SingleChoiceQuestion> {
         const SizedBox(height: 24),
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
             itemCount: widget.question['options'].length,
             itemBuilder: (context, index) {
               final option = widget.question['options'][index];
@@ -188,6 +189,7 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
         const SizedBox(height: 24),
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
             itemCount: widget.question['options'].length,
             itemBuilder: (context, index) {
               final option = widget.question['options'][index];
@@ -274,6 +276,7 @@ class _GroupedSingleChoiceQuestionState
         const SizedBox(height: 24),
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
             itemCount: widget.question['subquestions'].length,
             itemBuilder: (context, index) {
               final subquestion = widget.question['subquestions'][index];

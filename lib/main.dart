@@ -10,6 +10,7 @@ import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
+import 'package:parsa/app/onboarding/intake.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -33,8 +34,6 @@ import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'package:parsa/app/onboarding/intake.dart';
-
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -45,6 +44,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
+
+  // Set preferred orientations to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // Add custom HTTP override for User-Agent
   HttpOverrides.global = CustomHttpOverrides();
@@ -311,37 +316,45 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         DeepLinkObserver(_handleIncomingLink)
       ],
       builder: (context, child) {
+        // Get system padding for debugging
+        final EdgeInsets systemPadding = MediaQuery.of(context).padding;
+        print(
+            'BUILDER: System padding - bottom: ${systemPadding.bottom}, top: ${systemPadding.top}');
+
         return Overlay(initialEntries: [
           OverlayEntry(
-            builder: (context) => Stack(
-              children: [
-                Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeInOutCubicEmphasized,
-                      width: widget.introSeen
-                          ? getNavigationSidebarWidth(context)
-                          : 0,
-                      color: Theme.of(context).canvasColor,
-                    ),
-                    if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
-                      Container(
-                        width: 2,
-                        height: MediaQuery.of(context).size.height,
-                        color: Theme.of(context).dividerColor,
+            builder: (context) => SafeArea(
+              bottom:
+                  true, // Apply bottom padding to account for system navigation bar
+              child: Stack(
+                children: [
+                  Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeInOutCubicEmphasized,
+                        width: widget.introSeen
+                            ? getNavigationSidebarWidth(context)
+                            : 0,
+                        color: Theme.of(context).canvasColor,
                       ),
-                    Expanded(child: child ?? const SizedBox.shrink()),
-                  ],
-                ),
-                if (widget.introSeen)
-                  NavigationSidebar(key: navigationSidebarKey)
-              ],
+                      if (BreakPoint.of(context).isLargerThan(BreakpointID.sm))
+                        Container(
+                          width: 2,
+                          height: MediaQuery.of(context).size.height,
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      Expanded(child: child ?? const SizedBox.shrink()),
+                    ],
+                  ),
+                  if (widget.introSeen)
+                    NavigationSidebar(key: navigationSidebarKey)
+                ],
+              ),
             ),
           ),
         ]);
       },
-      
       // New home implementation with sequential checks
       home: FutureBuilder<bool>(
         future: SharedPreferencesAsync.instance.getOnboarded(),
@@ -350,15 +363,15 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           // Step 1: Check if user has completed onboarding
           final bool isOnboarded = onboardingSnapshot.data ?? false;
-          
+
           if (!isOnboarded) {
             // User hasn't completed onboarding, show OnboardingPage
             return const OnboardingPage();
           }
-          
+
           // Step 2: Check authentication status
           if (auth0Provider.credentials == null) {
             // User is not authenticated, show IntroPage
@@ -369,17 +382,22 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
               onBiometricsVerified: () async {
                 // Fetch user data from server
                 await fetchUserDataAtServer();
-                
+
                 // Get user data from provider - it will never be null as per your requirement
-                final userData = Provider.of<UserDataProvider>(context, listen: false).userData;
-                
+                final userData =
+                    Provider.of<UserDataProvider>(context, listen: false)
+                        .userData;
+
                 // Check if filled_questionaire (with 'e') is true
-                if (userData != null && userData['filled_questionaire'] == true) {
-                  print("USER DATA: $userData , ${userData['filled_questionaire']}");
+                if (userData != null &&
+                    userData['filled_questionaire'] == true) {
+                  print(
+                      "USER DATA: $userData , ${userData['filled_questionaire']}");
                   // If questionnaire is filled, go directly to TabsPage
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+                    MaterialPageRoute(
+                        builder: (context) => TabsPage(key: tabsPageKey)),
                   );
                 } else {
                   print("WHY AM I HERE?");
@@ -405,7 +423,9 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   // Helper method to check intake form completion and navigate accordingly
   void _checkIntakeFormCompletion(BuildContext context) {
     // We'll use SharedPreferences to check if intake form is completed
-    SharedPreferencesAsync.instance.getIntakeCompleted().then((isIntakeCompleted) {
+    SharedPreferencesAsync.instance
+        .getIntakeCompleted()
+        .then((isIntakeCompleted) {
       if (isIntakeCompleted) {
         // If intake is completed, go to main app (TabsPage)
         Navigator.pushReplacement(
