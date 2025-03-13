@@ -53,6 +53,7 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
 import 'package:parsa/app/budgets/budgets_page.dart';
 import 'package:parsa/app/budgets/components/budget_card.dart';
+import 'package:parsa/app/budgets/components/budget_list_card.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/app/budgets/budget_form_page.dart';
 
@@ -658,55 +659,19 @@ class _DashboardPageState extends State<DashboardPage> {
                             },
                           ),
                           const SizedBox(height: 12),
-                          CardWithHeader(
-                            title: t.budgets.title,
-                            body: StreamBuilder(
-                              stream: BudgetServive.instance.getBudgets(),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return const LinearProgressIndicator();
-                                }
+                          StreamBuilder(
+                            stream: BudgetServive.instance.getBudgets(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const LinearProgressIndicator();
+                              }
 
-                                final budgets = snapshot.data!;
+                              final budgets = snapshot.data!;
 
-                                if (budgets.isEmpty) {
-                                  return InkWell(
-                                    onTap: () {
-                                      // Navigate to budget creation page
-                                      RouteUtils.pushRoute(
-                                          context,
-                                          const BudgetFormPage(
-                                              prevPage: DashboardPage()));
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Text(
-                                        t.budgets.no_budgets,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                return ListView.builder(
-                                  padding: const EdgeInsets.all(8),
-                                  itemCount: budgets.length > 3
-                                      ? 3
-                                      : budgets
-                                          .length, // Limit to 3 budgets on dashboard
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: (context, index) {
-                                    final budget = budgets[index];
-                                    return BudgetCard(budget: budget);
-                                  },
-                                );
-                              },
-                            ),
-                            onHeaderButtonClick: () {
-                              RouteUtils.pushRoute(
-                                  context, const BudgetsPage());
+                              return BudgetListCard(
+                                budgets: budgets,
+                                limit: 3,
+                              );
                             },
                           ),
 
@@ -836,42 +801,25 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           );
         },
-        // Add horizontal drag gesture detector
-        child: GestureDetector(
-          onHorizontalDragEnd: (details) {
-            // Check the velocity to determine direction
-            if (details.primaryVelocity == null) return;
-            
-            setState(() {
-              if (details.primaryVelocity! > 0) {
-                // Swiped right - go to previous balance type
-                currentBalanceType = BalanceType.values[
-                    (currentBalanceType.index - 1 + BalanceType.values.length) % 
-                    BalanceType.values.length];
-              } else {
-                // Swiped left - go to next balance type
-                currentBalanceType = BalanceType.values[
-                    (currentBalanceType.index + 1) % BalanceType.values.length];
-              }
-              
-              // Save the balance type preference
-              SharedPreferencesAsync.instance.setBalanceType(
-                currentBalanceType.name,
-              );
-            });
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    currentBalanceType.getTitle(context),
-                    style: Theme.of(context).textTheme.labelSmall!,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  currentBalanceType.getTitle(context),
+                  style: Theme.of(context).textTheme.labelSmall!,
+                ),
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: Theme.of(context).textTheme.labelSmall!.color,
                   ),
-
                 ),
               ],
             ),
@@ -912,48 +860,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       key: ValueKey(
                           'future-balance-${currentBalanceType.index}'),
                     ),
-                  ),
-                ],
+                },
               ),
-              if (!accounts.hasData) ...[
-                const Skeleton(width: 70, height: 54),
-              ],
-              if (accounts.hasData) ...[
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.0, 0.1),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: switch (currentBalanceType) {
-                    BalanceType.available => _buildBalanceDisplay(
-                        context,
-                        userData?['balance_available']?.toDouble() ?? 0.0,
-                        key: ValueKey('available-balance-${currentBalanceType.index}'),
-                      ),
-                    BalanceType.total => _buildBalanceDisplay(
-                        context,
-                        userData?['balance_total']?.toDouble() ?? 0.0,
-                        key: ValueKey('total-balance-${currentBalanceType.index}'),
-                      ),
-                    BalanceType.future => _buildBalanceDisplay(
-                        context,
-                        userData?['balance_future']?.toDouble() ?? 0.0,
-                        key: ValueKey('future-balance-${currentBalanceType.index}'),
-                      ),
-                  },
-                ),
-              ]
-            ],
-          ),
+            ]
+          ],
         ),
       ),
     );

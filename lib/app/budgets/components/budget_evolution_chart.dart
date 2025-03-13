@@ -8,7 +8,7 @@ import 'package:parsa/app/stats/widgets/fund_evolution_line_chart.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
-import '../../../core/presentation/app_colors.dart';
+import '../../../../core/presentation/app_colors.dart';
 
 class BudgetEvolutionChart extends StatelessWidget {
   const BudgetEvolutionChart({super.key, required this.budget});

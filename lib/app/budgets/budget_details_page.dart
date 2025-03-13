@@ -6,6 +6,7 @@ import 'package:parsa/app/budgets/budgets_page.dart';
 import 'package:parsa/app/budgets/components/budget_evolution_chart.dart';
 import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/models/budget/budget.dart';
@@ -72,105 +73,115 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
 
           final budget = snapshot.data!;
 
-          return DefaultTabController(
-            length: 2,
-            initialIndex: 0,
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(t.budgets.details.title),
-                bottom: TabBar(tabs: [
-                  Tab(text: t.budgets.details.statistics),
-                  Tab(text: t.transaction.display(n: 1)),
-                ]),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    tooltip: t.budgets.form.edit,
-                    onPressed: () {
-                      RouteUtils.pushRoute(
-                        context,
-                        BudgetFormPage(
-                            prevPage: const BudgetsPage(),
-                            budgetToEdit: budget),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    tooltip: t.general.delete,
-                    onPressed: () {
-                      confirmDialog(
-                        context,
-                        dialogTitle: t.budgets.delete,
-                        contentParagraphs: [Text(t.budgets.delete_warning)],
-                        confirmationText: t.general.confirm,
-                        icon: Icons.delete,
-                      ).then((confirmed) {
-                        if (confirmed != true) return;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(t.budgets.details.title),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: t.budgets.form.edit,
+                  onPressed: () {
+                    RouteUtils.pushRoute(
+                      context,
+                      BudgetFormPage(
+                          prevPage: const BudgetsPage(), budgetToEdit: budget),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  tooltip: t.general.delete,
+                  onPressed: () {
+                    confirmDialog(
+                      context,
+                      dialogTitle: t.budgets.delete,
+                      contentParagraphs: [Text(t.budgets.delete_warning)],
+                      confirmationText: t.general.confirm,
+                      icon: Icons.delete,
+                    ).then((confirmed) {
+                      if (confirmed != true) return;
 
-                        BudgetServive.instance
-                            .deleteBudget(budget.id)
-                            .then((value) {
-                          Navigator.pop(context);
+                      BudgetServive.instance
+                          .deleteBudget(budget.id)
+                          .then((value) {
+                        Navigator.pop(context);
 
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(t.budgets.delete),
-                          ));
-                        }).catchError((err) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(SnackBar(content: Text('$err')));
-                        });
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(t.budgets.delete),
+                        ));
+                      }).catchError((err) {
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text('$err')));
                       });
-                    },
-                  ),
-                ],
-              ),
-              body: TabBarView(children: [
-                Column(
-                  children: [
-                    BudgetCard(
+                    });
+                  },
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                    child: BudgetCard(
                       budget: budget,
                       isHeader: true,
                     ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CardWithHeader(
-                                title: t.budgets.details.expend_evolution,
-                                body: BudgetEvolutionChart(budget: budget)),
-                            const SizedBox(height: 16),
-                            CardWithHeader(
-                                title: t.stats.by_categories,
-                                body: ChartByCategories(
-                                  filters: budget.trFilters,
-                                  datePeriodState: budget.periodState,
-                                ),
-                                onHeaderButtonClick: () {
-                                  RouteUtils.pushRoute(
-                                    context,
-                                    const StatsPage(initialIndex: 1),
-                                  );
-                                }),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SingleChildScrollView(
-                  child: TransactionListComponent(
-                    heroTagBuilder: (tr) => 'budgets-page__tr-icon-${tr.id}',
-                    filters: budget.trFilters,
-                    prevPage: BudgetDetailsPage(budget: budget),
-                    onEmptyList: NoResults(
-                        title: t.general.empty_warn,
-                        description: t.budgets.details.no_transactions),
                   ),
-                )
-              ]),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CardWithHeader(
+                          title: t.stats.by_categories,
+                          body: ChartByCategories(
+                            filters: budget.trFilters,
+                            datePeriodState: budget.periodState,
+                          ),
+                          onHeaderButtonClick: () {
+                            RouteUtils.pushRoute(
+                              context,
+                              StatsPage(
+                                initialIndex: 1,
+                                filters: budget.trFilters,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        CardWithHeader(
+                          title: t.home.last_transactions,
+                          onHeaderButtonClick: () {
+                            RouteUtils.pushRoute(
+                              context,
+                              TransactionsPage(
+                                filters: budget.trFilters,
+                              ),
+                            );
+                          },
+                          body: TransactionListComponent(
+                            heroTagBuilder: (tr) =>
+                                'budgets-page__tr-icon-${tr.id}',
+                            filters: budget.trFilters,
+                            limit: 5,
+                            showGroupDivider: false,
+                            prevPage: BudgetDetailsPage(budget: budget),
+                            onEmptyList: NoResults(
+                                title: t.general.empty_warn,
+                                description: t.budgets.details.no_transactions),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        CardWithHeader(
+                            title: t.budgets.details.expend_evolution,
+                            body: BudgetEvolutionChart(budget: budget)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         });
