@@ -279,78 +279,81 @@ class BudgetCard extends StatelessWidget {
                   },
                 ),
 
-                if (isHeader && budget.isActiveBudget) ...[
-                  const SizedBox(height: 16),
-                  Divider(
-                    height: 1,
-                    thickness: 0.5,
-                    color:
-                        Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                  ),
-                  const SizedBox(height: 16),
-                  StreamBuilder(
-                    stream: CurrencyService.instance.getUserPreferredCurrency(),
-                    builder: (context, snapshot) {
-                      return StreamBuilder(
-                        stream: budget.currentValue,
-                        builder: (context, budgetCurrentValue) {
-                          final dailyAmount = (budget.limitAmount -
-                                      (budgetCurrentValue.data ?? 0)) >
-                                  0
-                              ? (budget.limitAmount -
-                                      (budgetCurrentValue.data ?? 0)) /
-                                  budget.daysToTheEnd
-                              : 0.0;
+                // if (isHeader && budget.isActiveBudget) ...[
+                //   const SizedBox(height: 16),
+                //   Divider(
+                //     height: 1,
+                //     thickness: 0.5,
+                //     color:
+                //         Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                //   ),
+                //   const SizedBox(height: 16),
+                //   StreamBuilder(
+                //     stream: CurrencyService.instance.getUserPreferredCurrency(),
+                //     builder: (context, snapshot) {
+                //       return StreamBuilder(
+                //         stream: budget.currentValue,
+                //         builder: (context, budgetCurrentValue) {
+                //           // Calculate remaining amount first
+                //           final remaining = budget.limitAmount -
+                //               (budgetCurrentValue.data ?? 0);
 
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Você pode gastar ",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                    CurrencyDisplayer(
-                                      amountToConvert: dailyAmount,
-                                      showDecimals: false,
-                                      integerStyle: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
-                                    ),
-                                    Text(
-                                      " por dia nos próximos ${budget.daysToTheEnd} dias",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
+                //           // Add guard check to prevent division by zero
+                //           final dailyAmount = remaining > 0
+                //               ? (budget.daysToTheEnd > 0
+                //                   ? remaining / budget.daysToTheEnd
+                //                   : remaining) // If days to end is 0, use the full remaining amount
+                //               : 0.0;
+
+                //           return Row(
+                //             mainAxisAlignment: MainAxisAlignment.center,
+                //             children: [
+                //               Flexible(
+                //                 child: Row(
+                //                   mainAxisAlignment: MainAxisAlignment.center,
+                //                   children: [
+                //                     Text(
+                //                       "Você pode gastar ",
+                //                       style: Theme.of(context)
+                //                           .textTheme
+                //                           .bodyMedium!
+                //                           .copyWith(
+                //                             color: Theme.of(context)
+                //                                 .colorScheme
+                //                                 .onSurfaceVariant,
+                //                           ),
+                //                     ),
+                //                     CurrencyDisplayer(
+                //                       amountToConvert: dailyAmount,
+                //                       showDecimals: false,
+                //                       integerStyle: TextStyle(
+                //                         fontWeight: FontWeight.w400,
+                //                         color: Theme.of(context)
+                //                             .colorScheme
+                //                             .onSurfaceVariant,
+                //                       ),
+                //                     ),
+                //                     Text(
+                //                       " por dia nos próximos ${budget.daysToTheEnd} dias",
+                //                       style: Theme.of(context)
+                //                           .textTheme
+                //                           .bodyMedium!
+                //                           .copyWith(
+                //                             color: Theme.of(context)
+                //                                 .colorScheme
+                //                                 .onSurfaceVariant,
+                //                           ),
+                //                     ),
+                //                   ],
+                //                 ),
+                //               ),
+                //             ],
+                //           );
+                //         },
+                //       );
+                //     },
+                //   ),
+                // ],
               ],
             ),
           ),

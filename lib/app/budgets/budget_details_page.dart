@@ -72,6 +72,9 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
           if (!snapshot.hasData) return Container();
 
           final budget = snapshot.data!;
+          final dayRange = budget.currentDateRange.end
+              .difference(budget.currentDateRange.start)
+              .inDays;
 
           return Scaffold(
             appBar: AppBar(
@@ -173,10 +176,12 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
                                 description: t.budgets.details.no_transactions),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        CardWithHeader(
-                            title: t.budgets.details.expend_evolution,
-                            body: BudgetEvolutionChart(budget: budget)),
+                        if (dayRange > 0) ...[
+                          const SizedBox(height: 16),
+                          CardWithHeader(
+                              title: t.budgets.details.expend_evolution,
+                              body: BudgetEvolutionChart(budget: budget)),
+                        ],
                       ],
                     ),
                   ),

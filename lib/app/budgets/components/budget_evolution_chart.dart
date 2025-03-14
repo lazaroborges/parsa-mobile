@@ -29,12 +29,26 @@ class BudgetEvolutionChart extends StatelessWidget {
 
     final dayRange = (endDate.difference(startDate).inDays / 100).ceil();
 
+    if (dayRange <= 0) {
+      return null;
+    }
+
     while (currentDay.compareTo(endDate) < 0) {
       labels.add(DateFormat.yMMMMd().format(currentDay));
 
-      balance.add(budget.getValueOnDate(currentDay).first);
+      balance.add(budget
+          .getValueOnDate(currentDay)
+          .firstWhere((value) => true, orElse: () => 0.0)
+          .catchError((error) {
+        debugPrint('Error getting budget value: $error');
+        return 0.0;
+      }));
 
       currentDay = currentDay.add(Duration(days: dayRange));
+    }
+
+    if (balance.isEmpty) {
+      return null;
     }
 
     return LineChartDataItem(
@@ -63,6 +77,13 @@ class BudgetEvolutionChart extends StatelessWidget {
                     ],
                   ),
                 ],
+              );
+            }
+
+            if (snapshot.data?.balance == null ||
+                snapshot.data!.balance.isEmpty) {
+              return const Center(
+                child: Text('No data available'),
               );
             }
 
@@ -120,8 +141,13 @@ class BudgetEvolutionChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     showTitles: false,
                     getTitlesWidget: (value, meta) {
+                      final index = int.tryParse(meta.formattedValue);
+                      if (index == null ||
+                          index >= snapshot.data!.labels.length) {
+                        return const SizedBox.shrink();
+                      }
                       return Text(
-                        snapshot.data!.labels[int.parse(meta.formattedValue)],
+                        snapshot.data!.labels[index],
                         style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w200),
                       );
@@ -153,9 +179,10 @@ class BudgetEvolutionChart extends StatelessWidget {
               ),
               borderData: FlBorderData(show: false),
               minY: 0,
-              maxY: max(
-                  snapshot.data!.balance.max + snapshot.data!.balance.max * 0.1,
-                  budget.limitAmount * 1.1),
+              maxY: snapshot.data!.balance.isNotEmpty
+                  ? max(snapshot.data!.balance.reduce(max) * 1.1,
+                      budget.limitAmount * 1.1)
+                  : budget.limitAmount * 1.1,
               lineBarsData: [
                 LineChartBarData(
                   spots: List.generate(
