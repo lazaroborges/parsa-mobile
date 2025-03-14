@@ -189,7 +189,9 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
       persistentFooterButtons: [
         PersistentFooterButton(
           child: FilledButton.icon(
-            onPressed: categories != null && categories!.isEmpty
+            onPressed: categories != null && categories!.isEmpty ||
+                    (budgetType == 'one-time' &&
+                        (endDate == null || !endDate!.isAfter(startDate)))
                 ? null
                 : () {
                     if (_formKey.currentState!.validate()) {
@@ -343,8 +345,11 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                         initialDate: endDate,
                         firstDate: startDate,
                         dateFormat: DateFormat.yMMMd(),
-                        validator: (e) =>
-                            e == null ? t.general.validations.required : null,
+                        validator: (e) => e == null
+                            ? t.general.validations.required
+                            : (!e.isAfter(startDate)
+                                ? "End date must be after start date"
+                                : null),
                         onDateSelected: (DateTime value) {
                           final adjustedValue = DateTime(
                               value.year, value.month, value.day, 23, 59, 59);
