@@ -124,8 +124,8 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                       (widget.showDateFilter &&
                           (filtersToReturn.minDate == null ||
                               filtersToReturn.maxDate == null ||
-                              !filtersToReturn.maxDate!
-                                  .isAfter(filtersToReturn.minDate!)))
+                              filtersToReturn.maxDate!
+                                  .isBefore(filtersToReturn.minDate!)))
                   ? null
                   : () => Navigator.of(context).pop(filtersToReturn)),
           body: ScrollableWithBottomGradient(
@@ -332,8 +332,8 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             validator: (value) {
                               if (value == null) return null;
                               if (filtersToReturn.minDate != null &&
-                                  !value.isAfter(filtersToReturn.minDate!)) {
-                                return "End date must be after start date";
+                                  value.isBefore(filtersToReturn.minDate!)) {
+                                return "End date must be on or after start date";
                               }
                               return null;
                             },

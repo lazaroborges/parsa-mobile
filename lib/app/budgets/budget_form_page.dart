@@ -196,7 +196,6 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                 : () {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-
                       submitForm();
                     }
                   },
@@ -345,11 +344,8 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                         initialDate: endDate,
                         firstDate: startDate,
                         dateFormat: DateFormat.yMMMd(),
-                        validator: (e) => e == null
-                            ? t.general.validations.required
-                            : (!e.isAfter(startDate)
-                                ? "End date must be after start date"
-                                : null),
+                        validator: (e) =>
+                            e == null ? t.general.validations.required : null,
                         onDateSelected: (DateTime value) {
                           final adjustedValue = DateTime(
                               value.year, value.month, value.day, 23, 59, 59);

@@ -470,6 +470,14 @@ class BudgetCard extends StatelessWidget {
   // Helper method to format date range in a more compact way
   String _formatDateRange(DateTime start, DateTime end) {
     final dateFormat = DateFormat('dd/MM/yy');
+
+    // If start and end dates are the same, display just one date
+    if (start.year == end.year &&
+        start.month == end.month &&
+        start.day == end.day) {
+      return dateFormat.format(start);
+    }
+
     return "${dateFormat.format(start)} - ${dateFormat.format(end)}";
   }
 }
