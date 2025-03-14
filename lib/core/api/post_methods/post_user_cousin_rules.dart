@@ -17,7 +17,7 @@ class PostUserCousinRules {
       // Get auth token using Provider
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
-      
+
       if (credentials == null) {
         throw Exception('User not authenticated');
       }
@@ -45,7 +45,8 @@ class PostUserCousinRules {
         unawaited(fetchUserTransactions(null, cousinValue: cousinValue));
         return true;
       } else {
-        throw Exception('Failed to update cousin rules: ${response.statusCode}');
+        throw Exception(
+            'Failed to update cousin rules: ${response.statusCode}');
       }
     } catch (e) {
       print('Error updating cousin rules: $e');

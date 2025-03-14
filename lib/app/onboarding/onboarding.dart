@@ -5,6 +5,7 @@ import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/app/settings/about_page.dart';
 import '../../core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'dart:io' show Platform;
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -171,7 +172,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
     final size = MediaQuery.of(context).size;
-    final padding = MediaQuery.of(context).padding;
+    final viewPadding = MediaQuery.of(context).viewPadding;
 
     // Calculate responsive dimensions
     final imageHeight = size.height * 0.25;
@@ -181,7 +182,8 @@ class _OnboardingPageState extends State<OnboardingPage>
     );
 
     // Calculate the exact half of available screen height (accounting for status bar)
-    final halfScreenHeight = (size.height - padding.top - padding.bottom) / 2;
+    final halfScreenHeight =
+        (size.height - viewPadding.top - viewPadding.bottom) / 2;
 
     return Scaffold(
       body: SafeArea(
@@ -309,7 +311,8 @@ class _OnboardingPageState extends State<OnboardingPage>
               Positioned(
                 left: size.width * 0.06,
                 right: size.width * 0.06,
-                bottom: padding.bottom,
+                // Use platform-specific bottom padding
+                bottom: Platform.isIOS ? viewPadding.bottom + 20 : 20,
                 child: previousPage == items.length - 2
                     ? SlideTransition(
                         position: _pageButtonSlideAnimation,
