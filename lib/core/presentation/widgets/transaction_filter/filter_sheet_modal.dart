@@ -120,7 +120,12 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                       filtersToReturn.accountsIDs != null &&
                           filtersToReturn.accountsIDs!.isEmpty ||
                       filtersToReturn.categories != null &&
-                          filtersToReturn.categories!.isEmpty
+                          filtersToReturn.categories!.isEmpty ||
+                      (widget.showDateFilter &&
+                          (filtersToReturn.minDate == null ||
+                              filtersToReturn.maxDate == null ||
+                              filtersToReturn.maxDate!
+                                  .isBefore(filtersToReturn.minDate!)))
                   ? null
                   : () => Navigator.of(context).pop(filtersToReturn)),
           body: ScrollableWithBottomGradient(
@@ -324,6 +329,14 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             initialDate: filtersToReturn.maxDate,
                             firstDate: filtersToReturn.minDate,
                             dateFormat: DateFormat.yMMMd(),
+                            validator: (value) {
+                              if (value == null) return null;
+                              if (filtersToReturn.minDate != null &&
+                                  value.isBefore(filtersToReturn.minDate!)) {
+                                return "End date must be on or after start date";
+                              }
+                              return null;
+                            },
                             onDateSelected: (DateTime value) {
                               setState(() {
                                 filtersToReturn = filtersToReturn.copyWith(

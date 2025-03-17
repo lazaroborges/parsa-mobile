@@ -399,7 +399,10 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
                       ),
                       margin: const EdgeInsets.all(20),
                       child: Material(
-                        color: Colors.transparent,
+                        color: isCurrentQuestionValid
+                            ? appColors.brand
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(12),
                         child: ElevatedButton(
                           onPressed: isCurrentQuestionValid
                               ? moveToNextQuestion

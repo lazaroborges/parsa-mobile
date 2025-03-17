@@ -321,12 +321,14 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         print(
             'BUILDER: System padding - bottom: ${systemPadding.bottom}, top: ${systemPadding.top}');
 
+        // Check if the device is iOS
+        final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+
         return Overlay(initialEntries: [
           OverlayEntry(
-            builder: (context) => SafeArea(
-              bottom:
-                  true, // Apply bottom padding to account for system navigation bar
-              child: Stack(
+            builder: (context) {
+              // Conditional widget based on platform
+              Widget content = Stack(
                 children: [
                   Row(
                     children: [
@@ -350,8 +352,19 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                   if (widget.introSeen)
                     NavigationSidebar(key: navigationSidebarKey)
                 ],
-              ),
-            ),
+              );
+
+              // Apply SafeArea only for Android devices
+              if (!isIOS) {
+                return SafeArea(
+                  bottom:
+                      true, // Apply bottom padding to account for system navigation bar
+                  child: content,
+                );
+              } else {
+                return content; // No SafeArea for iOS
+              }
+            },
           ),
         ]);
       },

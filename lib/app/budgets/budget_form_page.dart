@@ -21,7 +21,7 @@ import '../../core/models/account/account.dart';
 import '../../core/presentation/widgets/count_indicator.dart';
 import '../../core/presentation/widgets/form_fields/list_tile_field.dart';
 import '../../core/presentation/widgets/persistent_footer_button.dart';
-import '../../app/tags/tags_selector.modal.dart';
+import '../tags/tags_selector.modal.dart';
 import '../../core/database/services/tags/tags_service.dart';
 import '../../core/models/tags/tag.dart';
 
@@ -48,6 +48,9 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
 
   List<Category>? categories;
   List<Account>? accounts;
+
+  // Budget type: 'one-time' or 'repeated'
+  String budgetType = 'repeated';
 
   Periodicity? intervalPeriod = Periodicity.month;
 
@@ -77,13 +80,17 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
 
     final Budget toPush;
 
+    // Set intervalPeriod to null for one-time budgets
+    final Periodicity? finalIntervalPeriod =
+        budgetType == 'one-time' ? null : intervalPeriod;
+
     toPush = Budget(
       id: isEditMode ? widget.budgetToEdit!.id : generateUUID(),
       name: nameController.text,
       limitAmount: valueToNumber!,
-      intervalPeriod: intervalPeriod,
-      startDate: intervalPeriod == null ? startDate : null,
-      endDate: intervalPeriod == null ? endDate : null,
+      intervalPeriod: finalIntervalPeriod,
+      startDate: finalIntervalPeriod == null ? startDate : null,
+      endDate: finalIntervalPeriod == null ? endDate : null,
       categories: categories?.map((e) => e.id).toList(),
       accounts: accounts?.map((e) => e.id).toList(),
       tags: tags?.map((e) => e.id).toList(),
@@ -115,9 +122,17 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
     }
   }
 
+  // Helper method to determine budget type from a Budget object
+  String getBudgetTypeFromBudget(Budget budget) {
+    return budget.intervalPeriod == null ? 'one-time' : 'repeated';
+  }
+
   fillForm(Budget budget) async {
     nameController.text = budget.name;
     valueController.text = budget.limitAmount.abs().toString();
+
+    // Set budget type based on intervalPeriod
+    budgetType = getBudgetTypeFromBudget(budget);
 
     if (budget.intervalPeriod == null) {
       startDate = budget.startDate!;
@@ -174,12 +189,13 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
       persistentFooterButtons: [
         PersistentFooterButton(
           child: FilledButton.icon(
-            onPressed: categories != null && categories!.isEmpty
+            onPressed: categories != null && categories!.isEmpty ||
+                    (budgetType == 'one-time' &&
+                        (endDate == null || !endDate!.isAfter(startDate)))
                 ? null
                 : () {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-
                       submitForm();
                     }
                   },
@@ -240,31 +256,60 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField(
-                value: intervalPeriod,
+              // Budget Type Dropdown
+              DropdownButtonFormField<String>(
+                value: budgetType,
                 decoration: InputDecoration(
-                  labelText: '${t.general.time.periodicity.display} *',
+                  labelText: 'Tipo de Orçamento *',
+                  helperText: budgetType == 'one-time'
+                      ? 'Orçamento com datas específicas de início e fim'
+                      : 'Orçamento que se repete periodicamente',
                 ),
-                items: [
+                items: const [
                   DropdownMenuItem(
-                    value: null,
-                    child: Text(t.general.time.periodicity.no_repeat),
+                    value: 'repeated',
+                    child: Text('Recorrente'),
                   ),
-                  ...List.generate(
+                  DropdownMenuItem(
+                    value: 'one-time',
+                    child: Text('Único'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    budgetType = value!;
+                    // If changing to one-time, set intervalPeriod to null
+                    if (budgetType == 'one-time') {
+                      intervalPeriod = null;
+                    } else {
+                      // If changing to repeated, set a default intervalPeriod
+                      intervalPeriod = Periodicity.month;
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              // Show periodicity dropdown only for repeated budgets
+              if (budgetType == 'repeated')
+                DropdownButtonFormField(
+                  value: intervalPeriod,
+                  decoration: InputDecoration(
+                    labelText: '${t.general.time.periodicity.display} *',
+                  ),
+                  items: List.generate(
                       Periodicity.values.length,
                       (index) => DropdownMenuItem(
                           value: Periodicity.values[index],
                           child: Text(Periodicity.values[index]
-                              .allThePeriodsText(context))))
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    intervalPeriod = value;
-                  });
-                },
-              ),
-              if (intervalPeriod == null) ...[
-                const SizedBox(height: 16),
+                              .allThePeriodsText(context)))),
+                  onChanged: (value) {
+                    setState(() {
+                      intervalPeriod = value;
+                    });
+                  },
+                ),
+              // Show date fields for one-time budgets
+              if (budgetType == 'one-time') ...[
                 Row(
                   children: [
                     Expanded(
@@ -280,8 +325,10 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                         validator: (e) =>
                             e == null ? t.general.validations.required : null,
                         onDateSelected: (DateTime value) {
+                          final adjustedValue = DateTime(
+                              value.year, value.month, value.day, 0, 0, 0);
                           setState(() {
-                            startDate = value;
+                            startDate = adjustedValue;
                           });
                         },
                       ),
@@ -300,8 +347,10 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
                         validator: (e) =>
                             e == null ? t.general.validations.required : null,
                         onDateSelected: (DateTime value) {
+                          final adjustedValue = DateTime(
+                              value.year, value.month, value.day, 23, 59, 59);
                           setState(() {
-                            endDate = value;
+                            endDate = adjustedValue;
                           });
                         },
                       ),

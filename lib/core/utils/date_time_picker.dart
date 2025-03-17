@@ -17,6 +17,10 @@ Future<DateTime?> openDateTimePicker(
   firstDate ??= kDefaultFirstSelectableDate;
   lastDate ??= kDefaultLastSelectableDate;
 
+  if (initialDate.isBefore(firstDate)) {
+    initialDate = firstDate;
+  }
+
   showTimePickerDef() {
     return showTimePicker(
       context: context,
@@ -27,17 +31,17 @@ Future<DateTime?> openDateTimePicker(
   }
 
   DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      initialDatePickerMode: initialDatePickerMode,
-      initialEntryMode: initialEntryMode,
-      lastDate: lastDate);
+    context: context,
+    initialDate: initialDate,
+    firstDate: firstDate,
+    initialDatePickerMode: initialDatePickerMode,
+    initialEntryMode: initialEntryMode,
+    lastDate: lastDate,
+  );
 
   if (pickedDate == null || !showTimePickerAfterDate) return pickedDate;
 
   final timePicked = await showTimePickerDef();
-
   if (timePicked == null) return null;
 
   return pickedDate.copyWith(hour: timePicked.hour, minute: timePicked.minute);
