@@ -47,15 +47,39 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>O Parsa usa sua biometria para proteger suas contas.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>O Parsa precisa acessar sua galeria de fotos para permitir que você selecione imagens para seu perfil ou para compartilhar dentro do aplicativo.</string>
+	<key>SKProductsRequest</key>
+	<array>
+		<string>premium_monthly1</string>
+		<string>premium_yearly</string>
+	</array>
+	<key>SKStoreKitConfigFile</key>
+	<string>Configuration.storekit</string>
+	<key>StoreKit</key>
+	<array>
+		<dict>
+			<key>SKPaymentQueue</key>
+			<true/>
+		</dict>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -70,23 +94,5 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>StoreKit</key>
-	<array>
-		<dict>
-			<key>SKPaymentQueue</key>
-			<true/>
-		</dict>
-	</array>
-	<key>SKProductsRequest</key>
-	<array>
-		<string>premium_monthly1</string>
-		<string>premium_yearly</string>
-	</array>
-	<key>SKStoreKitConfigFile</key>
-	<string>Configuration.storekit</string>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 </dict>
 </plist>
