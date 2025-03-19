@@ -20,6 +20,7 @@ import 'package:parsa/core/providers/app_version_provider.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
+import 'package:parsa/core/services/fcm_service.dart';
 import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
@@ -33,8 +34,10 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
 
 String apiEndpoint = '';
 
@@ -44,6 +47,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Set preferred orientations to portrait only
   await SystemChrome.setPreferredOrientations([
@@ -411,6 +419,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
+                    // Use pushReplacement to avoid back navigation
                   );
                 } else {
                   print("WHY AM I HERE?");

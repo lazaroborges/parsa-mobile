@@ -75,8 +75,7 @@ class AuthMethods {
       // Navigate back to the login page
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-            builder: (context) => const IntroPage()),
+        MaterialPageRoute(builder: (context) => const IntroPage()),
         (Route<dynamic> route) => false,
       );
       print('User logged out and navigated to LoginPage');

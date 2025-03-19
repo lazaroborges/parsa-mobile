@@ -3,11 +3,14 @@ import 'package:parsa/app/layout/lazy_indexed_stack.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
+import 'package:parsa/core/services/fcm_service.dart';
+import 'package:parsa/core/services/permission_service.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -39,7 +42,25 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     super.didChangeDependencies();
     if (!_isInitialized) {
       _initializeData();
+      _requestNotificationPermission();
       _isInitialized = true; // Ensure this runs only once
+    }
+  }
+
+  // Request notification permission when the dashboard is opened
+  Future<void> _requestNotificationPermission() async {
+    // Request permission using the permission service
+    final permissionGranted =
+        await PermissionService.instance.requestNotificationPermission();
+
+    if (permissionGranted) {
+      // If permission granted, initialize FCM
+      // We don't need to worry about topic subscriptions as they're handled in FCMService.initialize()
+      await FCMService.instance.initialize();
+
+      // Store that user has granted permission
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notification_permission_requested', true);
     }
   }
 
