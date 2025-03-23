@@ -775,31 +775,60 @@ class _DashboardPageState extends State<DashboardPage> {
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _toggleBalanceType,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: () {
-          final RenderBox box = context.findRenderObject() as RenderBox;
-          final Offset position = box.localToGlobal(Offset.zero);
+      onLongPress: () {
+        final RenderBox box = context.findRenderObject() as RenderBox;
+        final Offset position = box.localToGlobal(Offset.zero);
 
-          showMenu(
-            context: context,
-            position: RelativeRect.fromLTRB(
-              position.dx,
-              position.dy + box.size.height,
-              position.dx + box.size.width,
-              position.dy + box.size.height + 20,
-            ),
-            items: [
-              PopupMenuItem(
-                enabled: false,
-                child: Text(
-                  getTooltipMessage(),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+        showMenu(
+          context: context,
+          position: RelativeRect.fromLTRB(
+            position.dx,
+            position.dy + box.size.height,
+            position.dx + box.size.width,
+            position.dy + box.size.height + 20,
+          ),
+          items: [
+            PopupMenuItem(
+              enabled: false,
+              child: Text(
+                getTooltipMessage(),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ],
-          );
+            ),
+          ],
+        );
+      },
+      child: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          // Detect swipe direction
+          if (details.primaryVelocity != null) {
+            if (details.primaryVelocity! > 0) {
+              // Swipe right - move to previous balance type
+              setState(() {
+                int newIndex = (currentBalanceType.index - 1) % BalanceType.values.length;
+                if (newIndex < 0) newIndex = BalanceType.values.length - 1;
+                currentBalanceType = BalanceType.values[newIndex];
+                
+                // Save the balance type preference
+                SharedPreferencesAsync.instance.setBalanceType(
+                  currentBalanceType.name,
+                );
+              });
+            } else if (details.primaryVelocity! < 0) {
+              // Swipe left - move to next balance type
+              setState(() {
+                currentBalanceType = BalanceType
+                    .values[(currentBalanceType.index + 1) % BalanceType.values.length];
+                
+                // Save the balance type preference
+                SharedPreferencesAsync.instance.setBalanceType(
+                  currentBalanceType.name,
+                );
+              });
+            }
+          }
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
