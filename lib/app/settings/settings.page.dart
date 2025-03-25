@@ -5,9 +5,7 @@ import 'package:parsa/app/budgets/budgets_page.dart';
 import 'package:parsa/app/settings/about_page.dart';
 import 'package:parsa/app/settings/appearance_settings_page.dart';
 import 'package:parsa/app/settings/backup_settings_page.dart';
-import 'package:parsa/app/settings/notification_settings_page.dart';
 import 'package:parsa/app/settings/subscriptions/can.dart';
-import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
 
 import 'package:parsa/app/settings/widgets/setting_card_item.dart';
 import 'package:parsa/app/stats/stats_page.dart';
@@ -55,15 +53,15 @@ class _SettingsPageState extends State<SettingsPage> {
                         context, const AdvancedSettingsPage()),
                   ),
                   const SizedBox(height: 8),
-                  SettingCardItem(
-                    title: 'Notificações',
-                    subtitle: 'Gerenciar preferências de notificações',
-                    icon: Icons.notifications_outlined,
-                    mainAxis: Axis.horizontal,
-                    onTap: () => RouteUtils.pushRoute(
-                        context, const NotificationSettingsPage()),
-                  ),
-                  const SizedBox(height: 8),
+                  // SettingCardItem(
+                  //   title: 'Notificações',
+                  //   subtitle: 'Gerenciar preferências de notificações',
+                  //   icon: Icons.notifications_outlined,
+                  //   mainAxis: Axis.horizontal,
+                  //   onTap: () => RouteUtils.pushRoute(
+                  //       context, const NotificationSettingsPage()),
+                  // ),
+                  // const SizedBox(height: 8),
                   SettingCardItem(
                     title: t.more.data.display,
                     subtitle: t.more.data.display_descr,

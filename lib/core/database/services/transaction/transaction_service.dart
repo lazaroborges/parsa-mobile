@@ -51,19 +51,22 @@ class TransactionChanges {
     this.tags,
   });
 
-  bool get hasChanges => description != null || 
-      categoryName != null || 
-      status != null || 
-      notes != null || 
+  bool get hasChanges =>
+      description != null ||
+      categoryName != null ||
+      status != null ||
+      notes != null ||
       tags != null;
 
   Map<String, dynamic> toJson() => {
-    if (description != null) 'description': utf8.decode(utf8.encode(description!)),
-    if (categoryName != null) 'category': utf8.decode(utf8.encode(categoryName!)),
-    if (status != null) 'status': status?.name,
-    if (notes != null) 'notes': utf8.decode(utf8.encode(notes!)),
-    if (tags != null) 'tags': tags?.map((tag) => tag.id).toList(),
-  };
+        if (description != null)
+          'description': utf8.decode(utf8.encode(description!)),
+        if (categoryName != null)
+          'category': utf8.decode(utf8.encode(categoryName!)),
+        if (status != null) 'status': status?.name,
+        if (notes != null) 'notes': utf8.decode(utf8.encode(notes!)),
+        if (tags != null) 'tags': tags?.map((tag) => tag.id).toList(),
+      };
 }
 
 class TransactionService {
@@ -73,7 +76,12 @@ class TransactionService {
   static final TransactionService instance =
       TransactionService._(AppDB.instance);
 
-static Future<bool?> Function(int numberOfCousins, String triggeringId, int cousinValue, bool positiveInflow, TransactionChanges changes)? onCousinFound;
+  static Future<bool?> Function(
+      int numberOfCousins,
+      String triggeringId,
+      int cousinValue,
+      bool positiveInflow,
+      TransactionChanges changes)? onCousinFound;
   Future<int> insertTransaction(TransactionInDB transaction) async {
     final toReturn = await db.into(db.transactions).insert(transaction);
     db.markTablesUpdated([db.accounts]);
@@ -97,7 +105,7 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
         final existingTags = await (db.select(db.transactionTags)
               ..where((t) => t.transactionID.equals(transaction.id)))
             .get();
-        
+
         // Get full tag objects for each existing tag ID
         tagsToUse = await Future.wait(
           existingTags.map((t) async {
@@ -113,11 +121,14 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
       TransactionChanges? changes;
       if (existing != null) {
         changes = TransactionChanges(
-          description: existing.title != transaction.title ? transaction.title : null,
-          categoryName: await _getCategoryName(existing.categoryID) != await _getCategoryName(transaction.categoryID) 
-              ? await _getCategoryName(transaction.categoryID) 
+          description:
+              existing.title != transaction.title ? transaction.title : null,
+          categoryName: await _getCategoryName(existing.categoryID) !=
+                  await _getCategoryName(transaction.categoryID)
+              ? await _getCategoryName(transaction.categoryID)
               : null,
-          status: existing.status != transaction.status ? transaction.status : null,
+          status:
+              existing.status != transaction.status ? transaction.status : null,
           notes: existing.notes != transaction.notes ? transaction.notes : null,
         );
 
@@ -179,27 +190,25 @@ static Future<bool?> Function(int numberOfCousins, String triggeringId, int cous
       db.markTablesUpdated([db.accounts]);
       unawaited(fetchUserDataAtServer());
 
-      if (existing != null && transaction.cousin != null && notMassUpdate == null) {
-
+      if (existing != null &&
+          transaction.cousin != null &&
+          notMassUpdate == null) {
         final cousins = await (db.select(db.transactions)
-              ..where((t) => t.cousin.equals(transaction.cousin!)
-                  & t.id.isNotValue(transaction.id)))
+              ..where((t) =>
+                  t.cousin.equals(transaction.cousin!) &
+                  t.id.isNotValue(transaction.id)))
             .get();
 
-        if (cousins.isNotEmpty && changes?.hasChanges == true ) {
-
+        if (cousins.isNotEmpty && changes?.hasChanges == true) {
           if (onCousinFound != null) {
-
             final shouldContinue = await onCousinFound!(
-
-              cousins.length, 
+              cousins.length,
               transaction.id.toString(),
-              
               transaction.cousin!,
               positiveInflow,
               changes!,
             );
-            
+
             if (shouldContinue == false) {
               throw Exception('Operation cancelled by user');
             }
@@ -244,7 +253,8 @@ $stackTrace
     }
 
     if (transaction.isOpenFinance) {
-      throw Exception('Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, utilize a opção "Desconsiderada" dentro do card da transação.');
+      throw Exception(
+          'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, utilize a opção "Desconsiderada" dentro do card da transação.');
     }
 
     final auth0Provider = Auth0Provider.instance;
@@ -257,7 +267,7 @@ $stackTrace
     if (!isPut) {
       throw Exception('Failed to post account to the API.');
     } else {
-            unawaited(fetchUserDataAtServer());  // Trul
+      unawaited(fetchUserDataAtServer()); // Trul
 
       return (db.delete(db.transactions)
             ..where((tbl) => tbl.id.equals(transactionId)))

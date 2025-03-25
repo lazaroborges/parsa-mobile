@@ -8,6 +8,7 @@ import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
+import 'package:parsa/app/notifications/notifications_page.dart';
 import 'package:parsa/app/stats/stats_page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
@@ -51,8 +52,6 @@ import 'package:parsa/core/database/services/user-setting/private_mode_service.d
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
-import 'package:parsa/app/budgets/components/budget_card.dart';
 import 'package:parsa/app/budgets/components/budget_list_card.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/app/budgets/budget_form_page.dart';
@@ -63,6 +62,8 @@ import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 
 import 'dart:async' show unawaited;
+
+import 'package:parsa/app/notifications/widgets/notification_badge.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -293,7 +294,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
                                                 return Text(
                                                   utf8.decode(
-                                                      userData!['first_name']
+                                                      userData['first_name']
                                                           .toString()
                                                           .runes
                                                           .toList()),
@@ -334,6 +335,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
+                                NotificationBadge(
+                                  iconColor: Colors.grey[500],
+                                ),
+                                const SizedBox(width: 4),
                                 StreamBuilder(
                                   stream: PrivateModeService
                                       .instance.privateModeStream,

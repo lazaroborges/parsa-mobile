@@ -63,7 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: 'CONFIGURE_IN_DOTENV',
     projectId: 'parsa-financial-parser-br-2',
     storageBucket: 'parsa-financial-parser-br-2.firebasestorage.app',
-    androidClientId: 'CONFIGURE_IN_DOTENV',
+    androidClientId:
+        'CONFIGURE_IN_DOTENV',
     iosBundleId: 'com.parsa.app',
   );
 }

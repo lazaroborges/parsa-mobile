@@ -160,7 +160,7 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
     }
   }
 
-  void completeIntakeForm() async {
+  Future<void> completeIntakeForm() async {
     if (mounted) {
       // Send answers to server before navigating
       await sendIntakeAnswers();
@@ -168,11 +168,10 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
       //Mark intake as completed in SharedPreferences
       await SharedPreferencesAsync.instance.setIntakeCompleted(true);
 
-      // Navigate to subscription page instead of directly going to TabsPage
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => PremiumWidget(),
-        ),
+      // Navigate to subscription page using go_router
+      await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => PremiumWidget()),
       );
     }
   }
