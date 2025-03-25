@@ -22,9 +22,12 @@ class FeatureAnnouncementModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
     
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 0,
+      backgroundColor: appColors.modalBackground,
       child: SingleChildScrollView(
         child: Stack(
           children: [
@@ -33,57 +36,62 @@ class FeatureAnnouncementModal extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.celebration,
-                    size: 48,
-                    color: Colors.amber,
+                    size: 56,
+                    color: appColors.brandLight,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Novos Recursos!',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: appColors.onSurface,
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 16),
+
                   const SizedBox(height: 24),
                   _buildFeatureItem(
                     context,
-                    icon: Icons.edit,
-                    text: 'Você agora pode editar a quantia das transações sincronizadas. Basta clicar sobre o valor da transação.',
+                    icon: Icons.account_balance,
+                    text: 'Novas Conexões - Acesso direto às suas corretoras e à B3 para sincronização automática dos seus investimentos.',
                   ),
                   _buildFeatureItem(
                     context,
-                    icon: Icons.percent,
-                    text: 'Barra de Progresso com Percentual da Receita Gasta',
+                    icon: Icons.savings,
+                    text: 'Orçamentos finalmente disponíveis! Defina metas de gastos por categoria e acompanhe seu progresso em tempo real.',
                   ),
                   _buildFeatureItem(
                     context,
-                    icon: Icons.list,
-                    text: 'A Lista de Contas agora é vertical. Você pode ordernar como quiser e ocultar as que você não quer ver puxando a conta para as laterais',
+                    icon: Icons.account_balance_wallet,
+                    text: 'Saldo consolidado aprimorado - Agora mostrando apenas o valor realmente disponível nas suas contas correntes.',
                   ),
                   _buildFeatureItem(
                     context,
-                    icon: Icons.select_all,
-                    text: 'Edite transações em massa por meio dos filtros. Basta aplicar um dos filtros e clicar no novo botão de seleção.',
+                    icon: Icons.calendar_today,
+                    text: 'Regime de Competência: Lançamento opcional de todas as prestações na data da compra. Visite suas preferências para ativar.',
                   ),
+
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Fique por dentro das novidades:',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: appColors.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Entre no nosso grupo do WhatsApp para saber das novidades em primeira mão e vote nas próximas features',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14.2),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: appColors.onSurface.withOpacity(0.8),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: () async {
                       final whatsappUrl = 'whatsapp://chat?code=GJe81VbLmEt9nbWNb2EX8C';
@@ -98,12 +106,19 @@ class FeatureAnnouncementModal extends StatelessWidget {
                       FontAwesomeIcons.whatsapp,
                       color: Color(0xFF25D366),
                     ),
-                    label: const Text('Entrar no Grupo'),
+                    label: Text(
+                      'Entrar no Grupo',
+                      style: textTheme.labelLarge,
+                    ),
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(color: appColors.primary),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
@@ -111,7 +126,20 @@ class FeatureAnnouncementModal extends StatelessWidget {
                         FeatureAnnouncementService.markAnnouncementAsSeen();
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Entendi!'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 52),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: appColors.primary,
+                      ),
+                      child: Text(
+                        'Entendi!',
+                        style: textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: appColors.onPrimary,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -121,7 +149,10 @@ class FeatureAnnouncementModal extends StatelessWidget {
               right: 8,
               top: 8,
               child: IconButton(
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close, color: appColors.onSurface),
+                style: IconButton.styleFrom(
+                  backgroundColor: appColors.light,
+                ),
                 onPressed: () {
                   FeatureAnnouncementService.markAnnouncementAsSeen();
                   Navigator.of(context).pop();
@@ -138,15 +169,31 @@ class FeatureAnnouncementModal extends StatelessWidget {
     required IconData icon,
     required String text,
   }) {
+    final appColors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 24),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: appColors.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 24, color: appColors.onPrimaryContainer),
+          ),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(text),
+            child: Text(
+              text,
+              style: textTheme.bodyLarge?.copyWith(
+                color: appColors.onSurface,
+                height: 1.4,
+              ),
+            ),
           ),
         ],
       ),

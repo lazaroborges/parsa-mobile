@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parsa/core/api/fetch_user_tags_service.dart';
+import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
 
 class PostUserSettings {
   static Future<bool> updateAccrualBasisAccountingSetting({
@@ -34,6 +37,8 @@ class PostUserSettings {
         );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
+          // Clear existing transactions and fetch fresh data when accounting setting changes
+          await _clearAndRefreshTransactions();
           return true;
         } else {
           throw Exception('Failed to update user settings: ${response.statusCode}');
@@ -53,6 +58,33 @@ class PostUserSettings {
         retryDelayMs *= 2; // Double the delay for next retry
         print('Retrying... (delay: ${retryDelayMs}ms)');
       }
+    }
+  }
+
+  static Future<void> _clearAndRefreshTransactions() async {
+    try {
+      final db = AppDB.instance;
+      
+      // Delete all transactions from the database
+      await db.transaction(() async {
+        // First delete all transaction-tag associations
+        
+        // Then delete all transactions
+        await db.delete(db.transactions).go();
+        
+        // Mark tables as updated
+        db.markTablesUpdated([db.transactions, db.transactionTags]);
+      });
+      
+      print('Successfully cleared all transactions');
+      
+      // Fetch fresh transactions from the server
+      await fetchUserTransactions(null);
+      
+    } catch (e) {
+      print('Error during transaction clearing and refresh: $e');
+      // We don't rethrow here to prevent the setting update from failing
+      // if the transaction refresh fails
     }
   }
 } 
