@@ -12,6 +12,7 @@ import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -90,14 +91,21 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   }
 
   Future<void> _initializeData() async {
-    // Add API login to the parallel operations
-    await Future.wait([
-      _fetchUserAccounts(),
-      _fetchUserTags(),
-      _fetchUserInfoServer(),
-    ]);
+    try {
+      // First fetch critical user info
+      await _fetchUserInfoServer();
 
-    // Wait for _fetchAndSyncTransactions after the above operations complete
+      // Then fetch accounts and tags in parallel
+      await Future.wait([
+        _fetchUserAccounts(),
+        _fetchUserTags(),
+      ], eagerError: true);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during initialization: $e');
+      }
+      // Handle initialization error appropriately
+    }
   }
 
   Future<void> _fetchUserAccounts() async {

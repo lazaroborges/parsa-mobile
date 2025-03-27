@@ -378,59 +378,85 @@ class FCMService {
     return _fcmToken;
   }
 
-  /// Save the FCM token to your backend server
-  Future<void> saveTokenToServer(String? token) async {
+  /// Save the FCM token to your backend server with retry logic
+  Future<void> saveTokenToServer(String? token,
+      {int maxRetries = 3, int delayMs = 1000}) async {
     if (token == null) return;
 
-    try {
-      // Get access token from Auth0Provider
-      final accessToken = await _getAccessToken();
-      if (accessToken == null) {
-        if (kDebugMode) {
-          print('Failed to get access token for FCM token registration');
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Get access token from Auth0Provider
+        final accessToken = await _getAccessToken();
+        if (accessToken == null) {
+          if (kDebugMode) {
+            print(
+                'Failed to get access token for FCM token registration (attempt $attempt/$maxRetries)');
+          }
+          continue;
         }
-        return;
-      }
 
-      // Determine device type
-      final deviceType =
-          defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+        // Determine device type
+        final deviceType =
+            defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
 
-      // Simplified request body with only required parameters
-      final Map<String, dynamic> requestBody = {
-        'token': token,
-        'device_type': deviceType,
-      };
+        final Map<String, dynamic> requestBody = {
+          'token': token,
+          'device_type': deviceType,
+        };
 
-      if (kDebugMode) {
-        print('Registering device token with parameters: $requestBody');
-      }
-
-      // Send the token to your Django backend using the new unified endpoint
-      final response = await http.post(
-        Uri.parse('$apiEndpoint/messaging/register-device/'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-        body: jsonEncode(requestBody),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
         if (kDebugMode) {
-          print('FCM token successfully registered with backend');
-          print('Response: ${response.body}');
+          print(
+              'Registering device token (attempt $attempt/$maxRetries): $requestBody');
         }
-      } else {
+
+        final response = await http.post(
+          Uri.parse('$apiEndpoint/messaging/register-device/'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+          },
+          body: jsonEncode(requestBody),
+        );
+
+        // Success case - exit retry loop
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (kDebugMode) {
+            print('FCM token successfully registered with backend');
+          }
+          return;
+        }
+
+        // Check if we should retry based on status code
+        if ((response.statusCode >= 400 && response.statusCode < 600) &&
+            attempt < maxRetries) {
+          if (kDebugMode) {
+            print(
+                'Retryable error (${response.statusCode}) registering FCM token. Attempt $attempt/$maxRetries');
+            print('Response: ${response.body}');
+          }
+          // Wait before retrying - exponential backoff
+          await Future.delayed(Duration(milliseconds: delayMs * attempt));
+          continue;
+        }
+
+        // Non-retryable error or final attempt failed
         if (kDebugMode) {
           print(
               'Failed to register FCM token with backend: ${response.statusCode}');
           print('Response: ${response.body}');
         }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error registering FCM token with backend: $e');
+        break;
+      } catch (e) {
+        if (kDebugMode) {
+          print(
+              'Error registering FCM token with backend (attempt $attempt/$maxRetries): $e');
+        }
+
+        // Only retry on exceptions if we haven't hit max retries
+        if (attempt < maxRetries) {
+          await Future.delayed(Duration(milliseconds: delayMs * attempt));
+          continue;
+        }
       }
     }
   }
