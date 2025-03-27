@@ -37,7 +37,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
 
@@ -324,11 +324,6 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         DeepLinkObserver(_handleIncomingLink)
       ],
       builder: (context, child) {
-        // Get system padding for debugging
-        final EdgeInsets systemPadding = MediaQuery.of(context).padding;
-        print(
-            'BUILDER: System padding - bottom: ${systemPadding.bottom}, top: ${systemPadding.top}');
-
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
 
@@ -365,12 +360,11 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
               // Apply SafeArea only for Android devices
               if (!isIOS) {
                 return SafeArea(
-                  bottom:
-                      true, // Apply bottom padding to account for system navigation bar
+                  bottom: true,
                   child: content,
                 );
               } else {
-                return content; // No SafeArea for iOS
+                return content;
               }
             },
           ),
