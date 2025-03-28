@@ -96,7 +96,7 @@ class _StatsPageState extends State<StatsPage> {
               tabAlignment: TabAlignment.center,
               tabs: [
                 Tab(text: t.stats.distribution),
-                Tab(text: "${t.categories.subcategories}"),
+                Tab(text: '${t.categories.subcategories}'),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
                 Tab(text: t.stats.balance_evolution),

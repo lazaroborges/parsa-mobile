@@ -40,9 +40,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="https"
-                    android:host="parsa-ai.com.br"
+                    android:scheme="http"
+                    android:host="app.parsa-ai.com.br"
                     />
+                <data
+                    android:scheme="https"/>
             </intent-filter>
 
         </activity>

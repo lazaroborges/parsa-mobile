@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/budgets/budget_form_page.dart';
+import 'package:parsa/app/budgets/budget_form.page.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/presentation/widgets/no_results.dart';
 import 'package:parsa/core/routes/route_utils.dart';

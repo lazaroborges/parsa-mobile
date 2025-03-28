@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/accounts/all_accounts_page.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/accounts/all_accounts.page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
 
-import 'package:parsa/app/settings/about_page.dart';
-import 'package:parsa/app/settings/appearance_settings_page.dart';
+import 'package:parsa/app/settings/about.page.dart';
+import 'package:parsa/app/settings/preferences_settings.page.dart';
 import 'package:parsa/app/settings/backup_settings_page.dart';
 import 'package:parsa/app/settings/subscriptions/can.dart';
 
 import 'package:parsa/app/settings/widgets/setting_card_item.dart';
-import 'package:parsa/app/stats/stats_page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/tags/tag_list.page.dart';
 import 'package:parsa/app/transactions/recurrent_transactions_page.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -50,7 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: Icons.palette_outlined,
                     mainAxis: Axis.horizontal,
                     onTap: () => RouteUtils.pushRoute(
-                        context, const AdvancedSettingsPage()),
+                        context, const PreferencesSettingsPage()),
                   ),
                   const SizedBox(height: 8),
                   // SettingCardItem(

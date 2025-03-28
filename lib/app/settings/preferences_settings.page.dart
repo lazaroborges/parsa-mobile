@@ -9,11 +9,12 @@ import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'widgets/settings_list_separator.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 
-class AdvancedSettingsPage extends StatefulWidget {
-  const AdvancedSettingsPage({super.key});
+class PreferencesSettingsPage extends StatefulWidget {
+  const PreferencesSettingsPage({super.key});
 
   @override
-  State<AdvancedSettingsPage> createState() => _AdvancedSettingsPageState();
+  State<PreferencesSettingsPage> createState() =>
+      _PreferencesSettingsPageState();
 }
 
 class SelectItem<T> {
@@ -29,7 +30,7 @@ class SelectItem<T> {
   });
 }
 
-class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
+class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
   Widget buildSelector<T>({
     required String title,
     String? dialogDescr,
@@ -251,144 +252,145 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 },
               );
             }),
-            createListSeparator(context, "Notificações"),
-            FutureBuilder<Map<String, bool>>(
-              future: NotificationPreferencesService.instance.getPreferences(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const ListTile(
-                    title: Text("Ativar notificações"),
-                    subtitle: Text("Carregando preferências..."),
-                    leading: Icon(Icons.notifications),
-                  );
-                }
+            // Notificações Settings disabled for now
+            // createListSeparator(context, "Notificações"),
+            // FutureBuilder<Map<String, bool>>(
+            //   future: NotificationPreferencesService.instance.getPreferences(),
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return const ListTile(
+            //         title: Text("Ativar notificações"),
+            //         subtitle: Text("Carregando preferências..."),
+            //         leading: Icon(Icons.notifications),
+            //       );
+            //     }
 
-                final preferences = snapshot.data ??
-                    {
-                      'budgets_enabled': true,
-                      'general_enabled': true,
-                    };
+            //     final preferences = snapshot.data ??
+            //         {
+            //           'budgets_enabled': true,
+            //           'general_enabled': true,
+            //         };
 
-                // Consider notifications enabled if any category is enabled
-                final notificationsEnabled =
-                    preferences['budgets_enabled'] == true ||
-                        preferences['general_enabled'] == true;
+            //     // Consider notifications enabled if any category is enabled
+            //     final notificationsEnabled =
+            //         preferences['budgets_enabled'] == true ||
+            //             preferences['general_enabled'] == true;
 
-                return Column(
-                  children: [
-                    SwitchListTile(
-                      title: const Text("Ativar notificações"),
-                      subtitle: const Text(
-                          "Permitir que o aplicativo envie notificações"),
-                      secondary: const Icon(Icons.notifications),
-                      value: notificationsEnabled,
-                      onChanged: (bool value) async {
-                        try {
-                          // Update both notification categories
-                          await FCMService.instance
-                              .setNotificationsEnabled(value);
+            //     return Column(
+            //       children: [
+            //         SwitchListTile(
+            //           title: const Text("Ativar notificações"),
+            //           subtitle: const Text(
+            //               "Permitir que o aplicativo envie notificações"),
+            //           secondary: const Icon(Icons.notifications),
+            //           value: notificationsEnabled,
+            //           onChanged: (bool value) async {
+            //             try {
+            //               // Update both notification categories
+            //               await FCMService.instance
+            //                   .setNotificationsEnabled(value);
 
-                          // Update the UI by clearing the cache and rebuilding
-                          NotificationPreferencesService.instance.clearCache();
-                          setState(() {});
+            //               // Update the UI by clearing the cache and rebuilding
+            //               NotificationPreferencesService.instance.clearCache();
+            //               setState(() {});
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Configuração de notificações atualizada'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('Erro ao atualizar notificações: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          print('Error updating notifications setting: $e');
-                        }
-                      },
-                    ),
-                    if (notificationsEnabled) ...[
-                      SwitchListTile(
-                        title: const Text("Notificações de orçamentos"),
-                        subtitle:
-                            const Text("Receber notificações sobre orçamentos"),
-                        secondary: const Icon(Icons.account_balance_wallet),
-                        value: preferences['budgets_enabled'] ?? true,
-                        onChanged: (bool value) async {
-                          try {
-                            await FCMService.instance.setNotificationFilter(
-                              NotificationCategory.budgets,
-                              value,
-                            );
+            //               ScaffoldMessenger.of(context).showSnackBar(
+            //                 const SnackBar(
+            //                   content: Text(
+            //                       'Configuração de notificações atualizada'),
+            //                   backgroundColor: Colors.green,
+            //                 ),
+            //               );
+            //             } catch (e) {
+            //               ScaffoldMessenger.of(context).showSnackBar(
+            //                 SnackBar(
+            //                   content:
+            //                       Text('Erro ao atualizar notificações: $e'),
+            //                   backgroundColor: Colors.red,
+            //                 ),
+            //               );
+            //               print('Error updating notifications setting: $e');
+            //             }
+            //           },
+            //         ),
+            //         if (notificationsEnabled) ...[
+            //           SwitchListTile(
+            //             title: const Text("Notificações de orçamentos"),
+            //             subtitle:
+            //                 const Text("Receber notificações sobre orçamentos"),
+            //             secondary: const Icon(Icons.account_balance_wallet),
+            //             value: preferences['budgets_enabled'] ?? true,
+            //             onChanged: (bool value) async {
+            //               try {
+            //                 await FCMService.instance.setNotificationFilter(
+            //                   NotificationCategory.budgets,
+            //                   value,
+            //                 );
 
-                            // Update the UI by clearing the cache and rebuilding
-                            NotificationPreferencesService.instance
-                                .clearCache();
-                            setState(() {});
+            //                 // Update the UI by clearing the cache and rebuilding
+            //                 NotificationPreferencesService.instance
+            //                     .clearCache();
+            //                 setState(() {});
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Preferências de notificação atualizadas'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Erro ao atualizar preferências: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      SwitchListTile(
-                        title: const Text("Notificações gerais"),
-                        subtitle: const Text(
-                            "Receber notificações gerais do aplicativo"),
-                        secondary: const Icon(Icons.notifications_active),
-                        value: preferences['general_enabled'] ?? true,
-                        onChanged: (bool value) async {
-                          try {
-                            await FCMService.instance.setNotificationFilter(
-                              NotificationCategory.general,
-                              value,
-                            );
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   const SnackBar(
+            //                     content: Text(
+            //                         'Preferências de notificação atualizadas'),
+            //                     backgroundColor: Colors.green,
+            //                   ),
+            //                 );
+            //               } catch (e) {
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   SnackBar(
+            //                     content:
+            //                         Text('Erro ao atualizar preferências: $e'),
+            //                     backgroundColor: Colors.red,
+            //                   ),
+            //                 );
+            //               }
+            //             },
+            //           ),
+            //           SwitchListTile(
+            //             title: const Text("Notificações gerais"),
+            //             subtitle: const Text(
+            //                 "Receber notificações gerais do aplicativo"),
+            //             secondary: const Icon(Icons.notifications_active),
+            //             value: preferences['general_enabled'] ?? true,
+            //             onChanged: (bool value) async {
+            //               try {
+            //                 await FCMService.instance.setNotificationFilter(
+            //                   NotificationCategory.general,
+            //                   value,
+            //                 );
 
-                            // Update the UI by clearing the cache and rebuilding
-                            NotificationPreferencesService.instance
-                                .clearCache();
-                            setState(() {});
+            //                 // Update the UI by clearing the cache and rebuilding
+            //                 NotificationPreferencesService.instance
+            //                     .clearCache();
+            //                 setState(() {});
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Preferências de notificação atualizadas'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Erro ao atualizar preferências: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   const SnackBar(
+            //                     content: Text(
+            //                         'Preferências de notificação atualizadas'),
+            //                     backgroundColor: Colors.green,
+            //                   ),
+            //                 );
+            //               } catch (e) {
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   SnackBar(
+            //                     content:
+            //                         Text('Erro ao atualizar preferências: $e'),
+            //                     backgroundColor: Colors.red,
+            //                   ),
+            //                 );
+            //               }
+            //             },
+            //           ),
+            //         ],
+            //       ],
+            //     );
+            //   },
+            // ),
             // PrivateMode button disabled for now
             // StreamBuilder(
             //     stream: PrivateModeService.instance.privateModeStream,

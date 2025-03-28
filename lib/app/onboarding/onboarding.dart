@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
-import 'package:parsa/app/settings/about_page.dart';
+import 'package:parsa/app/settings/about.page.dart';
 import '../../core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'dart:io' show Platform;

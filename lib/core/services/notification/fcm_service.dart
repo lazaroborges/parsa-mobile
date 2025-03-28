@@ -354,10 +354,6 @@ class FCMService {
 
     if (kDebugMode && _fcmToken != null) {
       print('FCM Token: $_fcmToken');
-
-      // Get and print access token
-      final accessToken = await _getAccessToken();
-      print('Access Token: $accessToken');
     }
 
     // Set up token refresh listener
@@ -365,10 +361,6 @@ class FCMService {
       _fcmToken = newToken;
       if (kDebugMode) {
         print('FCM Token refreshed: $_fcmToken');
-
-        // Print access token with refreshed FCM token
-        final accessToken = await _getAccessToken();
-        print('Access Token with refreshed FCM token: $accessToken');
       }
 
       // Save the new token to server

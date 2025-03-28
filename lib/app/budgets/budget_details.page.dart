@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:parsa/app/budgets/budget_form_page.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/budget_form.page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
 import 'package:parsa/app/budgets/components/budget_evolution_chart.dart';
-import 'package:parsa/app/stats/stats_page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart';

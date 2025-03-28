@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
 import 'package:parsa/app/home/dashboard.page.dart';
 import 'package:parsa/app/settings/settings.page.dart';
-import 'package:parsa/app/stats/stats_page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/i18n/translations.g.dart';
