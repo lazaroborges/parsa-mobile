@@ -12,7 +12,7 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Parsa</string>
-	<key>CFBundleExecutable</key>
+	<key>CFBundleExecutable</key>=
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
@@ -35,17 +35,9 @@
 			<string>com.parsa.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.parsa.app</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.parsa.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
 				<string>myapp</string>
+				<string>https</string>
+				<string>http</string>
 			</array>
 		</dict>
 	</array>

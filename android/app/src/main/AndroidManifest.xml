@@ -44,7 +44,9 @@
                     android:host="app.parsa-ai.com.br"
                     />
                 <data
-                    android:scheme="https"/>
+                    android:scheme="https"
+                    android:host="app.parsa-ai.com.br"
+                    />
             </intent-filter>
 
         </activity>

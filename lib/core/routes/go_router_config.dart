@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/home/dashboard.page.dart';
@@ -18,8 +17,6 @@ import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/models/category/category.dart';
-import 'package:parsa/core/models/tags/tag.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -42,17 +39,10 @@ final goRouter = GoRouter(
               path: ':accountId',
               builder: (context, state) {
                 final accountId = state.pathParameters['accountId']!;
-                final account = state.extra as Account?;
-                final filters = _parseFilters(state.uri.queryParameters);
+                final account = state.extra as Account;
 
                 return AccountDetailsPage(
-                  account: account ??
-                      Account(
-                        id: accountId,
-                        name: '',
-                        type: AccountType.normal,
-                      ),
-                );
+                    account: account, accountIconHeroTag: 'account-$accountId');
               },
               routes: [
                 GoRoute(
@@ -62,7 +52,7 @@ final goRouter = GoRouter(
                     final filters = _parseFilters(state.uri.queryParameters);
 
                     return TransactionsPage(
-                      filters: filters?.copyWith(
+                      filters: filters.copyWith(
                         accountsIDs: [accountId],
                       ),
                     );
@@ -75,7 +65,7 @@ final goRouter = GoRouter(
                     final filters = _parseFilters(state.uri.queryParameters);
 
                     return StatsPage(
-                      filters: filters?.copyWith(
+                      filters: filters.copyWith(
                         accountsIDs: [accountId],
                       ),
                     );
@@ -177,21 +167,6 @@ final goRouter = GoRouter(
                       ),
                 );
               },
-              routes: [
-                GoRoute(
-                  path: 'transactions',
-                  builder: (context, state) {
-                    final budgetId = state.pathParameters['budgetId']!;
-                    final filters = _parseFilters(state.uri.queryParameters);
-
-                    return TransactionsPage(
-                      filters: filters?.copyWith(
-                        budgetId: budgetId,
-                      ),
-                    );
-                  },
-                ),
-              ],
             ),
           ],
         ),
@@ -248,14 +223,6 @@ class AppRoutes {
   static String accountTransactions(String id, {TransactionFilters? filters}) {
     final uri = Uri(
       path: '/accounts/$id/transactions',
-      queryParameters: _filtersToQueryParams(filters),
-    );
-    return uri.toString();
-  }
-
-  static String accountStats(String id, {TransactionFilters? filters}) {
-    final uri = Uri(
-      path: '/accounts/$id/stats',
       queryParameters: _filtersToQueryParams(filters),
     );
     return uri.toString();

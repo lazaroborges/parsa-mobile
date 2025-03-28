@@ -36,6 +36,7 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:parsa/core/services/branch_config.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -71,6 +72,9 @@ void main() async {
     dotenv.env['AUTH0_DOMAIN']!,
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
+
+  // Initialize Branch
+  await BranchConfig.initialize();
 
   final app = MultiProvider(
     providers: [
