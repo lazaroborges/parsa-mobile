@@ -13,6 +13,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intake.dart';
+import 'package:parsa/core/services/branch_config.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PremiumWidget extends StatefulWidget {
   @override
@@ -496,6 +498,16 @@ class _PremiumWidgetState extends State<PremiumWidget> {
             (selectedPlan == 'premium_yearly' && hasYearlySubscription));
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Premium Subscription'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share),
+            onPressed: () => _shareSubscriptionLink(context),
+            tooltip: 'Share Subscription Link',
+          ),
+        ],
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -929,5 +941,31 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                       ),
                     ),
     );
+  }
+
+  Future<void> _shareSubscriptionLink(BuildContext context) async {
+    try {
+      final link = await BranchConfig.createSubscriptionLink(
+        title: 'Parsa Premium Subscription',
+        description:
+            'Upgrade to Parsa Premium for advanced features and Open Finance integration!',
+      );
+
+      // Share the link with a custom message
+      await Share.share(
+        'Check out Parsa Premium for seamless financial management: $link',
+        subject: 'Parsa Premium Subscription',
+      );
+
+      // Track the event (simplified approach)
+      debugPrint('Premium subscription link shared: $link');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating share link: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

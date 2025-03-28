@@ -35,21 +35,44 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="http"
-                    android:host="app.parsa-ai.com.br"
-                    />
-                <data
-                    android:scheme="https"
-                    android:host="app.parsa-ai.com.br"
-                    />
-            </intent-filter>
+            
+            <!-- Branch URI Scheme -->
+			<intent-filter>
+				<!-- If utilizing $deeplink_path please explicitly declare your hosts, or utilize a wildcard(*) -->
+				<!-- REPLACE `android:scheme` with your Android URI scheme -->
+				<data android:scheme="com.parsa.app" android:host="open" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+
+			<!-- Branch App Links - Live App -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<!-- REPLACE `android:host` with your `app.link` domain -->
+				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
+				<!-- REPLACE `android:host` with your `-alternate` domain (required for proper functioning of App Links and Deepviews) -->
+				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
+			</intent-filter>
+
+            <!-- Branch App Links - Test App -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
+				<!-- REPLACE `android:host` with your `-alternate` domain (required for proper functioning of App Links and Deepviews) -->
+				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
+			</intent-filter>
 
         </activity>
+        
+        <!-- Branch init -->
+        <meta-data android:name="io.branch.sdk.BranchKey" android:value="BRANCH_LIVE_KEY" />
+        <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="BRANCH_TEST_KEY" />
+        <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
         
         <!-- Firebase Messaging Service -->
         <service
@@ -75,4 +98,10 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="high_importance_channel" />
     </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
 </manifest>

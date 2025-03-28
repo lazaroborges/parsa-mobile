@@ -16,6 +16,7 @@ PODS:
     - FlutterMacOS
     - JWTDecode (= 3.2.0)
     - SimpleKeychain (= 1.2.0)
+  - BranchSDK (3.9.1)
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):
@@ -103,6 +104,9 @@ PODS:
   - Flutter (1.0.0)
   - flutter_appauth (0.0.1):
     - AppAuth (= 1.7.5)
+    - Flutter
+  - flutter_branch_sdk (8.4.1):
+    - BranchSDK (~> 3.9.0)
     - Flutter
   - flutter_keyboard_visibility (0.0.1):
     - Flutter
@@ -207,6 +211,7 @@ DEPENDENCIES:
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
   - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
+  - flutter_branch_sdk (from `.symlinks/plugins/flutter_branch_sdk/ios`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
@@ -226,6 +231,7 @@ SPEC REPOS:
   trunk:
     - AppAuth
     - Auth0
+    - BranchSDK
     - DKImagePickerController
     - DKPhotoGallery
     - Firebase
@@ -265,6 +271,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_appauth:
     :path: ".symlinks/plugins/flutter_appauth/ios"
+  flutter_branch_sdk:
+    :path: ".symlinks/plugins/flutter_branch_sdk/ios"
   flutter_keyboard_visibility:
     :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
   flutter_secure_storage:
@@ -299,6 +307,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
   auth0_flutter: 05a2d504520b90b615413addd7a0988da3c92b68
+  BranchSDK: a12f9aa63d7ba562fdff5509d4aed081f1098ec0
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
@@ -315,6 +324,7 @@ SPEC CHECKSUMS:
   FirebaseMessaging: d2d1d9c62c46dd2db49a952f7deb5b16ad2c9742
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_appauth: aef998cfbcc307dff7f2fbe1f59a50323748dc25
+  flutter_branch_sdk: 08a14ddbff760434cce6d23f85a789fdfa92cfcb
   flutter_keyboard_visibility: 0339d06371254c3eb25eeb90ba8d17dca8f9c069
   flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7

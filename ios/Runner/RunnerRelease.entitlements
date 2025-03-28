@@ -8,7 +8,9 @@
 	<array>
 		<string>webcredentials:auth.parsa-ai.com.br?r=1</string>
 		<string>webcredentials:auth.parsa-ai.com.br</string>
-		<string>applinks:app.parsa-ai.com.br</string>
+		<string>applinks:ymhog.app.link</string>
+		<string>applinks:ymhog-alternate.app.link</string>
+		<string>applinks:ymhog.test.app.link</string>
 	</array>
 </dict>
 </plist>

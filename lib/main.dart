@@ -20,7 +20,6 @@ import 'package:parsa/core/providers/app_version_provider.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
-import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
@@ -74,7 +73,8 @@ void main() async {
   );
 
   // Initialize Branch
-  await BranchConfig.initialize();
+  // await BranchConfig.initialize();
+  // debugPrint('Branch SDK initialized');
 
   final app = MultiProvider(
     providers: [

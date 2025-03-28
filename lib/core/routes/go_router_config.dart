@@ -130,21 +130,20 @@ final goRouter = GoRouter(
             final filters = _parseFilters(state.uri.queryParameters);
             return TransactionsPage(filters: filters);
           },
-          routes: [
-            GoRoute(
-              path: ':transactionId',
-              builder: (context, state) {
-                final transactionId = state.pathParameters['transactionId']!;
-                final transaction = state.extra as MoneyTransaction?;
+          // routes: [
+          //   GoRoute(
+          //     path: ':transactionId',
+          //     builder: (context, state) {
+          //       final transactionId = state.pathParameters['transactionId']!;
+          //       final transaction = state.extra as MoneyTransaction?;
 
-                return TransactionDetailsPage(
-                  transaction: transaction,
-                  prevPage: const TabsPage(),
-                  heroTag: 'transaction-$transactionId',
-                );
-              },
-            ),
-          ],
+          //       return TransactionDetailsPage(
+          //         prevPage: const TabsPage(),
+          //         heroTag: 'transaction-$transactionId',
+          //       );
+          //     },
+          //   ),
+          // ],
         ),
 
         // Budgets Routes
