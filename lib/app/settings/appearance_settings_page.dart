@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
+import 'package:parsa/core/presentation/widgets/platform_alert_dialogue.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
@@ -215,34 +216,48 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                   secondary: const Icon(Icons.calendar_month),
                   value: isAccrualBasisAccounting,
                   onChanged: (bool value) async {
-                    try {
-                      // Update the value in the backend
-                      await PostUserSettings.updateAccrualBasisAccountingSetting(
-                        isAccrualBasisAccounting: value,
-                      );
-                      
-                      // Update the local user data
-                      userDataProvider.updateUserData({'accrual_basis_accounting': value});
-                      
-                      // Update the UI
-                      setState(() {});
-                      
-                      // Show success message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Configuração atualizada com sucesso'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } catch (e) {
-                      // Show error message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Erro ao atualizar configuração: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      print('Error updating competent_user setting: $e');
+                    // Show confirmation dialog before making the change
+                    final confirmed = await showPlatformAlertDialog(
+                      context: context,
+                      title: "Confirmar alteração",
+                      content: value 
+                          ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
+                          : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
+                      cancelActionText: "Cancelar",
+                      defaultActionText: "Confirmar",
+                    );
+                    
+                    // If user confirmed, proceed with the change
+                    if (confirmed == true) {
+                      try {
+                        // Update the value in the backend
+                        await PostUserSettings.updateAccrualBasisAccountingSetting(
+                          isAccrualBasisAccounting: value,
+                        );
+                        
+                        // Update the local user data
+                        userDataProvider.updateUserData({'accrual_basis_accounting': value});
+                        
+                        // Update the UI
+                        setState(() {});
+                        
+                        // Show success message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Configuração atualizada com sucesso'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } catch (e) {
+                        // Show error message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Erro ao atualizar configuração: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        print('Error updating competent_user setting: $e');
+                      }
                     }
                   },
                 );
