@@ -51,7 +51,6 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   // Request notification permission when the dashboard is opened
   Future<void> _requestNotificationPermission() async {
-    // First check if notification permission has already been requested
     final prefs = await SharedPreferences.getInstance();
     final permissionRequested =
         prefs.getBool('notification_permission_requested') ?? false;
@@ -86,7 +85,7 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       }
     } else {
       // Just initialize FCM - it will check backend preferences internally
-      await FCMService.instance.initialize();
+      // await FCMService.instance.initialize();
     }
   }
 

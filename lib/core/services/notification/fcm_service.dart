@@ -140,7 +140,9 @@ class FCMService {
       if (kDebugMode) {
         print("FCM initialization: User denied notification permissions");
       }
-      // Continue with initialization but user won't receive notifications
+      // Mark as initialized but exit early - don't proceed with FCM setup
+      _isInitialized = true;
+      return;
     }
 
     // Request permission on iOS (alerts, badge, sound).
@@ -156,6 +158,15 @@ class FCMService {
 
     if (kDebugMode) {
       print("FCM permission status: ${settings.authorizationStatus}");
+    }
+
+    // Exit if permission is denied
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      if (kDebugMode) {
+        print("FCM initialization stopped: Permission denied");
+      }
+      _isInitialized = true;
+      return;
     }
 
     // Register the background message handler.

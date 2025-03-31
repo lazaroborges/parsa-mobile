@@ -35,7 +35,9 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:parsa/core/services/branch_config.dart';
+import 'package:parsa/core/services/branch/branch_config.dart';
+import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -47,6 +49,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
+
+  // Initialize Branch SDK
+  await FlutterBranchSdk.init(
+    enableLogging: !kReleaseMode, // Enable logging only in debug mode
+    disableTracking: false,
+  );
+
+  // Validate Branch SDK integration in debug mode
+  if (!kReleaseMode) {
+    FlutterBranchSdk.validateSDKIntegration();
+  }
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -62,7 +75,7 @@ void main() async {
   // Add custom HTTP override for User-Agent
   HttpOverrides.global = CustomHttpOverrides();
 
-  //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file.
+  //If version is release, use the production endpoint, otherwise use the local endpoint
   apiEndpoint = kReleaseMode
       ? 'https://app.parsa-ai.com.br'
       : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
@@ -72,9 +85,10 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  // Initialize Branch
-  // await BranchConfig.initialize();
-  // debugPrint('Branch SDK initialized');
+  // Initialize Branch and Link Handler
+  await BranchConfig.initialize();
+  await LinkHandlerService.instance.initialize();
+  debugPrint('Branch SDK and Link Handler initialized');
 
   final app = MultiProvider(
     providers: [
@@ -117,7 +131,7 @@ class MonekinAppEntryPoint extends StatefulWidget {
 
 class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   final AppLinks _appLinks = AppLinks();
-  late final StreamSubscription<String?> _linkSubscription; // Changed to String
+  late final StreamSubscription<String?> _linkSubscription;
 
   @override
   void initState() {
@@ -128,15 +142,13 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   void _initializeAppLinks() async {
     try {
       // Handle app launch from terminated state
-      final initialLink =
-          await _appLinks.getInitialLink(); // Correct method name
+      final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
         _handleIncomingLink(initialLink.toString());
       }
 
       // Listen for incoming links while the app is running
       _linkSubscription = _appLinks.stringLinkStream.listen((link) {
-        // Use linkStream and String
         if (link != null && link.isNotEmpty) {
           _handleIncomingLink(link);
         }
@@ -149,10 +161,7 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   }
 
   void _handleIncomingLink(String link) {
-    // Changed to String
     print('Received link: $link');
-    // Parse the link and navigate accordingly
-    // Example: Navigate to TabsPage on successful authentication callback
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
@@ -163,6 +172,7 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   void dispose() {
     _linkSubscription.cancel();
     // _appLinks.dispose(); // Remove if dispose is not defined in AppLinks
+    LinkHandlerService.instance.dispose();
     super.dispose();
   }
 
