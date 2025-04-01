@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/core/database/services/account/account_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/routes/go_router_config.dart';
 
 class LinkHandlerService {
@@ -58,10 +62,137 @@ class LinkHandlerService {
         if (linkPath != null) {
           _navigateBasedOnPath(linkPath);
         }
+      } else {
+        // Handle direct URL scheme links like myapp://budgets/id=28312832h38
+        final String? url = data['~referring_link'] as String?;
+        if (url != null) {
+          final Uri uri = Uri.parse(url);
+          _handleDeepLink(uri);
+        }
       }
     } catch (e) {
       debugPrint('Error handling deep link data: $e');
     }
+  }
+
+  void _handleDeepLink(Uri uri) {
+    // Extract the path without the scheme
+    final path =
+        uri.path.isNotEmpty ? uri.path : uri.toString().split('://').last;
+
+    debugPrint('Handling deep link with path: $path');
+
+    // Handle different path patterns
+
+    // Budget deep links
+    if (path.startsWith('budgets/id=')) {
+      final budgetId = path.substring('budgets/id='.length);
+      _navigateToBudget(budgetId);
+    } else if (path.startsWith('budgets') &&
+        uri.queryParameters.containsKey('id')) {
+      final budgetId = uri.queryParameters['id']!;
+      _navigateToBudget(budgetId);
+    }
+
+    // Transaction deep links
+    else if (path.startsWith('transactions/id=')) {
+      final transactionId = path.substring('transactions/id='.length);
+      _navigateToTransaction(transactionId);
+    } else if (path.startsWith('transactions') &&
+        uri.queryParameters.containsKey('id')) {
+      final transactionId = uri.queryParameters['id']!;
+      _navigateToTransaction(transactionId);
+    }
+
+    // Account deep links
+    else if (path.startsWith('accounts/id=')) {
+      final accountId = path.substring('accounts/id='.length);
+      _navigateToAccount(accountId);
+    } else if (path.startsWith('accounts') &&
+        uri.queryParameters.containsKey('id')) {
+      final accountId = uri.queryParameters['id']!;
+      _navigateToAccount(accountId);
+    }
+
+    // Stats deep links
+    else if (path.startsWith('stats/')) {
+      final statsPath = path.substring('stats/'.length);
+      _navigateToStats(statsPath, uri.queryParameters);
+    } else if (path == 'stats') {
+      _navigateToStats('', uri.queryParameters);
+    }
+
+    // Default fallback
+    else {
+      // Default fallback navigation
+      _navigateBasedOnPath(path.split('/').first);
+    }
+  }
+
+  void _navigateToBudget(String budgetId) {
+    debugPrint('Navigating to budget with ID: $budgetId');
+
+    // Fetch the budget data first
+    BudgetServive.instance.getBudgetById(budgetId).first.then((budget) {
+      if (budget != null) {
+        // Navigate with the fetched budget data
+        goRouter.go(AppRoutes.budget(budgetId, budget: budget));
+        debugPrint('Navigated to budget with ID: $budgetId');
+      } else {
+        // Budget not found, navigate to budgets list
+        debugPrint('Budget with ID $budgetId not found, going to budgets list');
+        goRouter.go(AppRoutes.budgets());
+      }
+    }).catchError((error) {
+      debugPrint('Error fetching budget data: $error');
+      goRouter.go(AppRoutes.budgets());
+    });
+  }
+
+  void _navigateToTransaction(String transactionId) {
+    debugPrint('Navigating to transaction with ID: $transactionId');
+
+    // Fetch the transaction data first
+    TransactionService.instance
+        .getTransactionById(transactionId)
+        .first
+        .then((transaction) {
+      if (transaction != null) {
+        // For single transaction view, we don't need filters
+        goRouter
+            .go(AppRoutes.transaction(transactionId, transaction: transaction));
+        debugPrint('Navigated to transaction with ID: $transactionId');
+      } else {
+        // Transaction not found, navigate to transactions list
+        debugPrint(
+            'Transaction with ID $transactionId not found, going to transactions list');
+        goRouter.go(AppRoutes.transactions());
+      }
+    }).catchError((error) {
+      debugPrint('Error fetching transaction data: $error');
+      goRouter.go(AppRoutes.transactions());
+    });
+  }
+
+  void _navigateToAccount(String accountId) {
+    debugPrint('Navigating to account with ID: $accountId');
+
+    // Fetch the account data first
+    AccountService.instance.getAccountById(accountId).first.then((account) {
+      if (account != null) {
+        // Navigate with the fetched account data
+        goRouter.go(AppRoutes.account(accountId, account: account));
+        debugPrint('Navigated to account with ID: $accountId');
+      } else {
+        // Account not found, navigate to accounts list
+        debugPrint(
+            'Account with ID $accountId not found, going to accounts list');
+        goRouter.go(AppRoutes.accounts());
+      }
+    }).catchError((error) {
+      debugPrint('Error fetching account data: $error');
+      goRouter.go(AppRoutes.accounts());
+    });
   }
 
   void _extractAndSaveCustomData(Map<dynamic, dynamic> data) {
@@ -87,17 +218,27 @@ class LinkHandlerService {
           break;
         case 'accounts':
           final accountId = _branchParams['id'];
-          goRouter.go(accountId != null ? '/accounts/$accountId' : '/accounts');
+          if (accountId != null) {
+            _navigateToAccount(accountId);
+          } else {
+            goRouter.go(AppRoutes.accounts());
+          }
           break;
         case 'transactions':
           final transactionId = _branchParams['id'];
-          goRouter.go(transactionId != null
-              ? '/transactions/$transactionId'
-              : '/transactions');
+          if (transactionId != null) {
+            _navigateToTransaction(transactionId);
+          } else {
+            goRouter.go(AppRoutes.transactions());
+          }
           break;
         case 'budgets':
           final budgetId = _branchParams['id'];
-          goRouter.go(budgetId != null ? '/budgets/$budgetId' : '/budgets');
+          if (budgetId != null) {
+            _navigateToBudget(budgetId);
+          } else {
+            goRouter.go(AppRoutes.budgets());
+          }
           break;
         default:
           goRouter.go('/');
@@ -111,6 +252,11 @@ class LinkHandlerService {
 
   Future<void> handleDeepLink(String url) async {
     try {
+      // Parse URL and handle it
+      final uri = Uri.parse(url);
+      _handleDeepLink(uri);
+
+      // Additionally, let Branch SDK handle it for analytics
       FlutterBranchSdk.handleDeepLink(url);
       debugPrint('Handled deep link: $url');
     } catch (e) {
@@ -160,6 +306,51 @@ class LinkHandlerService {
       FlutterBranchSdk.trackContentWithoutBuo(branchEvent: branchEvent);
     } catch (e) {
       debugPrint('Error tracking content without BUO: $e');
+    }
+  }
+
+  void _navigateToStats(String path, Map<String, String> params) {
+    debugPrint('Navigating to stats with path: $path');
+
+    try {
+      // Parse filters from params
+      final filters = TransactionFilters(
+        minDate: params['minDate'] != null
+            ? DateTime.parse(params['minDate']!)
+            : null,
+        maxDate: params['maxDate'] != null
+            ? DateTime.parse(params['maxDate']!)
+            : null,
+        categories: params['categories']?.split(','),
+        accountsIDs: params['accounts']?.split(','),
+        tagsIDs: params['tags']?.split(','),
+        searchValue: params['search'],
+      );
+
+      // Determine which stats page to show based on path
+      switch (path) {
+        case 'category':
+          goRouter.go(AppRoutes.statsCategory('', filters: filters));
+          break;
+        case 'subcategory':
+          goRouter.go('/stats/subcategory', extra: filters);
+          break;
+        case 'cash-flow':
+          goRouter.go('/stats/cash-flow', extra: filters);
+          break;
+        case 'financial-health':
+          goRouter.go('/stats/financial-health', extra: filters);
+          break;
+        case 'balance-evolution':
+          goRouter.go('/stats/balance-evolution', extra: filters);
+          break;
+        default:
+          goRouter.go('/stats', extra: filters);
+          break;
+      }
+    } catch (e) {
+      debugPrint('Error navigating to stats: $e');
+      goRouter.go('/stats');
     }
   }
 

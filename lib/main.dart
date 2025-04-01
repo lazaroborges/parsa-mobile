@@ -51,15 +51,7 @@ void main() async {
   await AppVersionProvider.instance.initialize();
 
   // Initialize Branch SDK
-  await FlutterBranchSdk.init(
-    enableLogging: !kReleaseMode, // Enable logging only in debug mode
-    disableTracking: false,
-  );
-
-  // Validate Branch SDK integration in debug mode
-  if (!kReleaseMode) {
-    FlutterBranchSdk.validateSDKIntegration();
-  }
+  await FlutterBranchSdk.init(enableLogging: !kReleaseMode);
 
   // Initialize Firebase
   await Firebase.initializeApp(

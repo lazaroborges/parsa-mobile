@@ -4,7 +4,7 @@ import 'package:parsa/core/utils/check_items_availability.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'pluggy_connector.dart';
 import 'account_form.dart';
-import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
+import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 
 class AccountConnectionModal extends StatelessWidget {
   const AccountConnectionModal({Key? key}) : super(key: key);
@@ -114,8 +114,9 @@ class AccountConnectionModal extends StatelessWidget {
                                 'O Parsa sincroniza os dados da sua conta e categoriza as transações.',
                             onTap: () async {
                               // Check Pluggy availability
-                              String? errorMessage = await checkItemAvailability(context);
-                              
+                              String? errorMessage =
+                                  await checkItemAvailability(context);
+
                               if (errorMessage == null) {
                                 Navigator.push(
                                   context,
@@ -126,7 +127,7 @@ class AccountConnectionModal extends StatelessWidget {
                               } else {
                                 // Close the modal first
                                 Navigator.pop(context);
-                                
+
                                 // Show the error message in a SnackBar
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -136,7 +137,9 @@ class AccountConnectionModal extends StatelessWidget {
                                 );
 
                                 // If error code is 0 (not subscribed), navigate to subscription page
-                                if (errorMessage == t.account.connection_errors.not_subscribed) {
+                                if (errorMessage ==
+                                    t.account.connection_errors
+                                        .not_subscribed) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(

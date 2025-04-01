@@ -7,7 +7,7 @@ import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
-import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
+import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 

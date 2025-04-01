@@ -3,7 +3,7 @@ import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/home/dashboard.page.dart';
 import 'package:parsa/app/budgets/budgets.page.dart';
 import 'package:parsa/app/budgets/budget_details.page.dart';
-import 'package:parsa/app/settings/subscriptions/subscription_page.dart';
+import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/app/transactions/transaction_details.page.dart';
 import 'package:parsa/app/stats/stats.page.dart';
@@ -130,20 +130,26 @@ final goRouter = GoRouter(
             final filters = _parseFilters(state.uri.queryParameters);
             return TransactionsPage(filters: filters);
           },
-          // routes: [
-          //   GoRoute(
-          //     path: ':transactionId',
-          //     builder: (context, state) {
-          //       final transactionId = state.pathParameters['transactionId']!;
-          //       final transaction = state.extra as MoneyTransaction?;
+          routes: [
+            GoRoute(
+              path: ':transactionId',
+              builder: (context, state) {
+                final transactionId = state.pathParameters['transactionId']!;
+                final transaction = state.extra as MoneyTransaction?;
 
-          //       return TransactionDetailsPage(
-          //         prevPage: const TabsPage(),
-          //         heroTag: 'transaction-$transactionId',
-          //       );
-          //     },
-          //   ),
-          // ],
+                if (transaction == null) {
+                  // If transaction is null, redirect to transactions list
+                  return const TransactionsPage();
+                }
+
+                return TransactionDetailsPage(
+                  transaction: transaction,
+                  prevPage: const DashboardPage(),
+                  heroTag: 'transaction-$transactionId',
+                );
+              },
+            ),
+          ],
         ),
 
         // Budgets Routes
@@ -166,6 +172,21 @@ final goRouter = GoRouter(
                       ),
                 );
               },
+              routes: [
+                GoRoute(
+                  path: 'transactions',
+                  builder: (context, state) {
+                    final budgetId = state.pathParameters['budgetId']!;
+                    final filters = _parseFilters(state.uri.queryParameters);
+
+                    return TransactionsPage(
+                      filters: filters.copyWith(
+                        accountsIDs: [budgetId],
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -227,11 +248,46 @@ class AppRoutes {
     return uri.toString();
   }
 
-  // Stats routes with category support
+  // Budget routes
+  static String budgets() => '/budgets';
+  static String budget(String id, {Budget? budget}) => '/budgets/$id';
+  static String budgetTransactions(String budgetId,
+      {TransactionFilters? filters}) {
+    final uri = Uri(
+      path: '/budgets/$budgetId/transactions',
+      queryParameters: _filtersToQueryParams(filters),
+    );
+    return uri.toString();
+  }
+
+  // Transaction routes
+  static String transactions({TransactionFilters? filters}) {
+    final uri = Uri(
+      path: '/transactions',
+      queryParameters: _filtersToQueryParams(filters),
+    );
+    return uri.toString();
+  }
+
+  // Single transaction by ID - no filters needed here
+  static String transaction(String id, {MoneyTransaction? transaction}) =>
+      '/transactions/$id';
+
+  // Stats routes
+  static String stats({TransactionFilters? filters}) {
+    final uri = Uri(
+      path: '/stats',
+      queryParameters: _filtersToQueryParams(filters),
+    );
+    return uri.toString();
+  }
+
   static String statsCategory(String categoryId,
       {TransactionFilters? filters}) {
     final queryParams = _filtersToQueryParams(filters);
-    queryParams?['categoryId'] = categoryId;
+    if (queryParams != null) {
+      queryParams['categoryId'] = categoryId;
+    }
 
     final uri = Uri(
       path: '/stats/category',
@@ -240,11 +296,33 @@ class AppRoutes {
     return uri.toString();
   }
 
-  // Budget routes with transactions and tags
-  static String budgetTransactions(String budgetId,
-      {TransactionFilters? filters}) {
+  static String statsSubcategory({TransactionFilters? filters}) {
     final uri = Uri(
-      path: '/budgets/$budgetId/transactions',
+      path: '/stats/subcategory',
+      queryParameters: _filtersToQueryParams(filters),
+    );
+    return uri.toString();
+  }
+
+  static String statsCashFlow({TransactionFilters? filters}) {
+    final uri = Uri(
+      path: '/stats/cash-flow',
+      queryParameters: _filtersToQueryParams(filters),
+    );
+    return uri.toString();
+  }
+
+  static String statsFinancialHealth({TransactionFilters? filters}) {
+    final uri = Uri(
+      path: '/stats/financial-health',
+      queryParameters: _filtersToQueryParams(filters),
+    );
+    return uri.toString();
+  }
+
+  static String statsBalanceEvolution({TransactionFilters? filters}) {
+    final uri = Uri(
+      path: '/stats/balance-evolution',
       queryParameters: _filtersToQueryParams(filters),
     );
     return uri.toString();
@@ -255,17 +333,37 @@ class AppRoutes {
       TransactionFilters? filters) {
     if (filters == null) return null;
 
-    return {
-      if (filters.minDate != null)
-        'minDate': filters.minDate!.toIso8601String(),
-      if (filters.maxDate != null)
-        'maxDate': filters.maxDate!.toIso8601String(),
-      if (filters.categories != null)
-        'categories': filters.categories!.join(','),
-      if (filters.accountsIDs != null)
-        'accounts': filters.accountsIDs!.join(','),
-      if (filters.tagsIDs != null) 'tags': filters.tagsIDs!.join(','),
-      if (filters.searchValue != null) 'search': filters.searchValue!,
-    };
+    final params = <String, String>{};
+
+    if (filters.minDate != null) {
+      params['minDate'] = filters.minDate!.toIso8601String();
+    }
+    if (filters.maxDate != null) {
+      params['maxDate'] = filters.maxDate!.toIso8601String();
+    }
+    if (filters.categories != null && filters.categories!.isNotEmpty) {
+      params['categories'] = filters.categories!.join(',');
+    }
+    if (filters.accountsIDs != null && filters.accountsIDs!.isNotEmpty) {
+      params['accounts'] = filters.accountsIDs!.join(',');
+    }
+    if (filters.tagsIDs != null && filters.tagsIDs!.isNotEmpty) {
+      params['tags'] = filters.tagsIDs!.join(',');
+    }
+    if (filters.searchValue != null && filters.searchValue!.isNotEmpty) {
+      params['search'] = filters.searchValue!;
+    }
+    if (filters.transactionTypes != null &&
+        filters.transactionTypes!.isNotEmpty) {
+      params['types'] = filters.transactionTypes!.map((e) => e.name).join(',');
+    }
+    if (filters.minValue != null) {
+      params['minValue'] = filters.minValue!.toString();
+    }
+    if (filters.maxValue != null) {
+      params['maxValue'] = filters.maxValue!.toString();
+    }
+
+    return params.isEmpty ? null : params;
   }
 }
