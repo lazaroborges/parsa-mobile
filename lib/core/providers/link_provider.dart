@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Manages the state of a pending deep link received before authentication or app readiness.
+/// Manages the state of pending deep link information received before authentication or app readiness.
 class LinkProvider extends ChangeNotifier {
-  String? _pendingDeepLink;
+  Map<dynamic, dynamic>? _pendingBranchData;
+  Uri? _pendingUri;
 
   // Singleton pattern
   static LinkProvider? _instance;
@@ -11,28 +12,61 @@ class LinkProvider extends ChangeNotifier {
     return _instance!;
   }
 
-  // Private constructor for singleton
   LinkProvider._();
 
-  /// The pending deep link URL or path, if any.
-  String? get pendingDeepLink => _pendingDeepLink;
+  /// Pending Branch.io link data map, if any.
+  Map<dynamic, dynamic>? get pendingBranchData => _pendingBranchData;
 
-  /// Stores a deep link to be processed later.
+  /// Pending standard deep link URI, if any.
+  Uri? get pendingUri => _pendingUri;
+
+  /// Stores Branch.io link data to be processed later.
   ///
-  /// [link]: The deep link URL or path string.
-  void setPendingDeepLink(String link) {
-    if (_pendingDeepLink != link) {
-      debugPrint('Setting pending deep link: $link');
-      _pendingDeepLink = link;
+  /// Automatically clears any pending URI.
+  /// [data]: The Branch link data map.
+  void setPendingBranchData(Map<dynamic, dynamic> data) {
+    // Check if data is actually different to avoid unnecessary notifications
+    // Note: Deep map comparison can be complex; this is a basic check.
+    if (_pendingBranchData.toString() != data.toString()) {
+      debugPrint('Setting pending branch data: $data');
+      _pendingBranchData = data;
+      if (_pendingUri != null) {
+        _pendingUri = null; // Ensure only one type is set
+      }
+      notifyListeners();
+    } else if (_pendingUri != null) {
+      // Data is the same, but we need to clear the other type
+      _pendingUri = null;
       notifyListeners();
     }
   }
 
-  /// Clears the stored pending deep link.
-  void clearPendingDeepLink() {
-    if (_pendingDeepLink != null) {
-      debugPrint('Clearing pending deep link: $_pendingDeepLink');
-      _pendingDeepLink = null;
+  /// Stores a standard deep link URI to be processed later.
+  ///
+  /// Automatically clears any pending Branch data.
+  /// [uri]: The deep link URI.
+  void setPendingUri(Uri uri) {
+    if (_pendingUri != uri) {
+      debugPrint('Setting pending URI: $uri');
+      _pendingUri = uri;
+      if (_pendingBranchData != null) {
+        _pendingBranchData = null; // Ensure only one type is set
+      }
+      notifyListeners();
+    } else if (_pendingBranchData != null) {
+      // URI is the same, but we need to clear the other type
+      _pendingBranchData = null;
+      notifyListeners();
+    }
+  }
+
+  /// Clears all stored pending link information (Branch data and URI).
+  void clearPendingLinks() {
+    if (_pendingBranchData != null || _pendingUri != null) {
+      debugPrint(
+          'Clearing pending links. Branch Data: $_pendingBranchData, URI: $_pendingUri');
+      _pendingBranchData = null;
+      _pendingUri = null;
       notifyListeners();
     }
   }

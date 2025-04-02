@@ -14,15 +14,15 @@ class LinkHandlerService {
 
   StreamSubscription<Map>? _branchSubscription;
   final Map<String, String> _branchParams = {};
-  Map<dynamic, dynamic>? _pendingBranchData;
-  Uri? _pendingDeepLinkUri;
   bool _isProcessingDeepLink = false;
 
   Future<void> initialize() async {
     try {
       _branchSubscription = FlutterBranchSdk.listSession().listen(
         (data) => _handleDeepLinkData(data),
-        onError: (error) {},
+        onError: (error) {
+          print('Branch SDK stream error: $error');
+        },
       );
 
       await _checkInitialReferringData();
@@ -40,124 +40,173 @@ class LinkHandlerService {
 
       await FlutterBranchSdk.getLatestReferringParams();
     } catch (e) {
-      // Error handling
+      print('Error checking initial referring data: $e');
     }
   }
 
   void _handleDeepLinkData(Map<dynamic, dynamic> data) {
-    if (_isProcessingDeepLink) {
+    if (_isProcessingDeepLink || data.isEmpty) {
       return;
     }
 
     try {
       _isProcessingDeepLink = true;
-
-      _pendingBranchData = data;
       _extractAndSaveCustomData(data);
-
-      String? linkPath;
-      String? fullUrl;
-
-      if (data.containsKey('\$deeplink_path')) {
-        linkPath = data['\$deeplink_path'] as String?;
-      }
-
-      if (data.containsKey('~referring_link')) {
-        fullUrl = data['~referring_link'] as String?;
-      }
-
-      final linkProvider = LinkProvider.instance;
-      if (linkPath != null) {
-        linkProvider.setPendingDeepLink(linkPath);
-      } else if (fullUrl != null) {
-        linkProvider.setPendingDeepLink(fullUrl);
-      }
-
-      bool isAuthenticated = false;
-      try {
-        final auth0Provider = Auth0Provider.instance;
-        isAuthenticated = auth0Provider.credentials != null;
-      } catch (e) {
-        isAuthenticated = false;
-      }
-
-      if (!isAuthenticated) {
-        _isProcessingDeepLink = false;
-        return;
-      }
-
-      if (data.containsKey('+clicked_branch_link') &&
-          data['+clicked_branch_link'] == true) {
-        if (linkPath != null) {
-          _navigateBasedOnPath(linkPath);
-        }
-      } else if (fullUrl != null) {
-        final Uri uri = Uri.parse(fullUrl);
-        _handleDeepLink(uri);
-      }
+      _processIncomingLink(data);
     } catch (e) {
-      // Error handling
+      print('Error in _handleDeepLinkData: $e');
     } finally {
       _isProcessingDeepLink = false;
     }
   }
 
-  void _handleDeepLink(Uri uri) {
+  void _processIncomingLink(dynamic linkData) {
     bool isAuthenticated = false;
     try {
       final auth0Provider = Auth0Provider.instance;
       isAuthenticated = auth0Provider.credentials != null;
     } catch (e) {
       isAuthenticated = false;
+      print('Auth check failed during link processing: $e');
     }
 
     final linkProvider = LinkProvider.instance;
 
     if (!isAuthenticated) {
-      _pendingDeepLinkUri = uri;
-      linkProvider.setPendingDeepLink(uri.toString());
+      if (linkData is Map) {
+        linkProvider.setPendingBranchData(linkData);
+      } else if (linkData is Uri) {
+        linkProvider.setPendingUri(linkData);
+      } else {
+        print('Error: Unknown link data type in _processIncomingLink');
+      }
       return;
     }
 
-    final path =
-        uri.path.isNotEmpty ? uri.path : uri.toString().split('://').last;
+    if (linkData is Map) {
+      String? linkPath;
+      String? fullUrl;
 
-    if (path.startsWith('budgets/id=')) {
-      final budgetId = path.substring('budgets/id='.length);
-      _navigateToBudget(budgetId);
-    } else if (path.startsWith('budgets') &&
-        uri.queryParameters.containsKey('id')) {
-      final budgetId = uri.queryParameters['id']!;
-      _navigateToBudget(budgetId);
-    } else if (path.startsWith('transactions/id=')) {
-      final transactionId = path.substring('transactions/id='.length);
-      _navigateToTransaction(transactionId);
-    } else if (path.startsWith('transactions') &&
-        uri.queryParameters.containsKey('id')) {
-      final transactionId = uri.queryParameters['id']!;
-      _navigateToTransaction(transactionId);
-    } else if (path.startsWith('accounts/id=')) {
-      final accountId = path.substring('accounts/id='.length);
-      _navigateToAccount(accountId);
-    } else if (path.startsWith('accounts') &&
-        uri.queryParameters.containsKey('id')) {
-      final accountId = uri.queryParameters['id']!;
-      _navigateToAccount(accountId);
-    } else if (path.startsWith('stats/')) {
-      final statsPath = path.substring('stats/'.length);
-      _navigateToStats(statsPath, uri.queryParameters);
-    } else if (path == 'stats') {
-      _navigateToStats('', uri.queryParameters);
+      if (linkData.containsKey('\$deeplink_path')) {
+        linkPath = linkData['\$deeplink_path'] as String?;
+      }
+
+      if (linkData.containsKey('~referring_link')) {
+        fullUrl = linkData['~referring_link'] as String?;
+      }
+
+      if (linkData.containsKey('+clicked_branch_link') &&
+          linkData['+clicked_branch_link'] == true) {
+        if (linkPath != null) {
+          _navigateBasedOnPath(linkPath);
+        } else if (fullUrl != null) {
+          try {
+            final Uri uri = Uri.parse(fullUrl);
+            _handleDeepLinkUri(uri);
+          } catch (e) {
+            print(
+                'Error parsing Branch referring link URL: $fullUrl, Error: $e');
+            goRouter.go('/');
+          }
+        } else {
+          print('Branch link clicked but no path or URL found.');
+          goRouter.go('/');
+        }
+      } else if (fullUrl != null) {
+        try {
+          final Uri uri = Uri.parse(fullUrl);
+          _handleDeepLinkUri(uri);
+        } catch (e) {
+          print(
+              'Error parsing Branch referring link URL (non-click): $fullUrl, Error: $e');
+          goRouter.go('/');
+        }
+      } else {
+        print('Could not determine navigation from Branch data: $linkData');
+        goRouter.go('/');
+      }
+    } else if (linkData is Uri) {
+      _handleDeepLinkUri(linkData);
     } else {
-      _navigateBasedOnPath(path.split('/').first);
+      print('Error: Unknown link data type reached authenticated processing');
+      goRouter.go('/');
+    }
+  }
+
+  void _handleDeepLinkUri(Uri uri) {
+    try {
+      final path =
+          uri.path.isNotEmpty ? uri.path : uri.toString().split('://').last;
+      final queryParams = uri.queryParameters;
+
+      List<String> pathSegments = uri.pathSegments;
+      if (pathSegments.isEmpty && uri.hasAuthority) {
+        pathSegments = [uri.authority];
+      } else if (pathSegments.isEmpty && path.isNotEmpty) {
+        pathSegments = path.split('/');
+      }
+
+      if (pathSegments.isNotEmpty) {
+        final String primaryPath = pathSegments.first.toLowerCase();
+        String? id;
+
+        if (pathSegments.length > 1) {
+          id = pathSegments[1];
+        }
+
+        if (queryParams.containsKey('id')) {
+          id = queryParams['id'];
+        }
+
+        switch (primaryPath) {
+          case 'budgets':
+            if (id != null) {
+              _navigateToBudget(id);
+            } else {
+              goRouter.go(AppRoutes.budgets());
+            }
+            break;
+          case 'transactions':
+            if (id != null) {
+              _navigateToTransaction(id);
+            } else {
+              goRouter.go(AppRoutes.transactions());
+            }
+            break;
+          case 'accounts':
+            if (id != null) {
+              _navigateToAccount(id);
+            } else {
+              goRouter.go(AppRoutes.accounts());
+            }
+            break;
+          case 'stats':
+            String subPath = pathSegments.length > 1
+                ? pathSegments.sublist(1).join('/')
+                : '';
+            _navigateToStats(subPath, queryParams);
+            break;
+          case 'subscription':
+            goRouter.go('/subscription');
+            break;
+          default:
+            print('Unhandled deep link path: $path');
+            goRouter.go('/');
+            break;
+        }
+      } else {
+        print('Could not parse path from URI: $uri');
+        goRouter.go('/');
+      }
+    } catch (e) {
+      print('Error handling deep link URI $uri: $e');
+      goRouter.go('/');
     }
   }
 
   void processPendingDeepLinks() {
     if (_isProcessingDeepLink) {
-      Future.delayed(Duration(milliseconds: 500), () {
-        processPendingDeepLinks();
-      });
+      Future.delayed(Duration(milliseconds: 300), processPendingDeepLinks);
       return;
     }
 
@@ -165,45 +214,21 @@ class LinkHandlerService {
 
     try {
       final linkProvider = LinkProvider.instance;
-      final pendingLink = linkProvider.pendingDeepLink;
+      final pendingData = linkProvider.pendingBranchData;
+      final pendingUri = linkProvider.pendingUri;
 
-      if (pendingLink != null) {
-        linkProvider.clearPendingDeepLink();
-
-        if (_pendingBranchData != null) {
-          if (_pendingBranchData!.containsKey('+clicked_branch_link') &&
-              _pendingBranchData!['+clicked_branch_link'] == true) {
-            final String? linkPath =
-                _pendingBranchData!['\$deeplink_path'] as String?;
-            if (linkPath != null) {
-              _navigateBasedOnPath(linkPath);
-            }
-          } else {
-            final String? url =
-                _pendingBranchData!['~referring_link'] as String?;
-            if (url != null) {
-              final Uri uri = Uri.parse(url);
-              _handleDeepLink(uri);
-            } else {
-              _navigateBasedOnPath(pendingLink);
-            }
-          }
-
-          _pendingBranchData = null;
-        } else if (_pendingDeepLinkUri != null) {
-          _handleDeepLink(_pendingDeepLinkUri!);
-          _pendingDeepLinkUri = null;
-        } else {
-          try {
-            final uri = Uri.parse(pendingLink);
-            _handleDeepLink(uri);
-          } catch (e) {
-            _navigateBasedOnPath(pendingLink);
-          }
-        }
+      if (pendingData != null) {
+        print('Processing pending Branch data...');
+        linkProvider.clearPendingLinks();
+        _extractAndSaveCustomData(pendingData);
+        _processIncomingLink(pendingData);
+      } else if (pendingUri != null) {
+        print('Processing pending URI...');
+        linkProvider.clearPendingLinks();
+        _processIncomingLink(pendingUri);
       }
     } catch (e) {
-      // Error handling
+      print('Error processing pending deep links: $e');
     } finally {
       _isProcessingDeepLink = false;
     }
@@ -214,9 +239,11 @@ class LinkHandlerService {
       if (budget != null) {
         goRouter.go(AppRoutes.budget(budgetId, budget: budget));
       } else {
+        print('Budget with ID $budgetId not found, navigating to list.');
         goRouter.go(AppRoutes.budgets());
       }
     }).catchError((error) {
+      print('Error fetching budget $budgetId: $error');
       goRouter.go(AppRoutes.budgets());
     });
   }
@@ -230,9 +257,12 @@ class LinkHandlerService {
         goRouter
             .go(AppRoutes.transaction(transactionId, transaction: transaction));
       } else {
+        print(
+            'Transaction with ID $transactionId not found, navigating to list.');
         goRouter.go(AppRoutes.transactions());
       }
     }).catchError((error) {
+      print('Error fetching transaction $transactionId: $error');
       goRouter.go(AppRoutes.transactions());
     });
   }
@@ -242,31 +272,40 @@ class LinkHandlerService {
       if (account != null) {
         goRouter.go(AppRoutes.account(accountId, account: account));
       } else {
+        print('Account with ID $accountId not found, navigating to list.');
         goRouter.go(AppRoutes.accounts());
       }
     }).catchError((error) {
+      print('Error fetching account $accountId: $error');
       goRouter.go(AppRoutes.accounts());
     });
   }
 
   void _extractAndSaveCustomData(Map<dynamic, dynamic> data) {
     try {
-      if (data.containsKey('custom_data') && data['custom_data'] is Map) {
-        final customData = data['custom_data'] as Map;
-        _branchParams.clear();
-
-        for (final entry in customData.entries) {
-          _branchParams[entry.key.toString()] = entry.value.toString();
+      _branchParams.clear();
+      if (data.containsKey('custom_data')) {
+        final customData = data['custom_data'];
+        if (customData is Map) {
+          for (final entry in customData.entries) {
+            _branchParams[entry.key.toString()] = entry.value.toString();
+          }
+          print('Extracted custom Branch params: $_branchParams');
+        } else if (customData is String &&
+            customData.startsWith('{') &&
+            customData.endsWith('}')) {
+          print('Custom data might be a JSON string: $customData');
         }
       }
     } catch (e) {
-      // Error handling
+      print('Error extracting custom Branch data: $e');
     }
   }
 
   void _navigateBasedOnPath(String path) {
     try {
-      switch (path) {
+      print('Navigating based on path: $path, Params: $_branchParams');
+      switch (path.toLowerCase()) {
         case 'subscription':
           goRouter.go('/subscription');
           break;
@@ -295,10 +334,12 @@ class LinkHandlerService {
           }
           break;
         default:
+          print('Unhandled path in _navigateBasedOnPath: $path');
           goRouter.go('/');
           break;
       }
     } catch (e) {
+      print('Error in _navigateBasedOnPath for path $path: $e');
       goRouter.go('/');
     }
   }
@@ -306,34 +347,19 @@ class LinkHandlerService {
   Future<void> handleDeepLink(String url) async {
     try {
       if (_isProcessingDeepLink) {
+        print('Deep link received while another is processing. Ignoring: $url');
         return;
       }
 
       _isProcessingDeepLink = true;
+      print('Handling external deep link: $url');
 
       final uri = Uri.parse(url);
+      _processIncomingLink(uri);
 
-      final linkProvider = LinkProvider.instance;
-      linkProvider.setPendingDeepLink(url);
-
-      bool isAuthenticated = false;
-      try {
-        final auth0Provider = Auth0Provider.instance;
-        isAuthenticated = auth0Provider.credentials != null;
-      } catch (e) {
-        isAuthenticated = false;
-      }
-
-      if (!isAuthenticated) {
-        _pendingDeepLinkUri = uri;
-        _isProcessingDeepLink = false;
-        return;
-      }
-
-      _handleDeepLink(uri);
       FlutterBranchSdk.handleDeepLink(url);
     } catch (e) {
-      // Error handling
+      print('Error parsing or handling external deep link $url: $e');
     } finally {
       _isProcessingDeepLink = false;
     }
@@ -341,22 +367,32 @@ class LinkHandlerService {
 
   void _navigateToStats(String path, Map<String, String> params) {
     try {
-      final filters = TransactionFilters(
-        minDate: params['minDate'] != null
+      print('Navigating to Stats - Path: $path, Params: $params');
+      DateTime? minDate, maxDate;
+      try {
+        minDate = params['minDate'] != null
             ? DateTime.parse(params['minDate']!)
-            : null,
-        maxDate: params['maxDate'] != null
+            : null;
+      } catch (_) {}
+      try {
+        maxDate = params['maxDate'] != null
             ? DateTime.parse(params['maxDate']!)
-            : null,
+            : null;
+      } catch (_) {}
+
+      final filters = TransactionFilters(
+        minDate: minDate,
+        maxDate: maxDate,
         categories: params['categories']?.split(','),
         accountsIDs: params['accounts']?.split(','),
         tagsIDs: params['tags']?.split(','),
         searchValue: params['search'],
       );
 
-      switch (path) {
+      switch (path.toLowerCase()) {
         case 'category':
-          goRouter.go(AppRoutes.statsCategory('', filters: filters));
+          goRouter.go(AppRoutes.statsCategory(params['category'] ?? '',
+              filters: filters));
           break;
         case 'subcategory':
           goRouter.go('/stats/subcategory', extra: filters);
@@ -370,11 +406,16 @@ class LinkHandlerService {
         case 'balance-evolution':
           goRouter.go('/stats/balance-evolution', extra: filters);
           break;
-        default:
+        case '':
           goRouter.go('/stats', extra: filters);
+          break;
+        default:
+          print('Unhandled stats path: $path');
+          goRouter.go('/stats');
           break;
       }
     } catch (e) {
+      print('Error navigating to stats: $e');
       goRouter.go('/stats');
     }
   }
@@ -383,8 +424,6 @@ class LinkHandlerService {
     await _branchSubscription?.cancel();
     _branchSubscription = null;
     _branchParams.clear();
-    _pendingBranchData = null;
-    _pendingDeepLinkUri = null;
-    _isProcessingDeepLink = false;
+    print('LinkHandlerService disposed.');
   }
 }

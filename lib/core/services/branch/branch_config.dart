@@ -11,13 +11,10 @@ class BranchConfig {
     if (_isInitialized) return;
 
     try {
-      await FlutterBranchSdk.init(
-        enableLogging: kDebugMode,
-        disableTracking: false,
-      );
+      await FlutterBranchSdk.init(enableLogging: kDebugMode);
 
       _isInitialized = true;
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Error handling without debug prints
     }
   }

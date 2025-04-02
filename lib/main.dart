@@ -18,7 +18,6 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/providers/app_version_provider.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
-import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
@@ -28,7 +27,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:flutter/services.dart';
-import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
@@ -36,7 +34,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:parsa/core/services/branch/branch_config.dart';
-import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:parsa/core/services/branch/link_handler_service.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 
@@ -50,9 +47,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
-
-  // Initialize Branch SDK
-  await FlutterBranchSdk.init(enableLogging: !kReleaseMode);
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -294,7 +288,6 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
     bool status = await auth0Provider.checkLoginStatus();
 
-    // After checking login status, check for any pending deep links
     if (status) {
       LinkHandlerService.instance.processPendingDeepLinks();
     }
@@ -333,10 +326,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      navigatorObservers: [
-        MainLayoutNavObserver(),
-        DeepLinkObserver(_handleIncomingLink)
-      ],
+      navigatorObservers: [MainLayoutNavObserver()],
       builder: (context, child) {
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
@@ -410,42 +400,35 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             return BiometricsCheckScreen(
               onBiometricsVerified: () async {
                 // Fetch user data from server
+                // Note: If checkLoginStatus already processed a link and navigated,
+                // this callback might execute but the UI might already be elsewhere.
                 await fetchUserDataAtServer();
 
-                // Get LinkProvider instance and process any pending deep links
-                final linkProvider =
-                    Provider.of<LinkProvider>(context, listen: false);
-                final pendingLink = linkProvider.pendingDeepLink;
+                // Proceed with normal navigation logic if no link navigated earlier
+                if (!mounted) return; // Check if widget is still mounted
 
-                if (pendingLink != null) {
-                  debugPrint(
-                      'Found pending deep link after biometrics verification: $pendingLink');
-                  // Process the pending link using LinkHandlerService
-                  LinkHandlerService.instance.processPendingDeepLinks();
-
-                  // Return early - navigation will be handled by the link handler
-                  return;
-                }
-
-                // Get user data from provider - it will never be null as per your requirement
+                // Get user data from provider
                 final userData =
                     Provider.of<UserDataProvider>(context, listen: false)
                         .userData;
 
-                // Check if filled_questionaire (with 'e') is true
+                // Check if filled_questionaire is true
                 if (userData != null &&
                     userData['filled_questionaire'] == true) {
                   print(
                       "USER DATA: $userData , ${userData['filled_questionaire']}");
                   // If questionnaire is filled, go directly to TabsPage
+                  if (!mounted) return;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
                   );
                 } else {
-                  print("WHY AM I HERE?");
+                  print(
+                      "Questionnaire not filled or user data null, checking intake form.");
                   // If questionnaire is not filled, continue with intake form check
+                  if (!mounted) return;
                   _checkIntakeFormCompletion(context);
                 }
               },
@@ -456,27 +439,13 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     );
   }
 
-  void _handleIncomingLink(String link) {
-    print('Received deep link: $link');
-
-    // Pass all links to the LinkHandlerService
-    LinkHandlerService.instance.handleDeepLink(link);
-
-    // Only navigate to TabsPage if not handling a deep link
-    if (LinkProvider.instance.pendingDeepLink == null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-      );
-    }
-  }
-
   // Helper method to check intake form completion and navigate accordingly
   void _checkIntakeFormCompletion(BuildContext context) {
     // We'll use SharedPreferences to check if intake form is completed
     SharedPreferencesAsync.instance
         .getIntakeCompleted()
         .then((isIntakeCompleted) {
+      if (!mounted) return; // Check mount status before navigation
       if (isIntakeCompleted) {
         // If intake is completed, go to main app (TabsPage)
         Navigator.pushReplacement(
