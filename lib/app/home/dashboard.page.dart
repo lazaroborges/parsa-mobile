@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';

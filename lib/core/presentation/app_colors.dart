@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Monekin brand color.
-// const brandBlue = Color(0xFF0F3375);
-
-/// Monekin brand colors
-const brandBlue = Color(0xFF1c64f2);
-const brandDarkBlue = Color(0xFF1724c9);
-const brandLightBlue = Color(0xFF30a8ff);
+const brandBlue = Color(0xFF0F3375);
 
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
@@ -17,8 +12,6 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.shadowColor,
     required this.shadowColorLight,
     required this.brand,
-    required this.brandDark,
-    required this.brandLight,
     required this.inputFill,
     required this.primary,
     required this.onPrimary,
@@ -32,8 +25,6 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color danger;
   final Color success;
   final Color brand;
-  final Color brandDark;
-  final Color brandLight;
   final Color inputFill;
   final Color light;
   final Color dark;
@@ -50,23 +41,36 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color modalBackground;
 
   static AppColors fromColorScheme(ColorScheme colorScheme) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     return AppColors(
-      danger: Colors.red,
-      success: const Color.fromARGB(255, 55, 161, 59),
-      brand: brandBlue,
-      brandDark: brandDarkBlue,
-      brandLight: brandLightBlue,
+      danger: isDark ? Colors.redAccent : Colors.red,
+      success:
+          isDark ? Colors.lightGreen : const Color.fromARGB(255, 55, 161, 59),
+      brand: isDark ? const Color.fromARGB(255, 128, 134, 177) : brandBlue,
+
       light: colorScheme.surfaceContainerLow,
+
       dark: colorScheme.inverseSurface,
-      shadowColor: const Color.fromARGB(100, 90, 90, 90),
-      shadowColorLight: const Color.fromARGB(44, 90, 90, 90),
+
+      shadowColor: isDark
+          ? const Color.fromARGB(105, 189, 189, 189)
+          : const Color.fromARGB(100, 90, 90, 90),
+
+      shadowColorLight: isDark
+          ? const Color.fromARGB(40, 116, 116, 116)
+          : const Color.fromARGB(44, 90, 90, 90),
+
       inputFill: colorScheme.surfaceContainerHighest,
+
+      // Colors from the material color scheme:
       primary: colorScheme.primary,
       onPrimary: colorScheme.onPrimary,
       primaryContainer: colorScheme.primaryContainer,
       onPrimaryContainer: colorScheme.onPrimaryContainer,
       surface: colorScheme.surface,
       onSurface: colorScheme.onSurface,
+
       modalBackground: colorScheme.surfaceContainer,
     );
   }
@@ -80,8 +84,6 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? danger,
     Color? success,
     Color? brand,
-    Color? brandDark,
-    Color? brandLight,
     Color? primary,
     Color? inputFill,
     Color? dark,
@@ -98,12 +100,10 @@ class AppColors extends ThemeExtension<AppColors> {
     return AppColors(
       danger: danger ?? this.danger,
       success: success ?? this.success,
-      brand: brand ?? this.brand,
-      brandDark: brandDark ?? this.brandDark,
-      brandLight: brandLight ?? this.brandLight,
       inputFill: inputFill ?? this.inputFill,
       light: light ?? this.light,
       dark: dark ?? this.dark,
+      brand: brand ?? this.brand,
       shadowColor: shadowColor ?? this.shadowColor,
       shadowColorLight: shadowColorLight ?? this.shadowColorLight,
       primary: primary ?? this.primary,
@@ -124,9 +124,6 @@ class AppColors extends ThemeExtension<AppColors> {
     return AppColors(
       danger: Color.lerp(danger, other.danger, t) ?? danger,
       success: Color.lerp(success, other.success, t) ?? success,
-      brand: Color.lerp(brand, other.brand, t) ?? brand,
-      brandDark: Color.lerp(brandDark, other.brandDark, t) ?? brandDark,
-      brandLight: Color.lerp(brandLight, other.brandLight, t) ?? brandLight,
       inputFill: Color.lerp(inputFill, other.inputFill, t) ?? inputFill,
       light: Color.lerp(light, other.light, t) ?? light,
       dark: Color.lerp(dark, other.dark, t) ?? dark,
@@ -134,6 +131,7 @@ class AppColors extends ThemeExtension<AppColors> {
       shadowColorLight:
           Color.lerp(shadowColorLight, other.shadowColorLight, t) ??
               shadowColorLight,
+      brand: Color.lerp(brand, other.brand, t) ?? brand,
       primary: Color.lerp(primary, other.primary, t) ?? primary,
       onPrimary: Color.lerp(onPrimary, other.onPrimary, t) ?? onPrimary,
       primaryContainer:
