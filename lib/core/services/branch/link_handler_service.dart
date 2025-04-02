@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/routes/go_router_config.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/providers/link_provider.dart';
 
 class LinkHandlerService {
   static final LinkHandlerService instance = LinkHandlerService._();
@@ -13,19 +14,20 @@ class LinkHandlerService {
 
   StreamSubscription<Map>? _branchSubscription;
   final Map<String, String> _branchParams = {};
+  Map<dynamic, dynamic>? _pendingBranchData;
+  Uri? _pendingDeepLinkUri;
+  bool _isProcessingDeepLink = false;
 
   Future<void> initialize() async {
     try {
-      // Set up session listener for Branch deep links
       _branchSubscription = FlutterBranchSdk.listSession().listen(
         (data) => _handleDeepLinkData(data),
-        onError: (error) => debugPrint('Branch session listener error: $error'),
+        onError: (error) {},
       );
 
-      // Check initial referring data
       await _checkInitialReferringData();
     } catch (e) {
-      debugPrint('Error initializing link handler: $e');
+      print('Error initializing LinkHandlerService: $e');
     }
   }
 
@@ -36,55 +38,90 @@ class LinkHandlerService {
         _handleDeepLinkData(initialParams);
       }
 
-      final latestParams = await FlutterBranchSdk.getLatestReferringParams();
-      if (latestParams.isNotEmpty) {
-        debugPrint('Latest referring data: $latestParams');
-      }
+      await FlutterBranchSdk.getLatestReferringParams();
     } catch (e) {
-      debugPrint('Error checking initial referring data: $e');
+      // Error handling
     }
   }
 
   void _handleDeepLinkData(Map<dynamic, dynamic> data) {
-    debugPrint('Deep link data received: $data');
+    if (_isProcessingDeepLink) {
+      return;
+    }
 
     try {
+      _isProcessingDeepLink = true;
+
+      _pendingBranchData = data;
+      _extractAndSaveCustomData(data);
+
+      String? linkPath;
+      String? fullUrl;
+
+      if (data.containsKey('\$deeplink_path')) {
+        linkPath = data['\$deeplink_path'] as String?;
+      }
+
+      if (data.containsKey('~referring_link')) {
+        fullUrl = data['~referring_link'] as String?;
+      }
+
+      final linkProvider = LinkProvider.instance;
+      if (linkPath != null) {
+        linkProvider.setPendingDeepLink(linkPath);
+      } else if (fullUrl != null) {
+        linkProvider.setPendingDeepLink(fullUrl);
+      }
+
+      bool isAuthenticated = false;
+      try {
+        final auth0Provider = Auth0Provider.instance;
+        isAuthenticated = auth0Provider.credentials != null;
+      } catch (e) {
+        isAuthenticated = false;
+      }
+
+      if (!isAuthenticated) {
+        _isProcessingDeepLink = false;
+        return;
+      }
+
       if (data.containsKey('+clicked_branch_link') &&
           data['+clicked_branch_link'] == true) {
-        final String? linkPath = data['+deeplink_path'] as String?;
-        final bool isFirstSession = data['+is_first_session'] ?? false;
-
-        debugPrint('Is first session: $isFirstSession');
-        debugPrint('Deep link path: $linkPath');
-
-        _extractAndSaveCustomData(data);
-
         if (linkPath != null) {
           _navigateBasedOnPath(linkPath);
         }
-      } else {
-        // Handle direct URL scheme links like myapp://budgets/id=28312832h38
-        final String? url = data['~referring_link'] as String?;
-        if (url != null) {
-          final Uri uri = Uri.parse(url);
-          _handleDeepLink(uri);
-        }
+      } else if (fullUrl != null) {
+        final Uri uri = Uri.parse(fullUrl);
+        _handleDeepLink(uri);
       }
     } catch (e) {
-      debugPrint('Error handling deep link data: $e');
+      // Error handling
+    } finally {
+      _isProcessingDeepLink = false;
     }
   }
 
   void _handleDeepLink(Uri uri) {
-    // Extract the path without the scheme
+    bool isAuthenticated = false;
+    try {
+      final auth0Provider = Auth0Provider.instance;
+      isAuthenticated = auth0Provider.credentials != null;
+    } catch (e) {
+      isAuthenticated = false;
+    }
+
+    final linkProvider = LinkProvider.instance;
+
+    if (!isAuthenticated) {
+      _pendingDeepLinkUri = uri;
+      linkProvider.setPendingDeepLink(uri.toString());
+      return;
+    }
+
     final path =
         uri.path.isNotEmpty ? uri.path : uri.toString().split('://').last;
 
-    debugPrint('Handling deep link with path: $path');
-
-    // Handle different path patterns
-
-    // Budget deep links
     if (path.startsWith('budgets/id=')) {
       final budgetId = path.substring('budgets/id='.length);
       _navigateToBudget(budgetId);
@@ -92,105 +129,122 @@ class LinkHandlerService {
         uri.queryParameters.containsKey('id')) {
       final budgetId = uri.queryParameters['id']!;
       _navigateToBudget(budgetId);
-    }
-
-    // Transaction deep links
-    else if (path.startsWith('transactions/id=')) {
+    } else if (path.startsWith('transactions/id=')) {
       final transactionId = path.substring('transactions/id='.length);
       _navigateToTransaction(transactionId);
     } else if (path.startsWith('transactions') &&
         uri.queryParameters.containsKey('id')) {
       final transactionId = uri.queryParameters['id']!;
       _navigateToTransaction(transactionId);
-    }
-
-    // Account deep links
-    else if (path.startsWith('accounts/id=')) {
+    } else if (path.startsWith('accounts/id=')) {
       final accountId = path.substring('accounts/id='.length);
       _navigateToAccount(accountId);
     } else if (path.startsWith('accounts') &&
         uri.queryParameters.containsKey('id')) {
       final accountId = uri.queryParameters['id']!;
       _navigateToAccount(accountId);
-    }
-
-    // Stats deep links
-    else if (path.startsWith('stats/')) {
+    } else if (path.startsWith('stats/')) {
       final statsPath = path.substring('stats/'.length);
       _navigateToStats(statsPath, uri.queryParameters);
     } else if (path == 'stats') {
       _navigateToStats('', uri.queryParameters);
-    }
-
-    // Default fallback
-    else {
-      // Default fallback navigation
+    } else {
       _navigateBasedOnPath(path.split('/').first);
     }
   }
 
-  void _navigateToBudget(String budgetId) {
-    debugPrint('Navigating to budget with ID: $budgetId');
+  void processPendingDeepLinks() {
+    if (_isProcessingDeepLink) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        processPendingDeepLinks();
+      });
+      return;
+    }
 
-    // Fetch the budget data first
+    _isProcessingDeepLink = true;
+
+    try {
+      final linkProvider = LinkProvider.instance;
+      final pendingLink = linkProvider.pendingDeepLink;
+
+      if (pendingLink != null) {
+        linkProvider.clearPendingDeepLink();
+
+        if (_pendingBranchData != null) {
+          if (_pendingBranchData!.containsKey('+clicked_branch_link') &&
+              _pendingBranchData!['+clicked_branch_link'] == true) {
+            final String? linkPath =
+                _pendingBranchData!['\$deeplink_path'] as String?;
+            if (linkPath != null) {
+              _navigateBasedOnPath(linkPath);
+            }
+          } else {
+            final String? url =
+                _pendingBranchData!['~referring_link'] as String?;
+            if (url != null) {
+              final Uri uri = Uri.parse(url);
+              _handleDeepLink(uri);
+            } else {
+              _navigateBasedOnPath(pendingLink);
+            }
+          }
+
+          _pendingBranchData = null;
+        } else if (_pendingDeepLinkUri != null) {
+          _handleDeepLink(_pendingDeepLinkUri!);
+          _pendingDeepLinkUri = null;
+        } else {
+          try {
+            final uri = Uri.parse(pendingLink);
+            _handleDeepLink(uri);
+          } catch (e) {
+            _navigateBasedOnPath(pendingLink);
+          }
+        }
+      }
+    } catch (e) {
+      // Error handling
+    } finally {
+      _isProcessingDeepLink = false;
+    }
+  }
+
+  void _navigateToBudget(String budgetId) {
     BudgetServive.instance.getBudgetById(budgetId).first.then((budget) {
       if (budget != null) {
-        // Navigate with the fetched budget data
         goRouter.go(AppRoutes.budget(budgetId, budget: budget));
-        debugPrint('Navigated to budget with ID: $budgetId');
       } else {
-        // Budget not found, navigate to budgets list
-        debugPrint('Budget with ID $budgetId not found, going to budgets list');
         goRouter.go(AppRoutes.budgets());
       }
     }).catchError((error) {
-      debugPrint('Error fetching budget data: $error');
       goRouter.go(AppRoutes.budgets());
     });
   }
 
   void _navigateToTransaction(String transactionId) {
-    debugPrint('Navigating to transaction with ID: $transactionId');
-
-    // Fetch the transaction data first
     TransactionService.instance
         .getTransactionById(transactionId)
         .first
         .then((transaction) {
       if (transaction != null) {
-        // For single transaction view, we don't need filters
         goRouter
             .go(AppRoutes.transaction(transactionId, transaction: transaction));
-        debugPrint('Navigated to transaction with ID: $transactionId');
       } else {
-        // Transaction not found, navigate to transactions list
-        debugPrint(
-            'Transaction with ID $transactionId not found, going to transactions list');
         goRouter.go(AppRoutes.transactions());
       }
     }).catchError((error) {
-      debugPrint('Error fetching transaction data: $error');
       goRouter.go(AppRoutes.transactions());
     });
   }
 
   void _navigateToAccount(String accountId) {
-    debugPrint('Navigating to account with ID: $accountId');
-
-    // Fetch the account data first
     AccountService.instance.getAccountById(accountId).first.then((account) {
       if (account != null) {
-        // Navigate with the fetched account data
         goRouter.go(AppRoutes.account(accountId, account: account));
-        debugPrint('Navigated to account with ID: $accountId');
       } else {
-        // Account not found, navigate to accounts list
-        debugPrint(
-            'Account with ID $accountId not found, going to accounts list');
         goRouter.go(AppRoutes.accounts());
       }
     }).catchError((error) {
-      debugPrint('Error fetching account data: $error');
       goRouter.go(AppRoutes.accounts());
     });
   }
@@ -206,7 +260,7 @@ class LinkHandlerService {
         }
       }
     } catch (e) {
-      debugPrint('Error extracting custom data: $e');
+      // Error handling
     }
   }
 
@@ -245,75 +299,48 @@ class LinkHandlerService {
           break;
       }
     } catch (e) {
-      debugPrint('Error navigating to path: $e');
       goRouter.go('/');
     }
   }
 
   Future<void> handleDeepLink(String url) async {
     try {
-      // Parse URL and handle it
+      if (_isProcessingDeepLink) {
+        return;
+      }
+
+      _isProcessingDeepLink = true;
+
       final uri = Uri.parse(url);
+
+      final linkProvider = LinkProvider.instance;
+      linkProvider.setPendingDeepLink(url);
+
+      bool isAuthenticated = false;
+      try {
+        final auth0Provider = Auth0Provider.instance;
+        isAuthenticated = auth0Provider.credentials != null;
+      } catch (e) {
+        isAuthenticated = false;
+      }
+
+      if (!isAuthenticated) {
+        _pendingDeepLinkUri = uri;
+        _isProcessingDeepLink = false;
+        return;
+      }
+
       _handleDeepLink(uri);
-
-      // Additionally, let Branch SDK handle it for analytics
       FlutterBranchSdk.handleDeepLink(url);
-      debugPrint('Handled deep link: $url');
     } catch (e) {
-      debugPrint('Error handling deep link: $e');
-    }
-  }
-
-  Future<bool> listOnSearch(BranchUniversalObject buo) async {
-    try {
-      return await FlutterBranchSdk.listOnSearch(buo: buo);
-    } catch (e) {
-      debugPrint('Error listing on search: $e');
-      return false;
-    }
-  }
-
-  Future<bool> removeFromSearch(BranchUniversalObject buo) async {
-    try {
-      return await FlutterBranchSdk.removeFromSearch(buo: buo);
-    } catch (e) {
-      debugPrint('Error removing from search: $e');
-      return false;
-    }
-  }
-
-  void registerView(BranchUniversalObject buo) {
-    try {
-      FlutterBranchSdk.registerView(buo: buo);
-    } catch (e) {
-      debugPrint('Error registering view: $e');
-    }
-  }
-
-  void trackContent({
-    required List<BranchUniversalObject> buo,
-    required BranchEvent branchEvent,
-  }) {
-    try {
-      FlutterBranchSdk.trackContent(buo: buo, branchEvent: branchEvent);
-    } catch (e) {
-      debugPrint('Error tracking content: $e');
-    }
-  }
-
-  void trackContentWithoutBuo(BranchEvent branchEvent) {
-    try {
-      FlutterBranchSdk.trackContentWithoutBuo(branchEvent: branchEvent);
-    } catch (e) {
-      debugPrint('Error tracking content without BUO: $e');
+      // Error handling
+    } finally {
+      _isProcessingDeepLink = false;
     }
   }
 
   void _navigateToStats(String path, Map<String, String> params) {
-    debugPrint('Navigating to stats with path: $path');
-
     try {
-      // Parse filters from params
       final filters = TransactionFilters(
         minDate: params['minDate'] != null
             ? DateTime.parse(params['minDate']!)
@@ -327,7 +354,6 @@ class LinkHandlerService {
         searchValue: params['search'],
       );
 
-      // Determine which stats page to show based on path
       switch (path) {
         case 'category':
           goRouter.go(AppRoutes.statsCategory('', filters: filters));
@@ -349,7 +375,6 @@ class LinkHandlerService {
           break;
       }
     } catch (e) {
-      debugPrint('Error navigating to stats: $e');
       goRouter.go('/stats');
     }
   }
@@ -358,5 +383,8 @@ class LinkHandlerService {
     await _branchSubscription?.cancel();
     _branchSubscription = null;
     _branchParams.clear();
+    _pendingBranchData = null;
+    _pendingDeepLinkUri = null;
+    _isProcessingDeepLink = false;
   }
 }

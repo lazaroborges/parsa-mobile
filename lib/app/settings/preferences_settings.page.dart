@@ -158,7 +158,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                   // Not rendering the widget, but keeping the stream active
                   return const SizedBox.shrink();
                 }),
-            // Removed AMOLED mode, dynamic colors, and accent color widgets
             StreamBuilder(
                 stream: UserSettingService.instance
                     .getSetting(SettingKey.amoledMode)

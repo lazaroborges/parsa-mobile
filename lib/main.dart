@@ -38,6 +38,7 @@ import 'firebase_options.dart';
 import 'package:parsa/core/services/branch/branch_config.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:parsa/core/services/branch/link_handler_service.dart';
+import 'package:parsa/core/providers/link_provider.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -80,7 +81,6 @@ void main() async {
   // Initialize Branch and Link Handler
   await BranchConfig.initialize();
   await LinkHandlerService.instance.initialize();
-  debugPrint('Branch SDK and Link Handler initialized');
 
   final app = MultiProvider(
     providers: [
@@ -89,6 +89,7 @@ void main() async {
         create: (_) => Auth0Provider(auth0: auth0),
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
+      ChangeNotifierProvider(create: (_) => LinkProvider.instance),
     ],
     child: const MonekinAppEntryPoint(),
   );
@@ -153,11 +154,12 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   }
 
   void _handleIncomingLink(String link) {
-    print('Received link: $link');
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    );
+    print('Received deep link: $link');
+
+    // Simply pass the link to the LinkHandlerService
+    // It will handle all the logic of storing the link if not authenticated
+    // or processing it immediately if authenticated
+    LinkHandlerService.instance.handleDeepLink(link);
   }
 
   @override
@@ -291,6 +293,12 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   Future<void> _checkLoginStatus() async {
     final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
     bool status = await auth0Provider.checkLoginStatus();
+
+    // After checking login status, check for any pending deep links
+    if (status) {
+      LinkHandlerService.instance.processPendingDeepLinks();
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -404,6 +412,21 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                 // Fetch user data from server
                 await fetchUserDataAtServer();
 
+                // Get LinkProvider instance and process any pending deep links
+                final linkProvider =
+                    Provider.of<LinkProvider>(context, listen: false);
+                final pendingLink = linkProvider.pendingDeepLink;
+
+                if (pendingLink != null) {
+                  debugPrint(
+                      'Found pending deep link after biometrics verification: $pendingLink');
+                  // Process the pending link using LinkHandlerService
+                  LinkHandlerService.instance.processPendingDeepLinks();
+
+                  // Return early - navigation will be handled by the link handler
+                  return;
+                }
+
                 // Get user data from provider - it will never be null as per your requirement
                 final userData =
                     Provider.of<UserDataProvider>(context, listen: false)
@@ -419,7 +442,6 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
-                    // Use pushReplacement to avoid back navigation
                   );
                 } else {
                   print("WHY AM I HERE?");
@@ -436,10 +458,17 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
 
   void _handleIncomingLink(String link) {
     print('Received deep link: $link');
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    );
+
+    // Pass all links to the LinkHandlerService
+    LinkHandlerService.instance.handleDeepLink(link);
+
+    // Only navigate to TabsPage if not handling a deep link
+    if (LinkProvider.instance.pendingDeepLink == null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+      );
+    }
   }
 
   // Helper method to check intake form completion and navigate accordingly

@@ -28,15 +28,8 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
-def keystoreProperties = new Properties()
-
-// Create a variable called keystorePropertiesFile, and initialize it to your
-// key.properties file, in the rootProject folder ([project]/android/keys/...).
 def keystorePropertiesFile = rootProject.file("keys/key.properties")
-
-// Initialize a new Properties() object called keystoreProperties.
-
-// Load your keystore.properties file into the keystoreProperties object.
+def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }

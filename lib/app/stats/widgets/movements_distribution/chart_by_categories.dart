@@ -13,13 +13,12 @@ import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/models/supported-icon/icon_displayer.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
+import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/ui_number_formatter.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/presentation/widgets/trending_value.dart';
 import 'package:parsa/i18n/translations.g.dart';
-
-import '../../../../core/models/transaction/transaction_type.enum.dart';
 
 class TrDistributionChartItem<T> {
   final T category;

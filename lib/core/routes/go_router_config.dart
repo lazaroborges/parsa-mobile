@@ -17,9 +17,25 @@ import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
+  debugLogDiagnostics: true,
+  // For Branch SDK deep links to work correctly
+  redirect: (context, state) {
+    // If this is a deep link, let the LinkHandlerService handle it
+    final uri = state.uri;
+    if (uri.scheme == 'com.parsa.app' || uri.toString().contains('app.link')) {
+      // This is a deep link, let the LinkHandlerService handle it
+      LinkHandlerService.instance.handleDeepLink(uri.toString());
+      // Return null to prevent GoRouter from handling this URI
+      return null;
+    }
+
+    // Otherwise, let GoRouter handle normal navigation
+    return null;
+  },
   routes: [
     ShellRoute(
       builder: (context, state, child) => const TabsPage(),

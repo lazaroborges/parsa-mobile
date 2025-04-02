@@ -1,5 +1,6 @@
 // New Login Page - Improved Designs and Animations
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
@@ -12,6 +13,7 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 import '../../core/presentation/app_colors.dart';
 

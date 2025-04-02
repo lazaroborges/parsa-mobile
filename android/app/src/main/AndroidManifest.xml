@@ -9,7 +9,8 @@
     <application
         android:label="Parsa"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,11 +30,20 @@
               />
             <meta-data 
                 android:name="flutter_deeplink_enabled"
-                android:value="false" />
+                android:value="true" />
             
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="com.parsa.app"
+                    android:host="callback" />
             </intent-filter>
             
             <!-- Branch URI Scheme -->
@@ -51,10 +61,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<!-- REPLACE `android:host` with your `app.link` domain -->
-				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
-				<!-- REPLACE `android:host` with your `-alternate` domain (required for proper functioning of App Links and Deepviews) -->
-				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
+				<data android:scheme="https" android:host="ymhog.app.link" />
+				<data android:scheme="https" android:host="ymhog-alternate.app.link" />
 			</intent-filter>
 
             <!-- Branch App Links - Test App -->
@@ -62,9 +70,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
-				<!-- REPLACE `android:host` with your `-alternate` domain (required for proper functioning of App Links and Deepviews) -->
-				<data android:scheme="https" android:host="app.parsa-ai.com.br" />
+				<data android:scheme="https" android:host="ymhog.app-test.link" />
+				<data android:scheme="https" android:host="ymhog-alternate.app-test.link" />
 			</intent-filter>
 
         </activity>
