@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
@@ -39,6 +40,10 @@ class PostUserSettings {
         if (response.statusCode == 200 || response.statusCode == 201) {
           // Clear existing transactions and fetch fresh data when accounting setting changes
           await _clearAndRefreshTransactions();
+          
+          // Fetch and update user data
+          await fetchUserDataAtServer();
+          
           return true;
         } else {
           throw Exception('Failed to update user settings: ${response.statusCode}');

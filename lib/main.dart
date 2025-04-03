@@ -56,8 +56,8 @@ void main() async {
 
   //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file.
   apiEndpoint = kReleaseMode
-      ? 'https://test.parsa-ai.com.br'
-      : (dotenv.env['API_ENDPOINT'] ?? 'https://test.parsa-ai.com.br');
+      ? 'https://app.parsa-ai.com.br'
+      : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
 
   final auth0 = Auth0(
     dotenv.env['AUTH0_DOMAIN']!,
