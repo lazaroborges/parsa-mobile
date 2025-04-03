@@ -74,7 +74,6 @@ void main() async {
 
   // Initialize Branch and Link Handler
   await BranchConfig.initialize();
-  await LinkHandlerService.instance.initialize();
 
   final app = MultiProvider(
     providers: [
@@ -133,15 +132,6 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
       if (initialLink != null) {
         _handleIncomingLink(initialLink.toString());
       }
-
-      // Listen for incoming links while the app is running
-      _linkSubscription = _appLinks.stringLinkStream.listen((link) {
-        if (link != null && link.isNotEmpty) {
-          _handleIncomingLink(link);
-        }
-      }, onError: (err) {
-        print('Error listening to app links: $err');
-      });
     } catch (e) {
       print('Failed to initialize app links: $e');
     }
