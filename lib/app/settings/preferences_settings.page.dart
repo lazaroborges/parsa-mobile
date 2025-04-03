@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
-import 'package:parsa/core/presentation/widgets/platform_alert_dialogue.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
-
+import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'widgets/settings_list_separator.dart';
+import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 
-class AdvancedSettingsPage extends StatefulWidget {
-  const AdvancedSettingsPage({super.key});
+class PreferencesSettingsPage extends StatefulWidget {
+  const PreferencesSettingsPage({super.key});
 
   @override
-  State<AdvancedSettingsPage> createState() => _AdvancedSettingsPageState();
+  State<PreferencesSettingsPage> createState() =>
+      _PreferencesSettingsPageState();
 }
 
 class SelectItem<T> {
@@ -29,7 +30,7 @@ class SelectItem<T> {
   });
 }
 
-class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
+class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
   Widget buildSelector<T>({
     required String title,
     String? dialogDescr,
@@ -157,7 +158,6 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                   // Not rendering the widget, but keeping the stream active
                   return const SizedBox.shrink();
                 }),
-            // Removed AMOLED mode, dynamic colors, and accent color widgets
             StreamBuilder(
                 stream: UserSettingService.instance
                     .getSetting(SettingKey.amoledMode)
@@ -218,54 +218,178 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 secondary: const Icon(Icons.calendar_month),
                 value: isAccrualBasisAccounting,
                 onChanged: (bool value) async {
-                  // Show confirmation dialog before making the change
-                  final confirmed = await showPlatformAlertDialog(
-                    context: context,
-                    title: "Confirmar alteração",
-                    content: value
-                        ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
-                        : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
-                    cancelActionText: "Cancelar",
-                    defaultActionText: "Confirmar",
-                  );
+                  try {
+                    // Update the value in the backend
+                    await PostUserSettings.updateAccrualBasisAccountingSetting(
+                      isAccrualBasisAccounting: value,
+                    );
 
-                  // If user confirmed, proceed with the change
-                  if (confirmed == true) {
-                    try {
-                      // Update the value in the backend
-                      await PostUserSettings
-                          .updateAccrualBasisAccountingSetting(
-                        isAccrualBasisAccounting: value,
-                      );
+                    // Update the local user data
+                    userDataProvider
+                        .updateUserData({'accrual_basis_accounting': value});
 
-                      // Update the local user data
-                      userDataProvider
-                          .updateUserData({'accrual_basis_accounting': value});
+                    // Update the UI
+                    setState(() {});
 
-                      // Update the UI
-                      setState(() {});
-
-                      // Show success message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Configuração atualizada com sucesso'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } catch (e) {
-                      // Show error message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Erro ao atualizar configuração: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      print('Error updating competent_user setting: $e');
-                    }
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Configuração atualizada com sucesso'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erro ao atualizar configuração: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    print('Error updating competent_user setting: $e');
                   }
                 },
               );
             }),
+            // Notificações Settings disabled for now
+            // createListSeparator(context, "Notificações"),
+            // FutureBuilder<Map<String, bool>>(
+            //   future: NotificationPreferencesService.instance.getPreferences(),
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return const ListTile(
+            //         title: Text("Ativar notificações"),
+            //         subtitle: Text("Carregando preferências..."),
+            //         leading: Icon(Icons.notifications),
+            //       );
+            //     }
+
+            //     final preferences = snapshot.data ??
+            //         {
+            //           'budgets_enabled': true,
+            //           'general_enabled': true,
+            //         };
+
+            //     // Consider notifications enabled if any category is enabled
+            //     final notificationsEnabled =
+            //         preferences['budgets_enabled'] == true ||
+            //             preferences['general_enabled'] == true;
+
+            //     return Column(
+            //       children: [
+            //         SwitchListTile(
+            //           title: const Text("Ativar notificações"),
+            //           subtitle: const Text(
+            //               "Permitir que o aplicativo envie notificações"),
+            //           secondary: const Icon(Icons.notifications),
+            //           value: notificationsEnabled,
+            //           onChanged: (bool value) async {
+            //             try {
+            //               // Update both notification categories
+            //               await FCMService.instance
+            //                   .setNotificationsEnabled(value);
+
+            //               // Update the UI by clearing the cache and rebuilding
+            //               NotificationPreferencesService.instance.clearCache();
+            //               setState(() {});
+
+            //               ScaffoldMessenger.of(context).showSnackBar(
+            //                 const SnackBar(
+            //                   content: Text(
+            //                       'Configuração de notificações atualizada'),
+            //                   backgroundColor: Colors.green,
+            //                 ),
+            //               );
+            //             } catch (e) {
+            //               ScaffoldMessenger.of(context).showSnackBar(
+            //                 SnackBar(
+            //                   content:
+            //                       Text('Erro ao atualizar notificações: $e'),
+            //                   backgroundColor: Colors.red,
+            //                 ),
+            //               );
+            //               print('Error updating notifications setting: $e');
+            //             }
+            //           },
+            //         ),
+            //         if (notificationsEnabled) ...[
+            //           SwitchListTile(
+            //             title: const Text("Notificações de orçamentos"),
+            //             subtitle:
+            //                 const Text("Receber notificações sobre orçamentos"),
+            //             secondary: const Icon(Icons.account_balance_wallet),
+            //             value: preferences['budgets_enabled'] ?? true,
+            //             onChanged: (bool value) async {
+            //               try {
+            //                 await FCMService.instance.setNotificationFilter(
+            //                   NotificationCategory.budgets,
+            //                   value,
+            //                 );
+
+            //                 // Update the UI by clearing the cache and rebuilding
+            //                 NotificationPreferencesService.instance
+            //                     .clearCache();
+            //                 setState(() {});
+
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   const SnackBar(
+            //                     content: Text(
+            //                         'Preferências de notificação atualizadas'),
+            //                     backgroundColor: Colors.green,
+            //                   ),
+            //                 );
+            //               } catch (e) {
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   SnackBar(
+            //                     content:
+            //                         Text('Erro ao atualizar preferências: $e'),
+            //                     backgroundColor: Colors.red,
+            //                   ),
+            //                 );
+            //               }
+            //             },
+            //           ),
+            //           SwitchListTile(
+            //             title: const Text("Notificações gerais"),
+            //             subtitle: const Text(
+            //                 "Receber notificações gerais do aplicativo"),
+            //             secondary: const Icon(Icons.notifications_active),
+            //             value: preferences['general_enabled'] ?? true,
+            //             onChanged: (bool value) async {
+            //               try {
+            //                 await FCMService.instance.setNotificationFilter(
+            //                   NotificationCategory.general,
+            //                   value,
+            //                 );
+
+            //                 // Update the UI by clearing the cache and rebuilding
+            //                 NotificationPreferencesService.instance
+            //                     .clearCache();
+            //                 setState(() {});
+
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   const SnackBar(
+            //                     content: Text(
+            //                         'Preferências de notificação atualizadas'),
+            //                     backgroundColor: Colors.green,
+            //                   ),
+            //                 );
+            //               } catch (e) {
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                   SnackBar(
+            //                     content:
+            //                         Text('Erro ao atualizar preferências: $e'),
+            //                     backgroundColor: Colors.red,
+            //                   ),
+            //                 );
+            //               }
+            //             },
+            //           ),
+            //         ],
+            //       ],
+            //     );
+            //   },
+            // ),
             // PrivateMode button disabled for now
             // StreamBuilder(
             //     stream: PrivateModeService.instance.privateModeStream,

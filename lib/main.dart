@@ -18,7 +18,6 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/providers/app_version_provider.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
-import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
@@ -28,11 +27,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:flutter/services.dart';
-import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:parsa/core/services/branch/branch_config.dart';
+import 'package:parsa/core/services/branch/link_handler_service.dart';
+import 'package:parsa/core/providers/link_provider.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -45,6 +48,11 @@ void main() async {
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
 
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // Set preferred orientations to portrait only
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -54,7 +62,7 @@ void main() async {
   // Add custom HTTP override for User-Agent
   HttpOverrides.global = CustomHttpOverrides();
 
-  //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file.
+  //If version is release, use the production endpoint, otherwise use the local endpoint
   apiEndpoint = kReleaseMode
       ? 'https://app.parsa-ai.com.br'
       : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
@@ -64,6 +72,10 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
+  // Initialize Branch and Link Handler
+  await BranchConfig.initialize();
+  await LinkHandlerService.instance.initialize();
+
   final app = MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
@@ -71,6 +83,7 @@ void main() async {
         create: (_) => Auth0Provider(auth0: auth0),
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
+      ChangeNotifierProvider(create: (_) => LinkProvider.instance),
     ],
     child: const MonekinAppEntryPoint(),
   );
@@ -105,7 +118,7 @@ class MonekinAppEntryPoint extends StatefulWidget {
 
 class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   final AppLinks _appLinks = AppLinks();
-  late final StreamSubscription<String?> _linkSubscription; // Changed to String
+  late final StreamSubscription<String?> _linkSubscription;
 
   @override
   void initState() {
@@ -116,15 +129,13 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   void _initializeAppLinks() async {
     try {
       // Handle app launch from terminated state
-      final initialLink =
-          await _appLinks.getInitialLink(); // Correct method name
+      final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
         _handleIncomingLink(initialLink.toString());
       }
 
       // Listen for incoming links while the app is running
       _linkSubscription = _appLinks.stringLinkStream.listen((link) {
-        // Use linkStream and String
         if (link != null && link.isNotEmpty) {
           _handleIncomingLink(link);
         }
@@ -137,20 +148,19 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   }
 
   void _handleIncomingLink(String link) {
-    // Changed to String
-    print('Received link: $link');
-    // Parse the link and navigate accordingly
-    // Example: Navigate to TabsPage on successful authentication callback
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    );
+    print('Received deep link: $link');
+
+    // Simply pass the link to the LinkHandlerService
+    // It will handle all the logic of storing the link if not authenticated
+    // or processing it immediately if authenticated
+    LinkHandlerService.instance.handleDeepLink(link);
   }
 
   @override
   void dispose() {
     _linkSubscription.cancel();
     // _appLinks.dispose(); // Remove if dispose is not defined in AppLinks
+    LinkHandlerService.instance.dispose();
     super.dispose();
   }
 
@@ -277,6 +287,11 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   Future<void> _checkLoginStatus() async {
     final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
     bool status = await auth0Provider.checkLoginStatus();
+
+    if (status) {
+      LinkHandlerService.instance.processPendingDeepLinks();
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -311,16 +326,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      navigatorObservers: [
-        MainLayoutNavObserver(),
-        DeepLinkObserver(_handleIncomingLink)
-      ],
+      navigatorObservers: [MainLayoutNavObserver()],
       builder: (context, child) {
-        // Get system padding for debugging
-        final EdgeInsets systemPadding = MediaQuery.of(context).padding;
-        print(
-            'BUILDER: System padding - bottom: ${systemPadding.bottom}, top: ${systemPadding.top}');
-
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
 
@@ -357,12 +364,11 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
               // Apply SafeArea only for Android devices
               if (!isIOS) {
                 return SafeArea(
-                  bottom:
-                      true, // Apply bottom padding to account for system navigation bar
+                  bottom: true,
                   child: content,
                 );
               } else {
-                return content; // No SafeArea for iOS
+                return content;
               }
             },
           ),
@@ -394,27 +400,35 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             return BiometricsCheckScreen(
               onBiometricsVerified: () async {
                 // Fetch user data from server
+                // Note: If checkLoginStatus already processed a link and navigated,
+                // this callback might execute but the UI might already be elsewhere.
                 await fetchUserDataAtServer();
 
-                // Get user data from provider - it will never be null as per your requirement
+                // Proceed with normal navigation logic if no link navigated earlier
+                if (!mounted) return; // Check if widget is still mounted
+
+                // Get user data from provider
                 final userData =
                     Provider.of<UserDataProvider>(context, listen: false)
                         .userData;
 
-                // Check if filled_questionaire (with 'e') is true
+                // Check if filled_questionaire is true
                 if (userData != null &&
                     userData['filled_questionaire'] == true) {
                   print(
                       "USER DATA: $userData , ${userData['filled_questionaire']}");
                   // If questionnaire is filled, go directly to TabsPage
+                  if (!mounted) return;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
                   );
                 } else {
-                  print("WHY AM I HERE?");
+                  print(
+                      "Questionnaire not filled or user data null, checking intake form.");
                   // If questionnaire is not filled, continue with intake form check
+                  if (!mounted) return;
                   _checkIntakeFormCompletion(context);
                 }
               },
@@ -425,20 +439,13 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     );
   }
 
-  void _handleIncomingLink(String link) {
-    print('Received deep link: $link');
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    );
-  }
-
   // Helper method to check intake form completion and navigate accordingly
   void _checkIntakeFormCompletion(BuildContext context) {
     // We'll use SharedPreferences to check if intake form is completed
     SharedPreferencesAsync.instance
         .getIntakeCompleted()
         .then((isIntakeCompleted) {
+      if (!mounted) return; // Check mount status before navigation
       if (isIntakeCompleted) {
         // If intake is completed, go to main app (TabsPage)
         Navigator.pushReplacement(

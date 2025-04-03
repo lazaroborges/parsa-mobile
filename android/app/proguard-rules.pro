@@ -4,6 +4,11 @@
 -keep class com.google.gson.** { *; }  # Only if you're using Gson directly with Auth0
 -dontwarn com.google.gson.**
 
+-keep class com.google.android.gms.** { *; }
+
+-keep class com.huawei.hms.ads.** { *; }
+-keep interface com.huawei.hms.ads.** { *; }
+
 -keepclassmembers class com.parsa.app.MainActivity {
     public void onNewIntent(android.content.Intent);
 }

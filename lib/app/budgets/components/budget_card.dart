@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:parsa/app/budgets/budget_details_page.dart';
+import 'package:parsa/app/budgets/budget_details.page.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/models/date-utils/period_type.dart';
@@ -27,14 +27,12 @@ class BudgetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
     final titleStyle = Theme.of(context)
         .textTheme
         .titleMedium!
         .copyWith(fontWeight: FontWeight.w600);
     final labelStyle = Theme.of(context).textTheme.bodyMedium;
     final appColors = AppColors.of(context);
-    final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),

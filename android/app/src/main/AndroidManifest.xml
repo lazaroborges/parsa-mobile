@@ -2,10 +2,15 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
     <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:label="Parsa"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -23,10 +28,15 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <meta-data 
+                android:name="flutter_deeplink_enabled"
+                android:value="true" />
+            
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -35,12 +45,70 @@
                     android:scheme="com.parsa.app"
                     android:host="callback" />
             </intent-filter>
+            
+            <!-- Branch URI Scheme -->
+			<intent-filter>
+				<!-- If utilizing $deeplink_path please explicitly declare your hosts, or utilize a wildcard(*) -->
+				<!-- REPLACE `android:scheme` with your Android URI scheme -->
+				<data android:scheme="com.parsa.app" android:host="open" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+
+			<!-- Branch App Links - Live App -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" android:host="ymhog.app.link" />
+				<data android:scheme="https" android:host="ymhog-alternate.app.link" />
+			</intent-filter>
+
+            <!-- Branch App Links - Test App -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" android:host="ymhog.app-test.link" />
+				<data android:scheme="https" android:host="ymhog-alternate.app-test.link" />
+			</intent-filter>
 
         </activity>
+        
+        <!-- Branch init -->
+        <meta-data android:name="io.branch.sdk.BranchKey" android:value="BRANCH_LIVE_KEY" />
+        <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="BRANCH_TEST_KEY" />
+        <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
+        
+        <!-- Firebase Messaging Service -->
+        <service
+            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingBackgroundService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- Set custom default notification channel for FCM on Android -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel" />
     </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
 </manifest>

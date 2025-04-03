@@ -12,6 +12,7 @@ class SharedPreferencesAsync {
   static const String keyBalanceType = 'balanceType';
   static const String keyOnboarded = 'onboarded';
   static const String keyIntakeCompleted = 'intakeCompleted';
+  static const String keyNotificationsEnabled = 'notifications_enabled';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -95,41 +96,49 @@ class SharedPreferencesAsync {
 
   /// Set private mode at launch preference
   Future<bool> setPrivateModeAtLaunch(bool value) async {
-    return setBool(keyPrivateModeAtLaunch, value);
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyPrivateModeAtLaunch, value);
   }
 
   /// Get private mode at launch preference
   Future<bool> getPrivateModeAtLaunch() async {
-    return await getBool(keyPrivateModeAtLaunch) ?? false;
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyPrivateModeAtLaunch) ?? false;
   }
 
   /// Set balance type preference
   Future<bool> setBalanceType(String value) async {
-    return setString(keyBalanceType, value);
+    final prefs = await _getPrefs();
+    return prefs.setString(keyBalanceType, value);
   }
 
   /// Get balance type preference
   Future<String> getBalanceType() async {
-    return await getString(keyBalanceType) ?? 'available';
+    final prefs = await _getPrefs();
+    return prefs.getString(keyBalanceType) ?? 'available';
   }
 
   /// Set onboarded preference
   Future<bool> setOnboarded(bool value) async {
-    return setBool(keyOnboarded, value);
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyOnboarded, value);
   }
 
   /// Get onboarded preference
   Future<bool> getOnboarded() async {
-    return await getBool(keyOnboarded) ?? false;
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyOnboarded) ?? false;
   }
 
   /// Set intake form completion status
   Future<bool> setIntakeCompleted(bool value) async {
-    return setBool(keyIntakeCompleted, value);
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyIntakeCompleted, value);
   }
 
   /// Get intake form completion status
   Future<bool> getIntakeCompleted() async {
-    return await getBool(keyIntakeCompleted) ?? false;
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyIntakeCompleted) ?? false;
   }
 }

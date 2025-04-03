@@ -14,7 +14,6 @@ import 'package:parsa/core/presentation/widgets/persistent_footer_button.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 
@@ -96,7 +95,7 @@ class _StatsPageState extends State<StatsPage> {
               tabAlignment: TabAlignment.center,
               tabs: [
                 Tab(text: t.stats.distribution),
-                Tab(text: "${t.categories.subcategories}"),
+                Tab(text: '${t.categories.subcategories}'),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
                 Tab(text: t.stats.balance_evolution),

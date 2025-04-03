@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
-import "package:parsa/main.dart";
+import 'package:parsa/main.dart' as main;
 
 class SessionService {
   static final SessionService instance = SessionService._internal();
@@ -16,7 +15,7 @@ class SessionService {
 
     try {
       final response = await http.post(
-        Uri.parse('$apiEndpoint/api/sessions/'),
+        Uri.parse('${main.apiEndpoint}/api/sessions/'),
         headers: {
           'Authorization':
               'Bearer ${Auth0Provider.instance.credentials?.accessToken}',
