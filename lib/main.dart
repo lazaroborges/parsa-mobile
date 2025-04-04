@@ -34,8 +34,19 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:parsa/core/services/branch/branch_config.dart';
-import 'package:parsa/core/services/branch/link_handler_service.dart';
+// Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
+
+// Import pages for routes
+import 'package:parsa/app/accounts/all_accounts.page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
+import 'package:parsa/app/settings/settings.page.dart';
+import 'package:parsa/app/settings/preferences_settings.page.dart';
+import 'package:parsa/app/settings/about.page.dart';
+import 'package:parsa/app/settings/export.page.dart';
+import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -72,7 +83,7 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
-  // Initialize Branch and Link Handler
+  // Initialize Branch but don't process links yet
   await BranchConfig.initialize();
 
   final app = MultiProvider(
@@ -117,40 +128,37 @@ class MonekinAppEntryPoint extends StatefulWidget {
 
 class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   final AppLinks _appLinks = AppLinks();
-  late final StreamSubscription<String?> _linkSubscription;
+  StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
     super.initState();
-    _initializeAppLinks();
+    _initializeDeepLinks();
   }
 
-  void _initializeAppLinks() async {
+  void _initializeDeepLinks() async {
     try {
-      // Handle app launch from terminated state
+      // 1. Capture and store initial link
       final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
-        _handleIncomingLink(initialLink.toString());
+        // Use a microtask to avoid setState during build
+        Future.microtask(() {
+          // Check if still mounted before updating provider
+          if (mounted) {
+            Provider.of<LinkProvider>(context, listen: false)
+                .setPendingUri(initialLink);
+            print('Stored deep link in provider: $initialLink');
+          }
+        });
       }
     } catch (e) {
-      print('Failed to initialize app links: $e');
+      print('Failed to initialize deep links: $e');
     }
-  }
-
-  void _handleIncomingLink(String link) {
-    print('Received deep link: $link');
-
-    // Simply pass the link to the LinkHandlerService
-    // It will handle all the logic of storing the link if not authenticated
-    // or processing it immediately if authenticated
-    LinkHandlerService.instance.handleDeepLink(link);
   }
 
   @override
   void dispose() {
-    _linkSubscription.cancel();
-    // _appLinks.dispose(); // Remove if dispose is not defined in AppLinks
-    LinkHandlerService.instance.dispose();
+    _linkSubscription?.cancel();
     super.dispose();
   }
 
@@ -278,10 +286,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
     bool status = await auth0Provider.checkLoginStatus();
 
-    if (status) {
-      LinkHandlerService.instance.processPendingDeepLinks();
-    }
-
+    // No link processing here - we store links and let TabsPage handle them
     setState(() {
       isLoading = false;
     });
@@ -317,6 +322,19 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       theme: lightTheme,
       navigatorKey: navigatorKey,
       navigatorObservers: [MainLayoutNavObserver()],
+      // Define routes based on our go_router configuration
+      routes: {
+        // '/': (context) => TabsPage(key: tabsPageKey),  // Removed to avoid conflict with home
+        '/accounts': (context) => const AllAccountsPage(),
+        '/budgets': (context) => const BudgetsPage(),
+        '/transactions': (context) => const TransactionsPage(),
+        '/stats': (context) => const StatsPage(),
+        '/settings': (context) => const SettingsPage(),
+        '/subscription': (context) => PremiumWidget(),
+        '/settings/preferences': (context) => const PreferencesSettingsPage(),
+        '/settings/about': (context) => const AboutPage(),
+        '/settings/export': (context) => const ExportDataPage(),
+      },
       builder: (context, child) {
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
@@ -390,11 +408,9 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             return BiometricsCheckScreen(
               onBiometricsVerified: () async {
                 // Fetch user data from server
-                // Note: If checkLoginStatus already processed a link and navigated,
-                // this callback might execute but the UI might already be elsewhere.
                 await fetchUserDataAtServer();
 
-                // Proceed with normal navigation logic if no link navigated earlier
+                // Proceed with normal navigation logic
                 if (!mounted) return; // Check if widget is still mounted
 
                 // Get user data from provider

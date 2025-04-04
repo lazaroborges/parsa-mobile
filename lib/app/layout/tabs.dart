@@ -13,6 +13,8 @@ import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:parsa/core/services/branch/link_handler_service.dart';
+import 'package:parsa/core/routes/navigation_delegate.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -43,8 +45,10 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
+      // Remove the context setting since we no longer use it
       _initializeData();
       _requestNotificationPermission();
+      _initDeepLinking();
       _isInitialized = true; // Ensure this runs only once
     }
   }
@@ -179,6 +183,8 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Remove the context update since we no longer use it
+
     final menuItems = getDestinations(context,
         shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
 
@@ -212,6 +218,32 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
         );
       }),
     );
+  }
+
+  // Separate method for initializing deep linking to improve code organization
+  void _initDeepLinking() {
+    // Delay initialization until after the initial data loading and UI building is complete
+    Future.delayed(Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+
+      print('Initializing deep link handler service...');
+
+      // Initialize the link handler service which sets up the Branch SDK listener
+      LinkHandlerService.instance.initialize().then((_) {
+        if (!mounted) return;
+
+        // Process any pending deep links that might have been captured during startup
+        print('Processing any pending deep links...');
+        LinkHandlerService.instance.processPendingDeepLinks(onComplete: () {
+          // After navigation is complete, clear the pending URI
+          Future.delayed(Duration(milliseconds: 300), () {
+            if (mounted) {
+              LinkHandlerService.instance.clearPendingUri();
+            }
+          });
+        });
+      });
+    });
   }
 }
 

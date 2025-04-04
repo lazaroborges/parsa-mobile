@@ -22,14 +22,16 @@ import 'package:parsa/core/services/branch/link_handler_service.dart';
 final goRouter = GoRouter(
   initialLocation: '/',
   debugLogDiagnostics: true,
-  // For Branch SDK deep links to work correctly
+  // For deep links handling
   redirect: (context, state) {
-    // If this is a deep link, let the LinkHandlerService handle it
+    // If this is a deep link, handle it appropriately
     final uri = state.uri;
     if (uri.scheme == 'com.parsa.app' || uri.toString().contains('app.link')) {
-      // This is a deep link, let the LinkHandlerService handle it
+      // Use the LinkHandlerService for consistent logging and processing
       LinkHandlerService.instance.handleDeepLink(uri.toString());
+
       // Return null to prevent GoRouter from handling this URI
+      // The LinkHandlerService will handle navigation via goRouter
       return null;
     }
 
