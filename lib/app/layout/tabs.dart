@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/layout/lazy_indexed_stack.dart';
+import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -14,7 +15,9 @@ import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:parsa/core/services/branch/link_handler_service.dart';
-import 'package:parsa/core/routes/navigation_delegate.dart';
+import 'package:parsa/core/providers/link_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -37,18 +40,15 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   @override
   void initState() {
     super.initState();
-    print('loaded init state');
-    // Remove the _initializeData call from here
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      // Remove the context setting since we no longer use it
       _initializeData();
       _requestNotificationPermission();
-      _initDeepLinking();
+      _setupDeepLinking();
       _isInitialized = true; // Ensure this runs only once
     }
   }
@@ -183,8 +183,6 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   @override
   Widget build(BuildContext context) {
-    // Remove the context update since we no longer use it
-
     final menuItems = getDestinations(context,
         shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
 
@@ -220,29 +218,54 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     );
   }
 
-  // Separate method for initializing deep linking to improve code organization
-  void _initDeepLinking() {
-    // Delay initialization until after the initial data loading and UI building is complete
-    Future.delayed(Duration(milliseconds: 1000), () {
+  // Set up deep linking with authentication check
+  void _setupDeepLinking() {
+    // Initialize the deep link handler
+    _initializeDeepLinkHandler();
+
+    // Schedule processing of any pending links
+    _schedulePendingLinkProcessing();
+  }
+
+  // Initialize the deep link handler service
+  Future<void> _initializeDeepLinkHandler() async {
+    try {
+      await LinkHandlerService.instance.initialize();
+    } catch (e) {
+      print('Error initializing deep link handler: $e');
+    }
+  }
+
+  // Process any pending links with authentication check
+  void _schedulePendingLinkProcessing() {
+    // Slightly delay to ensure app is fully loaded
+    Future.delayed(Duration(milliseconds: 500), () {
       if (!mounted) return;
 
-      print('Initializing deep link handler service...');
+      // Check for pending URI in provider
+      final linkProvider = Provider.of<LinkProvider>(context, listen: false);
+      final pendingUri = linkProvider.pendingUri;
 
-      // Initialize the link handler service which sets up the Branch SDK listener
-      LinkHandlerService.instance.initialize().then((_) {
-        if (!mounted) return;
+      if (pendingUri != null) {
+        // Check authentication before processing
+        final auth0Provider =
+            Provider.of<Auth0Provider>(context, listen: false);
 
-        // Process any pending deep links that might have been captured during startup
-        print('Processing any pending deep links...');
-        LinkHandlerService.instance.processPendingDeepLinks(onComplete: () {
-          // After navigation is complete, clear the pending URI
-          Future.delayed(Duration(milliseconds: 300), () {
-            if (mounted) {
-              LinkHandlerService.instance.clearPendingUri();
-            }
+        if (auth0Provider.credentials != null) {
+          // User is authenticated, process the link
+          LinkHandlerService.instance.processPendingDeepLinks(onComplete: () {
+            // Clear the pending URI after successful processing
+            Future.delayed(Duration(milliseconds: 300), () {
+              if (mounted) {
+                LinkHandlerService.instance.clearPendingUri();
+              }
+            });
           });
-        });
-      });
+        } else {
+          print(
+              'Auth credentials not available, deep link will be processed after login');
+        }
+      }
     });
   }
 }

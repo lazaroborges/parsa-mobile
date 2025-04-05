@@ -133,26 +133,37 @@ class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   @override
   void initState() {
     super.initState();
-    _initializeDeepLinks();
+    _captureInitialLink();
+    _setupLinkSubscription();
   }
 
-  void _initializeDeepLinks() async {
+  // Simplified method to just capture the initial link
+  void _captureInitialLink() async {
     try {
-      // 1. Capture and store initial link
       final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
-        // Use a microtask to avoid setState during build
-        Future.microtask(() {
-          // Check if still mounted before updating provider
-          if (mounted) {
-            Provider.of<LinkProvider>(context, listen: false)
-                .setPendingUri(initialLink);
-            print('Stored deep link in provider: $initialLink');
-          }
-        });
+        if (mounted) {
+          Provider.of<LinkProvider>(context, listen: false)
+              .setPendingUri(initialLink);
+        }
       }
     } catch (e) {
-      print('Failed to initialize deep links: $e');
+      print('Error capturing initial link: $e');
+    }
+  }
+
+  // Add subscription for new incoming links while app is running
+  void _setupLinkSubscription() {
+    try {
+      _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
+        if (mounted) {
+          Provider.of<LinkProvider>(context, listen: false).setPendingUri(uri);
+        }
+      }, onError: (error) {
+        print('Error receiving link updates: $error');
+      });
+    } catch (e) {
+      print('Error setting up link subscription: $e');
     }
   }
 
@@ -286,7 +297,20 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
     bool status = await auth0Provider.checkLoginStatus();
 
-    // No link processing here - we store links and let TabsPage handle them
+    if (!status) {
+      // If not logged in, use navigatorKey instead of context-based navigation
+      if (mounted) {
+        // Wait for the widget tree to be built before attempting navigation
+        await Future.microtask(() {
+          if (navigatorKey.currentState != null) {
+            navigatorKey.currentState!.pushReplacement(
+              MaterialPageRoute(builder: (context) => const IntroPage()),
+            );
+          }
+        });
+      }
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -322,9 +346,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       theme: lightTheme,
       navigatorKey: navigatorKey,
       navigatorObservers: [MainLayoutNavObserver()],
-      // Define routes based on our go_router configuration
       routes: {
-        // '/': (context) => TabsPage(key: tabsPageKey),  // Removed to avoid conflict with home
         '/accounts': (context) => const AllAccountsPage(),
         '/budgets': (context) => const BudgetsPage(),
         '/transactions': (context) => const TransactionsPage(),
@@ -382,36 +404,26 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           ),
         ]);
       },
-      // New home implementation with sequential checks
       home: FutureBuilder<bool>(
         future: SharedPreferencesAsync.instance.getOnboarded(),
-        //future: Future.value(false), // Temporarily force onboarding to show
         builder: (context, onboardingSnapshot) {
           if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Step 1: Check if user has completed onboarding
           final bool isOnboarded = onboardingSnapshot.data ?? false;
 
           if (!isOnboarded) {
-            // User hasn't completed onboarding, show OnboardingPage
             return const OnboardingPage();
           }
 
-          // Step 2: Check authentication status
           if (auth0Provider.credentials == null) {
-            // User is not authenticated, show IntroPage
             return const IntroPage();
           } else {
-            // User is authenticated, check biometrics
             return BiometricsCheckScreen(
               onBiometricsVerified: () async {
                 // Fetch user data from server
                 await fetchUserDataAtServer();
-
-                // Proceed with normal navigation logic
-                if (!mounted) return; // Check if widget is still mounted
 
                 // Get user data from provider
                 final userData =

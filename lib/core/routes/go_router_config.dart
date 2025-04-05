@@ -17,27 +17,10 @@ import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
   debugLogDiagnostics: true,
-  // For deep links handling
-  redirect: (context, state) {
-    // If this is a deep link, handle it appropriately
-    final uri = state.uri;
-    if (uri.scheme == 'com.parsa.app' || uri.toString().contains('app.link')) {
-      // Use the LinkHandlerService for consistent logging and processing
-      LinkHandlerService.instance.handleDeepLink(uri.toString());
-
-      // Return null to prevent GoRouter from handling this URI
-      // The LinkHandlerService will handle navigation via goRouter
-      return null;
-    }
-
-    // Otherwise, let GoRouter handle normal navigation
-    return null;
-  },
   routes: [
     ShellRoute(
       builder: (context, state, child) => const TabsPage(),
@@ -54,43 +37,15 @@ final goRouter = GoRouter(
           builder: (context, state) => const AllAccountsPage(),
           routes: [
             GoRoute(
-              path: ':accountId',
-              builder: (context, state) {
-                final accountId = state.pathParameters['accountId']!;
-                final account = state.extra as Account;
+                path: ':accountId',
+                builder: (context, state) {
+                  final accountId = state.pathParameters['accountId']!;
+                  final account = state.extra as Account;
 
-                return AccountDetailsPage(
-                    account: account, accountIconHeroTag: 'account-$accountId');
-              },
-              routes: [
-                GoRoute(
-                  path: 'transactions',
-                  builder: (context, state) {
-                    final accountId = state.pathParameters['accountId']!;
-                    final filters = _parseFilters(state.uri.queryParameters);
-
-                    return TransactionsPage(
-                      filters: filters.copyWith(
-                        accountsIDs: [accountId],
-                      ),
-                    );
-                  },
-                ),
-                GoRoute(
-                  path: 'stats',
-                  builder: (context, state) {
-                    final accountId = state.pathParameters['accountId']!;
-                    final filters = _parseFilters(state.uri.queryParameters);
-
-                    return StatsPage(
-                      filters: filters.copyWith(
-                        accountsIDs: [accountId],
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+                  return AccountDetailsPage(
+                      account: account,
+                      accountIconHeroTag: 'account-$accountId');
+                }),
           ],
         ),
 
@@ -190,21 +145,6 @@ final goRouter = GoRouter(
                       ),
                 );
               },
-              routes: [
-                GoRoute(
-                  path: 'transactions',
-                  builder: (context, state) {
-                    final budgetId = state.pathParameters['budgetId']!;
-                    final filters = _parseFilters(state.uri.queryParameters);
-
-                    return TransactionsPage(
-                      filters: filters.copyWith(
-                        accountsIDs: [budgetId],
-                      ),
-                    );
-                  },
-                ),
-              ],
             ),
           ],
         ),
@@ -258,13 +198,6 @@ class AppRoutes {
   // Account routes
   static String accounts() => '/accounts';
   static String account(String id, {Account? account}) => '/accounts/$id';
-  static String accountTransactions(String id, {TransactionFilters? filters}) {
-    final uri = Uri(
-      path: '/accounts/$id/transactions',
-      queryParameters: _filtersToQueryParams(filters),
-    );
-    return uri.toString();
-  }
 
   // Budget routes
   static String budgets() => '/budgets';

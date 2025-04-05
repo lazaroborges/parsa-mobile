@@ -12,7 +12,6 @@ class SharedPreferencesAsync {
   static const String keyBalanceType = 'balanceType';
   static const String keyOnboarded = 'onboarded';
   static const String keyIntakeCompleted = 'intakeCompleted';
-  static const String keyNotificationsEnabled = 'notifications_enabled';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
