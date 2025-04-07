@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
-import 'package:parsa/main.dart'; // Import for navigatorKey
+import 'package:parsa/main.dart';
 import '../../../firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
@@ -57,6 +57,9 @@ class FCMService {
 
   // Flag to track if FCM is initialized
   bool _isInitialized = false;
+
+  // Flag to track if initialization is in progress to prevent concurrent calls
+  bool _isInitializing = false;
 
   // Notification filters - simplified to just two categories
   final Map<NotificationCategory, bool> _notificationFilters = {
@@ -123,115 +126,130 @@ class FCMService {
     return prefs['budgets_enabled'] == true || prefs['general_enabled'] == true;
   }
 
+  // Method to reset initialization state for reinitializing after permission changes
+  void resetInitializationState() {
+    _isInitialized = false;
+    _isInitializing = false;
+  }
+
   Future<void> initialize() async {
     // Prevent multiple initializations
-    if (_isInitialized) return;
+    if (_isInitialized || _isInitializing) return;
 
-    // If Firebase is not yet initialized, initialize it.
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform);
-    }
+    _isInitializing = true;
 
-    // Request permissions using PermissionService
-    bool hasPermission = await PermissionService.instance.prepareForFCMToken();
-
-    if (!hasPermission) {
-      if (kDebugMode) {
-        print("FCM initialization: User denied notification permissions");
+    try {
+      // If Firebase is not yet initialized, initialize it.
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform);
       }
-      // Mark as initialized but exit early - don't proceed with FCM setup
-      _isInitialized = true;
-      return;
-    }
 
-    // Request permission on iOS (alerts, badge, sound).
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      announcement: false,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-    );
+      // Request permissions using PermissionService
+      bool hasPermission =
+          await PermissionService.instance.prepareForFCMToken();
 
-    if (kDebugMode) {
-      print("FCM permission status: ${settings.authorizationStatus}");
-    }
-
-    // Exit if permission is denied
-    if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      if (kDebugMode) {
-        print("FCM initialization stopped: Permission denied");
-      }
-      _isInitialized = true;
-      return;
-    }
-
-    // Register the background message handler.
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-    // Listen for messages when the app is in the foreground.
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        print("Received a foreground message: ${message.messageId}");
-        if (message.notification != null) {
-          print('Notification title: ${message.notification?.title}');
-          print('Notification body: ${message.notification?.body}');
+      if (!hasPermission) {
+        if (kDebugMode) {
+          print("FCM initialization: User denied notification permissions");
         }
+        // Mark as initialized but exit early - don't proceed with FCM setup
+        _isInitialized = true;
+        _isInitializing = false;
+        return;
       }
 
-      // Store the message data for displaying in the app
-      // This would be handled by a notification display service in a real app
-    });
-
-    // Listen for when a user taps on a notification (app opened via notification).
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        print('User tapped on notification: ${message.messageId}');
-        print('Message data: ${message.data}');
-      }
-
-      // Handle notification navigation
-      _handleNotificationNavigation(message);
-    });
-
-    // Get the FCM token and register it with backend
-    await getToken().then((token) {
-      if (token != null) {
-        saveTokenToServer(token);
-      }
-    });
-
-    // Load preferences from the backend and update internal map
-    await _loadPreferencesFromBackend();
-
-    // Subscribe to topics based on enabled notification categories
-    await _subscribeToTopics();
-
-    // Set up background message handler for when app is terminated
-    final initialMessage = await messaging.getInitialMessage();
-    if (initialMessage != null) {
-      if (kDebugMode) {
-        print(
-            'App was terminated and opened via notification: ${initialMessage.messageId}');
-      }
-
-      // Handle notification navigation for app opened from terminated state
-      _handleNotificationNavigation(initialMessage);
-    }
-
-    // Configure FCM to use APNS tokens on iOS
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      await messaging.setForegroundNotificationPresentationOptions(
+      // Request permission on iOS (alerts, badge, sound).
+      NotificationSettings settings = await messaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
+        announcement: false,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
       );
-    }
 
-    _isInitialized = true;
+      if (kDebugMode) {
+        print("FCM permission status: ${settings.authorizationStatus}");
+      }
+
+      // Exit if permission is denied
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        if (kDebugMode) {
+          print("FCM initialization stopped: Permission denied");
+        }
+        _isInitialized = true;
+        _isInitializing = false;
+        return;
+      }
+
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+      // Listen for messages when the app is in the foreground.
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        if (kDebugMode) {
+          print("Received a foreground message: ${message.messageId}");
+          print('Message data: ${message.data}');
+        }
+
+        // Store the message data for displaying in the app
+        // This would be handled by a notification display service in a real app
+      });
+
+      // Listen for when a user taps on a notification (app opened via notification).
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        if (kDebugMode) {
+          print('User tapped on notification: ${message.messageId}');
+          print('Message data: ${message.data}');
+        }
+
+        // Handle notification navigation
+        // _handleNotificationNavigation(message);
+      });
+
+      // Get the FCM token and register it with backend
+      await getToken().then((token) {
+        if (token != null) {
+          saveTokenToServer(token);
+        }
+      });
+
+      // Load preferences from the backend and update internal map
+      await _loadPreferencesFromBackend();
+
+      // Subscribe to topics based on enabled notification categories
+      await _subscribeToTopics();
+
+      // Set up background message handler for when app is terminated
+      final initialMessage = await messaging.getInitialMessage();
+      if (initialMessage != null) {
+        if (kDebugMode) {
+          print(
+              'App was terminated and opened via notification: ${initialMessage.messageId}');
+        }
+
+        // Handle notification navigation for app opened from terminated state
+        // _handleNotificationNavigation(initialMessage);
+      }
+
+      // Configure FCM to use APNS tokens on iOS
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        await messaging.setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
+
+      _isInitialized = true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error initializing FCM: $e");
+      }
+    } finally {
+      _isInitializing = false;
+    }
   }
 
   // Load preferences from backend and update local filters
@@ -306,58 +324,36 @@ class FCMService {
   }
 
   /// Handle navigation based on notification data
-  void _handleNotificationNavigation(RemoteMessage message) {
-    // Only navigate if we have a navigator key and the app is initialized
-    if (navigatorKey.currentState == null) return;
+  // void _handleNotificationNavigation(RemoteMessage message) {
+  //   // Only navigate if we have a navigator key and the app is initialized
+  //   if (navigatorKey.currentState == null) return;
 
-    try {
-      // Check if the message contains a route to navigate to
-      if (message.data.containsKey('route')) {
-        final String route = message.data['route'] as String;
+  //   try {
+  //     // Check if the message contains a route to navigate to
+  //     if (message.data.containsKey('route')) {
+  //       final String route = message.data['route'] as String;
 
-        // Simple switch to handle different routes - only keeping budgets and home
-        switch (route) {
-          case 'budgets':
-            // Navigate to budgets page
-            _navigateToBudgets();
-            break;
-          default:
-            // If no specific route, just ensure we're on the main tabs page
-            _navigateToHome();
-            break;
-        }
-      } else {
-        // Default navigation if no specific route is specified
-        _navigateToHome();
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error navigating from notification: $e");
-      }
-    }
-  }
-
-  // Navigation helper methods
-  void _navigateToHome() {
-    // Navigate to home/main screen
-    navigatorKey.currentState?.pushNamedAndRemoveUntil('/', (route) => false);
-  }
-
-  void _navigateToBudgets() {
-    // Navigate to budgets screen - first ensure we're on the main tabs page
-    final context = navigatorKey.currentContext;
-    if (context != null && tabsPageKey.currentState != null) {
-      // Get destinations from the tabs page and find the budgets destination
-      final destinations = getDestinations(context, shortLabels: false);
-      final budgetsDestination = destinations.firstWhere(
-        (dest) => dest.id == 'budgets',
-        orElse: () => destinations.first,
-      );
-
-      // Change to the budgets tab
-      tabsPageKey.currentState?.changePage(budgetsDestination);
-    }
-  }
+  //       // Simple switch to handle different routes - only keeping budgets and home
+  //       switch (route) {
+  //         case 'budgets':
+  //           // Navigate to budgets page
+  //           _navigateToBudgets();
+  //           break;
+  //         default:
+  //           // If no specific route, just ensure we're on the main tabs page
+  //           _navigateToHome();
+  //           break;
+  //       }
+  //     } else {
+  //       // Default navigation if no specific route is specified
+  //       _navigateToHome();
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error navigating from notification: $e");
+  //     }
+  //   }
+  // }
 
   /// Get the FCM token for this device
   Future<String?> getToken() async {

@@ -59,7 +59,20 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     final permissionRequested =
         prefs.getBool('notification_permission_requested') ?? false;
 
-    // Only proceed if we haven't requested permission before
+    // Always check current permission status regardless of previous requests
+    final currentPermissionStatus =
+        await PermissionService.instance.hasNotificationPermission();
+
+    // If already has permission, just initialize FCM
+    if (currentPermissionStatus) {
+      await FCMService.instance.initialize();
+
+      // Make sure flag is set to true since we have permission
+      await prefs.setBool('notification_permission_requested', true);
+      return;
+    }
+
+    // Only show permission dialog if we haven't requested before
     if (!permissionRequested) {
       // Request permission using the permission service
       final permissionGranted =
@@ -74,22 +87,16 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
           budgetsEnabled: true,
           generalEnabled: true,
         );
-
-        // Store that user has granted permission
-        await prefs.setBool('notification_permission_requested', true);
       } else {
-        // If permission denied, still store that we requested it
-        await prefs.setBool('notification_permission_requested', true);
-
         // Make sure notifications are disabled in backend
         await NotificationPreferencesService.instance.updatePreferences(
           budgetsEnabled: false,
           generalEnabled: false,
         );
       }
-    } else {
-      // Just initialize FCM - it will check backend preferences internally
-      // await FCMService.instance.initialize();
+
+      // Always mark that we've requested permission
+      await prefs.setBool('notification_permission_requested', true);
     }
   }
 
