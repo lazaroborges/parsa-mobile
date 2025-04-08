@@ -60,7 +60,11 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
   void initState() {
     super.initState();
 
-    filtersToReturn = widget.preselectedFilter;
+    // Initialize filters, defaulting maxDate to now if not provided
+    filtersToReturn = widget.preselectedFilter.copyWith(
+      maxDate: widget.preselectedFilter.maxDate ?? DateTime.now().toLocal(),
+      // minDate will use the value from preselectedFilter or remain null
+    );
   }
 
   bool isTagSelected(String? tagId) {
@@ -115,17 +119,14 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
           title: t.general.filters,
           footer: BottomSheetFooter(
               onSaved: !(_formKey.currentState?.validate() ?? true) ||
-                      filtersToReturn.tagsIDs != null &&
-                          filtersToReturn.tagsIDs!.isEmpty ||
-                      filtersToReturn.accountsIDs != null &&
-                          filtersToReturn.accountsIDs!.isEmpty ||
-                      filtersToReturn.categories != null &&
-                          filtersToReturn.categories!.isEmpty ||
+                      (filtersToReturn.tagsIDs?.isEmpty ?? false) ||
+                      (filtersToReturn.accountsIDs?.isEmpty ?? false) ||
+                      (filtersToReturn.categories?.isEmpty ?? false) ||
                       (widget.showDateFilter &&
-                          (filtersToReturn.minDate == null ||
-                              filtersToReturn.maxDate == null ||
-                              filtersToReturn.maxDate!
-                                  .isBefore(filtersToReturn.minDate!)))
+                          (filtersToReturn.maxDate == null ||
+                              (filtersToReturn.minDate != null &&
+                                  filtersToReturn.maxDate!
+                                      .isBefore(filtersToReturn.minDate!))))
                   ? null
                   : () => Navigator.of(context).pop(filtersToReturn)),
           body: ScrollableWithBottomGradient(
@@ -304,6 +305,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             decoration: InputDecoration(
                               suffixIcon: const Icon(Icons.event),
                               labelText: t.general.time.from_date,
+                              hintText: "All Past Dates",
                             ),
                             mode: DateTimeFieldPickerMode.date,
                             initialDate: filtersToReturn.minDate,
@@ -364,7 +366,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                 child: TextFormField(
                               decoration: InputDecoration(
                                 labelText: t.transaction.filters.from_value,
-                                hintText: 'Ex.: 200',
+                                hintText: 'Ex.: 10',
                                 suffixText: prefCurrencySnapshot.data?.symbol,
                               ),
                               keyboardType: TextInputType.number,
@@ -398,8 +400,8 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                   AutovalidateMode.onUserInteraction,
                               textInputAction: TextInputAction.next,
                               inputFormatters: decimalDigitFormatter,
-                              initialValue: (filtersToReturn.minValue ?? 0)
-                                  .toStringAsFixed(2),
+                              initialValue:
+                                  filtersToReturn.minValue?.toStringAsFixed(2),
                               onChanged: (value) {
                                 filtersToReturn = filtersToReturn.copyWith(
                                   minValue: double.tryParse(value),

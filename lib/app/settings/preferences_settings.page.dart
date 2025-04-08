@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
-import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/presentation/widgets/platform_alert_dialogue.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
@@ -37,15 +36,12 @@ class SelectItem<T> {
 
 class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     with WidgetsBindingObserver {
-  // Add a state variable to track notification permission status
-  bool _notificationPermissionDenied = false;
-  bool _isLoadingPermissionStatus = true;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkNotificationPermissionStatus();
   }
 
   @override
@@ -56,57 +52,32 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Check permission status when app resumes from background
+    // Refresh UI when app resumes from background
     if (state == AppLifecycleState.resumed) {
-      _checkNotificationPermissionStatus();
+      setState(() {});
     }
   }
 
-  // Check if notification permission has been requested and denied
-  Future<void> _checkNotificationPermissionStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final permissionRequested =
-        prefs.getBool('notification_permission_requested') ?? false;
-
-    // Only check permission status if it was requested before
-    if (permissionRequested) {
-      final hasPermission =
-          await PermissionService.instance.hasNotificationPermission();
-      setState(() {
-        _notificationPermissionDenied = !hasPermission;
-        _isLoadingPermissionStatus = false;
-      });
-    } else {
-      setState(() {
-        _notificationPermissionDenied = false;
-        _isLoadingPermissionStatus = false;
-      });
-    }
-  }
-
-  // Request notification permission again
+  // Request notification permission using the existing permission service
   Future<void> _requestNotificationPermission() async {
     try {
-      // Reset FCM initialization state to allow reinitializing
+      // Reset FCM initialization state
       FCMService.instance.resetInitializationState();
 
+      // Use the existing permission service
       final permissionGranted =
           await PermissionService.instance.requestNotificationPermission();
 
       if (permissionGranted) {
-        // Permission granted, update the UI
-        setState(() {
-          _notificationPermissionDenied = false;
-        });
-
-        // Initialize FCM service now that we have permission
+        // Initialize FCM and update preferences
         await FCMService.instance.initialize();
-
-        // Enable notifications by default when permission is newly granted
         await NotificationPreferencesService.instance.updatePreferences(
           budgetsEnabled: true,
           generalEnabled: true,
         );
+
+        // Update UI
+        setState(() {});
 
         // Show success message
         if (mounted) {
@@ -118,7 +89,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
           );
         }
       } else {
-        // If permission still denied, guide the user to system settings
+        // Guide user to system settings if permission denied
         if (mounted) {
           showPlatformAlertDialog(
             context: context,
@@ -219,284 +190,185 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
         title: Text(t.settings.title_short),
       ),
       body: FutureBuilder<bool>(
-          future: _getNotificationPermissionStatus(),
-          builder: (context, snapshot) {
-            // Update state based on the latest permission status
-            if (snapshot.hasData) {
-              _notificationPermissionDenied = !snapshot.data!;
-              _isLoadingPermissionStatus = false;
-            }
+        future: _checkPermissionRequested(),
+        builder: (context, requestedSnapshot) {
+          if (requestedSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // createListSeparator(context, t.settings.lang_section),
-                  // ListTile(
-                  //   title: Text(t.settings.lang_title),
-                  //   leading: const Icon(Icons.language),
-                  //   subtitle: Text(
-                  //     appSupportedLocales
-                  //         .firstWhere((element) =>
-                  //             element.locale.languageTag ==
-                  //             LocaleSettings.currentLocale.languageTag)
-                  //         .label,
-                  //   ),
-                  //   onTap: () async {
-                  //     final snackbarDisplayer =
-                  //         ScaffoldMessenger.of(context).showSnackBar;
+          // Only check actual permission status if it was requested previously
+          if (requestedSnapshot.data == true) {
+            return FutureBuilder<bool>(
+                future: PermissionService.instance.hasNotificationPermission(),
+                builder: (context, permissionSnapshot) {
+                  final bool showPermissionButton =
+                      permissionSnapshot.hasData &&
+                          !permissionSnapshot.data! &&
+                          requestedSnapshot.data!;
 
-                  //     final newLang = await showLanguageSelectorBottomSheet(
-                  //       context,
-                  //       LanguageSelector(
-                  //           selectedLangTag:
-                  //               LocaleSettings.currentLocale.languageTag),
-                  //     );
+                  return _buildSettingsList(context, t, showPermissionButton);
+                });
+          }
 
-                  //     if (newLang == null) {
-                  //       return;
-                  //     }
-
-                  //     LocaleSettings.setLocaleRaw(newLang,
-                  //         listenToDeviceLocale: true);
-
-                  //     try {
-                  //       await UserSettingService.instance
-                  //           .setSetting(SettingKey.appLanguage, newLang);
-                  //     } catch (e) {
-                  //       snackbarDisplayer(const SnackBar(
-                  //         content: Text(
-                  //             'There was an error persisting this setting on your device. Contact the developers for more information'),
-                  //       ));
-                  //     }
-                  //   },
-                  // ),
-                  // // createListSeparator(context, t.settings.theme_and_colors),
-                  StreamBuilder(
-                      stream: UserSettingService.instance
-                          .getSetting(SettingKey.themeMode)
-                          .map((event) => 'light'),
-                      initialData: 'light',
-                      builder: (context, snapshot) {
-                        // Not rendering the widget, but keeping the stream active
-                        return const SizedBox.shrink();
-                      }),
-                  // Removed AMOLED mode, dynamic colors, and accent color widgets
-                  StreamBuilder(
-                      stream: UserSettingService.instance
-                          .getSetting(SettingKey.amoledMode)
-                          .map((event) => 'light'),
-                      initialData: 'light',
-                      builder: (context, snapshot) {
-                        // Not rendering the widget, but keeping the stream active
-                        return const SizedBox.shrink();
-                      }),
-                  StreamBuilder(
-                      stream: UserSettingService.instance
-                          .getSetting(SettingKey.accentColor)
-                          .map((event) => 'true'),
-                      initialData: 'true',
-                      builder: (context, snapshot) {
-                        // Not rendering the widget, but keeping the stream active
-                        return const SizedBox.shrink();
-                      }),
-                  StreamBuilder(
-                      stream: UserSettingService.instance
-                          .getSetting(SettingKey.accentColor)
-                          .map((event) => 'MaterialBlue3.24'),
-                      initialData: 'MaterialBlue3.24',
-                      builder: (context, snapshot) {
-                        // Not rendering the widget, but keeping the stream active
-                        return const SizedBox.shrink();
-                      }),
-                  createListSeparator(context, t.settings.security.title),
-                  StreamBuilder(
-                    stream:
-                        PrivateModeService.instance.getPrivateModeAtLaunch(),
-                    builder: (context, snapshot) {
-                      return SwitchListTile(
-                        title: Text(t.settings.security.private_mode_at_launch),
-                        subtitle: Text(
-                            t.settings.security.private_mode_at_launch_descr),
-                        secondary: const Icon(Icons.phonelink_lock_outlined),
-                        value: snapshot.data ?? false,
-                        onChanged: (bool value) async {
-                          await PrivateModeService.instance
-                              .setPrivateModeAtLaunch(value);
-                          setState(() {});
-                        },
-                      );
-                    },
-                  ),
-                  createListSeparator(context, "Prestações"),
-                  Builder(builder: (context) {
-                    // Get the initial value from UserDataProvider
-                    final userDataProvider = UserDataProvider.instance;
-                    final isAccrualBasisAccounting = userDataProvider
-                            .userData?['accrual_basis_accounting'] ??
-                        false;
-
-                    return SwitchListTile(
-                      title: const Text("Regime de Competência"),
-                      subtitle: const Text(
-                          "Lança o valor total de uma prestação na data da compra."),
-                      secondary: const Icon(Icons.calendar_month),
-                      value: isAccrualBasisAccounting,
-                      onChanged: (bool value) async {
-                        // Show confirmation dialog before making the change
-                        final confirmed = await showPlatformAlertDialog(
-                          context: context,
-                          title: "Confirmar alteração",
-                          content: value
-                              ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
-                              : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
-                          cancelActionText: "Cancelar",
-                          defaultActionText: "Confirmar",
-                        );
-
-                        // If user confirmed, proceed with the change
-                        if (confirmed == true) {
-                          try {
-                            // Update the value in the backend
-                            await PostUserSettings
-                                .updateAccrualBasisAccountingSetting(
-                              isAccrualBasisAccounting: value,
-                            );
-
-                            // Update the local user data
-                            userDataProvider.updateUserData(
-                                {'accrual_basis_accounting': value});
-
-                            // Update the UI
-                            setState(() {});
-
-                            // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Configuração atualizada com sucesso'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } catch (e) {
-                            // Show error message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Erro ao atualizar configuração: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            print('Error updating competent_user setting: $e');
-                          }
-                        }
-                      },
-                    );
-                  }),
-                  // PrivateMode button disabled for now
-                  // StreamBuilder(
-                  //     stream: PrivateModeService.instance.privateModeStream,
-                  //     builder: (context, snapshot) {
-                  //       return SwitchListTile(
-                  //         title: Text(t.settings.security.private_mode),
-                  //         subtitle: Text(t.settings.security.private_mode_descr),
-                  //         secondary: const Icon(Icons.lock),
-                  //         value: snapshot.data ?? false,
-                  //         onChanged: (bool value) {
-                  //           PrivateModeService.instance.setPrivateMode(value);
-                  //           setState(() {});
-                  //         },
-                  //       );
-                  //     }),
-
-                  // Add notification section only if permissions have been denied
-                  if (_notificationPermissionDenied) ...[
-                    _isLoadingPermissionStatus
-                        ? const Center(child: CircularProgressIndicator())
-                        : Card(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            elevation: 2,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.notifications_off,
-                                          color: Colors.orange),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Notificações desativadas",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              "Você está perdendo notificações importantes sobre sua conta e orçamentos",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      icon: const Icon(
-                                          Icons.notifications_active),
-                                      label: const Text("Ativar Notificações"),
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        backgroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                      ),
-                                      onPressed: () async {
-                                        await _requestNotificationPermission();
-                                        // Refresh state after permission request
-                                        setState(() {});
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                  ],
-                ],
-              ),
-            );
-          }),
+          // If permission was never requested, don't show button
+          return _buildSettingsList(context, t, false);
+        },
+      ),
     );
   }
 
-  // Helper method to get permission status for FutureBuilder
-  Future<bool> _getNotificationPermissionStatus() async {
+  // Helper method to check if permission was requested before
+  Future<bool> _checkPermissionRequested() async {
     final prefs = await SharedPreferences.getInstance();
-    final permissionRequested =
-        prefs.getBool('notification_permission_requested') ?? false;
+    return prefs.getBool('notification_permission_requested') ?? false;
+  }
 
-    // Only check permission status if it was requested before
-    if (permissionRequested) {
-      return await PermissionService.instance.hasNotificationPermission();
-    }
+  // Build the settings list with or without notification button
+  Widget _buildSettingsList(
+      BuildContext context, Translations t, bool showPermissionButton) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Removed language section and unused stream builders
 
-    // If permission was never requested, don't show the button
-    return true;
+          createListSeparator(context, t.settings.security.title),
+          StreamBuilder(
+            stream: PrivateModeService.instance.getPrivateModeAtLaunch(),
+            builder: (context, snapshot) {
+              return SwitchListTile(
+                title: Text(t.settings.security.private_mode_at_launch),
+                subtitle:
+                    Text(t.settings.security.private_mode_at_launch_descr),
+                secondary: const Icon(Icons.phonelink_lock_outlined),
+                value: snapshot.data ?? false,
+                onChanged: (bool value) async {
+                  await PrivateModeService.instance
+                      .setPrivateModeAtLaunch(value);
+                  setState(() {});
+                },
+              );
+            },
+          ),
+          createListSeparator(context, "Prestações"),
+          Builder(builder: (context) {
+            // Get the initial value from UserDataProvider
+            final userDataProvider = UserDataProvider.instance;
+            final isAccrualBasisAccounting =
+                userDataProvider.userData?['accrual_basis_accounting'] ?? false;
+
+            return SwitchListTile(
+              title: const Text("Regime de Competência"),
+              subtitle: const Text(
+                  "Lança o valor total de uma prestação na data da compra."),
+              secondary: const Icon(Icons.calendar_month),
+              value: isAccrualBasisAccounting,
+              onChanged: (bool value) async {
+                // Show confirmation dialog before making the change
+                final confirmed = await showPlatformAlertDialog(
+                  context: context,
+                  title: "Confirmar alteração",
+                  content: value
+                      ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
+                      : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
+                  cancelActionText: "Cancelar",
+                  defaultActionText: "Confirmar",
+                );
+
+                // If user confirmed, proceed with the change
+                if (confirmed == true) {
+                  try {
+                    // Update the value in the backend
+                    await PostUserSettings.updateAccrualBasisAccountingSetting(
+                      isAccrualBasisAccounting: value,
+                    );
+
+                    // Update the local user data
+                    userDataProvider
+                        .updateUserData({'accrual_basis_accounting': value});
+
+                    // Update the UI
+                    setState(() {});
+
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Configuração atualizada com sucesso'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erro ao atualizar configuração: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    print('Error updating competent_user setting: $e');
+                  }
+                }
+              },
+            );
+          }),
+          // Add notification section only if permissions were requested but denied
+          if (showPermissionButton)
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.notifications_off,
+                            color: Colors.orange),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Notificações desativadas",
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Você está perdendo notificações importantes sobre sua conta e orçamentos",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.notifications_active),
+                        label: const Text("Ativar Notificações"),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () async {
+                          await _requestNotificationPermission();
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
