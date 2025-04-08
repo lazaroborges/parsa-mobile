@@ -18,6 +18,7 @@ import 'package:parsa/core/services/branch/link_handler_service.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/background_auth_service.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -49,8 +50,17 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       _initializeData();
       _requestNotificationPermission();
       _setupDeepLinking();
+      // Initialize background authentication service
+      BackgroundAuthService.instance.initialize(context);
       _isInitialized = true; // Ensure this runs only once
     }
+  }
+
+  @override
+  void dispose() {
+    // Dispose of background authentication service
+    BackgroundAuthService.instance.dispose();
+    super.dispose();
   }
 
   // Request notification permission when the dashboard is opened
