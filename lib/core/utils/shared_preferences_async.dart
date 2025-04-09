@@ -12,6 +12,10 @@ class SharedPreferencesAsync {
   static const String keyBalanceType = 'balanceType';
   static const String keyOnboarded = 'onboarded';
   static const String keyIntakeCompleted = 'intakeCompleted';
+  static const String keyStartOfWeek = 'startOfWeek';
+  static const String keyStartOfMonth = 'startOfMonth';
+  static const String keyStartOfMonthWorkingDaysOnly =
+      'startOfMonthWorkingDaysOnly';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -40,6 +44,18 @@ class SharedPreferencesAsync {
   Future<String?> getString(String key) async {
     final prefs = await _getPrefs();
     return prefs.getString(key);
+  }
+
+  /// Set an integer value
+  Future<bool> setInt(String key, int value) async {
+    final prefs = await _getPrefs();
+    return prefs.setInt(key, value);
+  }
+
+  /// Get an integer value
+  Future<int?> getInt(String key) async {
+    final prefs = await _getPrefs();
+    return prefs.getInt(key);
   }
 
   /// Remove a value
@@ -139,5 +155,41 @@ class SharedPreferencesAsync {
   Future<bool> getIntakeCompleted() async {
     final prefs = await _getPrefs();
     return prefs.getBool(keyIntakeCompleted) ?? false;
+  }
+
+  /// Set start of week preference (1 = Monday, 6 = Saturday, 7 = Sunday)
+  Future<bool> setStartOfWeek(int value) async {
+    final prefs = await _getPrefs();
+    return prefs.setInt(keyStartOfWeek, value);
+  }
+
+  /// Get start of week preference (1 = Monday, 6 = Saturday, 7 = Sunday)
+  Future<int> getStartOfWeek() async {
+    final prefs = await _getPrefs();
+    return prefs.getInt(keyStartOfWeek) ?? 7; // Default to Sunday (7)
+  }
+
+  /// Set start of month preference (1-31)
+  Future<bool> setStartOfMonth(int value) async {
+    final prefs = await _getPrefs();
+    return prefs.setInt(keyStartOfMonth, value);
+  }
+
+  /// Get start of month preference (1-31)
+  Future<int> getStartOfMonth() async {
+    final prefs = await _getPrefs();
+    return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
+  }
+
+  /// Set whether to count only working days for start of month
+  Future<bool> setStartOfMonthWorkingDaysOnly(bool value) async {
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyStartOfMonthWorkingDaysOnly, value);
+  }
+
+  /// Get whether to count only working days for start of month
+  Future<bool> getStartOfMonthWorkingDaysOnly() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyStartOfMonthWorkingDaysOnly) ?? false;
   }
 }

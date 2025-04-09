@@ -14,6 +14,8 @@ import 'package:parsa/core/presentation/widgets/persistent_footer_button.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/main.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 
@@ -22,7 +24,7 @@ class StatsPage extends StatefulWidget {
     super.key,
     this.initialIndex = 0,
     this.filters = const TransactionFilters(),
-    this.dateRangeService = const DatePeriodState(),
+    required this.dateRangeService,
   });
 
   final int initialIndex;
@@ -34,18 +36,80 @@ class StatsPage extends StatefulWidget {
   State<StatsPage> createState() => _StatsPageState();
 }
 
-class _StatsPageState extends State<StatsPage> {
+class _StatsPageState extends State<StatsPage> with RouteAware {
   final accountService = AccountService.instance;
 
   late TransactionFilters filters;
   late DatePeriodState dateRangeService;
+  bool _isStateInitialized = false;
 
   @override
   void initState() {
     super.initState();
-
     filters = widget.filters;
     dateRangeService = widget.dateRangeService;
+    _initializeStateAsync();
+  }
+
+  Future<void> _initializeStateAsync() async {
+    final prefs = SharedPreferencesAsync.instance;
+    final startDay = await prefs.getStartOfMonth();
+    final useWorking = await prefs.getStartOfMonthWorkingDaysOnly();
+    final startWeek = await prefs.getStartOfWeek();
+
+    if (mounted) {
+      setState(() {
+        dateRangeService = DatePeriodState(
+          datePeriod: widget.dateRangeService.datePeriod,
+          periodModifier: widget.dateRangeService.periodModifier,
+          startOfMonthDay: startDay,
+          useWorkingDays: useWorking,
+          startOfWeek: startWeek,
+        );
+        _isStateInitialized = true;
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _refreshPreferences();
+  }
+
+  Future<void> _refreshPreferences() async {
+    final prefs = SharedPreferencesAsync.instance;
+    final startDay = await prefs.getStartOfMonth();
+    final useWorking = await prefs.getStartOfMonthWorkingDaysOnly();
+    final startWeek = await prefs.getStartOfWeek();
+
+    bool needsUpdate = dateRangeService.startOfMonthDay != startDay ||
+        dateRangeService.useWorkingDays != useWorking ||
+        dateRangeService.startOfWeek != startWeek;
+
+    if (mounted && needsUpdate) {
+      setState(() {
+        dateRangeService = dateRangeService.copyWith(
+          startOfMonthDay: startDay,
+          useWorkingDays: useWorking,
+          startOfWeek: startWeek,
+        );
+      });
+    }
   }
 
   Widget buildContainerWithPadding(
@@ -65,6 +129,13 @@ class _StatsPageState extends State<StatsPage> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+
+    if (!_isStateInitialized) {
+      return Scaffold(
+        appBar: AppBar(title: Text(t.stats.title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return DefaultTabController(
       initialIndex: widget.initialIndex,
@@ -95,7 +166,7 @@ class _StatsPageState extends State<StatsPage> {
               tabAlignment: TabAlignment.center,
               tabs: [
                 Tab(text: t.stats.distribution),
-                Tab(text: '${t.categories.subcategories}'),
+                Tab(text: t.categories.subcategories),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
                 Tab(text: t.stats.balance_evolution),
@@ -108,7 +179,11 @@ class _StatsPageState extends State<StatsPage> {
               initialDatePeriodService: dateRangeService,
               onChanged: (value) {
                 setState(() {
-                  dateRangeService = value;
+                  dateRangeService = value.copyWith(
+                    startOfMonthDay: dateRangeService.startOfMonthDay,
+                    useWorkingDays: dateRangeService.useWorkingDays,
+                    startOfWeek: dateRangeService.startOfWeek,
+                  );
                 });
               },
             ),

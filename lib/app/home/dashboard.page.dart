@@ -23,6 +23,7 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/dates/date_period_modal.dart';
+import 'package:parsa/core/models/date-utils/date_period.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/presentation/widgets/tappable.dart';
@@ -53,14 +54,13 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
 import 'package:parsa/app/budgets/components/budget_list_card.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
-import 'package:parsa/app/budgets/budget_form.page.dart';
 
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 
-import 'package:parsa/app/notifications/widgets/notification_badge.dart';
+import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -69,11 +69,12 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> with RouteAware {
   DatePeriodState dateRangeService = const DatePeriodState();
   bool isLoading = false;
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
+  bool _isDateRangeInitialized = false;
 
   @override
   void initState() {
@@ -83,7 +84,32 @@ class _DashboardPageState extends State<DashboardPage> {
     _initializeDashboard();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to the RouteObserver
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Unsubscribe from the RouteObserver
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// Called when the top route has been popped off, and the current route shows up.
+  @override
+  void didPopNext() {
+    _initializeDateRangeService();
+  }
+
   Future<void> _initializeDashboard() async {
+    await _initializeDateRangeService();
+
     try {
       // Ensure we check the announcement first
       if (mounted) {
@@ -99,7 +125,34 @@ class _DashboardPageState extends State<DashboardPage> {
         await _checkAndShowReviewDialog();
       }
     } catch (e) {
-      print('Error in initialization: $e');
+      print('Error in dashboard initialization: $e');
+    }
+  }
+
+  Future<void> _initializeDateRangeService() async {
+    final prefs = SharedPreferencesAsync.instance;
+    final startDay = await prefs.getStartOfMonth();
+    final useWorking = await prefs.getStartOfMonthWorkingDaysOnly();
+    final startWeek = await prefs.getStartOfWeek();
+
+    bool needsUpdate = !_isDateRangeInitialized ||
+        dateRangeService.startOfMonthDay != startDay ||
+        dateRangeService.useWorkingDays != useWorking ||
+        dateRangeService.startOfWeek != startWeek;
+
+    if (mounted && needsUpdate) {
+      setState(() {
+        dateRangeService = DatePeriodState(
+          datePeriod: dateRangeService.datePeriod,
+          periodModifier: dateRangeService.periodModifier,
+          startOfMonthDay: startDay,
+          useWorkingDays: useWorking,
+          startOfWeek: startWeek,
+        );
+        _isDateRangeInitialized = true;
+      });
+    } else {
+      print("Preferences checked, no change detected or not mounted.");
     }
   }
 
@@ -187,7 +240,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
       // Save the balance type preference
       SharedPreferencesAsync.instance.setBalanceType(
-        currentBalanceType.name, // 'available', 'total', or 'future'
+        currentBalanceType.name, // 'available', 'total', or 'future'x
       );
     });
   }
@@ -202,17 +255,19 @@ class _DashboardPageState extends State<DashboardPage> {
     final hideDrawerAndFloatingButton =
         BreakPoint.of(context).isLargerOrEqualTo(BreakpointID.md);
 
+    if (!_isDateRangeInitialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
-        // Botão de nova transação comentado
-        // floatingActionButton:
-        //     hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
-        drawer: null, // Nulled and hidden the draw at version 2.0.10
+        drawer: null,
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
-            physics:
-                const ClampingScrollPhysics(), // Use ClampingScrollPhysics here
+            physics: const ClampingScrollPhysics(),
             child: Column(children: [
               DefaultTextStyle.merge(
                 style: TextStyle(
@@ -234,9 +289,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Tappable(
-                              onTap: () {
-                                // No action needed
-                              },
+                              onTap: () {},
                               bgColor: Colors.transparent,
                               borderRadius: 12,
                               child: Padding(
@@ -370,6 +423,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ),
                                   ),
                                   onPressed: () {
+                                    if (!_isDateRangeInitialized) return;
+
                                     openDatePeriodModal(
                                       context,
                                       DatePeriodModal(
@@ -384,6 +439,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                             dateRangeService.copyWith(
                                           periodModifier: 0,
                                           datePeriod: value,
+                                          startOfMonthDay:
+                                              dateRangeService.startOfMonthDay,
+                                          useWorkingDays:
+                                              dateRangeService.useWorkingDays,
+                                          startOfWeek:
+                                              dateRangeService.startOfWeek,
                                         );
                                       });
                                     });
@@ -517,7 +578,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               ),
-
               StreamBuilder<List<Account>>(
                 stream: AccountService.instance.getAccounts(),
                 builder: (context, snapshot) {
@@ -525,7 +585,6 @@ class _DashboardPageState extends State<DashboardPage> {
                     return const CircularProgressIndicator();
                   }
 
-                  // Filter out removed accounts
                   final accounts = snapshot.data!
                       .where((account) => !account.removed)
                       .toList();
@@ -651,7 +710,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 StatsPage(
                                   dateRangeService: dateRangeService,
-                                  initialIndex: 0, // First tab contains tags
+                                  initialIndex: 0,
                                 ),
                               );
                             },
@@ -805,10 +864,11 @@ class _DashboardPageState extends State<DashboardPage> {
             if (details.primaryVelocity! > 0) {
               // Swipe right - move to previous balance type
               setState(() {
-                int newIndex = (currentBalanceType.index - 1) % BalanceType.values.length;
+                int newIndex =
+                    (currentBalanceType.index - 1) % BalanceType.values.length;
                 if (newIndex < 0) newIndex = BalanceType.values.length - 1;
                 currentBalanceType = BalanceType.values[newIndex];
-                
+
                 // Save the balance type preference
                 SharedPreferencesAsync.instance.setBalanceType(
                   currentBalanceType.name,
@@ -817,10 +877,9 @@ class _DashboardPageState extends State<DashboardPage> {
             } else if (details.primaryVelocity! < 0) {
               // Swipe left - move to next balance type
               setState(() {
-                currentBalanceType = BalanceType
-                    .values[(currentBalanceType.index + 1) % BalanceType.values.length];
-                
-                // Save the balance type preference
+                currentBalanceType = BalanceType.values[
+                    (currentBalanceType.index + 1) % BalanceType.values.length];
+
                 SharedPreferencesAsync.instance.setBalanceType(
                   currentBalanceType.name,
                 );
@@ -953,6 +1012,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget buildAccountList(List<Account> accounts) {
+    final t = Translations.of(context);
     return Builder(
       builder: (context) {
         if (accounts.isEmpty) {
@@ -1082,7 +1142,7 @@ class DashboardTransactionList extends StatelessWidget {
       limit: child.limit,
       showGroupDivider: child.showGroupDivider,
       prevPage: child.prevPage,
-      onLongPress: (_) {}, // This effectively disables the long press action
+      onLongPress: (_) {},
       onEmptyList: child.onEmptyList,
     );
   }

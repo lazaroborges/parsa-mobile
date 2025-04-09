@@ -36,6 +36,7 @@ import 'firebase_options.dart';
 import 'package:parsa/core/services/branch/branch_config.dart';
 // Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 // Import pages for routes
 import 'package:parsa/app/accounts/all_accounts.page.dart';
@@ -51,6 +52,9 @@ import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
+
+// Define RouteObserver
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 void main() async {
   tz.initializeTimeZones();
@@ -345,12 +349,13 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      navigatorObservers: [MainLayoutNavObserver()],
+      navigatorObservers: [routeObserver, MainLayoutNavObserver()],
       routes: {
         '/accounts': (context) => const AllAccountsPage(),
         '/budgets': (context) => const BudgetsPage(),
         '/transactions': (context) => const TransactionsPage(),
-        '/stats': (context) => const StatsPage(),
+        '/stats': (context) =>
+            const StatsPage(dateRangeService: DatePeriodState()),
         '/settings': (context) => const SettingsPage(),
         '/subscription': (context) => PremiumWidget(),
         '/settings/preferences': (context) => const PreferencesSettingsPage(),

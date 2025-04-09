@@ -4,18 +4,65 @@ import 'package:intl/intl.dart';
 import 'package:parsa/core/models/date-utils/date_period.dart';
 import 'package:parsa/core/models/date-utils/period_type.dart';
 import 'package:parsa/core/models/date-utils/periodicity.dart';
-import 'package:parsa/core/utils/constants.dart';
 
 part 'date_period_state.g.dart';
+
+/// Calculates the actual start date for a period.
+/// If useWorkingDays is true, it finds the Nth (startDay) working day of the month.
+/// If useWorkingDays is false, it uses the literal startDay, clamping to the end of the month if invalid.
+/// Returns a DateTime with time set to 00:00:00 (DateOnly).
+DateTime _calculatePeriodStart(
+    int year, int month, int startDay, bool useWorkingDays) {
+  // Handle invalid startDay parameter immediately (e.g., <= 0)
+  if (startDay <= 0) {
+    startDay = 1;
+  }
+
+  if (!useWorkingDays) {
+    // Original logic: just get the day, clamping to month end if invalid
+    try {
+      // Ensure DateOnly
+      return DateUtils.dateOnly(DateTime(year, month, startDay));
+    } catch (e) {
+      // Ensure DateOnly for last day of month
+      return DateUtils.dateOnly(DateTime(year, month + 1, 0));
+    }
+  } else {
+    // New logic: Find the Nth working day (N = startDay)
+    int workingDaysFound = 0;
+    // Start from the first day (already DateOnly)
+    DateTime currentDate = DateUtils.dateOnly(DateTime(year, month, 1));
+
+    while (currentDate.month == month) {
+      final int dayOfWeek = currentDate.weekday;
+      if (dayOfWeek != DateTime.saturday && dayOfWeek != DateTime.sunday) {
+        workingDaysFound++;
+      }
+      if (workingDaysFound == startDay) {
+        return currentDate; // Already DateOnly
+      }
+      currentDate =
+          currentDate.add(const Duration(days: 1)); // Preserves DateOnly
+    }
+    // Fallback: Return last day of month (DateOnly)
+    return DateUtils.dateOnly(DateTime(year, month + 1, 0));
+  }
+}
 
 @CopyWith()
 class DatePeriodState {
   final DatePeriod datePeriod;
   final int periodModifier;
+  final int startOfMonthDay;
+  final bool useWorkingDays;
+  final int startOfWeek;
 
   const DatePeriodState({
     this.datePeriod = const DatePeriod(periodType: PeriodType.cycle),
     this.periodModifier = 0,
+    this.startOfMonthDay = 1,
+    this.useWorkingDays = false,
+    this.startOfWeek = DateTime.sunday,
   });
 
   DateTime? get startDate => getDates().$1;
@@ -24,11 +71,14 @@ class DatePeriodState {
   /// Returns the duration of the current period state. Will return null
   /// if the `startDate` or the `endDate` of this period are null.
   Duration? get periodStateDuration {
-    if (startDate == null || endDate == null) {
+    final start = startDate;
+    final end = endDate;
+
+    if (start == null || end == null) {
       return null;
     }
-
-    return endDate!.difference(startDate!);
+    // Original logic assumes endDate is inclusive, add 1 day for difference
+    return end.difference(start) + const Duration(days: 1);
   }
 
   /// Given the current period status, return the dates of the next period
@@ -41,99 +91,195 @@ class DatePeriodState {
     return getDates(periodModifier: periodModifier - 1);
   }
 
+  (DateTime? fromDate, DateTime? toDate) getDatesForPeriodModifier(
+      {int? periodModifier}) {
+    periodModifier ??= this.periodModifier;
+
+    return getDates(periodModifier: periodModifier);
+  }
+
   /// Get the dates of the current period status
+  /// Returns (startDate, endDateInclusive)
   (DateTime? fromDate, DateTime? toDate) getDates({int? periodModifier}) {
     periodModifier ??= this.periodModifier;
 
     if (datePeriod.periodType == PeriodType.cycle) {
-      if (datePeriod.periodicity == Periodicity.year) {
-        return (
-          DateTime(currentYear + periodModifier, 1, 1),
-          DateTime(currentYear + 1 + periodModifier, 1, 1)
-        );
-      } else if (datePeriod.periodicity == Periodicity.month) {
-        return (
-          DateTime(currentYear, currentMonth + periodModifier, 1),
-          DateTime(currentYear, currentMonth + 1 + periodModifier, 1)
-        );
-      } else if (datePeriod.periodicity == Periodicity.week) {
-        final now = DateTime.now();
+      // Use DateUtils.dateOnly for a consistent 'now' reference day
+      final now = DateUtils.dateOnly(DateTime.now());
+      final currentYear = now.year;
+      final currentMonth = now.month;
+      final currentDayOfMonth = now.day;
 
-        return (
-          now
-              .subtract(Duration(days: now.weekday - 1))
-              .add(Duration(days: 7 * periodModifier)),
-          now
-              .add(Duration(days: DateTime.daysPerWeek - now.weekday))
-              .add(Duration(days: 7 * periodModifier))
-        );
-      } else if (datePeriod.periodicity == Periodicity.day) {
-        return (
-          DateTime(
-              currentYear, currentMonth, currentDayOfMonth + periodModifier),
-          DateTime(
-              currentYear, currentMonth, currentDayOfMonth + 1 + periodModifier)
-        );
+      switch (datePeriod.periodicity) {
+        case Periodicity.year:
+          // Leave Year logic as it was
+          return (
+            DateUtils.dateOnly(DateTime(currentYear + periodModifier, 1, 1)),
+            DateUtils.dateOnly(
+                DateTime(currentYear + 1 + periodModifier, 12, 31))
+          );
+
+        case Periodicity.month:
+          // Leave Month logic as it was (with Nth working day calculation)
+          final targetBaseMonth = currentMonth + periodModifier;
+          final targetYear = currentYear;
+
+          final startDate = _calculatePeriodStart(targetYear, targetBaseMonth,
+              this.startOfMonthDay, this.useWorkingDays);
+
+          final nextPeriodBaseMonth = targetBaseMonth + 1;
+          final nextPeriodStartDate = _calculatePeriodStart(targetYear,
+              nextPeriodBaseMonth, this.startOfMonthDay, this.useWorkingDays);
+
+          final endDateInclusive =
+              nextPeriodStartDate.subtract(const Duration(days: 1));
+
+          return (startDate, endDateInclusive);
+
+        case Periodicity.week:
+          // ----- Focus on fixing this case -----
+          // Calculate days to subtract to get to the start of the *current* week based on preference
+          // `startOfWeek` is 1-7 (Mon-Sun), `now.weekday` is also 1-7
+          final daysSinceStartOfWeek =
+              (now.weekday - this.startOfWeek + DateTime.daysPerWeek) %
+                  DateTime.daysPerWeek;
+
+          // Start date of the *current* week (already DateOnly because 'now' is)
+          final currentWeekStartDate =
+              now.subtract(Duration(days: daysSinceStartOfWeek));
+
+          // Apply the period modifier to get the start date of the target week
+          final targetWeekStartDate = currentWeekStartDate
+              .add(Duration(days: periodModifier * DateTime.daysPerWeek));
+
+          // The inclusive end date is 6 days after the start date
+          final targetWeekEndDate =
+              targetWeekStartDate.add(const Duration(days: 6));
+
+          return (targetWeekStartDate, targetWeekEndDate);
+        // ----- End of fix -----
+
+        case Periodicity.day:
+          // Leave Day logic as it was
+          final targetDate = DateUtils.dateOnly(DateTime(
+              currentYear, currentMonth, currentDayOfMonth + periodModifier));
+          return (targetDate, targetDate);
+
+        default:
+          return (null, null);
       }
     } else if (datePeriod.periodType == PeriodType.dateRange) {
-      final daysBetweenRange = Duration(
-          days: datePeriod.customDateRange.$2!
-                  .difference(datePeriod.customDateRange.$1!)
-                  .inDays *
-              periodModifier);
+      if (datePeriod.customDateRange.$1 == null ||
+          datePeriod.customDateRange.$2 == null) {
+        return (null, null);
+      }
+
+      final baseDuration = datePeriod.customDateRange.$2!
+          .difference(datePeriod.customDateRange.$1!);
+      final offsetDuration =
+          Duration(days: baseDuration.inDays * periodModifier);
 
       return (
-        datePeriod.customDateRange.$1!.add(daysBetweenRange),
-        datePeriod.customDateRange.$2!.add(daysBetweenRange)
+        DateUtils.dateOnly(datePeriod.customDateRange.$1!.add(offsetDuration)),
+        DateUtils.dateOnly(datePeriod.customDateRange.$2!.add(offsetDuration))
       );
     } else if (datePeriod.periodType == PeriodType.lastDays) {
-      return (
-        DateTime(currentYear, currentMonth,
-                currentDayOfMonth + periodModifier * datePeriod.lastDays)
-            .subtract(
-          Duration(days: datePeriod.lastDays),
-        ),
-        DateTime(currentYear, currentMonth,
-            currentDayOfMonth + periodModifier * datePeriod.lastDays)
-      );
+      final now = DateUtils.dateOnly(DateTime.now());
+      final currentYear = now.year;
+      final currentMonth = now.month;
+      final currentDayOfMonth = now.day;
+
+      final endDate = DateUtils.dateOnly(DateTime(currentYear, currentMonth,
+          currentDayOfMonth + periodModifier * datePeriod.lastDays));
+      final startDate =
+          endDate.subtract(Duration(days: datePeriod.lastDays - 1));
+
+      return (startDate, endDate);
+    } else if (datePeriod.periodType == PeriodType.allTime) {
+      return (null, null);
     }
 
     return (null, null);
   }
 
   String getText(BuildContext context, {bool showLongMonth = true}) {
-    String defaultFormatting() {
-      if (startDate?.year == currentYear && endDate?.year == currentYear) {
-        return '${DateFormat.MMMd().format(startDate!)} - ${DateFormat.MMMd().format(endDate!)}';
-      }
+    final localStartDate = startDate;
+    final localEndDate = endDate;
 
-      return '${DateFormat.yMd().format(startDate!)} - ${DateFormat.yMd().format(endDate!)}';
+    // Use yMMMMd for consistency when showing year, month, and day.
+    // Use MMMd when year is current and known.
+    String defaultFormatting() {
+      if (localStartDate == null || localEndDate == null) {
+        return datePeriod.periodType.titleText(context);
+      }
+      final now = DateTime.now();
+      // If start and end are the same day
+      if (DateUtils.isSameDay(localStartDate, localEndDate)) {
+        if (localStartDate.year == now.year) {
+          return DateFormat.MMMMd().format(localStartDate); // e.g., July 10
+        } else {
+          return DateFormat.yMMMMd()
+              .format(localStartDate); // e.g., July 10, 1996
+        }
+      }
+      // If range is within the current year
+      if (localStartDate.year == now.year && localEndDate.year == now.year) {
+        // Check if it spans across months
+        if (localStartDate.month == localEndDate.month) {
+          // Same month, different days: "July 10-15"
+          return '${DateFormat.MMMMd().format(localStartDate)}–${DateFormat.d().format(localEndDate)}';
+        } else {
+          // Different months: "Jul 10 - Aug 15"
+          return '${DateFormat.MMMd().format(localStartDate)} – ${DateFormat.MMMd().format(localEndDate)}';
+        }
+      }
+      // Default range format spanning across years or different from current year
+      return '${DateFormat.yMMMd().format(localStartDate)} – ${DateFormat.yMMMd().format(localEndDate)}'; // e.g., Jul 10, 1996 - Aug 15, 1997
+    }
+
+    if (datePeriod.periodType == PeriodType.allTime) {
+      return datePeriod.periodType.titleText(context);
+    }
+
+    if (localStartDate == null || localEndDate == null) {
+      // Fallback if dates are somehow null despite previous check
+      return datePeriod.periodType.titleText(context);
     }
 
     if (datePeriod.periodType == PeriodType.cycle) {
-      if (datePeriod.periodicity == Periodicity.year) {
-        return DateFormat.y().format(startDate!);
+      switch (datePeriod.periodicity) {
+        case Periodicity.year:
+          // Keep year simple: "2023"
+          return DateFormat.y().format(localStartDate);
+        case Periodicity.month:
+          // Consistent Month/Year formatting
+          final now = DateTime.now();
+          if (localStartDate.year == now.year) {
+            // Current year: "July"
+            return DateFormat.MMMM().format(localStartDate);
+          } else {
+            // Other years: "July 2022"
+            return DateFormat.yMMMM().format(localStartDate);
+          }
+        case Periodicity.week:
+          // Use the default range formatting for weeks
+          return defaultFormatting();
+        case Periodicity.day:
+          // Use the specific day format from defaultFormatting
+          return defaultFormatting();
+        default:
+          // Fallback for any other periodicity
+          return defaultFormatting();
       }
-
-      if (datePeriod.periodicity == Periodicity.month) {
-        if (startDate!.year == currentYear) {
-          return DateFormat.MMMM().format(startDate!);
-        }
-
-        if (showLongMonth) {
-          return DateFormat.yMMMM().format(startDate!);
-        }
-
-        return DateFormat.yMMM().format(startDate!);
-      }
-
+    } else if (datePeriod.periodType == PeriodType.lastDays) {
+      // Use the default range formatting for 'last N days'
       return defaultFormatting();
     } else if (datePeriod.periodType == PeriodType.dateRange) {
+      // Use the default range formatting for custom ranges
       return defaultFormatting();
-    } else if (datePeriod.periodType == PeriodType.lastDays) {
+    } else {
+      // General fallback
       return defaultFormatting();
     }
-
-    return datePeriod.periodType.titleText(context);
   }
 }

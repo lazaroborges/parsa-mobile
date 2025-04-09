@@ -16,6 +16,7 @@ import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -99,7 +100,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             title: t.stats.title,
                             icon: Icons.area_chart_rounded,
                             onTap: () => RouteUtils.pushRoute(
-                                context, const StatsPage()),
+                                context,
+                                const StatsPage(
+                                    dateRangeService: DatePeriodState())),
                           ),
                         ),
                         const SizedBox(width: 8),

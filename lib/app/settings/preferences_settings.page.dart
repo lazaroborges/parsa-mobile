@@ -7,9 +7,9 @@ import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:flutter/widgets.dart';
 
 import 'widgets/settings_list_separator.dart';
 
@@ -37,11 +37,26 @@ class SelectItem<T> {
 class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     with WidgetsBindingObserver {
   bool _isLoading = true;
+  int _startOfWeek = 7;
+  int _startOfMonth = 1;
+  bool _startOfMonthWorkingDaysOnly = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = app_prefs.SharedPreferencesAsync.instance;
+    _startOfWeek = await prefs.getStartOfWeek();
+    _startOfMonth = await prefs.getStartOfMonth();
+    _startOfMonthWorkingDaysOnly = await prefs.getStartOfMonthWorkingDaysOnly();
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -130,7 +145,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     return ListTile(
         title: Text(title),
         subtitle: Text(selectedItem.label),
-        leading: Icon(Icons.light_mode),
+        leading: Icon(selectedItem.icon ?? Icons.settings),
         onTap: () {
           showDialog(
             context: context,
@@ -192,7 +207,8 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       body: FutureBuilder<bool>(
         future: _checkPermissionRequested(),
         builder: (context, requestedSnapshot) {
-          if (requestedSnapshot.connectionState == ConnectionState.waiting) {
+          if (requestedSnapshot.connectionState == ConnectionState.waiting ||
+              _isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -226,6 +242,35 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   // Build the settings list with or without notification button
   Widget _buildSettingsList(
       BuildContext context, Translations t, bool showPermissionButton) {
+    // Create items for start of week selection
+    final startOfWeekItems = [
+      SelectItem(
+        value: 7,
+        label: 'Domingo',
+        icon: Icons.calendar_today,
+      ),
+      SelectItem(
+        value: 6,
+        label: 'Sábado',
+        icon: Icons.calendar_today,
+      ),
+      SelectItem(
+        value: 1,
+        label: 'Segunda-feira',
+        icon: Icons.calendar_today,
+      ),
+    ];
+
+    // Create items for start of month selection
+    final startOfMonthItems = List.generate(10, (index) {
+      final day = index + 1;
+      return SelectItem(
+        value: day,
+        label: 'Dia $day',
+        icon: Icons.date_range,
+      );
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -251,6 +296,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               );
             },
           ),
+
           createListSeparator(context, "Prestações"),
           Builder(builder: (context) {
             // Get the initial value from UserDataProvider
@@ -312,6 +358,76 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               },
             );
           }),
+          // Calendar settings section
+          createListSeparator(context, "Configurações de Calendário"),
+
+          // Start of Week setting
+          ListTile(
+            title: const Text("Início da Semana"),
+            subtitle: Text(startOfWeekItems
+                .firstWhere((item) => item.value == _startOfWeek)
+                .label),
+            leading: const Icon(Icons.calendar_view_week),
+            trailing: DropdownButton<int>(
+              value: _startOfWeek,
+              onChanged: (value) async {
+                if (value != null) {
+                  await app_prefs.SharedPreferencesAsync.instance
+                      .setStartOfWeek(value);
+                  setState(() {
+                    _startOfWeek = value;
+                  });
+                }
+              },
+              items: startOfWeekItems
+                  .map((item) => DropdownMenuItem<int>(
+                        value: item.value,
+                        child: Text(item.label),
+                      ))
+                  .toList(),
+              underline: Container(),
+            ),
+          ),
+
+          // Start of Month setting with Working days checkbox
+          ListTile(
+            title: const Text("Início do Mês"),
+            subtitle: Text(startOfMonthItems
+                .firstWhere((item) => item.value == _startOfMonth)
+                .label),
+            leading: const Icon(Icons.calendar_month),
+            trailing: DropdownButton<int>(
+              value: _startOfMonth,
+              onChanged: (value) async {
+                if (value != null) {
+                  await app_prefs.SharedPreferencesAsync.instance
+                      .setStartOfMonth(value);
+                  setState(() {
+                    _startOfMonth = value;
+                  });
+                }
+              },
+              items: startOfMonthItems
+                  .map((item) => DropdownMenuItem<int>(
+                        value: item.value,
+                        child: Text(item.label),
+                      ))
+                  .toList(),
+              underline: Container(),
+            ),
+          ),
+          CheckboxListTile(
+            title: const Text("Considerar apenas dias úteis"),
+            value: _startOfMonthWorkingDaysOnly,
+            onChanged: (value) async {
+              await app_prefs.SharedPreferencesAsync.instance
+                  .setStartOfMonthWorkingDaysOnly(value ?? false);
+              setState(() {
+                _startOfMonthWorkingDaysOnly = value ?? false;
+              });
+            },
+          ),
+
           // Add notification section only if permissions were requested but denied
           if (showPermissionButton)
             Card(
