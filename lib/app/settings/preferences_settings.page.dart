@@ -41,6 +41,16 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   int _startOfMonth = 1;
   bool _startOfMonthWorkingDaysOnly = false;
 
+  // Store ScaffoldMessengerState to avoid "Looking up a deactivated widget's ancestor" error
+  ScaffoldMessengerState? _scaffoldMessenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Store a reference to ScaffoldMessenger
+    _scaffoldMessenger = ScaffoldMessenger.of(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -96,7 +106,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
 
         // Show success message
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          _scaffoldMessenger!.showSnackBar(
             const SnackBar(
               content: Text('Notificações ativadas com sucesso!'),
               backgroundColor: Colors.green,
@@ -122,7 +132,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        _scaffoldMessenger!.showSnackBar(
           SnackBar(
             content: Text('Ocorreu um erro ao solicitar permissão: $e'),
             backgroundColor: Colors.red,
@@ -239,6 +249,18 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     return prefs.getBool('notification_permission_requested') ?? false;
   }
 
+  // Helper function to safely show snackbar
+  void _showSnackBar(String message, {bool isError = true}) {
+    if (mounted && _scaffoldMessenger != null) {
+      _scaffoldMessenger!.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? Colors.red : Colors.green,
+        ),
+      );
+    }
+  }
+
   // Build the settings list with or without notification button
   Widget _buildSettingsList(
       BuildContext context, Translations t, bool showPermissionButton) {
@@ -338,7 +360,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                     setState(() {});
 
                     // Show success message
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    _scaffoldMessenger!.showSnackBar(
                       SnackBar(
                         content: Text('Configuração atualizada com sucesso'),
                         backgroundColor: Colors.green,
@@ -346,7 +368,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                     );
                   } catch (e) {
                     // Show error message
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    _scaffoldMessenger!.showSnackBar(
                       SnackBar(
                         content: Text('Erro ao atualizar configuração: $e'),
                         backgroundColor: Colors.red,
@@ -372,11 +394,30 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               value: _startOfWeek,
               onChanged: (value) async {
                 if (value != null) {
-                  await app_prefs.SharedPreferencesAsync.instance
-                      .setStartOfWeek(value);
-                  setState(() {
-                    _startOfWeek = value;
-                  });
+                  try {
+                    await app_prefs.SharedPreferencesAsync.instance
+                        .setStartOfWeek(value);
+                    setState(() {
+                      _startOfWeek = value;
+                    });
+                    // Send updated preferences to the backend
+                    final success =
+                        await PostUserSettings.updateDatePreferences(
+                      startOfWeek: _startOfWeek,
+                      startOfMonth: _startOfMonth,
+                      useWorkingDay: _startOfMonthWorkingDaysOnly,
+                    );
+
+                    if (!success && mounted) {
+                      _showSnackBar(
+                          'Erro ao atualizar início da semana no servidor.');
+                    }
+                  } catch (e) {
+                    print('Error updating start of week: $e');
+                    if (mounted) {
+                      _showSnackBar('Erro ao atualizar início da semana: $e');
+                    }
+                  }
                 }
               },
               items: startOfWeekItems
@@ -389,7 +430,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
             ),
           ),
 
-          // Start of Month setting with Working days checkbox
+          // Start of Month setting
           ListTile(
             title: const Text("Início do Mês"),
             subtitle: Text(startOfMonthItems
@@ -400,11 +441,30 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               value: _startOfMonth,
               onChanged: (value) async {
                 if (value != null) {
-                  await app_prefs.SharedPreferencesAsync.instance
-                      .setStartOfMonth(value);
-                  setState(() {
-                    _startOfMonth = value;
-                  });
+                  try {
+                    await app_prefs.SharedPreferencesAsync.instance
+                        .setStartOfMonth(value);
+                    setState(() {
+                      _startOfMonth = value;
+                    });
+                    // Send updated preferences to the backend
+                    final success =
+                        await PostUserSettings.updateDatePreferences(
+                      startOfWeek: _startOfWeek,
+                      startOfMonth: _startOfMonth,
+                      useWorkingDay: _startOfMonthWorkingDaysOnly,
+                    );
+
+                    if (!success && mounted) {
+                      _showSnackBar(
+                          'Erro ao atualizar início do mês no servidor.');
+                    }
+                  } catch (e) {
+                    print('Error updating start of month: $e');
+                    if (mounted) {
+                      _showSnackBar('Erro ao atualizar início do mês: $e');
+                    }
+                  }
                 }
               },
               items: startOfMonthItems
@@ -416,15 +476,38 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               underline: Container(),
             ),
           ),
+
+          // Working days checkbox
           CheckboxListTile(
             title: const Text("Considerar apenas dias úteis"),
             value: _startOfMonthWorkingDaysOnly,
             onChanged: (value) async {
-              await app_prefs.SharedPreferencesAsync.instance
-                  .setStartOfMonthWorkingDaysOnly(value ?? false);
-              setState(() {
-                _startOfMonthWorkingDaysOnly = value ?? false;
-              });
+              if (value != null) {
+                try {
+                  await app_prefs.SharedPreferencesAsync.instance
+                      .setStartOfMonthWorkingDaysOnly(value);
+                  setState(() {
+                    _startOfMonthWorkingDaysOnly = value;
+                  });
+                  // Send updated preferences to the backend
+                  final success = await PostUserSettings.updateDatePreferences(
+                    startOfWeek: _startOfWeek,
+                    startOfMonth: _startOfMonth,
+                    useWorkingDay: _startOfMonthWorkingDaysOnly,
+                  );
+
+                  if (!success && mounted) {
+                    _showSnackBar(
+                        'Erro ao atualizar configuração de dias úteis no servidor.');
+                  }
+                } catch (e) {
+                  print('Error updating working days setting: $e');
+                  if (mounted) {
+                    _showSnackBar(
+                        'Erro ao atualizar configuração de dias úteis: $e');
+                  }
+                }
+              }
             },
           ),
 
