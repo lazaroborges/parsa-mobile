@@ -462,27 +462,28 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     return 'R\$${monthlyPrice.toStringAsFixed(2).replaceAll('.', ',')}/mês';
   }
 
-  Future<void> _openSubscriptionManagement() async {
-    final String url;
-    if (Platform.isIOS) {
-      url = 'https://apps.apple.com/account/subscriptions';
-    } else {
-      url =
-          'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
-    }
+  // Gerenciar assinatura desativado nessa página
+  // Future<void> _openSubscriptionManagement() async {
+  //   final String url;
+  //   if (Platform.isIOS) {
+  //     url = 'https://apps.apple.com/account/subscriptions';
+  //   } else {
+  //     url =
+  //         'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
+  //   }
 
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Não foi possível abrir a página de gerenciamento de assinaturas')),
-        );
-      }
-    }
-  }
+  //   if (await canLaunchUrlString(url)) {
+  //     await launchUrlString(url);
+  //   } else {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //             content: Text(
+  //                 'Não foi possível abrir a página de gerenciamento de assinaturas')),
+  //       );
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -908,19 +909,19 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                GestureDetector(
-                                  onTap: _openSubscriptionManagement,
-                                  child: Text(
-                                    'Gerencie sua assinatura',
-                                    style: TextStyle(
-                                      color: Color(0xFF475466),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
+                                // GestureDetector(
+                                //   onTap: _openSubscriptionManagement,
+                                //   child: Text(
+                                //     'Gerencie sua assinatura',
+                                //     style: TextStyle(
+                                //       color: Color(0xFF475466),
+                                //       fontSize: 14,
+                                //       fontWeight: FontWeight.w600,
+                                //       decoration: TextDecoration.underline,
+                                //     ),
+                                //   ),
+                                // ),
+                                // const SizedBox(height: 24),
                               ],
                             ),
                           ),

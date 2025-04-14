@@ -10,7 +10,8 @@ import 'package:parsa/core/services/notification/notification_preferences_servic
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
-
+import 'package:url_launcher/url_launcher_string.dart';
+import 'dart:io' show Platform;
 import 'widgets/settings_list_separator.dart';
 
 class PreferencesSettingsPage extends StatefulWidget {
@@ -80,6 +81,28 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     // Refresh UI when app resumes from background
     if (state == AppLifecycleState.resumed) {
       setState(() {});
+    }
+  }
+
+  Future<void> _openSubscriptionManagement() async {
+    final String url;
+    if (Platform.isIOS) {
+      url = 'https://apps.apple.com/account/subscriptions';
+    } else {
+      url =
+          'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
+    }
+
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Não foi possível abrir a página de gerenciamento de assinaturas')),
+        );
+      }
     }
   }
 
@@ -568,6 +591,21 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                 ),
               ),
             ),
+          Center(
+            child: GestureDetector(
+              onTap: _openSubscriptionManagement,
+              child: Text(
+                'Gerencie sua assinatura',
+                style: TextStyle(
+                  color: Color(0xFF475466),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
