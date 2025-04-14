@@ -227,7 +227,7 @@ class DatePeriodState {
         // Check if it spans across months
         if (localStartDate.month == localEndDate.month) {
           // Same month, different days: "July 10-15"
-          return '${DateFormat.MMMMd().format(localStartDate)}–${DateFormat.d().format(localEndDate)}';
+          return '${DateFormat.MMMd().format(localStartDate)} – ${DateFormat.MMMd().format(localEndDate)}';
         } else {
           // Different months: "Jul 10 - Aug 15"
           return '${DateFormat.MMMd().format(localStartDate)} – ${DateFormat.MMMd().format(localEndDate)}';
