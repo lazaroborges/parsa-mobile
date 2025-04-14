@@ -429,8 +429,8 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
 
           // Start of Month setting
           ListTile(
-            title: const Text("Início do Mês"),
-            leading: const Icon(Icons.calendar_month),
+            title: const Text('Início do Mês'),
+            leading: const Icon(Icons.calendar_today_rounded),
             trailing: DropdownButton<int>(
               value: _startOfMonth,
               onChanged: (value) async {
@@ -508,7 +508,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                     }
                   },
                 ),
-                const Text("Considerar apenas dias úteis"),
+                const Text('Considerar apenas dias úteis'),
               ],
             ),
           ),
