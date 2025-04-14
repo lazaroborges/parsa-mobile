@@ -666,21 +666,21 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ),
-              StreamBuilder<List<Account>>(
-                stream: AccountService.instance.getAccounts(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
-                  }
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: StreamBuilder<List<Account>>(
+                  stream: AccountService.instance.getAccounts(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CircularProgressIndicator();
+                    }
 
-                  final accounts = snapshot.data!
-                      .where((account) => !account.removed)
-                      .toList();
+                    final accounts = snapshot.data!
+                        .where((account) => !account.removed)
+                        .toList();
 
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: AccountListCard(
+                    return AccountListCard(
                       accounts: accounts,
                       onAccountTap: (account) => RouteUtils.pushRoute(
                         context,
@@ -693,6 +693,142 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         RouteUtils.pushRoute(
                             context, const AccountConnectionModal());
                       },
+                    );
+                  },
+                ),
+              ),
+
+              // Credit Cards Section
+              StreamBuilder<List<Account>>(
+                stream: AccountService.instance.getAccounts(
+                  predicate: (a, c) => a.type.equals('credit'),
+                ),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final creditCards = snapshot.data!
+                      .where((account) => !account.removed)
+                      .toList();
+
+                  if (creditCards.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: CardWithHeader(
+                      title: 'Cartões de Crédito',
+                      headerButtonIcon: Icons.add,
+                      onHeaderButtonClick: () {
+                        RouteUtils.pushRoute(
+                            context, const AccountConnectionModal());
+                      },
+                      body: Column(
+                        children: creditCards.map((card) {
+                          // Calculate dates (dummy data for now)
+                          final DateTime nextInvoiceDate =
+                              DateTime.now().add(const Duration(days: 15));
+                          final double currentInvoice =
+                              2340.75; // Example current invoice
+
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => RouteUtils.pushRoute(
+                                context,
+                                AccountDetailsPage(
+                                  account: card,
+                                  accountIconHeroTag: null,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        card.displayIcon(context, size: 32),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                card.name,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium!
+                                                    .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red
+                                                      .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  'Vence em ${nextInvoiceDate.day}/${nextInvoiceDate.month}',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall!
+                                                      .copyWith(
+                                                        color: Colors.red,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              'Próxima fatura',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall!
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                            ),
+                                            CurrencyDisplayer(
+                                              amountToConvert: currentInvoice,
+                                              currency: card.currency,
+                                              integerStyle: TextStyle(
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.red[700],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    if (card != creditCards.last)
+                                      const Divider(height: 24),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   );
                 },
