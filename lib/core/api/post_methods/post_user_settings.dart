@@ -6,6 +6,7 @@ import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 
 class PostUserSettings {
   static Future<bool> updateAccrualBasisAccountingSetting({
@@ -206,11 +207,12 @@ class PostUserSettings {
       }
     } catch (e) {
       print('Error fetching user settings: $e');
-      // Return default values in case of network errors
+      // Use shared preferences as a fallback in case of network errors
+      final prefsAsync = app_prefs.SharedPreferencesAsync.instance;
       return {
-        'startOfWeek': 'sunday',
-        'startOfMonth': 1,
-        'useWorkingDay': false
+        'startOfWeek': await prefsAsync.getStartOfWeek(),
+        'startOfMonth': await prefsAsync.getStartOfMonth(),
+        'useWorkingDay': await prefsAsync.getStartOfMonthWorkingDaysOnly(),
       };
     }
   }
