@@ -386,9 +386,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
           // Start of Week setting
           ListTile(
             title: const Text("Início da Semana"),
-            subtitle: Text(startOfWeekItems
-                .firstWhere((item) => item.value == _startOfWeek)
-                .label),
             leading: const Icon(Icons.calendar_view_week),
             trailing: DropdownButton<int>(
               value: _startOfWeek,
@@ -433,9 +430,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
           // Start of Month setting
           ListTile(
             title: const Text("Início do Mês"),
-            subtitle: Text(startOfMonthItems
-                .firstWhere((item) => item.value == _startOfMonth)
-                .label),
             leading: const Icon(Icons.calendar_month),
             trailing: DropdownButton<int>(
               value: _startOfMonth,
@@ -478,37 +472,45 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
           ),
 
           // Working days checkbox
-          CheckboxListTile(
-            title: const Text("Considerar apenas dias úteis"),
-            value: _startOfMonthWorkingDaysOnly,
-            onChanged: (value) async {
-              if (value != null) {
-                try {
-                  await app_prefs.SharedPreferencesAsync.instance
-                      .setStartOfMonthWorkingDaysOnly(value);
-                  setState(() {
-                    _startOfMonthWorkingDaysOnly = value;
-                  });
-                  // Send updated preferences to the backend
-                  final success = await PostUserSettings.updateDatePreferences(
-                    startOfWeek: _startOfWeek,
-                    startOfMonth: _startOfMonth,
-                    useWorkingDay: _startOfMonthWorkingDaysOnly,
-                  );
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: _startOfMonthWorkingDaysOnly,
+                  onChanged: (value) async {
+                    if (value != null) {
+                      try {
+                        await app_prefs.SharedPreferencesAsync.instance
+                            .setStartOfMonthWorkingDaysOnly(value);
+                        setState(() {
+                          _startOfMonthWorkingDaysOnly = value;
+                        });
+                        // Send updated preferences to the backend
+                        final success =
+                            await PostUserSettings.updateDatePreferences(
+                          startOfWeek: _startOfWeek,
+                          startOfMonth: _startOfMonth,
+                          useWorkingDay: _startOfMonthWorkingDaysOnly,
+                        );
 
-                  if (!success && mounted) {
-                    _showSnackBar(
-                        'Erro ao atualizar configuração de dias úteis no servidor.');
-                  }
-                } catch (e) {
-                  print('Error updating working days setting: $e');
-                  if (mounted) {
-                    _showSnackBar(
-                        'Erro ao atualizar configuração de dias úteis: $e');
-                  }
-                }
-              }
-            },
+                        if (!success && mounted) {
+                          _showSnackBar(
+                              'Erro ao atualizar configuração de dias úteis no servidor.');
+                        }
+                      } catch (e) {
+                        print('Error updating working days setting: $e');
+                        if (mounted) {
+                          _showSnackBar(
+                              'Erro ao atualizar configuração de dias úteis: $e');
+                        }
+                      }
+                    }
+                  },
+                ),
+                const Text("Considerar apenas dias úteis"),
+              ],
+            ),
           ),
 
           // Add notification section only if permissions were requested but denied

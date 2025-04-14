@@ -123,9 +123,6 @@ class PostUserSettings {
           // If preferences don't exist on the server, log it
           print(
               'No preferences found on server. The backend should initialize default preferences for users.');
-
-          // Return true so the app doesn't show an error
-          // The next time preferences are fetched, defaults will be used
           return true;
         } else {
           print(
