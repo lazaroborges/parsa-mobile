@@ -17,7 +17,8 @@ class PremiumWidget extends StatefulWidget {
   final int? priceMonthly;
   final int? priceYearly;
 
-  const PremiumWidget({Key? key, this.priceMonthly, this.priceYearly}) : super(key: key);
+  const PremiumWidget({Key? key, this.priceMonthly, this.priceYearly})
+      : super(key: key);
 
   @override
   _PremiumWidgetState createState() => _PremiumWidgetState();
@@ -31,7 +32,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   List<ProductDetails> _products = [];
   bool _isLoading = true;
   String? _error;
-  
+
   // Server prices (from API)
   int? priceMonthly;
   int? priceYearly;
@@ -52,7 +53,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize prices from widget parameters
     priceMonthly = widget.priceMonthly ?? 2499; // Default value if null
     priceYearly = widget.priceYearly ?? 24999; // Default value if null
@@ -478,7 +479,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   // Format price from server value (e.g. 2499 -> "R$24,99/mês")
   String _formatServerMonthlyPrice() {
     if (priceMonthly == null) return '-';
-    
+
     // Convert from cents to reais with comma as decimal separator
     final double price = priceMonthly! / 100;
     return 'R\$${price.toStringAsFixed(2).replaceAll('.', ',')}/mês';
@@ -487,42 +488,41 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   // Format yearly price from server value (e.g. 24999 -> "R$20,83/mês")
   String _formatServerYearlyPrice() {
     if (priceYearly == null) return '-';
-    
+
     // Calculate monthly equivalent (yearly price / 12)
     final double monthlyPrice = (priceYearly! / 100) / 12;
     return 'R\$${monthlyPrice.toStringAsFixed(2).replaceAll('.', ',')}/mês';
   }
-  
+
   // Format full yearly price from server value (e.g. 24999 -> "R$249,99")
   String _formatServerYearlyFullPrice() {
     if (priceYearly == null) return '*Cobrança anual única';
-    
+
     // Convert from cents to reais with comma as decimal separator
     final double price = priceYearly! / 100;
     return '*Cobrança anual única de R\$${price.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 
-  Future<void> _openSubscriptionManagement() async {
-    final String url;
-    if (Platform.isIOS) {
-      url = 'https://apps.apple.com/account/subscriptions';
-    } else {
-      url =
-          'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
-    }
-
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Não foi possível abrir a página de gerenciamento de assinaturas')),
-        );
-      }
-    }
-  }
+  // Future<void> _openSubscriptionManagement() async {
+  //   final String url;
+  //   if (Platform.isIOS) {
+  //     url = 'https://apps.apple.com/account/subscriptions';
+  //   } else {
+  //     url =
+  //         'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
+  //   }
+  //   if (await canLaunchUrlString(url)) {
+  //     await launchUrlString(url);
+  //   } else {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //             content: Text(
+  //                 'Não foi possível abrir a página de gerenciamento de assinaturas')),
+  //       );
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -924,19 +924,19 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                GestureDetector(
-                                  onTap: _openSubscriptionManagement,
-                                  child: Text(
-                                    'Gerencie sua assinatura',
-                                    style: TextStyle(
-                                      color: Color(0xFF475466),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
+                                // GestureDetector(
+                                //   onTap: _openSubscriptionManagement,
+                                //   child: Text(
+                                //     'Gerencie sua assinatura',
+                                //     style: TextStyle(
+                                //       color: Color(0xFF475466),
+                                //       fontSize: 14,
+                                //       fontWeight: FontWeight.w600,
+                                //       decoration: TextDecoration.underline,
+                                //     ),
+                                //   ),
+                                // ),
+                                // const SizedBox(height: 24),
                               ],
                             ),
                           ),

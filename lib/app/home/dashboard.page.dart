@@ -64,8 +64,6 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -788,21 +786,21 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ),
-              StreamBuilder<List<Account>>(
-                stream: AccountService.instance.getAccounts(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
-                  }
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: StreamBuilder<List<Account>>(
+                  stream: AccountService.instance.getAccounts(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CircularProgressIndicator();
+                    }
 
-                  final accounts = snapshot.data!
-                      .where((account) => !account.removed)
-                      .toList();
+                    final accounts = snapshot.data!
+                        .where((account) => !account.removed)
+                        .toList();
 
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: AccountListCard(
+                    return AccountListCard(
                       accounts: accounts,
                       onAccountTap: (account) => RouteUtils.pushRoute(
                         context,
@@ -812,6 +810,45 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         ),
                       ),
                       onAddAccountTap: () {
+                        RouteUtils.pushRoute(
+                            context, const AccountConnectionModal());
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              // Credit Cards Section
+              StreamBuilder<List<Account>>(
+                stream: AccountService.instance.getAccounts(
+                  predicate: (a, c) => a.type.equals('credit'),
+                ),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final creditCards = snapshot.data!
+                      .where((account) => !account.removed)
+                      .toList();
+
+                  if (creditCards.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: CreditCardListCard(
+                      creditCards: creditCards,
+                      onCardTap: (card) => RouteUtils.pushRoute(
+                        context,
+                        AccountDetailsPage(
+                          account: card,
+                          accountIconHeroTag: null,
+                        ),
+                      ),
+                      onAddCardTap: () {
                         RouteUtils.pushRoute(
                             context, const AccountConnectionModal());
                       },
