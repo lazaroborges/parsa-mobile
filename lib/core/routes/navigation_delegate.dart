@@ -154,4 +154,50 @@ class NavigationDelegate {
       navigateTo('/stats');
     }
   }
+
+  // Add a new method to handle notification routes
+  void navigateBasedOnNotificationRoute(String route,
+      {Map<String, String>? queryParams}) {
+    final segments = route.split('/');
+    if (segments.isEmpty) return;
+
+    final section = segments[0].toLowerCase();
+    final id = segments.length > 1 ? segments[1] : null;
+
+    switch (section) {
+      case 'budgets':
+        if (id != null) {
+          navigateToBudget(id);
+        } else {
+          navigateTo('/budgets');
+        }
+        break;
+      case 'transactions':
+        if (id != null) {
+          navigateToTransaction(transactionId: id);
+        } else if (queryParams != null) {
+          navigateToTransaction(params: queryParams);
+        } else {
+          navigateTo('/transactions');
+        }
+        break;
+      case 'accounts':
+        if (id != null) {
+          navigateToAccount(id);
+        } else {
+          navigateTo('/accounts');
+        }
+        break;
+      case 'stats':
+        if (queryParams != null) {
+          navigateToStats('', queryParams);
+        } else {
+          navigateTo('/stats');
+        }
+        break;
+      default:
+        navigateTo('/');
+        break;
+    }
+  }
 }

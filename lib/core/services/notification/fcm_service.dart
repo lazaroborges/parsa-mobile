@@ -11,6 +11,7 @@ import '../../../firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:provider/provider.dart';
+import 'package:parsa/core/routes/navigation_delegate.dart';
 
 // Define notification categories - simplified to only two categories
 enum NotificationCategory {
@@ -21,15 +22,14 @@ enum NotificationCategory {
 // Top-level background message handler: must be a top-level function.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Ensure Firebase is initialized in background.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (kDebugMode) {
-    print("Handling a background message: ${message.messageId}");
-    print("Message data: ${message.data}");
+    print("Handling a background message: \\${message.messageId}");
+    print("Message data: \\${message.data}");
     if (message.notification != null) {
-      print("Message notification title: ${message.notification!.title}");
-      print("Message notification body: ${message.notification!.body}");
+      print("Message notification title: \\${message.notification!.title}");
+      print("Message notification body: \\${message.notification!.body}");
     }
   }
 }
@@ -60,63 +60,6 @@ class FCMService {
 
   // Flag to track if initialization is in progress to prevent concurrent calls
   bool _isInitializing = false;
-
-  // Notification filters - simplified to just two categories
-  final Map<NotificationCategory, bool> _notificationFilters = {
-    NotificationCategory.budgets: true,
-    NotificationCategory.general: true,
-  };
-
-  // Get notification filter status
-  bool getNotificationFilter(NotificationCategory category) {
-    return _notificationFilters[category] ?? true;
-  }
-
-  // Set notification filter
-  Future<bool> setNotificationFilter(
-      NotificationCategory category, bool enabled) async {
-    // Update the internal map
-    _notificationFilters[category] = enabled;
-
-    // Update subscription immediately
-    await _updateTopicSubscription(category, enabled);
-
-    // Update backend preference
-    bool success = false;
-    switch (category) {
-      case NotificationCategory.budgets:
-        success = await NotificationPreferencesService.instance
-            .updatePreferences(budgetsEnabled: enabled);
-        break;
-      case NotificationCategory.general:
-        success = await NotificationPreferencesService.instance
-            .updatePreferences(generalEnabled: enabled);
-        break;
-    }
-
-    return enabled;
-  }
-
-  // Master toggle for all notifications
-  Future<bool> setNotificationsEnabled(bool enabled) async {
-    for (var category in NotificationCategory.values) {
-      // Update the internal map
-      _notificationFilters[category] = enabled;
-
-      await _updateTopicSubscription(category, enabled);
-    }
-
-    await NotificationPreferencesService.instance.updatePreferences(
-      budgetsEnabled: enabled,
-      generalEnabled: enabled,
-    );
-
-    if (kDebugMode) {
-      print('All notifications ${enabled ? 'enabled' : 'disabled'}');
-    }
-
-    return enabled;
-  }
 
   // Check if notifications are enabled overall
   Future<bool> getNotificationsEnabled() async {
@@ -192,7 +135,7 @@ class FCMService {
           print("Received a foreground message: ${message.messageId}");
           print('Message data: ${message.data}');
         }
-
+        // TODO: Handle notification display
         // Store the message data for displaying in the app
         // This would be handled by a notification display service in a real app
       });
@@ -200,12 +143,26 @@ class FCMService {
       // Listen for when a user taps on a notification (app opened via notification).
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         if (kDebugMode) {
-          print('User tapped on notification: ${message.messageId}');
-          print('Message data: ${message.data}');
+          print('User tapped on notification: \\${message.messageId}');
+          print('Message data: \\${message.data}');
         }
 
-        // Handle notification navigation
-        // _handleNotificationNavigation(message);
+        // Extract route and optional query parameters from message data
+        if (message.data.containsKey('route')) {
+          final route = message.data['route'];
+          final queryParams = message.data['queryParams'] != null
+              ? jsonDecode(message.data['queryParams']) as Map<String, String>
+              : null;
+
+          // Use NavigationDelegate to navigate based on the route
+          if (queryParams != null &&
+              (route.startsWith('transactions') || route.startsWith('stats'))) {
+            NavigationDelegate.instance
+                .navigateTo(route, queryParams: queryParams);
+          } else {
+            NavigationDelegate.instance.navigateTo(route);
+          }
+        }
       });
 
       // Get the FCM token and register it with backend
@@ -215,22 +172,28 @@ class FCMService {
         }
       });
 
-      // Load preferences from the backend and update internal map
-      await _loadPreferencesFromBackend();
-
-      // Subscribe to topics based on enabled notification categories
-      await _subscribeToTopics();
-
-      // Set up background message handler for when app is terminated
       final initialMessage = await messaging.getInitialMessage();
       if (initialMessage != null) {
         if (kDebugMode) {
           print(
               'App was terminated and opened via notification: ${initialMessage.messageId}');
+          print('Message data: ${initialMessage.data}');
         }
+        // Handle the notification data
+        final route = initialMessage.data['route'];
+        final queryParams = initialMessage.data['queryParams'] != null
+            ? jsonDecode(initialMessage.data['queryParams'])
+                as Map<String, String>
+            : null;
 
-        // Handle notification navigation for app opened from terminated state
-        // _handleNotificationNavigation(initialMessage);
+        // Use NavigationDelegate to navigate based on the route
+        if (queryParams != null &&
+            (route.startsWith('transactions') || route.startsWith('stats'))) {
+          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route,
+              queryParams: queryParams);
+        } else {
+          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route);
+        }
       }
 
       // Configure FCM to use APNS tokens on iOS
@@ -251,109 +214,6 @@ class FCMService {
       _isInitializing = false;
     }
   }
-
-  // Load preferences from backend and update local filters
-  Future<void> _loadPreferencesFromBackend() async {
-    try {
-      final prefs =
-          await NotificationPreferencesService.instance.getPreferences();
-
-      // Update internal notification filters
-      _notificationFilters[NotificationCategory.budgets] =
-          prefs['budgets_enabled'] ?? true;
-      _notificationFilters[NotificationCategory.general] =
-          prefs['general_enabled'] ?? true;
-
-      if (kDebugMode) {
-        print('Loaded notification preferences from backend:');
-        print('budgets_enabled: ${prefs['budgets_enabled']}');
-        print('general_enabled: ${prefs['general_enabled']}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading preferences from backend: $e');
-        print('Using default notification preferences');
-      }
-
-      // Use defaults if loading fails
-      _notificationFilters[NotificationCategory.budgets] = true;
-      _notificationFilters[NotificationCategory.general] = true;
-    }
-  }
-
-  // Subscribe to topics based on enabled notification filters
-  Future<void> _subscribeToTopics() async {
-    // Subscribe to general notifications
-    await _updateTopicSubscription(NotificationCategory.general,
-        _notificationFilters[NotificationCategory.general] ?? true);
-
-    // Subscribe to budgets notifications
-    await _updateTopicSubscription(NotificationCategory.budgets,
-        _notificationFilters[NotificationCategory.budgets] ?? true);
-
-    if (kDebugMode) {
-      print('Subscribed to FCM topics based on user preferences');
-    }
-  }
-
-  // Helper method to update a single topic subscription
-  Future<void> _updateTopicSubscription(
-      NotificationCategory category, bool isEnabled) async {
-    final topicName = category.toString().split('.').last;
-
-    // Check current state from our in-memory map to avoid unnecessary API calls
-    final currentlySubscribed = _notificationFilters[category] ?? false;
-
-    // Only make API calls if the subscription state is changing
-    if (isEnabled != currentlySubscribed) {
-      if (isEnabled) {
-        await messaging.subscribeToTopic(topicName);
-        if (kDebugMode) {
-          print('Subscribed to topic: $topicName');
-        }
-      } else {
-        await messaging.unsubscribeFromTopic(topicName);
-        if (kDebugMode) {
-          print('Unsubscribed from topic: $topicName');
-        }
-      }
-
-      // Update our in-memory map with the new state
-      _notificationFilters[category] = isEnabled;
-    }
-  }
-
-  /// Handle navigation based on notification data
-  // void _handleNotificationNavigation(RemoteMessage message) {
-  //   // Only navigate if we have a navigator key and the app is initialized
-  //   if (navigatorKey.currentState == null) return;
-
-  //   try {
-  //     // Check if the message contains a route to navigate to
-  //     if (message.data.containsKey('route')) {
-  //       final String route = message.data['route'] as String;
-
-  //       // Simple switch to handle different routes - only keeping budgets and home
-  //       switch (route) {
-  //         case 'budgets':
-  //           // Navigate to budgets page
-  //           _navigateToBudgets();
-  //           break;
-  //         default:
-  //           // If no specific route, just ensure we're on the main tabs page
-  //           _navigateToHome();
-  //           break;
-  //       }
-  //     } else {
-  //       // Default navigation if no specific route is specified
-  //       _navigateToHome();
-  //     }
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print("Error navigating from notification: $e");
-  //     }
-  //   }
-  // }
 
   /// Get the FCM token for this device
   Future<String?> getToken() async {
@@ -482,65 +342,73 @@ class FCMService {
       return null;
     }
   }
+  // Load preferences from backend and update local filters
+  // Future<void> _loadPreferencesFromBackend() async {
+  //   try {
+  //     final prefs =
+  //         await NotificationPreferencesService.instance.getPreferences();
 
-  /// Trigger a test notification for testing
-  Future<bool> triggerTestNotification({
-    required String title,
-    required String body,
-    required NotificationCategory category,
-  }) async {
-    try {
-      // Get access token from Auth0Provider
-      final accessToken = await _getAccessToken();
-      if (accessToken == null) {
-        if (kDebugMode) {
-          print('Failed to get access token for sending test notification');
-        }
-        return false;
-      }
+  //     // Update internal notification filters
+  //     _notificationFilters[NotificationCategory.budgets] =
+  //         prefs['budgets_enabled'] ?? true;
+  //     _notificationFilters[NotificationCategory.general] =
+  //         prefs['general_enabled'] ?? true;
 
-      // Convert category to string format expected by backend
-      final categoryStr = category.toString().split('.').last.toLowerCase();
+  //     if (kDebugMode) {
+  //       print('Loaded notification preferences from backend:');
+  //       print('budgets_enabled: ${prefs['budgets_enabled']}');
+  //       print('general_enabled: ${prefs['general_enabled']}');
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print('Error loading preferences from backend: $e');
+  //     }
 
-      // Prepare request data - simplified to essential fields only
-      final data = {
-        'title': title,
-        'body': body,
-        'category': categoryStr,
-        'data': {
-          'category': categoryStr,
-          'route': categoryStr,
-        }
-      };
+  //     // Use defaults if loading fails
+  //     _notificationFilters[NotificationCategory.budgets] = true;
+  //     _notificationFilters[NotificationCategory.general] = true;
+  //   }
+  // }
 
-      if (kDebugMode) {
-        print('Sending test notification request: $data');
-      }
+  // // Subscribe to topics based on enabled notification filters
+  // Future<void> _subscribeToTopics() async {
+  //   // Subscribe to general notifications
+  //   await _updateTopicSubscription(NotificationCategory.general,
+  //       _notificationFilters[NotificationCategory.general] ?? true);
 
-      // Send request to backend using the new unified endpoint
-      final response = await http.post(
-        Uri.parse('$apiEndpoint/messaging/send/'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-        body: jsonEncode(data),
-      );
+  //   // Subscribe to budgets notifications
+  //   await _updateTopicSubscription(NotificationCategory.budgets,
+  //       _notificationFilters[NotificationCategory.budgets] ?? true);
 
-      if (response.statusCode != 202) {
-        if (kDebugMode) {
-          print('Failed to send test notification: ${response.statusCode}');
-          print('Response: ${response.body}');
-        }
-        return false;
-      }
+  //   if (kDebugMode) {
+  //     print('Subscribed to FCM topics based on user preferences');
+  //   }
+  // }
 
-      return response.statusCode == 200;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error triggering test notification: $e');
-      }
-      return false;
-    }
-  }
+  // // Helper method to update a single topic subscription
+  // Future<void> _updateTopicSubscription(
+  //     NotificationCategory category, bool isEnabled) async {
+  //   final topicName = category.toString().split('.').last;
+
+  //   // Check current state from our in-memory map to avoid unnecessary API calls
+  //   final currentlySubscribed = _notificationFilters[category] ?? false;
+
+  //   // Only make API calls if the subscription state is changing
+  //   if (isEnabled != currentlySubscribed) {
+  //     if (isEnabled) {
+  //       await messaging.subscribeToTopic(topicName);
+  //       if (kDebugMode) {
+  //         print('Subscribed to topic: $topicName');
+  //       }
+  //     } else {
+  //       await messaging.unsubscribeFromTopic(topicName);
+  //       if (kDebugMode) {
+  //         print('Unsubscribed from topic: $topicName');
+  //       }
+  //     }
+
+  //     // Update our in-memory map with the new state
+  //     _notificationFilters[category] = isEnabled;
+  //   }
+  // }
 }
