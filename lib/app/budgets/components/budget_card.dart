@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:parsa/app/budgets/budget_details.page.dart';
-import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/models/budget/budget.dart';
-import 'package:parsa/core/models/date-utils/period_type.dart';
 import 'package:parsa/core/models/date-utils/periodicity.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/widgets/animated_progress_bar.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
-import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/i18n/translations.g.dart';
+
+
 
 class BudgetCard extends StatelessWidget {
   const BudgetCard({
@@ -161,18 +159,51 @@ class BudgetCard extends StatelessWidget {
                     final remainingAmount = budget.limitAmount - currentValue;
                     final percentage = currentValue / budget.limitAmount;
                     final isOverBudget = currentValue > budget.limitAmount;
+                    
+                    // Calculate daily budget
+                    final dailyBudget = budget.daysToTheEnd > 0 
+                        ? remainingAmount / budget.daysToTheEnd 
+                        : remainingAmount;
+                    
+                    // Calculate total days in budget period
+                    final totalDaysInBudget = budget.currentDateRange.end
+                        .difference(budget.currentDateRange.start)
+                        .inDays;
+                    
+                    // New logic for color calculation
+                    Color progressBarColor;
+                    if (isOverBudget) {
+                      // Over budget - use danger color (red)
+                      progressBarColor = appColors.danger;
+                    } else if (budget.daysToTheEnd > 0) {
+                      // Calculate elapsed days within the budget period
+                      final daysElapsed = totalDaysInBudget - budget.daysToTheEnd;
+                      
+                      // Calculate daily spending rate (total spent / days elapsed)
+                      final dailySpendingRate = daysElapsed > 0 ? currentValue / daysElapsed : 0;
+                      
+                      // Warning threshold - spending faster than daily budget allows
+                      if (dailySpendingRate > dailyBudget && dailyBudget > 0) {
+                        // Use amber/yellow for warning
+                        progressBarColor = Colors.amber;
+                      } else {
+                        // On track - use primary color (blue)
+                        progressBarColor = Theme.of(context).colorScheme.primary;
+                      }
+                    } else {
+                      // Default color for completed budgets
+                      progressBarColor = Theme.of(context).colorScheme.primary;
+                    }
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Progress bar
+                        // Progress bar with updated color logic
                         AnimatedProgressBar(
                           width: 10, // Slightly increased height
                           radius: 16, // Increased radius for MD3 style
                           value: percentage > 1 ? 1 : percentage,
-                          color: percentage > 1
-                              ? appColors.danger
-                              : Theme.of(context).colorScheme.primary,
+                          color: progressBarColor,
                         ),
 
                         const SizedBox(height: 8),
