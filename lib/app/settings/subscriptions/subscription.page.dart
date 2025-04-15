@@ -14,6 +14,11 @@ import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intake.dart';
 
 class PremiumWidget extends StatefulWidget {
+  final int? priceMonthly;
+  final int? priceYearly;
+
+  const PremiumWidget({Key? key, this.priceMonthly, this.priceYearly}) : super(key: key);
+
   @override
   _PremiumWidgetState createState() => _PremiumWidgetState();
 }
@@ -26,6 +31,10 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   List<ProductDetails> _products = [];
   bool _isLoading = true;
   String? _error;
+  
+  // Server prices (from API)
+  int? priceMonthly;
+  int? priceYearly;
 
   // Subscription status variables
   String? activeSubscriptionProductId;
@@ -43,6 +52,10 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   @override
   void initState() {
     super.initState();
+    
+    // Initialize prices from widget parameters
+    priceMonthly = widget.priceMonthly ?? 2499; // Default value if null
+    priceYearly = widget.priceYearly ?? 24999; // Default value if null
 
     // Set up the purchase stream listener before initializing the store
     _inAppPurchase.purchaseStream.listen(
@@ -462,6 +475,33 @@ class _PremiumWidgetState extends State<PremiumWidget> {
     return 'R\$${monthlyPrice.toStringAsFixed(2).replaceAll('.', ',')}/mês';
   }
 
+  // Format price from server value (e.g. 2499 -> "R$24,99/mês")
+  String _formatServerMonthlyPrice() {
+    if (priceMonthly == null) return '-';
+    
+    // Convert from cents to reais with comma as decimal separator
+    final double price = priceMonthly! / 100;
+    return 'R\$${price.toStringAsFixed(2).replaceAll('.', ',')}/mês';
+  }
+
+  // Format yearly price from server value (e.g. 24999 -> "R$20,83/mês")
+  String _formatServerYearlyPrice() {
+    if (priceYearly == null) return '-';
+    
+    // Calculate monthly equivalent (yearly price / 12)
+    final double monthlyPrice = (priceYearly! / 100) / 12;
+    return 'R\$${monthlyPrice.toStringAsFixed(2).replaceAll('.', ',')}/mês';
+  }
+  
+  // Format full yearly price from server value (e.g. 24999 -> "R$249,99")
+  String _formatServerYearlyFullPrice() {
+    if (priceYearly == null) return '*Cobrança anual única';
+    
+    // Convert from cents to reais with comma as decimal separator
+    final double price = priceYearly! / 100;
+    return '*Cobrança anual única de R\$${price.toStringAsFixed(2).replaceAll('.', ',')}';
+  }
+
   Future<void> _openSubscriptionManagement() async {
     final String url;
     if (Platform.isIOS) {
@@ -642,16 +682,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                               ),
                                             ),
                                             Text(
-                                              _products
-                                                      .where((p) =>
-                                                          p.id ==
-                                                          'premium_monthly1')
-                                                      .isNotEmpty
-                                                  ? _formatPrice(_products
-                                                      .firstWhere((p) =>
-                                                          p.id ==
-                                                          'premium_monthly1'))
-                                                  : '-',
+                                              _formatServerMonthlyPrice(),
                                               style: TextStyle(
                                                 color: hasMonthlySubscription
                                                     ? Colors.grey
@@ -723,13 +754,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  _products
-                                                          .where((p) =>
-                                                              p.id ==
-                                                              'premium_yearly')
-                                                          .isNotEmpty
-                                                      ? '*Cobrança anual única de ${_products.firstWhere((p) => p.id == 'premium_yearly').price}'
-                                                      : '*Cobrança anual única',
+                                                  _formatServerYearlyFullPrice(),
                                                   style: TextStyle(
                                                     color: hasYearlySubscription
                                                         ? Colors.grey
@@ -745,16 +770,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                               ],
                                             ),
                                             Text(
-                                              _products
-                                                      .where((p) =>
-                                                          p.id ==
-                                                          'premium_yearly')
-                                                      .isNotEmpty
-                                                  ? _formatYearlyPrice(_products
-                                                      .firstWhere((p) =>
-                                                          p.id ==
-                                                          'premium_yearly'))
-                                                  : '-',
+                                              _formatServerYearlyPrice(),
                                               style: TextStyle(
                                                 color: hasYearlySubscription
                                                     ? Colors.grey
