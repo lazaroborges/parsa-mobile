@@ -6,7 +6,7 @@ description: controle financeiro sem esforço.
 publish_to: none
 
 
-version: 2.0.12+83
+version: 2.0.14+86
 
 
 environment:
@@ -102,11 +102,11 @@ dev_dependencies:
 build:
   ios:
 
-    build-name: 2.0.12
-    build-number: 83
+    build-name: 2.0.14
+    build-number: 86
   android:
-    build-name: 2.0.12
-    build-number: 83
+    build-name: 2.0.14
+    build-number: 86
 
 
 
