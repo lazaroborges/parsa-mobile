@@ -26,14 +26,19 @@ class _BiometricsCheckScreenState extends State<BiometricsCheckScreen> {
   }
 
   void _authenticate() {
-    _biometricsService.authenticateAndNavigate(context);
+    _biometricsService.authenticateAndNavigate(context,
+        onVerified: widget.onBiometricsVerified);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
+      backgroundColor: Colors.white,
+      body: Container(
+        color: Colors.white,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
       ),
     );
   }

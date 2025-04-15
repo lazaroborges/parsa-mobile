@@ -10,10 +10,12 @@ import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
+
 class BiometricsService {
   final LocalAuthentication _localAuth = LocalAuthentication();
 
-  Future<void> authenticateAndNavigate(BuildContext context) async {
+  Future<void> authenticateAndNavigate(BuildContext context,
+      {VoidCallback? onVerified}) async {
     bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
     bool isAuthenticated = false;
 
@@ -33,17 +35,23 @@ class BiometricsService {
 
     if (isAuthenticated) {
       unawaited(SessionService.instance.registerUserSession());
-      
-      // Find the BiometricsCheckScreen widget and call its callback
-      final biometricsWidget = context.findAncestorWidgetOfExactType<BiometricsCheckScreen>();
-      if (biometricsWidget?.onBiometricsVerified != null) {
-        biometricsWidget!.onBiometricsVerified!();
+
+      // Call the provided callback if available
+      if (onVerified != null) {
+        onVerified();
       } else {
-        // Fallback to direct navigation if callback is not available
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => TabsPage()),
-        );
+        // Find the BiometricsCheckScreen widget and call its callback
+        final biometricsWidget =
+            context.findAncestorWidgetOfExactType<BiometricsCheckScreen>();
+        if (biometricsWidget?.onBiometricsVerified != null) {
+          biometricsWidget!.onBiometricsVerified!();
+        } else {
+          // Fallback to direct navigation if callback is not available
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => TabsPage()),
+          );
+        }
       }
     } else {
       try {

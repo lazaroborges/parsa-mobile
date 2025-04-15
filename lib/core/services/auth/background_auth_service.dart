@@ -15,6 +15,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/session_service.dart';
+import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 
 class BackgroundAuthService with WidgetsBindingObserver {
   // Singleton instance
@@ -99,29 +100,23 @@ class BackgroundAuthService with WidgetsBindingObserver {
   Future<void> _authenticateWithBiometrics() async {
     if (_context == null) return;
 
-    final t = Translations.of(_context!);
-
-    try {
-      bool isAuthenticated = await _localAuth.authenticate(
-        localizedReason: t.auth.login_reason,
-        options: const AuthenticationOptions(
-          biometricOnly: false, // Allows device passcode as fallback
-          stickyAuth: true,
+    // Show BiometricsCheckScreen with white background that covers the app content
+    Navigator.of(_context!, rootNavigator: true).push(
+      PageRouteBuilder(
+        opaque: true, // Makes the route opaque (not transparent)
+        pageBuilder: (context, _, __) => WillPopScope(
+          onWillPop: () async => false, // Prevent back button
+          child: BiometricsCheckScreen(
+            onBiometricsVerified: () {
+              // On successful authentication, pop the BiometricsCheckScreen
+              Navigator.of(context).pop();
+              // Update session
+              unawaited(SessionService.instance.registerUserSession());
+            },
+          ),
         ),
-      );
-
-      if (isAuthenticated) {
-        // Authentication successful, update session
-        unawaited(SessionService.instance.registerUserSession());
-      } else {
-        // Authentication failed, go to login screen
-        _showLoginScreen();
-      }
-    } catch (e) {
-      print('Biometric authentication error: $e');
-      // Error during biometric auth, go to login screen
-      _showLoginScreen();
-    }
+      ),
+    );
   }
 
   // Show login screen when authentication is required
