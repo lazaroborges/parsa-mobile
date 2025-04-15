@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
 import 'package:parsa/app/home/dashboard.page.dart';
 import 'package:parsa/app/settings/settings.page.dart';
-import 'package:parsa/app/stats/stats_page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 enum AppMenuDestinationsID {
   dashboard,
@@ -109,7 +110,7 @@ List<MainMenuDestination> getAllDestinations(
       AppMenuDestinationsID.stats,
       label: t.stats.title,
       icon: Icons.auto_graph_rounded,
-      destination: const StatsPage(),
+      destination: const StatsPage(dateRangeService: DatePeriodState()),
     ),
     MainMenuDestination(
       AppMenuDestinationsID.settings,

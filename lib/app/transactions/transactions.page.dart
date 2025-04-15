@@ -21,10 +21,8 @@ import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
-import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({

@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/layout/lazy_indexed_stack.dart';
+import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
+import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
+import 'package:parsa/core/services/notification/fcm_service.dart';
+import 'package:parsa/core/services/notification/permission_service.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/mixins/cousin_alert_mixin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:parsa/core/services/branch/link_handler_service.dart';
+import 'package:parsa/core/providers/link_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/background_auth_service.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -30,8 +41,6 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   @override
   void initState() {
     super.initState();
-    print('loaded init state');
-    // Remove the _initializeData call from here
   }
 
   @override
@@ -39,19 +48,84 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     super.didChangeDependencies();
     if (!_isInitialized) {
       _initializeData();
+      _requestNotificationPermission();
+      _setupDeepLinking();
+      // Initialize background authentication service
+      BackgroundAuthService.instance.initialize(context);
       _isInitialized = true; // Ensure this runs only once
     }
   }
 
-  Future<void> _initializeData() async {
-    // Add API login to the parallel operations
-    await Future.wait([
-      _fetchUserAccounts(),
-      _fetchUserTags(),
-      _fetchUserInfoServer(),
-    ]);
+  @override
+  void dispose() {
+    // Dispose of background authentication service
+    BackgroundAuthService.instance.dispose();
+    super.dispose();
+  }
 
-    // Wait for _fetchAndSyncTransactions after the above operations complete
+  // Request notification permission when the dashboard is opened
+  Future<void> _requestNotificationPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    final permissionRequested =
+        prefs.getBool('notification_permission_requested') ?? false;
+
+    // Always check current permission status regardless of previous requests
+    final currentPermissionStatus =
+        await PermissionService.instance.hasNotificationPermission();
+
+    // If already has permission, just initialize FCM
+    if (currentPermissionStatus) {
+      await FCMService.instance.initialize();
+
+      // Make sure flag is set to true since we have permission
+      await prefs.setBool('notification_permission_requested', true);
+      return;
+    }
+
+    // Only show permission dialog if we haven't requested before
+    if (!permissionRequested) {
+      // Request permission using the permission service
+      final permissionGranted =
+          await PermissionService.instance.requestNotificationPermission();
+
+      if (permissionGranted) {
+        // If permission granted, initialize FCM
+        await FCMService.instance.initialize();
+
+        // Enable notifications by default for new installs if permission is granted
+        await NotificationPreferencesService.instance.updatePreferences(
+          budgetsEnabled: true,
+          generalEnabled: true,
+        );
+      } else {
+        // Make sure notifications are disabled in backend
+        await NotificationPreferencesService.instance.updatePreferences(
+          budgetsEnabled: false,
+          generalEnabled: false,
+        );
+      }
+
+      // Always mark that we've requested permission
+      await prefs.setBool('notification_permission_requested', true);
+    }
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      // First fetch critical user info
+      await _fetchUserInfoServer();
+
+      // Then fetch accounts and tags in parallel
+      await Future.wait([
+        _fetchUserAccounts(),
+        _fetchUserTags(),
+      ], eagerError: true);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during initialization: $e');
+      }
+      // Handle initialization error appropriately
+    }
   }
 
   Future<void> _fetchUserAccounts() async {
@@ -159,6 +233,57 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
         );
       }),
     );
+  }
+
+  // Set up deep linking with authentication check
+  void _setupDeepLinking() {
+    // Initialize the deep link handler
+    _initializeDeepLinkHandler();
+
+    // Schedule processing of any pending links
+    _schedulePendingLinkProcessing();
+  }
+
+  // Initialize the deep link handler service
+  Future<void> _initializeDeepLinkHandler() async {
+    try {
+      await LinkHandlerService.instance.initialize();
+    } catch (e) {
+      print('Error initializing deep link handler: $e');
+    }
+  }
+
+  // Process any pending links with authentication check
+  void _schedulePendingLinkProcessing() {
+    // Slightly delay to ensure app is fully loaded
+    Future.delayed(Duration(milliseconds: 500), () {
+      if (!mounted) return;
+
+      // Check for pending URI in provider
+      final linkProvider = Provider.of<LinkProvider>(context, listen: false);
+      final pendingUri = linkProvider.pendingUri;
+
+      if (pendingUri != null) {
+        // Check authentication before processing
+        final auth0Provider =
+            Provider.of<Auth0Provider>(context, listen: false);
+
+        if (auth0Provider.credentials != null) {
+          // User is authenticated, process the link
+          LinkHandlerService.instance.processPendingDeepLinks(onComplete: () {
+            // Clear the pending URI after successful processing
+            Future.delayed(Duration(milliseconds: 300), () {
+              if (mounted) {
+                LinkHandlerService.instance.clearPendingUri();
+              }
+            });
+          });
+        } else {
+          print(
+              'Auth credentials not available, deep link will be processed after login');
+        }
+      }
+    });
   }
 }
 

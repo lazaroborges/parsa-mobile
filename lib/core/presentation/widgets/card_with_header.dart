@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:parsa/app/accounts/all_accounts_page.dart';
+import 'package:parsa/app/accounts/all_accounts.page.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/presentation/widgets/monekin_reorderable_list.dart';

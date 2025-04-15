@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:parsa/app/budgets/budget_form_page.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/budget_form.page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
 import 'package:parsa/app/budgets/components/budget_evolution_chart.dart';
-import 'package:parsa/app/stats/stats_page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart';
@@ -16,6 +16,7 @@ import 'package:parsa/core/presentation/widgets/monekin_popup_menu_button.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 import '../../core/presentation/widgets/no_results.dart';
 import 'components/budget_card.dart';
@@ -149,6 +150,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
                               StatsPage(
                                 initialIndex: 1,
                                 filters: budget.trFilters,
+                                dateRangeService: DatePeriodState(),
                               ),
                             );
                           },

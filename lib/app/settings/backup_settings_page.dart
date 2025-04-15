@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:parsa/app/settings/export_page.dart';
+import 'package:parsa/app/settings/export.page.dart';
 import 'package:parsa/app/settings/import_csv.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/backup/backup_database_service.dart';
@@ -30,40 +30,39 @@ class BackupSettingsPage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 0),
         child: SizedBox(
-          height: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top,
+          height: MediaQuery.of(context).size.height -
+              kToolbarHeight -
+              MediaQuery.of(context).padding.top,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               createListSeparator(context, t.backup.export.title_short),
-              
               ListTile(
                 title: Text(t.backup.export.title),
                 subtitle: Text(t.backup.export.description),
                 minVerticalPadding: 16,
                 onTap: () async {
                   final messeger = ScaffoldMessenger.of(context);
-                  
+
                   await BackupDatabaseService()
-                    .exportSpreadsheet(
-                      context,
-                      await TransactionService.instance
-                        .getTransactions()
-                        .first
-                    )
-                    .then((value) {
-                      messeger.showSnackBar(SnackBar(
-                        content: Text(t.backup.export.success(x: value)),
-                      ));
-                    })
-                    .catchError((err) {
-                      messeger.showSnackBar(SnackBar(
-                        content: Text('$err'),
-                      ));
-                    });
+                      .exportSpreadsheet(
+                          context,
+                          await TransactionService.instance
+                              .getTransactions()
+                              .first)
+                      .then((value) {
+                    messeger.showSnackBar(SnackBar(
+                      content: Text(t.backup.export.success(x: value)),
+                    ));
+                  }).catchError((err) {
+                    messeger.showSnackBar(SnackBar(
+                      content: Text('$err'),
+                    ));
+                  });
                 },
               ),
               const Spacer(),
-              ],
+            ],
           ),
         ),
       ),

@@ -20,8 +20,6 @@ Future<void> fetchUserAccounts() async {
     }
   }
 
-  
-
   final accessToken = auth0Provider.credentials!.accessToken;
 
   final response = await http.get(
@@ -80,7 +78,7 @@ Future<List<Account>> convertApiAccountsToLocal(
 
     // Decode UTF-8 for both name and description
     final name = utf8.decode(apiAccount.name.runes.toList());
-    final description = apiAccount.description != null 
+    final description = apiAccount.description != null
         ? utf8.decode(apiAccount.description!.runes.toList())
         : null;
 
@@ -144,9 +142,8 @@ Future<void> insertAccountsIntoDB(List<Account> accounts) async {
 
   // Delete accounts that are not in the API response from the local database
   for (final idToDelete in accountIdsToDelete) {
+    //find the Auth0 context and pass it up in here:
 
-    //find the Auth0 context and pass it up in here: 
-      
     accountService.deleteAccountLocally(idToDelete);
   }
 

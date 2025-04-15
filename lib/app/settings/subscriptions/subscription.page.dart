@@ -3,7 +3,6 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:parsa/app/settings/subscriptions/check_subscription_status.dart';
 import 'package:parsa/app/settings/subscriptions/success_page.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:flutter/services.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';

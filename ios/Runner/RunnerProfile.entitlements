@@ -2,10 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>aps-environment</key>
+	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>webcredentials:auth.parsa-ai.com.br?r=1</string>
 		<string>webcredentials:auth.parsa-ai.com.br</string>
+		<string>applinks:ymhog.app.link</string>
+		<string>applinks:ymhog-alternate.app.link</string>
+		<string>applinks:ymhog.test.app.link</string>
+		<string>applinks:app.parsa-ai.com.br</string>
 	</array>
 </dict>
 </plist>

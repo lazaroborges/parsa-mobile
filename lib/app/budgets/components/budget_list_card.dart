@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:parsa/app/budgets/budget_details_page.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
+import 'package:parsa/app/budgets/budget_details.page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/models/date-utils/periodicity.dart';

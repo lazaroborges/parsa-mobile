@@ -16,6 +16,9 @@ PODS:
     - FlutterMacOS
     - JWTDecode (= 3.2.0)
     - SimpleKeychain (= 1.2.0)
+  - BranchSDK (3.9.1)
+  - device_info_plus (0.0.1):
+    - Flutter
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -50,14 +53,92 @@ PODS:
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
+  - Firebase/CoreOnly (11.0.0):
+    - FirebaseCore (= 11.0.0)
+  - Firebase/InAppMessaging (11.0.0):
+    - Firebase/CoreOnly
+    - FirebaseInAppMessaging (~> 11.0.0-beta)
+  - Firebase/Messaging (11.0.0):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 11.0.0)
+  - firebase_core (3.4.0):
+    - Firebase/CoreOnly (= 11.0.0)
+    - Flutter
+  - firebase_in_app_messaging (0.8.0-5):
+    - Firebase/InAppMessaging (= 11.0.0)
+    - firebase_core
+    - Flutter
+  - firebase_messaging (15.1.0):
+    - Firebase/Messaging (= 11.0.0)
+    - firebase_core
+    - Flutter
+  - FirebaseABTesting (11.4.0):
+    - FirebaseCore (~> 11.0)
+  - FirebaseCore (11.0.0):
+    - FirebaseCoreInternal (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Logger (~> 8.0)
+  - FirebaseCoreInternal (11.10.0):
+    - "GoogleUtilities/NSData+zlib (~> 8.0)"
+  - FirebaseInAppMessaging (11.0.0-beta):
+    - FirebaseABTesting (~> 11.0)
+    - FirebaseCore (~> 11.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
+  - FirebaseInstallations (11.4.0):
+    - FirebaseCore (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (11.0.0):
+    - FirebaseCore (~> 11.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleDataTransport (~> 10.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Reachability (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
   - Flutter (1.0.0)
   - flutter_appauth (0.0.1):
     - AppAuth (= 1.7.5)
+    - Flutter
+  - flutter_branch_sdk (8.4.1):
+    - BranchSDK (~> 3.9.0)
     - Flutter
   - flutter_keyboard_visibility (0.0.1):
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
+  - GoogleDataTransport (10.1.0):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
+  - GoogleUtilities/AppDelegateSwizzler (8.0.2):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Network
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Environment (8.0.2):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.0.2):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Network (8.0.2):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Privacy
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (8.0.2)":
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.0.2)
+  - GoogleUtilities/Reachability (8.0.2):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/UserDefaults (8.0.2):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
   - in_app_purchase_storekit (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -67,6 +148,11 @@ PODS:
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
   - package_info_plus (0.4.5):
     - Flutter
   - path_provider_foundation (0.0.1):
@@ -74,37 +160,41 @@ PODS:
     - FlutterMacOS
   - permission_handler_apple (9.3.0):
     - Flutter
-  - SDWebImage (5.20.0):
-    - SDWebImage/Core (= 5.20.0)
-  - SDWebImage/Core (5.20.0)
-  - Sentry/HybridSDK (8.44.0)
-  - sentry_flutter (8.13.0):
+  - PromisesObjC (2.4.0)
+  - SDWebImage (5.21.0):
+    - SDWebImage/Core (= 5.21.0)
+  - SDWebImage/Core (5.21.0)
+  - Sentry/HybridSDK (8.46.0)
+  - sentry_flutter (8.14.1):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.44.0)
+    - Sentry/HybridSDK (= 8.46.0)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - SimpleKeychain (1.2.0)
-  - sqlite3 (3.49.0):
-    - sqlite3/common (= 3.49.0)
-  - sqlite3/common (3.49.0)
-  - sqlite3/dbstatvtab (3.49.0):
+  - sqlite3 (3.49.1):
+    - sqlite3/common (= 3.49.1)
+  - sqlite3/common (3.49.1)
+  - sqlite3/dbstatvtab (3.49.1):
     - sqlite3/common
-  - sqlite3/fts5 (3.49.0):
+  - sqlite3/fts5 (3.49.1):
     - sqlite3/common
-  - sqlite3/perf-threadsafe (3.49.0):
+  - sqlite3/math (3.49.1):
     - sqlite3/common
-  - sqlite3/rtree (3.49.0):
+  - sqlite3/perf-threadsafe (3.49.1):
+    - sqlite3/common
+  - sqlite3/rtree (3.49.1):
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
     - FlutterMacOS
-    - sqlite3 (~> 3.49.0)
+    - sqlite3 (~> 3.49.1)
     - sqlite3/dbstatvtab
     - sqlite3/fts5
+    - sqlite3/math
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
   - SwiftyGif (5.4.5)
@@ -117,9 +207,14 @@ PODS:
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - auth0_flutter (from `.symlinks/plugins/auth0_flutter/darwin`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
+  - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_in_app_messaging (from `.symlinks/plugins/firebase_in_app_messaging/ios`)
+  - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
   - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
+  - flutter_branch_sdk (from `.symlinks/plugins/flutter_branch_sdk/ios`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
@@ -139,9 +234,21 @@ SPEC REPOS:
   trunk:
     - AppAuth
     - Auth0
+    - BranchSDK
     - DKImagePickerController
     - DKPhotoGallery
+    - Firebase
+    - FirebaseABTesting
+    - FirebaseCore
+    - FirebaseCoreInternal
+    - FirebaseInAppMessaging
+    - FirebaseInstallations
+    - FirebaseMessaging
+    - GoogleDataTransport
+    - GoogleUtilities
     - JWTDecode
+    - nanopb
+    - PromisesObjC
     - SDWebImage
     - Sentry
     - SimpleKeychain
@@ -153,12 +260,22 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_links/ios"
   auth0_flutter:
     :path: ".symlinks/plugins/auth0_flutter/darwin"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
+  firebase_core:
+    :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_in_app_messaging:
+    :path: ".symlinks/plugins/firebase_in_app_messaging/ios"
+  firebase_messaging:
+    :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
     :path: Flutter
   flutter_appauth:
     :path: ".symlinks/plugins/flutter_appauth/ios"
+  flutter_branch_sdk:
+    :path: ".symlinks/plugins/flutter_branch_sdk/ios"
   flutter_keyboard_visibility:
     :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
   flutter_secure_storage:
@@ -189,36 +306,53 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  app_links: 3da4c36b46cac3bf24eb897f1a6ce80bda109874
+  app_links: f3e17e4ee5e357b39d8b95290a9b2c299fca71c6
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
-  auth0_flutter: b6cdd112051b908efb24dae3286a14643a2c6f70
+  auth0_flutter: 05a2d504520b90b615413addd7a0988da3c92b68
+  BranchSDK: a12f9aa63d7ba562fdff5509d4aed081f1098ec0
+  device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  file_picker: 9b3292d7c8bc68c8a7bf8eb78f730e49c8efc517
+  file_picker: 09aa5ec1ab24135ccd7a1621c46c84134bfd6655
+  Firebase: 9f574c08c2396885b5e7e100ed4293d956218af9
+  firebase_core: ceec591a66629daaee82d3321551692c4a871493
+  firebase_in_app_messaging: c68e7a70afbcb91175a0bedcd97d8cdce5fcf458
+  firebase_messaging: 15d8b557010f3bb7b98d0302e1c7c8fbcd244425
+  FirebaseABTesting: aef1719704fade00b200827e7973f352efc4caee
+  FirebaseCore: 3cf438f431f18c12cdf2aaf64434648b63f7e383
+  FirebaseCoreInternal: ef4505d2afb1d0ebbc33162cb3795382904b5679
+  FirebaseInAppMessaging: 5e7e71b9b6d790c01c6a404acba09010eff9cb0a
+  FirebaseInstallations: 6ef4a1c7eb2a61ee1f74727d7f6ce2e72acf1414
+  FirebaseMessaging: d2d1d9c62c46dd2db49a952f7deb5b16ad2c9742
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_appauth: 273bf736e38f7d85000b1a9ac15ace5800c277f2
-  flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
-  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
-  in_app_purchase_storekit: d1a48cb0f8b29dbf5f85f782f5dd79b21b90a5e6
-  in_app_review: 5596fe56fab799e8edb3561c03d053363ab13457
+  flutter_appauth: aef998cfbcc307dff7f2fbe1f59a50323748dc25
+  flutter_branch_sdk: 08a14ddbff760434cce6d23f85a789fdfa92cfcb
+  flutter_keyboard_visibility: 0339d06371254c3eb25eeb90ba8d17dca8f9c069
+  flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
+  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
+  GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
+  in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
+  in_app_review: a31b5257259646ea78e0e35fc914979b0031d011
   JWTDecode: 7dae24cb9bf9b608eae61e5081029ec169bb5527
-  local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
-  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
-  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
-  SDWebImage: 73c6079366fea25fa4bb9640d5fb58f0893facd8
-  Sentry: 0f9bc9adfc0b960e7f3bb5ec67e9a3d8193f3bdb
-  sentry_flutter: be956a32343176b344ef4b23ecdab47ab6f0ffa6
-  share_plus: 011d6fb4f9d2576b83179a3a5c5e323202cdabcf
-  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+  local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
+  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
+  Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
+  sentry_flutter: 6a134f9d381e49f22ea25a67736cf0cf4d02ec9c
+  share_plus: 8875f4f2500512ea181eef553c3e27dba5135aad
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   SimpleKeychain: 768cf43ae778b1c21816e94dddf01bb8ee96a075
-  sqlite3: 4922312598b67e1825c6a6c821296dcbf6783046
-  sqlite3_flutter_libs: 3c323550ef3b928bc0aa9513c841e45a7d242832
+  sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
+  sqlite3_flutter_libs: 487032b9008b28de37c72a3aa66849ef3745f3e6
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
-  url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
-  webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
+  url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
+  webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
 
-PODFILE CHECKSUM: 0a7d5b7d0e53420cb0284f7b2f171f93843b94d2
+PODFILE CHECKSUM: f37aafb513cc6334fbc586ec04bbd672928dbfc2
 
 COCOAPODS: 1.16.2

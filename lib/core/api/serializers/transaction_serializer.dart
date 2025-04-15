@@ -53,7 +53,7 @@ class ApiTransaction {
 
   final bool isOpenFinance;
 
-  final int? cousin;  
+  final int? cousin;
 
   final List<String> tags; // Add this line
 

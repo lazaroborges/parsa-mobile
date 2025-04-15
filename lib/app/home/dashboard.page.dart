@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
-import 'package:parsa/app/stats/stats_page.dart';
+import 'package:parsa/app/notifications/notifications_page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
@@ -23,6 +23,7 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/dates/date_period_modal.dart';
+import 'package:parsa/core/models/date-utils/date_period.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/presentation/widgets/tappable.dart';
@@ -48,21 +49,22 @@ import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart'
 import 'package:in_app_review/in_app_review.dart';
 
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
-import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 
 import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
-import 'package:parsa/app/budgets/budgets_page.dart';
-import 'package:parsa/app/budgets/components/budget_card.dart';
 import 'package:parsa/app/budgets/components/budget_list_card.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
-import 'package:parsa/app/budgets/budget_form_page.dart';
 
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 
-import 'dart:async' show unawaited;
+import 'package:parsa/main.dart'; // Import main to access routeObserver
+
+import 'package:parsa/core/api/post_methods/post_user_settings.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -71,11 +73,12 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> with RouteAware {
   DatePeriodState dateRangeService = const DatePeriodState();
   bool isLoading = false;
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
+  bool _isDateRangeInitialized = false;
 
   @override
   void initState() {
@@ -85,8 +88,105 @@ class _DashboardPageState extends State<DashboardPage> {
     _initializeDashboard();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to the RouteObserver
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Unsubscribe from the RouteObserver
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// Called when the top route has been popped off, and the current route shows up.
+  @override
+  void didPopNext() {
+    _syncPreferencesWithBackend().then((_) {
+      _initializeDateRangeService();
+    });
+  }
+
+  Future<void> _syncPreferencesWithBackend() async {
+    try {
+      final prefsAsync = app_prefs.SharedPreferencesAsync.instance;
+      final localStartOfWeek = await prefsAsync.getStartOfWeek();
+      final localStartOfMonth = await prefsAsync.getStartOfMonth();
+      final localUseWorkingDay =
+          await prefsAsync.getStartOfMonthWorkingDaysOnly();
+
+      // Fetch backend preferences using the fetchUserSettings function
+      final backendPrefs = await PostUserSettings.fetchUserSettings();
+
+      if (backendPrefs != null) {
+        // Extract values with defaults in case they're missing
+        final String? startOfWeekStr = backendPrefs['startOfWeek'];
+        final backendStartOfWeek = _mapStringToStartOfWeek(startOfWeekStr);
+
+        // Use null-aware coalescing operator to handle missing or null values
+        final backendStartOfMonth = backendPrefs['startOfMonth'] as int? ?? 1;
+        final backendUseWorkingDay =
+            backendPrefs['useWorkingDay'] as bool? ?? false;
+
+        // Compare and update local preferences if they differ
+        bool preferencesChanged = false;
+
+        if (localStartOfWeek != backendStartOfWeek) {
+          await prefsAsync.setStartOfWeek(backendStartOfWeek);
+          preferencesChanged = true;
+        }
+
+        if (localStartOfMonth != backendStartOfMonth) {
+          await prefsAsync.setStartOfMonth(backendStartOfMonth);
+          preferencesChanged = true;
+        }
+
+        if (localUseWorkingDay != backendUseWorkingDay) {
+          await prefsAsync.setStartOfMonthWorkingDaysOnly(backendUseWorkingDay);
+          preferencesChanged = true;
+        }
+
+        // Only trigger a re-initialization if values actually changed
+        if (preferencesChanged) {
+          if (mounted) {
+            print(
+                'Local preferences updated. Reinitializing date range service.');
+            await _initializeDateRangeService();
+          } else {
+            print(
+                'Local preferences updated but widget is not mounted, skipping UI update.');
+          }
+        } else {
+          print('Local preferences match backend settings, no update needed.');
+        }
+      } else {
+        print('Failed to fetch backend preferences, keeping local settings.');
+      }
+    } catch (e) {
+      print('Error syncing preferences with backend: $e');
+      // Don't let preference sync failure block the dashboard functionality
+    } finally {
+      // Ensure the date range service is initialized even if there was an error
+      if (!_isDateRangeInitialized && mounted) {
+        await _initializeDateRangeService();
+      }
+    }
+  }
+
   Future<void> _initializeDashboard() async {
     try {
+      // First, sync preferences with backend - this should happen early
+      await _syncPreferencesWithBackend();
+
+      // Then initialize date range service with updated preferences
+      await _initializeDateRangeService();
+
       // Ensure we check the announcement first
       if (mounted) {
         await FeatureAnnouncementModal.showIfNeeded(context);
@@ -101,7 +201,47 @@ class _DashboardPageState extends State<DashboardPage> {
         await _checkAndShowReviewDialog();
       }
     } catch (e) {
-      print('Error in initialization: $e');
+      print('Error in dashboard initialization: $e');
+
+      // Ensure that even if there's an error, the dashboard is still usable
+      if (mounted && !_isDateRangeInitialized) {
+        await _initializeDateRangeService();
+      }
+    } finally {
+      // Always make sure loading state is cleared
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _initializeDateRangeService() async {
+    final prefsAsync = app_prefs.SharedPreferencesAsync.instance;
+    final startDay = await prefsAsync.getStartOfMonth();
+    final useWorking = await prefsAsync.getStartOfMonthWorkingDaysOnly();
+    final startWeek = await prefsAsync.getStartOfWeek();
+
+    bool needsUpdate = !_isDateRangeInitialized ||
+        dateRangeService.startOfMonthDay != startDay ||
+        dateRangeService.useWorkingDays != useWorking ||
+        dateRangeService.startOfWeek != startWeek;
+
+    if (mounted && needsUpdate) {
+      setState(() {
+        dateRangeService = DatePeriodState(
+          datePeriod: dateRangeService.datePeriod,
+          periodModifier: dateRangeService.periodModifier,
+          startOfMonthDay: startDay,
+          useWorkingDays: useWorking,
+          startOfWeek: startWeek,
+        );
+        _isDateRangeInitialized = true;
+      });
+    } else {
+      print("Preferences checked, no change detected or not mounted.");
     }
   }
 
@@ -155,8 +295,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _loadBalanceType() async {
-    final balanceTypeStr =
-        await SharedPreferencesAsync.instance.getBalanceType();
+    final prefsAsync = app_prefs.SharedPreferencesAsync.instance;
+    final balanceTypeStr = await prefsAsync.getBalanceType();
 
     // Convert string to enum
     switch (balanceTypeStr) {
@@ -188,9 +328,8 @@ class _DashboardPageState extends State<DashboardPage> {
           .values[(currentBalanceType.index + 1) % BalanceType.values.length];
 
       // Save the balance type preference
-      SharedPreferencesAsync.instance.setBalanceType(
-        currentBalanceType.name, // 'available', 'total', or 'future'
-      );
+      app_prefs.SharedPreferencesAsync.instance
+          .setBalanceType(currentBalanceType.name);
     });
   }
 
@@ -204,17 +343,19 @@ class _DashboardPageState extends State<DashboardPage> {
     final hideDrawerAndFloatingButton =
         BreakPoint.of(context).isLargerOrEqualTo(BreakpointID.md);
 
+    if (!_isDateRangeInitialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
-        // Botão de nova transação comentado
-        // floatingActionButton:
-        //     hideDrawerAndFloatingButton ? null : const NewTransactionButton(),
-        drawer: null, // Nulled and hidden the draw at version 2.0.10
+        drawer: null,
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
-            physics:
-                const ClampingScrollPhysics(), // Use ClampingScrollPhysics here
+            physics: const ClampingScrollPhysics(),
             child: Column(children: [
               DefaultTextStyle.merge(
                 style: TextStyle(
@@ -236,9 +377,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Tappable(
-                              onTap: () {
-                                // No action needed
-                              },
+                              onTap: () {},
                               bgColor: Colors.transparent,
                               borderRadius: 12,
                               child: Padding(
@@ -293,7 +432,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
                                                 return Text(
                                                   utf8.decode(
-                                                      userData!['first_name']
+                                                      userData['first_name']
                                                           .toString()
                                                           .runes
                                                           .toList()),
@@ -358,7 +497,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     );
                                   },
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 ActionChip(
                                   label:
                                       Text(dateRangeService.getText(context)),
@@ -372,6 +511,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ),
                                   ),
                                   onPressed: () {
+                                    if (!_isDateRangeInitialized) return;
+
                                     openDatePeriodModal(
                                       context,
                                       DatePeriodModal(
@@ -386,6 +527,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                             dateRangeService.copyWith(
                                           periodModifier: 0,
                                           datePeriod: value,
+                                          startOfMonthDay:
+                                              dateRangeService.startOfMonthDay,
+                                          useWorkingDays:
+                                              dateRangeService.useWorkingDays,
+                                          startOfWeek:
+                                              dateRangeService.startOfWeek,
                                         );
                                       });
                                     });
@@ -519,7 +666,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               ),
-
               StreamBuilder<List<Account>>(
                 stream: AccountService.instance.getAccounts(),
                 builder: (context, snapshot) {
@@ -527,7 +673,6 @@ class _DashboardPageState extends State<DashboardPage> {
                     return const CircularProgressIndicator();
                   }
 
-                  // Filter out removed accounts
                   final accounts = snapshot.data!
                       .where((account) => !account.removed)
                       .toList();
@@ -559,7 +704,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: CardWithHeader(
                   title: t.home.last_transactions,
                   onHeaderButtonClick: () {
-                    RouteUtils.pushRoute(context, TransactionsPage());
+                    RouteUtils.pushRoute(context, const TransactionsPage());
                   },
                   body: DashboardTransactionList(
                     child: TransactionListComponent(
@@ -574,7 +719,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       limit: 5,
                       showGroupDivider: false,
-                      prevPage: DashboardPage(),
+                      prevPage: const DashboardPage(),
                       onEmptyList: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Text(
@@ -653,7 +798,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 StatsPage(
                                   dateRangeService: dateRangeService,
-                                  initialIndex: 0, // First tab contains tags
+                                  initialIndex: 0,
                                 ),
                               );
                             },
@@ -807,25 +952,23 @@ class _DashboardPageState extends State<DashboardPage> {
             if (details.primaryVelocity! > 0) {
               // Swipe right - move to previous balance type
               setState(() {
-                int newIndex = (currentBalanceType.index - 1) % BalanceType.values.length;
+                int newIndex =
+                    (currentBalanceType.index - 1) % BalanceType.values.length;
                 if (newIndex < 0) newIndex = BalanceType.values.length - 1;
                 currentBalanceType = BalanceType.values[newIndex];
-                
+
                 // Save the balance type preference
-                SharedPreferencesAsync.instance.setBalanceType(
-                  currentBalanceType.name,
-                );
+                app_prefs.SharedPreferencesAsync.instance
+                    .setBalanceType(currentBalanceType.name);
               });
             } else if (details.primaryVelocity! < 0) {
               // Swipe left - move to next balance type
               setState(() {
-                currentBalanceType = BalanceType
-                    .values[(currentBalanceType.index + 1) % BalanceType.values.length];
-                
-                // Save the balance type preference
-                SharedPreferencesAsync.instance.setBalanceType(
-                  currentBalanceType.name,
-                );
+                currentBalanceType = BalanceType.values[
+                    (currentBalanceType.index + 1) % BalanceType.values.length];
+
+                app_prefs.SharedPreferencesAsync.instance
+                    .setBalanceType(currentBalanceType.name);
               });
             }
           }
@@ -955,6 +1098,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget buildAccountList(List<Account> accounts) {
+    final t = Translations.of(context);
     return Builder(
       builder: (context) {
         if (accounts.isEmpty) {
@@ -1084,7 +1228,7 @@ class DashboardTransactionList extends StatelessWidget {
       limit: child.limit,
       showGroupDivider: child.showGroupDivider,
       prevPage: child.prevPage,
-      onLongPress: (_) {}, // This effectively disables the long press action
+      onLongPress: (_) {},
       onEmptyList: child.onEmptyList,
     );
   }
@@ -1105,5 +1249,34 @@ enum BalanceType {
       case BalanceType.future:
         return 'Saldo Total';
     }
+  }
+}
+
+// Function to map string to integer for startOfWeek
+int _mapStringToStartOfWeek(String? startOfWeek) {
+  // Handle null or empty values gracefully
+  if (startOfWeek == null || startOfWeek.isEmpty) {
+    print('Empty startOfWeek value. Defaulting to Sunday (7).');
+    return 7; // Default to Sunday
+  }
+
+  switch (startOfWeek.toLowerCase().trim()) {
+    case 'monday':
+      return 1; // DateTime.monday;
+    case 'saturday':
+      return 6; // DateTime.saturday;
+    case 'sunday':
+      return 7; // DateTime.sunday;
+    // Add string number handling
+    case '1':
+      return 1;
+    case '6':
+      return 6;
+    case '7':
+      return 7;
+    default:
+      print(
+          'Invalid startOfWeek value: $startOfWeek. Defaulting to Sunday (7).');
+      return 7; // Default to Sunday
   }
 }

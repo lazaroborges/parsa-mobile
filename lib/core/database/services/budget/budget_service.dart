@@ -21,7 +21,9 @@ class BudgetServive {
 
       if (budget.tags != null) {
         for (final tag in budget.tags!) {
-          await db.into(db.budgetTag).insert(BudgetTagData(budgetID: budget.id, tagID: tag));
+          await db
+              .into(db.budgetTag)
+              .insert(BudgetTagData(budgetID: budget.id, tagID: tag));
         }
       }
 
@@ -38,7 +40,7 @@ class BudgetServive {
               BudgetAccountData(budgetID: budget.id, accountID: account));
         }
       }
-      
+
       // Post budget to server only if skipServerSync is false
       if (!skipServerSync) {
         try {
@@ -57,10 +59,9 @@ class BudgetServive {
   Future<bool> deleteBudget(String id, {bool skipServerSync = false}) {
     return db.transaction(() async {
       // Delete budget tags if they exist
-      await (db.delete(db.budgetTag)
-            ..where((tbl) => tbl.budgetID.isValue(id)))
+      await (db.delete(db.budgetTag)..where((tbl) => tbl.budgetID.isValue(id)))
           .go();
-          
+
       // Delete budget accounts
       await (db.delete(db.budgetAccount)
             ..where((tbl) => tbl.budgetID.isValue(id)))

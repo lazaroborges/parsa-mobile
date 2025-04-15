@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>FlutterDeepLinkEnabled</key>
+	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -31,31 +35,67 @@
 			<string>com.parsa.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>parsa</string>
 				<string>com.parsa.app</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.parsa.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>myapp</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>O Parsa usa sua biometria para proteger suas contas.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>O Parsa precisa acessar sua galeria de fotos para permitir que você selecione imagens para seu perfil ou para compartilhar dentro do aplicativo.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>O Parsa pode precisar acessar sua câmera para tirar fotos para completar seu perfil.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>O Parsa enviará notificações sobre suas finanças e atualizações importantes.</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<true/>
+	<key>SKProductsRequest</key>
+	<array>
+		<string>premium_monthly1</string>
+		<string>premium_yearly</string>
+	</array>
+	<key>SKStoreKitConfigFile</key>
+	<string>Configuration.storekit</string>
+	<key>StoreKit</key>
+	<array>
+		<dict>
+			<key>SKPaymentQueue</key>
+			<true/>
+		</dict>
+	</array>
+	<key>branch_universal_link_domains</key>
+	<array>
+		<string>ymhog.app.link</string>
+		<string>ymhog-alternate.app.link</string>
+		<string>ymhog.test-app.link</string>
+	</array>
+	<key>branch_key</key>
+	<dict>
+		<key>live</key>
+		<string>BRANCH_LIVE_KEY</string>
+		<key>test</key>
+		<string>BRANCH_TEST_KEY</string>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -70,23 +110,5 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>StoreKit</key>
-	<array>
-		<dict>
-			<key>SKPaymentQueue</key>
-			<true/>
-		</dict>
-	</array>
-	<key>SKProductsRequest</key>
-	<array>
-		<string>premium_monthly1</string>
-		<string>premium_yearly</string>
-	</array>
-	<key>SKStoreKitConfigFile</key>
-	<string>Configuration.storekit</string>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 </dict>
 </plist>

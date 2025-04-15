@@ -18,7 +18,6 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/theme.dart';
 import 'package:parsa/core/providers/app_version_provider.dart';
 import 'package:parsa/core/routes/root_navigator_observer.dart';
-import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import 'package:parsa/core/services/http_overrides.dart';
 import 'package:parsa/core/utils/scroll_behavior_override.dart';
@@ -28,15 +27,34 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:flutter/services.dart';
-import 'package:parsa/core/routes/deep_link_observer.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:parsa/core/services/branch/branch_config.dart';
+// Keep import but don't use processing methods directly
+import 'package:parsa/core/providers/link_provider.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
+
+// Import pages for routes
+import 'package:parsa/app/accounts/all_accounts.page.dart';
+import 'package:parsa/app/budgets/budgets.page.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/app/stats/stats.page.dart';
+import 'package:parsa/app/settings/settings.page.dart';
+import 'package:parsa/app/settings/preferences_settings.page.dart';
+import 'package:parsa/app/settings/about.page.dart';
+import 'package:parsa/app/settings/export.page.dart';
+import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
+
+// Define RouteObserver
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 void main() async {
   tz.initializeTimeZones();
@@ -44,6 +62,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Set preferred orientations to portrait only
   await SystemChrome.setPreferredOrientations([
@@ -54,7 +77,7 @@ void main() async {
   // Add custom HTTP override for User-Agent
   HttpOverrides.global = CustomHttpOverrides();
 
-  //If version is release, use the production endpoint, otherwise use the local endpoint defined temporarily in the file.
+  //If version is release, use the production endpoint, otherwise use the local endpoint
   apiEndpoint = kReleaseMode
       ? 'https://app.parsa-ai.com.br'
       : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
@@ -64,6 +87,9 @@ void main() async {
     dotenv.env['AUTH0_CLIENT_ID']!,
   );
 
+  // Initialize Branch but don't process links yet
+  await BranchConfig.initialize();
+
   final app = MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
@@ -71,6 +97,7 @@ void main() async {
         create: (_) => Auth0Provider(auth0: auth0),
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
+      ChangeNotifierProvider(create: (_) => LinkProvider.instance),
     ],
     child: const MonekinAppEntryPoint(),
   );
@@ -105,52 +132,48 @@ class MonekinAppEntryPoint extends StatefulWidget {
 
 class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
   final AppLinks _appLinks = AppLinks();
-  late final StreamSubscription<String?> _linkSubscription; // Changed to String
+  StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
     super.initState();
-    _initializeAppLinks();
+    _captureInitialLink();
+    _setupLinkSubscription();
   }
 
-  void _initializeAppLinks() async {
+  // Simplified method to just capture the initial link
+  void _captureInitialLink() async {
     try {
-      // Handle app launch from terminated state
-      final initialLink =
-          await _appLinks.getInitialLink(); // Correct method name
+      final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
-        _handleIncomingLink(initialLink.toString());
-      }
-
-      // Listen for incoming links while the app is running
-      _linkSubscription = _appLinks.stringLinkStream.listen((link) {
-        // Use linkStream and String
-        if (link != null && link.isNotEmpty) {
-          _handleIncomingLink(link);
+        if (mounted) {
+          Provider.of<LinkProvider>(context, listen: false)
+              .setPendingUri(initialLink);
         }
-      }, onError: (err) {
-        print('Error listening to app links: $err');
-      });
+      }
     } catch (e) {
-      print('Failed to initialize app links: $e');
+      print('Error capturing initial link: $e');
     }
   }
 
-  void _handleIncomingLink(String link) {
-    // Changed to String
-    print('Received link: $link');
-    // Parse the link and navigate accordingly
-    // Example: Navigate to TabsPage on successful authentication callback
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    );
+  // Add subscription for new incoming links while app is running
+  void _setupLinkSubscription() {
+    try {
+      _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
+        if (mounted) {
+          Provider.of<LinkProvider>(context, listen: false).setPendingUri(uri);
+        }
+      }, onError: (error) {
+        print('Error receiving link updates: $error');
+      });
+    } catch (e) {
+      print('Error setting up link subscription: $e');
+    }
   }
 
   @override
   void dispose() {
-    _linkSubscription.cancel();
-    // _appLinks.dispose(); // Remove if dispose is not defined in AppLinks
+    _linkSubscription?.cancel();
     super.dispose();
   }
 
@@ -277,6 +300,21 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   Future<void> _checkLoginStatus() async {
     final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
     bool status = await auth0Provider.checkLoginStatus();
+
+    if (!status) {
+      // If not logged in, use navigatorKey instead of context-based navigation
+      if (mounted) {
+        // Wait for the widget tree to be built before attempting navigation
+        await Future.microtask(() {
+          if (navigatorKey.currentState != null) {
+            navigatorKey.currentState!.pushReplacement(
+              MaterialPageRoute(builder: (context) => const IntroPage()),
+            );
+          }
+        });
+      }
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -311,16 +349,20 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      navigatorObservers: [
-        MainLayoutNavObserver(),
-        DeepLinkObserver(_handleIncomingLink)
-      ],
+      navigatorObservers: [routeObserver, MainLayoutNavObserver()],
+      routes: {
+        '/accounts': (context) => const AllAccountsPage(),
+        '/budgets': (context) => const BudgetsPage(),
+        '/transactions': (context) => const TransactionsPage(),
+        '/stats': (context) =>
+            const StatsPage(dateRangeService: DatePeriodState()),
+        '/settings': (context) => const SettingsPage(),
+        '/subscription': (context) => PremiumWidget(),
+        '/settings/preferences': (context) => const PreferencesSettingsPage(),
+        '/settings/about': (context) => const AboutPage(),
+        '/settings/export': (context) => const ExportDataPage(),
+      },
       builder: (context, child) {
-        // Get system padding for debugging
-        final EdgeInsets systemPadding = MediaQuery.of(context).padding;
-        print(
-            'BUILDER: System padding - bottom: ${systemPadding.bottom}, top: ${systemPadding.top}');
-
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
 
@@ -357,64 +399,59 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
               // Apply SafeArea only for Android devices
               if (!isIOS) {
                 return SafeArea(
-                  bottom:
-                      true, // Apply bottom padding to account for system navigation bar
+                  bottom: true,
                   child: content,
                 );
               } else {
-                return content; // No SafeArea for iOS
+                return content;
               }
             },
           ),
         ]);
       },
-      // New home implementation with sequential checks
       home: FutureBuilder<bool>(
         future: SharedPreferencesAsync.instance.getOnboarded(),
-        //future: Future.value(false), // Temporarily force onboarding to show
         builder: (context, onboardingSnapshot) {
           if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Step 1: Check if user has completed onboarding
           final bool isOnboarded = onboardingSnapshot.data ?? false;
 
           if (!isOnboarded) {
-            // User hasn't completed onboarding, show OnboardingPage
             return const OnboardingPage();
           }
 
-          // Step 2: Check authentication status
           if (auth0Provider.credentials == null) {
-            // User is not authenticated, show IntroPage
             return const IntroPage();
           } else {
-            // User is authenticated, check biometrics
             return BiometricsCheckScreen(
               onBiometricsVerified: () async {
                 // Fetch user data from server
                 await fetchUserDataAtServer();
 
-                // Get user data from provider - it will never be null as per your requirement
+                // Get user data from provider
                 final userData =
                     Provider.of<UserDataProvider>(context, listen: false)
                         .userData;
 
-                // Check if filled_questionaire (with 'e') is true
+                // Check if filled_questionaire is true
                 if (userData != null &&
                     userData['filled_questionaire'] == true) {
                   print(
                       "USER DATA: $userData , ${userData['filled_questionaire']}");
                   // If questionnaire is filled, go directly to TabsPage
+                  if (!mounted) return;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
                   );
                 } else {
-                  print("WHY AM I HERE?");
+                  print(
+                      "Questionnaire not filled or user data null, checking intake form.");
                   // If questionnaire is not filled, continue with intake form check
+                  if (!mounted) return;
                   _checkIntakeFormCompletion(context);
                 }
               },
@@ -425,20 +462,13 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     );
   }
 
-  void _handleIncomingLink(String link) {
-    print('Received deep link: $link');
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    );
-  }
-
   // Helper method to check intake form completion and navigate accordingly
   void _checkIntakeFormCompletion(BuildContext context) {
     // We'll use SharedPreferences to check if intake form is completed
     SharedPreferencesAsync.instance
         .getIntakeCompleted()
         .then((isIntakeCompleted) {
+      if (!mounted) return; // Check mount status before navigation
       if (isIntakeCompleted) {
         // If intake is completed, go to main app (TabsPage)
         Navigator.pushReplacement(
