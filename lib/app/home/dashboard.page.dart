@@ -421,9 +421,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                 .getSetting(
                                                     SettingKey.userName),
                                             builder: (context, snapshot) {
-                                              if (userData != null &&
-                                                  userData['first_name'] !=
-                                                      null) {
+                                              final isSubscriber = userData != null && userData['is_subscriber'] == true;
+                                              
+                                              if (userData != null && userData['first_name'] != null) {
                                                 final firstName = utf8.decode(
                                                     userData['first_name']
                                                         .toString()
@@ -447,6 +447,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                             fontSize: 18,
                                                           ),
                                                     ),
+                                                    if (isSubscriber) ...[
                                                     const SizedBox(width: 8),
                                                     Container(
                                                       padding: const EdgeInsets
@@ -457,8 +458,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                         gradient:
                                                             const LinearGradient(
                                                           colors: [
-                                                            const Color(0xFF1c64f2),
-                                                            const Color(0xFF1724c9),
+                                                              const Color(0xFF1c64f2),
+                                                              const Color(0xFF1724c9),
                                                           ],
                                                           begin:
                                                               Alignment.topLeft,
@@ -466,90 +467,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                               .bottomRight,
                                                         ),
                                                         borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: Colors.black
-                                                                .withOpacity(
-                                                                    0.2),
-                                                            blurRadius: 2,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          Icon(
-                                                            Icons.star,
-                                                            size: 12,
-                                                            color: Colors.white,
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 2),
-                                                          Text(
-                                                            "PREMIUM",
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              letterSpacing:
-                                                                  0.5,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                );
-                                              }
-
-                                              if (!snapshot.hasData) {
-                                                return const Skeleton(
-                                                    width: 70, height: 12);
-                                              }
-
-                                              return Row(
-                                                children: [
-                                                  Text(
-                                                    snapshot.data!,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .titleSmall!
-                                                        .copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontSize: 18,
-                                                        ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      gradient:
-                                                          const LinearGradient(
-                                                        colors: [
-                                                          const Color(0xFF1c64f2),
-                                                          const Color(0xFF1724c9),
-                                                        ],
-                                                        begin:
-                                                            Alignment.topLeft,
-                                                        end: Alignment
-                                                            .bottomRight,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
+                                                              BorderRadius.circular(12),
                                                       boxShadow: [
                                                         BoxShadow(
                                                           color: Colors.black
@@ -578,12 +496,93 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                             fontSize: 10,
                                                             fontWeight:
                                                                 FontWeight.bold,
-                                                            letterSpacing: 0.5,
+                                                                letterSpacing:
+                                                                    0.5,
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
+                                                ],
+                                                  ],
+                                                );
+                                              }
+
+                  if (!snapshot.hasData) {
+                                                return const Skeleton(
+                                                    width: 70, height: 12);
+                                              }
+
+                                              return Row(
+                                                children: [
+                                                  Text(
+                                                    snapshot.data!,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleSmall!
+                                                        .copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontSize: 18,
+                                                        ),
+                                                  ),
+                                                  if (isSubscriber) ...[
+                                                    const SizedBox(width: 8),
+                                                    Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        gradient:
+                                                            const LinearGradient(
+                                                          colors: [
+                                                            const Color(0xFF1c64f2),
+                                                            const Color(0xFF1724c9),
+                                                          ],
+                                                          begin:
+                                                              Alignment.topLeft,
+                                                          end: Alignment
+                                                              .bottomRight,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                12),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(0.2),
+                                                            blurRadius: 2,
+                                                            offset:
+                                                                const Offset(0, 1),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.star,
+                                                            size: 12,
+                                                            color: Colors.white,
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 2),
+                                                          Text(
+                                                            "PREMIUM",
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight.bold,
+                                                              letterSpacing: 0.5,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ],
                                               );
                                             }),
