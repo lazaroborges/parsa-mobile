@@ -495,46 +495,46 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
           ),
 
           // Working days checkbox
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Row(
-              children: [
-                Checkbox(
-                  value: _startOfMonthWorkingDaysOnly,
-                  onChanged: (value) async {
-                    if (value != null) {
-                      try {
-                        await app_prefs.SharedPreferencesAsync.instance
-                            .setStartOfMonthWorkingDaysOnly(value);
-                        setState(() {
-                          _startOfMonthWorkingDaysOnly = value;
-                        });
-                        // Send updated preferences to the backend
-                        final success =
-                            await PostUserSettings.updateDatePreferences(
-                          startOfWeek: _startOfWeek,
-                          startOfMonth: _startOfMonth,
-                          useWorkingDay: _startOfMonthWorkingDaysOnly,
-                        );
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          //   child: Row(
+          //     children: [
+          //       Checkbox(
+          //         value: _startOfMonthWorkingDaysOnly,
+          //         onChanged: (value) async {
+          //           if (value != null) {
+          //             try {
+          //               await app_prefs.SharedPreferencesAsync.instance
+          //                   .setStartOfMonthWorkingDaysOnly(value);
+          //               setState(() {
+          //                 _startOfMonthWorkingDaysOnly = value;
+          //               });
+          //               // Send updated preferences to the backend
+          //               final success =
+          //                   await PostUserSettings.updateDatePreferences(
+          //                 startOfWeek: _startOfWeek,
+          //                 startOfMonth: _startOfMonth,
+          //                 useWorkingDay: _startOfMonthWorkingDaysOnly,
+          //               );
 
-                        if (!success && mounted) {
-                          _showSnackBar(
-                              'Erro ao atualizar configuração de dias úteis no servidor.');
-                        }
-                      } catch (e) {
-                        print('Error updating working days setting: $e');
-                        if (mounted) {
-                          _showSnackBar(
-                              'Erro ao atualizar configuração de dias úteis: $e');
-                        }
-                      }
-                    }
-                  },
-                ),
-                const Text('Considerar apenas dias úteis'),
-              ],
-            ),
-          ),
+          //               if (!success && mounted) {
+          //                 _showSnackBar(
+          //                     'Erro ao atualizar configuração de dias úteis no servidor.');
+          //               }
+          //             } catch (e) {
+          //               print('Error updating working days setting: $e');
+          //               if (mounted) {
+          //                 _showSnackBar(
+          //                     'Erro ao atualizar configuração de dias úteis: $e');
+          //               }
+          //             }
+          //           }
+          //         },
+          //       ),
+          //       const Text('Considerar apenas dias úteis'),
+          //     ],
+          //   ),
+          // ),
 
           // Add notification section only if permissions were requested but denied
           if (showPermissionButton)
