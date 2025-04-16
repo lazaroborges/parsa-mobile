@@ -172,7 +172,12 @@ getBudgetsWithFullData($predicate = TRUE) WITH Budget:
             SELECT accountID
             FROM budgetAccount
             WHERE budgetID = budgets.id
-        ) AS accounts
+        ) AS accounts,
+        LIST(
+            SELECT tagID
+            FROM budgetTag
+            WHERE budgetID = budgets.id
+        ) AS tags
     FROM budgets
     WHERE $predicate 
     ORDER BY $orderBy

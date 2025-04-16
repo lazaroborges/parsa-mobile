@@ -110,5 +110,10 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.parsa.app.refresh</string>
+		<string>com.parsa.app.processing</string>
+	</array>
 </dict>
 </plist>
