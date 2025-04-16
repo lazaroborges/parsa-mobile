@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
-import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
 import 'package:parsa/main.dart';
 import '../../../firebase_options.dart';
@@ -25,11 +24,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (kDebugMode) {
-    print("Handling a background message: \\${message.messageId}");
-    print("Message data: \\${message.data}");
+    print("Handling a background message: ${message.messageId}");
+    print("Message data: ${message.data}");
     if (message.notification != null) {
-      print("Message notification title: \\${message.notification!.title}");
-      print("Message notification body: \\${message.notification!.body}");
+      print("Message notification title: ${message.notification!.title}");
+      print("Message notification body: ${message.notification!.body}");
     }
   }
 }
@@ -143,25 +142,24 @@ class FCMService {
       // Listen for when a user taps on a notification (app opened via notification).
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         if (kDebugMode) {
-          print('User tapped on notification: \\${message.messageId}');
-          print('Message data: \\${message.data}');
+          print('User tapped on notification: ${message.messageId}');
+          print('Message data: ${message.data}');
         }
 
-        // Extract route and optional query parameters from message data
         if (message.data.containsKey('route')) {
           final route = message.data['route'];
           final queryParams = message.data['queryParams'] != null
               ? jsonDecode(message.data['queryParams']) as Map<String, String>
               : null;
 
-          // Use NavigationDelegate to navigate based on the route
-          if (queryParams != null &&
-              (route.startsWith('transactions') || route.startsWith('stats'))) {
-            NavigationDelegate.instance
-                .navigateTo(route, queryParams: queryParams);
-          } else {
-            NavigationDelegate.instance.navigateTo(route);
+          if (kDebugMode) {
+            print('Notification route: $route');
+            print('Notification queryParams: $queryParams');
           }
+
+          // Use NavigationDelegate to navigate based on the route
+          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route,
+              queryParams: queryParams);
         }
       });
 
@@ -186,14 +184,14 @@ class FCMService {
                 as Map<String, String>
             : null;
 
-        // Use NavigationDelegate to navigate based on the route
-        if (queryParams != null &&
-            (route.startsWith('transactions') || route.startsWith('stats'))) {
-          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route,
-              queryParams: queryParams);
-        } else {
-          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route);
+        if (kDebugMode) {
+          print('Terminated app notification route: $route');
+          print('Terminated app notification queryParams: $queryParams');
         }
+
+        // Use NavigationDelegate to navigate based on the route
+        NavigationDelegate.instance
+            .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
       }
 
       // Configure FCM to use APNS tokens on iOS

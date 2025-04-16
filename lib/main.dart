@@ -36,19 +36,7 @@ import 'firebase_options.dart';
 import 'package:parsa/core/services/branch/branch_config.dart';
 // Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
-import 'package:parsa/core/models/date-utils/date_period_state.dart';
-
-// Import pages for routes
-import 'package:parsa/app/accounts/all_accounts.page.dart';
-import 'package:parsa/app/budgets/budgets.page.dart';
-import 'package:parsa/app/transactions/transactions.page.dart';
-import 'package:parsa/app/stats/stats.page.dart';
-import 'package:parsa/app/settings/settings.page.dart';
-import 'package:parsa/app/settings/preferences_settings.page.dart';
-import 'package:parsa/app/settings/about.page.dart';
-import 'package:parsa/app/settings/export.page.dart';
-import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
-
+import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -350,18 +338,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       theme: lightTheme,
       navigatorKey: navigatorKey,
       navigatorObservers: [routeObserver, MainLayoutNavObserver()],
-      routes: {
-        '/accounts': (context) => const AllAccountsPage(),
-        '/budgets': (context) => const BudgetsPage(),
-        '/transactions': (context) => const TransactionsPage(),
-        '/stats': (context) =>
-            const StatsPage(dateRangeService: DatePeriodState()),
-        '/settings': (context) => const SettingsPage(),
-        '/subscription': (context) => PremiumWidget(),
-        '/settings/preferences': (context) => const PreferencesSettingsPage(),
-        '/settings/about': (context) => const AboutPage(),
-        '/settings/export': (context) => const ExportDataPage(),
-      },
+      onGenerateRoute: MaterialAppRoutes.onGenerateRoute,
       builder: (context, child) {
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;

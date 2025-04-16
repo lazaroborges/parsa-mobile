@@ -163,7 +163,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
 
     // Update FCM subscriptions
-    await FCMService.instance.setNotificationsEnabled(value);
+    // await FCMService.instance.setNotificationFilter(NotificationCategory.general, value);
 
     // Reload settings to ensure UI is in sync with actual state
     await _loadNotificationSettings();
@@ -181,8 +181,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
 
     // Update FCM subscription
-    await FCMService.instance
-        .setNotificationFilter(NotificationCategory.budgets, value);
+    // await FCMService.instance
+    // .setNotificationFilter(NotificationCategory.budgets, value);
 
     // Reload settings
     await _loadNotificationSettings();
@@ -200,8 +200,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
 
     // Update FCM subscription
-    await FCMService.instance
-        .setNotificationFilter(NotificationCategory.general, value);
+    // await FCMService.instance
+    //     .setNotificationFilter(NotificationCategory.general, value);
 
     // Reload settings
     await _loadNotificationSettings();
@@ -326,38 +326,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       'As notificações de orçamento são enviadas automaticamente quando você atinge certos limites em seus orçamentos.\n\n'
                       'As notificações gerais incluem lembretes semanais e dicas para melhorar suas finanças.',
                       style: TextStyle(fontSize: 14),
-                    ),
-
-                    const SizedBox(height: 32),
-                    Center(
-                      child: FilledButton(
-                        onPressed: _notificationsEnabled
-                            ? () async {
-                                final success = await FCMService.instance
-                                    .triggerTestNotification(
-                                  title: 'Teste de Notificação',
-                                  body:
-                                      'Esta é uma notificação de teste. Funciona!',
-                                  category: NotificationCategory.general,
-                                );
-
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        success
-                                            ? 'Notificação de teste enviada com sucesso!'
-                                            : 'Erro ao enviar notificação de teste',
-                                      ),
-                                      backgroundColor:
-                                          success ? Colors.green : Colors.red,
-                                    ),
-                                  );
-                                }
-                              }
-                            : null,
-                        child: const Text('Enviar notificação de teste'),
-                      ),
                     ),
 
                     // Notifications List Section
