@@ -162,6 +162,36 @@ class BudgetCard extends StatelessWidget {
                     final percentage = currentValue / budget.limitAmount;
                     final isOverBudget = currentValue > budget.limitAmount;
 
+                    // Calculate the default speed (expenses per day)
+                    final totalDays = budget.currentDateRange.end
+                        .difference(budget.currentDateRange.start)
+                        .inDays;
+                    final defaultDailyRate = budget.limitAmount / totalDays;
+
+                    // Calculate the actual daily rate so far (how much spent per day on average)
+                    // Add 1 to avoid division by zero if we're on day 1
+                    final daysPassed = DateTime.now()
+                            .difference(budget.currentDateRange.start)
+                            .inDays +
+                        1;
+                    final actualDailyRate = currentValue / daysPassed;
+
+                    // Determine the progress bar color based on spending rate
+                    Color progressBarColor;
+                    if (percentage > 1) {
+                      // If over budget, always use danger color
+                      progressBarColor = appColors.danger;
+                    } else if (actualDailyRate <= defaultDailyRate) {
+                      // If spending less than or equal to the default rate, use primary color
+                      progressBarColor = Theme.of(context).colorScheme.primary;
+                    } else if (actualDailyRate <= defaultDailyRate * 2) {
+                      // If spending more than default but less than 2x default, use warning color (yellow/orange)
+                      progressBarColor = Colors.orange;
+                    } else {
+                      // If spending more than 2x the default rate, use danger color
+                      progressBarColor = appColors.danger;
+                    }
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -170,9 +200,7 @@ class BudgetCard extends StatelessWidget {
                           width: 10, // Slightly increased height
                           radius: 16, // Increased radius for MD3 style
                           value: percentage > 1 ? 1 : percentage,
-                          color: percentage > 1
-                              ? appColors.danger
-                              : Theme.of(context).colorScheme.primary,
+                          color: progressBarColor,
                         ),
 
                         const SizedBox(height: 8),
