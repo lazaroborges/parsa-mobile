@@ -5,6 +5,7 @@ import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
@@ -20,7 +21,9 @@ class TagStats extends StatelessWidget {
     List<MoneyTransaction> transactions,
   ) {
     transactions = transactions
-        .where((element) => element.tags.any((elTag) => elTag.id == tag.id))
+        .where((element) =>
+            element.tags.any((elTag) => elTag.id == tag.id) &&
+            element.status != TransactionStatus.notconsidered)
         .toList();
 
     return TrDistributionChartItem<Tag>(
