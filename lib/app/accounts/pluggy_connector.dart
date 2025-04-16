@@ -77,7 +77,7 @@ class _PluggyConnectorPageState extends State<PluggyConnectorPage> {
         if (await canLaunchUrl(url)) {
           await launchUrl(
             url,
-            mode: LaunchMode.inAppWebView,
+            mode: LaunchMode.platformDefault,
           );
           Navigator.of(context).pop();
         }
