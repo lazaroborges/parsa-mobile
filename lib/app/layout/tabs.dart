@@ -65,48 +65,36 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   // Request notification permission when the dashboard is opened
   Future<void> _requestNotificationPermission() async {
+    print("WE EXECUTING HERE??????");
     final prefs = await SharedPreferences.getInstance();
-    final permissionRequested =
-        prefs.getBool('notification_permission_requested') ?? false;
 
-    // Always check current permission status regardless of previous requests
-    final currentPermissionStatus =
+    // Check the current OS notification permission status
+    final hasNotificationPermission =
         await PermissionService.instance.hasNotificationPermission();
 
-    // If already has permission, just initialize FCM
-    if (currentPermissionStatus) {
+    if (hasNotificationPermission) {
+      // If permission exists, initialize FCM and mark as requested
       await FCMService.instance.initialize();
-
-      // Make sure flag is set to true since we have permission
       await prefs.setBool('notification_permission_requested', true);
-      return;
-    }
-
-    // Only show permission dialog if we haven't requested before
-    if (!permissionRequested) {
+    } else {
       // Request permission using the permission service
       final permissionGranted =
           await PermissionService.instance.requestNotificationPermission();
 
-      if (permissionGranted) {
-        // If permission granted, initialize FCM
-        await FCMService.instance.initialize();
+      // Update notification preferences based on granted status
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: permissionGranted,
+        generalEnabled: permissionGranted,
+      );
 
-        // Enable notifications by default for new installs if permission is granted
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: true,
-          generalEnabled: true,
-        );
-      } else {
-        // Make sure notifications are disabled in backend
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: false,
-          generalEnabled: false,
-        );
+      if (permissionGranted) {
+        // Initialize FCM if permission is granted
+        await FCMService.instance.initialize();
       }
 
-      // Always mark that we've requested permission
-      await prefs.setBool('notification_permission_requested', true);
+      // Only set the flag if permission was granted so that denied permissions remain unset 
+      // and the user can be prompted again later.
+      await prefs.setBool('notification_permission_requested', permissionGranted);
     }
   }
 

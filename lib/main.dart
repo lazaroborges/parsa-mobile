@@ -2,6 +2,7 @@ import 'dart:async'; // Added for StreamSubscription
 import 'dart:io';
 import 'package:app_links/app_links.dart'; // Correctly imported package
 import 'package:drift/drift.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
@@ -56,6 +57,9 @@ String apiEndpoint = '';
 // Define RouteObserver
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
+// Create a global variable to retain the analytics instance
+FirebaseAnalytics? firebaseAnalytics;
+
 void main() async {
   tz.initializeTimeZones();
 
@@ -64,9 +68,19 @@ void main() async {
   await AppVersionProvider.instance.initialize();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("Firebase initialized successfully");
+    
+    // Initialize and configure Firebase Analytics
+    firebaseAnalytics = FirebaseAnalytics.instance;
+    await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
+    print("Firebase Analytics initialized and enabled");
+  } catch (e) {
+    print("Error initializing Firebase: $e");
+  }
 
   // Set preferred orientations to portrait only
   await SystemChrome.setPreferredOrientations([
@@ -349,7 +363,11 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      navigatorObservers: [routeObserver, MainLayoutNavObserver()],
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: firebaseAnalytics ?? FirebaseAnalytics.instance),
+        routeObserver,
+        MainLayoutNavObserver()
+      ],
       routes: {
         '/accounts': (context) => const AllAccountsPage(),
         '/budgets': (context) => const BudgetsPage(),
