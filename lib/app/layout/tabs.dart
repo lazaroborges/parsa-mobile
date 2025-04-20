@@ -19,6 +19,9 @@ import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:io' show Platform;
+import 'package:permission_handler/permission_handler.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -67,34 +70,47 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   Future<void> _requestNotificationPermission() async {
     print("WE EXECUTING HERE??????");
     final prefs = await SharedPreferences.getInstance();
+    final permissionRequested =
+        prefs.getBool('notification_permission_requested') ?? false;
 
-    // Check the current OS notification permission status
-    final hasNotificationPermission =
+    // Always check current permission status regardless of previous requests
+    final currentPermissionStatus =
         await PermissionService.instance.hasNotificationPermission();
 
-    if (hasNotificationPermission) {
-      // If permission exists, initialize FCM and mark as requested
+    // If already has permission, just initialize FCM
+    if (currentPermissionStatus) {
       await FCMService.instance.initialize();
+
+      // Make sure flag is set to true since we have permission
       await prefs.setBool('notification_permission_requested', true);
-    } else {
+      return;
+    }
+
+    // Only show permission dialog if we haven't requested before
+    if (!permissionRequested) {
       // Request permission using the permission service
       final permissionGranted =
           await PermissionService.instance.requestNotificationPermission();
 
-      // Update notification preferences based on granted status
-      await NotificationPreferencesService.instance.updatePreferences(
-        budgetsEnabled: permissionGranted,
-        generalEnabled: permissionGranted,
-      );
-
       if (permissionGranted) {
-        // Initialize FCM if permission is granted
+        // If permission granted, initialize FCM
         await FCMService.instance.initialize();
+
+        // Enable notifications by default for new installs if permission is granted
+        await NotificationPreferencesService.instance.updatePreferences(
+          budgetsEnabled: true,
+          generalEnabled: true,
+        );
+      } else {
+        // Make sure notifications are disabled in backend
+        await NotificationPreferencesService.instance.updatePreferences(
+          budgetsEnabled: false,
+          generalEnabled: false,
+        );
       }
 
-      // Only set the flag if permission was granted so that denied permissions remain unset 
-      // and the user can be prompted again later.
-      await prefs.setBool('notification_permission_requested', permissionGranted);
+      // Always mark that we've requested permission
+      await prefs.setBool('notification_permission_requested', true);
     }
   }
 

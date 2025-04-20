@@ -835,25 +835,26 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   if (creditCards.isEmpty) {
                     return const SizedBox.shrink();
                   }
-
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: CreditCardListCard(
-                      creditCards: creditCards,
-                      onCardTap: (card) => RouteUtils.pushRoute(
-                        context,
-                        AccountDetailsPage(
-                          account: card,
-                          accountIconHeroTag: null,
-                        ),
-                      ),
-                      onAddCardTap: () {
-                        RouteUtils.pushRoute(
-                            context, const AccountConnectionModal());
-                      },
-                    ),
-                  );
+// TODO Bring Back Credit CardHeader
+                  // return Padding(
+                  //   padding:
+                  //       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  //   child: CreditCardListCard(
+                  //     creditCards: creditCards,
+                  //     onCardTap: (card) => RouteUtils.pushRoute(
+                  //       context,
+                  //       AccountDetailsPage(
+                  //         account: card,
+                  //         accountIconHeroTag: null,
+                  //       ),
+                  //     ),
+                  //     onAddCardTap: () {
+                  //       RouteUtils.pushRoute(
+                  //           context, const AccountConnectionModal());
+                  //     },
+                  //   ),
+                  // );
+                  return const SizedBox.shrink();
                 },
               ),
 

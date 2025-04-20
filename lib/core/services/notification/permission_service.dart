@@ -21,7 +21,7 @@ class PermissionService {
     if (Platform.isAndroid) {
       return _requestAndroidNotificationPermission();
     } else if (Platform.isIOS) {
-      return true;
+      return await Permission.notification.request().isGranted;
     }
     return false;
   }
