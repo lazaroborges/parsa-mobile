@@ -52,17 +52,19 @@ class FCMService {
   // In-memory map of topic subscription states
   final Map<NotificationCategory, bool> _notificationFilters = {};
 
-  // FCM token
-  String? _fcmToken;
-
-  // Getter for the FCM token
-  String? get fcmToken => _fcmToken;
-
   // Flag to track if FCM is initialized
   bool _isInitialized = false;
 
   // Flag to track if initialization is in progress to prevent concurrent calls
   bool _isInitializing = false;
+
+  // Flag to track if token has been registered with server
+  bool _isTokenRegistered = false;
+
+  // Get FCM token using the permission service
+  Future<String?> getToken() async {
+    return await PermissionService.instance.getToken();
+  }
 
   // Check if notifications are enabled overall
   Future<bool> getNotificationsEnabled() async {
@@ -79,6 +81,55 @@ class FCMService {
   void resetInitializationState() {
     _isInitialized = false;
     _isInitializing = false;
+    _isTokenRegistered = false;
+  }
+
+  // Register the FCM token for any service that needs it
+  Future<bool> registerToken() async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('Cannot register token: FCM not initialized');
+      }
+      return false;
+    }
+
+    if (_isTokenRegistered) {
+      return true;
+    }
+
+    final token = await PermissionService.instance.getToken();
+    if (token == null) {
+      if (kDebugMode) {
+        print('Cannot register token: No token available');
+      }
+      return false;
+    }
+
+    final result = await saveTokenToServer(token);
+    _isTokenRegistered = result;
+    return result;
+  }
+
+  // Centralized method that handles both permission request and FCM initialization
+  Future<bool> requestPermissionAndInitialize() async {
+    // Request permissions first
+    final hasPermission =
+        await PermissionService.instance.requestPermissionWithFCM();
+
+    if (!hasPermission) {
+      if (kDebugMode) {
+        print("Notification permission denied by user");
+      }
+      return false;
+    }
+
+    // If permission granted, initialize FCM
+    await initialize();
+
+    // Register token with server
+    await registerToken();
+
+    return true;
   }
 
   Future<void> initialize() async {
@@ -145,11 +196,20 @@ class FCMService {
       });
 
       // Get the FCM token and register it with backend
-      await getToken().then((token) {
-        if (token != null) {
-          saveTokenToServer(token);
-        }
-      });
+      final token = await PermissionService.instance.getToken();
+      if (token != null) {
+        final success = await saveTokenToServer(token);
+        _isTokenRegistered = success;
+
+        // Setup token refresh listener
+        messaging.onTokenRefresh.listen((newToken) async {
+          if (kDebugMode) {
+            print('FCM Token refreshed: $newToken');
+          }
+          // Update our registered state
+          _isTokenRegistered = await saveTokenToServer(newToken);
+        });
+      }
 
       final initialMessage = await messaging.getInitialMessage();
       if (initialMessage != null) {
@@ -175,18 +235,8 @@ class FCMService {
             .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
       }
 
-      // Configure FCM to use APNS tokens on iOS
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        await messaging.setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-      }
-
-      // Load user preferences and subscribe to topics
+      // Load user preferences
       await _loadPreferencesFromBackend();
-      await _subscribeToTopics();
 
       _isInitialized = true;
     } catch (e) {
@@ -198,32 +248,10 @@ class FCMService {
     }
   }
 
-  /// Get the FCM token for this device
-  Future<String?> getToken() async {
-    _fcmToken = await messaging.getToken();
-
-    if (kDebugMode && _fcmToken != null) {
-      print('FCM Token: $_fcmToken');
-    }
-
-    // Set up token refresh listener
-    messaging.onTokenRefresh.listen((newToken) async {
-      _fcmToken = newToken;
-      if (kDebugMode) {
-        print('FCM Token refreshed: $_fcmToken');
-      }
-
-      // Save the new token to server
-      await saveTokenToServer(newToken);
-    });
-
-    return _fcmToken;
-  }
-
   /// Save the FCM token to your backend server with retry logic
-  Future<void> saveTokenToServer(String? token,
+  Future<bool> saveTokenToServer(String? token,
       {int maxRetries = 3, int delayMs = 1000}) async {
-    if (token == null) return;
+    if (token == null) return false;
 
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -248,7 +276,7 @@ class FCMService {
 
         if (kDebugMode) {
           print(
-              'Registering device token (attempt $attempt/$maxRetries): $requestBody');
+              'Registering device token (attempt $attempt/$maxRetries): ${token.substring(0, 10)}...');
         }
 
         final response = await http.post(
@@ -265,7 +293,7 @@ class FCMService {
           if (kDebugMode) {
             print('FCM token successfully registered with backend');
           }
-          return;
+          return true;
         }
 
         // Check if we should retry based on status code
@@ -301,6 +329,7 @@ class FCMService {
         }
       }
     }
+    return false;
   }
 
   /// Helper method to get the access token
@@ -347,44 +376,6 @@ class FCMService {
       for (final category in NotificationCategory.values) {
         _notificationFilters[category] = true;
       }
-    }
-  }
-
-  /// Subscribe/unsubscribe to FCM topics based on the filters map
-  Future<void> _subscribeToTopics() async {
-    for (final entry in _notificationFilters.entries) {
-      await _updateTopicSubscription(entry.key, entry.value);
-    }
-    if (kDebugMode) {
-      print('Subscribed to FCM topics: $_notificationFilters');
-    }
-  }
-
-  /// Subscribe or unsubscribe a single topic
-  Future<void> _updateTopicSubscription(
-    NotificationCategory category,
-    bool isEnabled,
-  ) async {
-    final topicName = category.toString().split('.').last;
-
-    // Get previous state
-    final currentlySubscribed = _notificationFilters[category] ?? false;
-
-    if (isEnabled != currentlySubscribed) {
-      if (isEnabled) {
-        await messaging.subscribeToTopic(topicName);
-        if (kDebugMode) {
-          print('Subscribed to topic: $topicName');
-        }
-      } else {
-        await messaging.unsubscribeFromTopic(topicName);
-        if (kDebugMode) {
-          print('Unsubscribed from topic: $topicName');
-        }
-      }
-
-      // Update our in-memory map with the new state
-      _notificationFilters[category] = isEnabled;
     }
   }
 }

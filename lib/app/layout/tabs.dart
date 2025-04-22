@@ -61,54 +61,43 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     super.dispose();
   }
 
-  // Request notification permission when the dashboard is opened
+  // Request notification permission using the FCM codelab approach
   Future<void> _requestNotificationPermission() async {
-    final prefs = await SharedPreferences.getInstance();
-    final permissionRequested =
-        prefs.getBool('notification_permission_requested') ?? false;
+    try {
+      // Check if we've requested permission before
+      final prefs = await SharedPreferences.getInstance();
+      final permissionRequested =
+          prefs.getBool('notification_permission_requested') ?? false;
 
-    // Always check current permission status regardless of previous requests
-    final currentPermissionStatus =
-        await PermissionService.instance.hasNotificationPermission();
-
-    // If already has permission, just initialize FCM
-    if (currentPermissionStatus) {
-      await FCMService.instance.initialize();
-
-      // Make sure flag is set to true since we have permission
-      await prefs.setBool('notification_permission_requested', true);
-      return;
-    }
-
-    // Only show permission dialog if we haven't requested before
-    if (!permissionRequested) {
-      // Request permission using the permission service
-      final permissionGranted =
-          await PermissionService.instance.requestNotificationPermission();
-
-      if (permissionGranted) {
-        // If permission granted, initialize FCM
-        await FCMService.instance.initialize();
-
-        // Enable notifications by default for new installs if permission is granted
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: true,
-          generalEnabled: true,
-          transactionsEnabled: true,
-          accountEnabled: true,
-        );
-      } else {
-        // Make sure notifications are disabled in backend
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: false,
-          generalEnabled: false,
-          transactionsEnabled: false,
-          accountEnabled: false,
-        );
+      // If we've already requested, check if we have permission
+      if (permissionRequested) {
+        // If we already have permission, just initialize FCM
+        final hasPermission =
+            await PermissionService.instance.hasNotificationPermission();
+        if (hasPermission) {
+          await FCMService.instance.initialize();
+          return;
+        }
       }
 
-      // Always mark that we've requested permission
+      // Request permission and initialize FCM (follows codelab example)
+      final success =
+          await FCMService.instance.requestPermissionAndInitialize();
+
+      // Update notification preferences based on permission status
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: success,
+        generalEnabled: success,
+        transactionsEnabled: success,
+        accountEnabled: success,
+      );
+
+      // Mark that we've requested permission
       await prefs.setBool('notification_permission_requested', true);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error handling notification permissions: $e');
+      }
     }
   }
 

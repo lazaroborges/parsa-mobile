@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart' as main;
 import 'package:parsa/core/services/notification/fcm_service.dart';
+import 'package:flutter/foundation.dart';
 
 class SessionService {
   static final SessionService instance = SessionService._internal();
@@ -16,27 +16,20 @@ class SessionService {
     if (_hasRegisteredSession) return;
 
     try {
-      // Get the FCM token if available
-      
       // Prepare request body
       final Map<String, dynamic> requestBody = {
         'session_start': "Hello server",
       };
-      
-final messaging = FirebaseMessaging.instance;
-    
-    // Get and print the FCM token
-    final fcmToken = await messaging.getToken();
 
-    if (fcmToken != null) {
-      requestBody['fcm_token'] = fcmToken;
-    }
+      // Register FCM token if not already registered
+      // This will handle all token registration through the FCM service
+      await FCMService.instance.registerToken();
 
       final response = await http.post(
         Uri.parse('${main.apiEndpoint}/api/sessions/'),
         headers: {
           'Authorization':
-          'Bearer ${Auth0Provider.instance.credentials?.accessToken}',
+              'Bearer ${Auth0Provider.instance.credentials?.accessToken}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode(requestBody),
@@ -44,6 +37,9 @@ final messaging = FirebaseMessaging.instance;
 
       if (response.statusCode == 201) {
         _hasRegisteredSession = true;
+        if (kDebugMode) {
+          print('Session registered successfully');
+        }
       } else {
         print('Register session: ${response.statusCode}');
       }
