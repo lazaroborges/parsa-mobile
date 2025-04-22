@@ -94,6 +94,7 @@ class Budget extends BudgetInDB {
         transactionTypes: [TransactionType.E],
         accountsIDs: accounts,
         categories: categories,
+        tagsIDs: tags,
         minDate: currentDateRange.start,
         maxDate: date,
       ),

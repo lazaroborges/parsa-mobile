@@ -2,6 +2,8 @@ import 'dart:async'; // Added for StreamSubscription
 import 'dart:io';
 import 'package:app_links/app_links.dart'; // Correctly imported package
 import 'package:drift/drift.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
@@ -44,6 +46,9 @@ String apiEndpoint = '';
 // Define RouteObserver
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
+// Create a global variable to retain the analytics instance
+FirebaseAnalytics? firebaseAnalytics;
+
 void main() async {
   tz.initializeTimeZones();
 
@@ -52,9 +57,21 @@ void main() async {
   await AppVersionProvider.instance.initialize();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("Firebase initialized successfully");
+
+    await initializeFirebaseMessaging();
+
+    // Initialize and configure Firebase Analytics
+    firebaseAnalytics = FirebaseAnalytics.instance;
+    await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
+    print("Firebase Analytics initialized and enabled");
+  } catch (e) {
+    print("Error initializing Firebase: $e");
+  }
 
   // Set preferred orientations to portrait only
   await SystemChrome.setPreferredOrientations([
@@ -337,7 +354,12 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: lightTheme,
       navigatorKey: navigatorKey,
-      navigatorObservers: [routeObserver, MainLayoutNavObserver()],
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(
+            analytics: firebaseAnalytics ?? FirebaseAnalytics.instance),
+        routeObserver,
+        MainLayoutNavObserver()
+      ],
       onGenerateRoute: MaterialAppRoutes.onGenerateRoute,
       builder: (context, child) {
         // Check if the device is iOS
@@ -460,5 +482,50 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         );
       }
     });
+  }
+}
+
+// This is what works in IOS.
+Future<void> initializeFirebaseMessaging() async {
+  try {
+    // Initialize Firebase Messaging
+    final messaging = FirebaseMessaging.instance;
+
+    // Get and print the FCM token
+    final fcmToken = await messaging.getToken();
+    print('FCM Token: $fcmToken');
+
+    // Listen for token refreshes
+    messaging.onTokenRefresh.listen((newToken) {
+      print('FCM Token refreshed: $newToken');
+    });
+
+    // iOS-specific setup (this is critical for iOS)
+    if (Platform.isIOS) {
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      // Request iOS notification permissions
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+
+      print(
+          'iOS Notification permission status: ${settings.authorizationStatus}');
+
+      // Register with APNs - critical for iOS
+      final apnsToken = await messaging.getAPNSToken();
+      print('APNs Token: $apnsToken');
+    }
+
+    print("Firebase Messaging initialized successfully");
+  } catch (e) {
+    print("Error initializing Firebase Messaging: $e");
   }
 }

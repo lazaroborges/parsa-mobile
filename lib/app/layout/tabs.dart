@@ -19,6 +19,9 @@ import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:io' show Platform;
+import 'package:permission_handler/permission_handler.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -65,6 +68,7 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   // Request notification permission when the dashboard is opened
   Future<void> _requestNotificationPermission() async {
+    print("WE EXECUTING HERE??????");
     final prefs = await SharedPreferences.getInstance();
     final permissionRequested =
         prefs.getBool('notification_permission_requested') ?? false;

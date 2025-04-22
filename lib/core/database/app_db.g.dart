@@ -5404,7 +5404,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         $write(limit(this.budgets), startIndex: $arrayStartIndex);
     $arrayStartIndex += generatedlimit.amountOfVariables;
     return customSelect(
-        'SELECT id, name, limitAmount, intervalPeriod, startDate, endDate, budgets.id AS "\$n_0", budgets.id AS "\$n_1" FROM budgets WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
+        'SELECT id, name, limitAmount, intervalPeriod, startDate, endDate, budgets.id AS "\$n_0", budgets.id AS "\$n_1", budgets.id AS "\$n_2" FROM budgets WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
         variables: [
           ...generatedpredicate.introducedVariables,
           ...generatedorderBy.introducedVariables,
@@ -5414,6 +5414,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           budgets,
           budgetCategory,
           budgetAccount,
+          budgetTag,
           ...generatedpredicate.watchedTables,
           ...generatedorderBy.watchedTables,
           ...generatedlimit.watchedTables,
@@ -5439,6 +5440,15 @@ abstract class _$AppDB extends GeneratedDatabase {
                 budgetAccount,
                 budgets,
               }).map((QueryRow row) => row.read<String>('accountID')).get(),
+          tags: await customSelect(
+              'SELECT tagID FROM budgetTag WHERE budgetID = ?1',
+              variables: [
+                Variable<String>(row.read('\$n_2'))
+              ],
+              readsFrom: {
+                budgetTag,
+                budgets,
+              }).map((QueryRow row) => row.read<String>('tagID')).get(),
           intervalPeriod: NullAwareTypeConverter.wrapFromSql(
               Budgets.$converterintervalPeriod,
               row.readNullable<String>('intervalPeriod')),

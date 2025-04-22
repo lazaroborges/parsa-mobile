@@ -610,7 +610,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                 const SizedBox(height: 24),
                                 // Title
                                 const Text(
-                                  'Parsa Premium - Teste por 7 dias com direito a reembolso total',
+                                  'Parsa Premium\nTeste por 7 dias grátis!',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Color(0xFF0F1728),
