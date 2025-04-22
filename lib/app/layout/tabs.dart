@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/layout/lazy_indexed_stack.dart';
-import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -19,9 +18,6 @@ import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'dart:io' show Platform;
-import 'package:permission_handler/permission_handler.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -53,9 +49,8 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       _initializeData();
       _requestNotificationPermission();
       _setupDeepLinking();
-      // Initialize background authentication service
       BackgroundAuthService.instance.initialize(context);
-      _isInitialized = true; // Ensure this runs only once
+      _isInitialized = true;
     }
   }
 
@@ -68,7 +63,6 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   // Request notification permission when the dashboard is opened
   Future<void> _requestNotificationPermission() async {
-    print("WE EXECUTING HERE??????");
     final prefs = await SharedPreferences.getInstance();
     final permissionRequested =
         prefs.getBool('notification_permission_requested') ?? false;
@@ -100,12 +94,16 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
         await NotificationPreferencesService.instance.updatePreferences(
           budgetsEnabled: true,
           generalEnabled: true,
+          transactionsEnabled: true,
+          accountEnabled: true,
         );
       } else {
         // Make sure notifications are disabled in backend
         await NotificationPreferencesService.instance.updatePreferences(
           budgetsEnabled: false,
           generalEnabled: false,
+          transactionsEnabled: false,
+          accountEnabled: false,
         );
       }
 

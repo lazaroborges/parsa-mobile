@@ -12,10 +12,11 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 
-// Define notification categories - simplified to only two categories
 enum NotificationCategory {
   budgets,
   general,
+  transactions,
+  account,
 }
 
 // Top-level background message handler: must be a top-level function.
@@ -48,6 +49,9 @@ class FCMService {
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
+  // In-memory map of topic subscription states
+  final Map<NotificationCategory, bool> _notificationFilters = {};
+
   // FCM token
   String? _fcmToken;
 
@@ -65,7 +69,10 @@ class FCMService {
     final prefs =
         await NotificationPreferencesService.instance.getPreferences();
     // Consider notifications enabled if any category is enabled
-    return prefs['budgets_enabled'] == true || prefs['general_enabled'] == true;
+    return prefs['budgets_enabled'] == true ||
+        prefs['general_enabled'] == true ||
+        prefs['transactions_enabled'] == true ||
+        prefs['account_enabled'] == true;
   }
 
   // Method to reset initialization state for reinitializing after permission changes
@@ -87,40 +94,14 @@ class FCMService {
             options: DefaultFirebaseOptions.currentPlatform);
       }
 
-      // Request permissions using PermissionService
-      bool hasPermission =
-          await PermissionService.instance.prepareForFCMToken();
-
+      // Only proceed if OS-level notification permission is already granted
+      final hasPermission =
+          await PermissionService.instance.hasNotificationPermission();
       if (!hasPermission) {
         if (kDebugMode) {
-          print("FCM initialization: User denied notification permissions");
+          print("FCM initialization: notification permission not granted");
         }
-        // Mark as initialized but exit early - don't proceed with FCM setup
-        _isInitialized = true;
-        _isInitializing = false;
-        return;
-      }
-
-      // Request permission on iOS (alerts, badge, sound).
-      NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        announcement: false,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-      );
-
-      if (kDebugMode) {
-        print("FCM permission status: ${settings.authorizationStatus}");
-      }
-
-      // Exit if permission is denied
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        if (kDebugMode) {
-          print("FCM initialization stopped: Permission denied");
-        }
+        // Mark as initialized but exit early
         _isInitialized = true;
         _isInitializing = false;
         return;
@@ -202,6 +183,10 @@ class FCMService {
           sound: true,
         );
       }
+
+      // Load user preferences and subscribe to topics
+      await _loadPreferencesFromBackend();
+      await _subscribeToTopics();
 
       _isInitialized = true;
     } catch (e) {
@@ -340,73 +325,66 @@ class FCMService {
       return null;
     }
   }
-  // Load preferences from backend and update local filters
-  // Future<void> _loadPreferencesFromBackend() async {
-  //   try {
-  //     final prefs =
-  //         await NotificationPreferencesService.instance.getPreferences();
 
-  //     // Update internal notification filters
-  //     _notificationFilters[NotificationCategory.budgets] =
-  //         prefs['budgets_enabled'] ?? true;
-  //     _notificationFilters[NotificationCategory.general] =
-  //         prefs['general_enabled'] ?? true;
+  /// Load preferences from backend and populate the filters map
+  Future<void> _loadPreferencesFromBackend() async {
+    try {
+      final prefs =
+          await NotificationPreferencesService.instance.getPreferences();
+      // Map each enum to its corresponding key in prefs
+      for (final category in NotificationCategory.values) {
+        final key = '${category.toString().split('.').last}_enabled';
+        _notificationFilters[category] = prefs[key] ?? true;
+      }
+      if (kDebugMode) {
+        print('Loaded notification preferences: $_notificationFilters');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading preferences from backend: $e');
+      }
+      // Default all to enabled
+      for (final category in NotificationCategory.values) {
+        _notificationFilters[category] = true;
+      }
+    }
+  }
 
-  //     if (kDebugMode) {
-  //       print('Loaded notification preferences from backend:');
-  //       print('budgets_enabled: ${prefs['budgets_enabled']}');
-  //       print('general_enabled: ${prefs['general_enabled']}');
-  //     }
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print('Error loading preferences from backend: $e');
-  //     }
+  /// Subscribe/unsubscribe to FCM topics based on the filters map
+  Future<void> _subscribeToTopics() async {
+    for (final entry in _notificationFilters.entries) {
+      await _updateTopicSubscription(entry.key, entry.value);
+    }
+    if (kDebugMode) {
+      print('Subscribed to FCM topics: $_notificationFilters');
+    }
+  }
 
-  //     // Use defaults if loading fails
-  //     _notificationFilters[NotificationCategory.budgets] = true;
-  //     _notificationFilters[NotificationCategory.general] = true;
-  //   }
-  // }
+  /// Subscribe or unsubscribe a single topic
+  Future<void> _updateTopicSubscription(
+    NotificationCategory category,
+    bool isEnabled,
+  ) async {
+    final topicName = category.toString().split('.').last;
 
-  // // Subscribe to topics based on enabled notification filters
-  // Future<void> _subscribeToTopics() async {
-  //   // Subscribe to general notifications
-  //   await _updateTopicSubscription(NotificationCategory.general,
-  //       _notificationFilters[NotificationCategory.general] ?? true);
+    // Get previous state
+    final currentlySubscribed = _notificationFilters[category] ?? false;
 
-  //   // Subscribe to budgets notifications
-  //   await _updateTopicSubscription(NotificationCategory.budgets,
-  //       _notificationFilters[NotificationCategory.budgets] ?? true);
+    if (isEnabled != currentlySubscribed) {
+      if (isEnabled) {
+        await messaging.subscribeToTopic(topicName);
+        if (kDebugMode) {
+          print('Subscribed to topic: $topicName');
+        }
+      } else {
+        await messaging.unsubscribeFromTopic(topicName);
+        if (kDebugMode) {
+          print('Unsubscribed from topic: $topicName');
+        }
+      }
 
-  //   if (kDebugMode) {
-  //     print('Subscribed to FCM topics based on user preferences');
-  //   }
-  // }
-
-  // // Helper method to update a single topic subscription
-  // Future<void> _updateTopicSubscription(
-  //     NotificationCategory category, bool isEnabled) async {
-  //   final topicName = category.toString().split('.').last;
-
-  //   // Check current state from our in-memory map to avoid unnecessary API calls
-  //   final currentlySubscribed = _notificationFilters[category] ?? false;
-
-  //   // Only make API calls if the subscription state is changing
-  //   if (isEnabled != currentlySubscribed) {
-  //     if (isEnabled) {
-  //       await messaging.subscribeToTopic(topicName);
-  //       if (kDebugMode) {
-  //         print('Subscribed to topic: $topicName');
-  //       }
-  //     } else {
-  //       await messaging.unsubscribeFromTopic(topicName);
-  //       if (kDebugMode) {
-  //         print('Unsubscribed from topic: $topicName');
-  //       }
-  //     }
-
-  //     // Update our in-memory map with the new state
-  //     _notificationFilters[category] = isEnabled;
-  //   }
-  // }
+      // Update our in-memory map with the new state
+      _notificationFilters[category] = isEnabled;
+    }
+  }
 }

@@ -5,14 +5,14 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
-import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
 import 'widgets/settings_list_separator.dart';
+import 'package:parsa/core/services/notification/fcm_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PreferencesSettingsPage extends StatefulWidget {
   const PreferencesSettingsPage({super.key});
@@ -48,7 +48,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Store a reference to ScaffoldMessenger
     _scaffoldMessenger = ScaffoldMessenger.of(context);
   }
 
@@ -106,63 +105,29 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     }
   }
 
-  // Request notification permission using the existing permission service
-  Future<void> _requestNotificationPermission() async {
-    try {
-      // Reset FCM initialization state
-      FCMService.instance.resetInitializationState();
-
-      // Use the existing permission service
-      final permissionGranted =
-          await PermissionService.instance.requestNotificationPermission();
-
-      if (permissionGranted) {
-        // Initialize FCM and update preferences
-        await FCMService.instance.initialize();
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: true,
-          generalEnabled: true,
-        );
-
-        // Update UI
-        setState(() {});
-
-        // Show success message
-        if (mounted) {
-          _scaffoldMessenger!.showSnackBar(
-            const SnackBar(
-              content: Text('Notificações ativadas com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        // Guide user to system settings if permission denied
-        if (mounted) {
-          showPlatformAlertDialog(
-            context: context,
-            title: "Permissão Negada",
-            content:
-                "Para receber notificações, você precisa habilitar as permissões nas configurações do seu dispositivo.",
-            cancelActionText: "Cancelar",
-            defaultActionText: "OK",
-          );
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error requesting notification permission: $e');
-      }
-
-      if (mounted) {
-        _scaffoldMessenger!.showSnackBar(
-          SnackBar(
-            content: Text('Ocorreu um erro ao solicitar permissão: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+  /// Ensure we have OS-level notification permission, asking or redirecting if needed
+  Future<bool> _ensureNotificationPermission() async {
+    // Mark we asked and attempt the platform request
+    final granted =
+        await PermissionService.instance.requestNotificationPermission();
+    if (granted) {
+      // Initialize FCM now that permission is granted
+      await FCMService.instance.initialize();
+      return true;
     }
+    // If denied, prompt user to open system settings
+    final goToSettings = await showPlatformAlertDialog(
+      context: context,
+      title: "Permissão Negada",
+      content:
+          "Para receber notificações, habilite as permissões nas configurações do seu dispositivo.",
+      cancelActionText: "Cancelar",
+      defaultActionText: "Ir para Configurações",
+    );
+    if (goToSettings == true) {
+      await openAppSettings();
+    }
+    return false;
   }
 
   Widget buildSelector<T>({
@@ -237,39 +202,35 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       appBar: AppBar(
         title: Text(t.settings.title_short),
       ),
-      body: FutureBuilder<bool>(
-        future: _checkPermissionRequested(),
-        builder: (context, requestedSnapshot) {
-          if (requestedSnapshot.connectionState == ConnectionState.waiting ||
+      body: FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          app_prefs.SharedPreferencesAsync.instance
+              .getNotificationPermissionRequested(),
+          PermissionService.instance.hasNotificationPermission(),
+          NotificationPreferencesService.instance.getPreferences(),
+        ]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
               _isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Only check actual permission status if it was requested previously
-          if (requestedSnapshot.data == true) {
-            return FutureBuilder<bool>(
-                future: PermissionService.instance.hasNotificationPermission(),
-                builder: (context, permissionSnapshot) {
-                  final bool showPermissionButton =
-                      permissionSnapshot.hasData &&
-                          !permissionSnapshot.data! &&
-                          requestedSnapshot.data!;
+          final bool requested = snapshot.data![0] as bool;
+          final bool granted = snapshot.data![1] as bool;
+          final Map<String, bool> notificationPrefs =
+              snapshot.data![2] as Map<String, bool>;
 
-                  return _buildSettingsList(context, t, showPermissionButton);
-                });
-          }
+          final bool notificationsEnabled = requested && granted;
 
-          // If permission was never requested, don't show button
-          return _buildSettingsList(context, t, false);
+          return _buildSettingsList(
+            context,
+            t,
+            notificationsEnabled,
+            notificationPrefs,
+          );
         },
       ),
     );
-  }
-
-  // Helper method to check if permission was requested before
-  Future<bool> _checkPermissionRequested() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('notification_permission_requested') ?? false;
   }
 
   // Helper function to safely show snackbar
@@ -284,9 +245,16 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     }
   }
 
-  // Build the settings list with or without notification button
+  // Build the settings list with notification toggles
   Widget _buildSettingsList(
-      BuildContext context, Translations t, bool showPermissionButton) {
+    BuildContext context,
+    Translations t,
+    bool notificationsEnabled,
+    Map<String, bool> notificationPrefs,
+  ) {
+    // Local aliases to ensure proper scope for toggles
+    final bool enableSwitches = notificationsEnabled;
+    final Map<String, bool> prefsMap = notificationPrefs;
     // Create items for start of week selection
     final startOfWeekItems = [
       SelectItem(
@@ -404,7 +372,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
             );
           }),
           // Calendar settings section
-          createListSeparator(context, "Configurações de Calendário"),
+          createListSeparator(context, "Calendário"),
 
           // Start of Week setting
           ListTile(
@@ -535,62 +503,75 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
           //     ],
           //   ),
           // ),
+          createListSeparator(context, 'Notificações'),
+          // Notification category toggles
+          SwitchListTile(
+            title: const Text('Geral'),
+            value: notificationsEnabled ? prefsMap['general_enabled']! : false,
+            onChanged: (bool value) async {
+              // If enabling, ensure we have OS permission
+              if (value && !notificationsEnabled) {
+                if (!await _ensureNotificationPermission()) return;
+              }
+              // Update preference
+              final success = await NotificationPreferencesService.instance
+                  .updatePreferences(generalEnabled: value);
+              if (!success && mounted) {
+                _showSnackBar('Erro ao atualizar Notificações Gerais');
+              }
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Orçamentos'),
+            value: notificationsEnabled ? prefsMap['budgets_enabled']! : false,
+            onChanged: (bool value) async {
+              if (value && !notificationsEnabled) {
+                if (!await _ensureNotificationPermission()) return;
+              }
+              final success = await NotificationPreferencesService.instance
+                  .updatePreferences(budgetsEnabled: value);
+              if (!success && mounted) {
+                _showSnackBar('Erro ao atualizar Notificações de Orçamentos');
+              }
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Transações'),
+            value: notificationsEnabled
+                ? prefsMap['transactions_enabled']!
+                : false,
+            onChanged: (bool value) async {
+              if (value && !notificationsEnabled) {
+                if (!await _ensureNotificationPermission()) return;
+              }
+              final success = await NotificationPreferencesService.instance
+                  .updatePreferences(transactionsEnabled: value);
+              if (!success && mounted) {
+                _showSnackBar('Erro ao atualizar Notificações de Transações');
+              }
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Conta'),
+            value: notificationsEnabled ? prefsMap['account_enabled']! : false,
+            onChanged: (bool value) async {
+              if (value && !notificationsEnabled) {
+                if (!await _ensureNotificationPermission()) return;
+              }
+              final success = await NotificationPreferencesService.instance
+                  .updatePreferences(accountEnabled: value);
+              if (!success && mounted) {
+                _showSnackBar('Erro ao atualizar Notificações de Conta');
+              }
+              setState(() {});
+            },
+          ),
+          const SizedBox(height: 24),
 
-          // Add notification section only if permissions were requested but denied
-          if (showPermissionButton)
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.notifications_off,
-                            color: Colors.orange),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Notificações desativadas",
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Você está perdendo notificações importantes sobre sua conta e orçamentos",
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.notifications_active),
-                        label: const Text("Ativar Notificações"),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        onPressed: () async {
-                          await _requestNotificationPermission();
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          // Subscription management section
           Center(
             child: GestureDetector(
               onTap: _openSubscriptionManagement,
@@ -605,7 +586,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               ),
             ),
           ),
-          const SizedBox(height: 24),
         ],
       ),
     );

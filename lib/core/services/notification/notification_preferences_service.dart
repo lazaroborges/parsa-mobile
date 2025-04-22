@@ -53,6 +53,8 @@ class NotificationPreferencesService {
         _cachedPreferences = {
           'budgets_enabled': data['budgets_enabled'] ?? true,
           'general_enabled': data['general_enabled'] ?? true,
+          'transactions_enabled': data['transactions_enabled'] ?? true,
+          'account_enabled': data['account_enabled'] ?? true,
         };
 
         return _cachedPreferences!;
@@ -67,6 +69,8 @@ class NotificationPreferencesService {
         return {
           'budgets_enabled': true,
           'general_enabled': true,
+          'transactions_enabled': true,
+          'account_enabled': true,
         };
       }
     } catch (e) {
@@ -78,6 +82,8 @@ class NotificationPreferencesService {
       return {
         'budgets_enabled': true,
         'general_enabled': true,
+        'transactions_enabled': true,
+        'account_enabled': true,
       };
     }
   }
@@ -86,6 +92,8 @@ class NotificationPreferencesService {
   Future<bool> updatePreferences({
     bool? budgetsEnabled,
     bool? generalEnabled,
+    bool? transactionsEnabled,
+    bool? accountEnabled,
   }) async {
     try {
       // Get access token
@@ -103,6 +111,14 @@ class NotificationPreferencesService {
 
       if (generalEnabled != null) {
         requestBody['general_enabled'] = generalEnabled;
+      }
+
+      if (transactionsEnabled != null) {
+        requestBody['transactions_enabled'] = transactionsEnabled;
+      }
+
+      if (accountEnabled != null) {
+        requestBody['account_enabled'] = accountEnabled;
       }
 
       // Make API request
@@ -123,6 +139,12 @@ class NotificationPreferencesService {
           }
           if (generalEnabled != null) {
             _cachedPreferences!['general_enabled'] = generalEnabled;
+          }
+          if (transactionsEnabled != null) {
+            _cachedPreferences!['transactions_enabled'] = transactionsEnabled;
+          }
+          if (accountEnabled != null) {
+            _cachedPreferences!['account_enabled'] = accountEnabled;
           }
         }
 
