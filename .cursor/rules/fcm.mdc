@@ -1,0 +1,42 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Firebase Cloud Messaging (FCM) Rules
+
+## Initialization and Permissions
+- Initialize FCM in `TabsPage` using `FCMService.instance.initialize()`
+- Permission requests should use `PermissionService.instance.requestPermissionWithFCM()`
+- After permission granted, call `FCMService.instance.initialize()` to set up handlers
+
+## Platform-Specific Permission Logic
+- Android:
+  - Android 13+ (API level 33+): Request explicit `POST_NOTIFICATIONS` permission using `Permission.notification.request()`
+  - Android 12 and below: No explicit permission needed, return `true` by default
+  - Check Android version with `DeviceInfoPlugin().androidInfo.version.sdkInt >= 33`
+
+- iOS:
+  - Use Firebase Messaging API for permission: `messaging.requestPermission()`
+  - Configure presentation options: `setForegroundNotificationPresentationOptions()`
+  - Get APNS token after permission granted: `getAPNSToken()`
+  - Check permission status: `messaging.getNotificationSettings()`
+  - Permission is granted if `authorizationStatus == AuthorizationStatus.authorized` or `provisional`
+
+## Token Management
+- Get FCM token: `PermissionService.instance.getToken()`
+- Register token with backend: `FCMService.instance.registerToken()` or `saveTokenToServer(token)`
+- The backend endpoint for token registration is `$apiEndpoint/messaging/register-device/`
+
+## Notification Preferences
+- Get preferences: `NotificationPreferencesService.instance.getPreferences(forceRefresh: true)`
+- Update preferences: `NotificationPreferencesService.instance.updatePreferences()`
+- When permission is denied, all preferences should be set to `false`
+- Reset session flag on app start: `NotificationPreferencesService.instance.resetSessionFlag()`
+
+## Notification Navigation
+- Background/terminated app navigation handled in `_firebaseMessagingBackgroundHandler`
+- In-app navigation uses `_processMessageData()` with action types:
+  - 'view_transaction': Navigates to transaction details
+  - 'view_budget': Navigates to budget details
+- Implement deep linking by extracting navigation data from message payload

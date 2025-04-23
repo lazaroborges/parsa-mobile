@@ -58,6 +58,8 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   void dispose() {
     // Dispose of background authentication service
     BackgroundAuthService.instance.dispose();
+    // Reset notification preferences session flag for next app start
+    NotificationPreferencesService.instance.resetSessionFlag();
     super.dispose();
   }
 
@@ -69,31 +71,26 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       final permissionRequested =
           prefs.getBool('notification_permission_requested') ?? false;
 
-      // If we've already requested, check if we have permission
-      if (permissionRequested) {
-        // If we already have permission, just initialize FCM
-        final hasPermission =
-            await PermissionService.instance.hasNotificationPermission();
-        if (hasPermission) {
-          await FCMService.instance.initialize();
-          return;
-        }
+      // Always check current permissions
+      final hasPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
+      // If permission is already granted, just initialize FCM
+      // FCM service will handle getting preferences as needed
+      if (hasPermission) {
+        await FCMService.instance.initialize();
+        return;
       }
 
-      // Request permission and initialize FCM (follows codelab example)
-      final success =
-          await FCMService.instance.requestPermissionAndInitialize();
+      // If we've never requested before, show the permission dialog
+      if (!permissionRequested) {
+        // Request permission with FCM (follows codelab example)
+        final success =
+            await FCMService.instance.requestPermissionAndInitialize();
 
-      // Update notification preferences based on permission status
-      await NotificationPreferencesService.instance.updatePreferences(
-        budgetsEnabled: success,
-        generalEnabled: success,
-        transactionsEnabled: success,
-        accountEnabled: success,
-      );
-
-      // Mark that we've requested permission
-      await prefs.setBool('notification_permission_requested', true);
+        // Mark that we've requested permission
+        await prefs.setBool('notification_permission_requested', true);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error handling notification permissions: $e');

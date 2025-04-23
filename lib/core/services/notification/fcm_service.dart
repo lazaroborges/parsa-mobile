@@ -21,8 +21,9 @@ enum NotificationCategory {
 
 // Top-level background message handler: must be a top-level function.
 @pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Need to ensure Firebase is initialized
+  await Firebase.initializeApp();
 
   if (kDebugMode) {
     print("Handling a background message: ${message.messageId}");
@@ -120,6 +121,15 @@ class FCMService {
       if (kDebugMode) {
         print("Notification permission denied by user");
       }
+
+      // Update notification preferences to reflect permission state
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: false,
+        generalEnabled: false,
+        transactionsEnabled: false,
+        accountEnabled: false,
+      );
+
       return false;
     }
 
@@ -152,13 +162,23 @@ class FCMService {
         if (kDebugMode) {
           print("FCM initialization: notification permission not granted");
         }
+
+        // Update notification preferences to reflect permission state
+        await NotificationPreferencesService.instance.updatePreferences(
+          budgetsEnabled: false,
+          generalEnabled: false,
+          transactionsEnabled: false,
+          accountEnabled: false,
+        );
+
         // Mark as initialized but exit early
         _isInitialized = true;
         _isInitializing = false;
         return;
       }
 
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler);
 
       // Listen for messages when the app is in the foreground.
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -236,7 +256,8 @@ class FCMService {
       }
 
       // Load user preferences
-      await _loadPreferencesFromBackend();
+      await NotificationPreferencesService.instance
+          .getPreferences(forceRefresh: true);
 
       _isInitialized = true;
     } catch (e) {

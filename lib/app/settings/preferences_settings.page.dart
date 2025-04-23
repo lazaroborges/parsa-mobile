@@ -42,6 +42,9 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   int _startOfMonth = 1;
   bool _startOfMonthWorkingDaysOnly = false;
 
+  // Store notification preferences
+  Map<String, bool> _notificationPrefs = {};
+
   // Store ScaffoldMessengerState to avoid "Looking up a deactivated widget's ancestor" error
   ScaffoldMessengerState? _scaffoldMessenger;
 
@@ -59,14 +62,30 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   }
 
   Future<void> _loadPreferences() async {
-    final prefs = app_prefs.SharedPreferencesAsync.instance;
-    _startOfWeek = await prefs.getStartOfWeek();
-    _startOfMonth = await prefs.getStartOfMonth();
-    _startOfMonthWorkingDaysOnly = await prefs.getStartOfMonthWorkingDaysOnly();
+    try {
+      setState(() {
+        _isLoading = true;
+      });
 
-    setState(() {
-      _isLoading = false;
-    });
+      final prefs = app_prefs.SharedPreferencesAsync.instance;
+      _startOfWeek = await prefs.getStartOfWeek();
+      _startOfMonth = await prefs.getStartOfMonth();
+      _startOfMonthWorkingDaysOnly =
+          await prefs.getStartOfMonthWorkingDaysOnly();
+
+      // Fetch notification preferences from API using the service
+      _notificationPrefs = await NotificationPreferencesService.instance
+          .getPreferences(forceRefresh: true);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading preferences: $e');
+      }
+      _showSnackBar('Erro ao carregar preferências', isError: true);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -77,9 +96,9 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh UI when app resumes from background
+    // Refresh UI and preferences when app resumes from background
     if (state == AppLifecycleState.resumed) {
-      setState(() {});
+      _loadPreferences();
     }
   }
 
@@ -128,6 +147,42 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       await openAppSettings();
     }
     return false;
+  }
+
+  /// Update a notification preference and refresh UI
+  Future<void> _updateNotificationPreference({
+    bool? budgetsEnabled,
+    bool? generalEnabled,
+    bool? transactionsEnabled,
+    bool? accountEnabled,
+  }) async {
+    try {
+      // Call API service to update preferences
+      final success =
+          await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: budgetsEnabled,
+        generalEnabled: generalEnabled,
+        transactionsEnabled: transactionsEnabled,
+        accountEnabled: accountEnabled,
+      );
+
+      if (success) {
+        // Reload preferences from API to ensure UI reflects current state
+        _notificationPrefs = await NotificationPreferencesService.instance
+            .getPreferences(forceRefresh: true);
+
+        setState(() {});
+      } else {
+        _showSnackBar('Erro ao atualizar preferência de notificação',
+            isError: true);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating notification preference: $e');
+      }
+      _showSnackBar('Erro ao atualizar preferência de notificação: $e',
+          isError: true);
+    }
   }
 
   Widget buildSelector<T>({
@@ -202,31 +257,20 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       appBar: AppBar(
         title: Text(t.settings.title_short),
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: Future.wait([
-          app_prefs.SharedPreferencesAsync.instance
-              .getNotificationPermissionRequested(),
-          PermissionService.instance.hasNotificationPermission(),
-          NotificationPreferencesService.instance.getPreferences(),
-        ]),
+      body: FutureBuilder<bool>(
+        future: PermissionService.instance.hasNotificationPermission(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting ||
               _isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final bool requested = snapshot.data![0] as bool;
-          final bool granted = snapshot.data![1] as bool;
-          final Map<String, bool> notificationPrefs =
-              snapshot.data![2] as Map<String, bool>;
-
-          final bool notificationsEnabled = requested && granted;
+          final bool hasPermission = snapshot.data ?? false;
 
           return _buildSettingsList(
             context,
             t,
-            notificationsEnabled,
-            notificationPrefs,
+            hasPermission,
           );
         },
       ),
@@ -250,11 +294,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     BuildContext context,
     Translations t,
     bool notificationsEnabled,
-    Map<String, bool> notificationPrefs,
   ) {
-    // Local aliases to ensure proper scope for toggles
-    final bool enableSwitches = notificationsEnabled;
-    final Map<String, bool> prefsMap = notificationPrefs;
     // Create items for start of week selection
     final startOfWeekItems = [
       SelectItem(
@@ -284,309 +324,294 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       );
     });
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Removed language section and unused stream builders
+    return RefreshIndicator(
+      onRefresh: _loadPreferences,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Removed language section and unused stream builders
 
-          createListSeparator(context, t.settings.security.title),
-          StreamBuilder(
-            stream: PrivateModeService.instance.getPrivateModeAtLaunch(),
-            builder: (context, snapshot) {
+            createListSeparator(context, t.settings.security.title),
+            StreamBuilder(
+              stream: PrivateModeService.instance.getPrivateModeAtLaunch(),
+              builder: (context, snapshot) {
+                return SwitchListTile(
+                  title: Text(t.settings.security.private_mode_at_launch),
+                  subtitle:
+                      Text(t.settings.security.private_mode_at_launch_descr),
+                  secondary: const Icon(Icons.phonelink_lock_outlined),
+                  value: snapshot.data ?? false,
+                  onChanged: (bool value) async {
+                    await PrivateModeService.instance
+                        .setPrivateModeAtLaunch(value);
+                    setState(() {});
+                  },
+                );
+              },
+            ),
+
+            createListSeparator(context, "Prestações"),
+            Builder(builder: (context) {
+              // Get the initial value from UserDataProvider
+              final userDataProvider = UserDataProvider.instance;
+              final isAccrualBasisAccounting =
+                  userDataProvider.userData?['accrual_basis_accounting'] ??
+                      false;
+
               return SwitchListTile(
-                title: Text(t.settings.security.private_mode_at_launch),
-                subtitle:
-                    Text(t.settings.security.private_mode_at_launch_descr),
-                secondary: const Icon(Icons.phonelink_lock_outlined),
-                value: snapshot.data ?? false,
+                title: const Text("Regime de Competência"),
+                subtitle: const Text(
+                    "Lança o valor total de uma prestação na data da compra."),
+                secondary: const Icon(Icons.calendar_month),
+                value: isAccrualBasisAccounting,
                 onChanged: (bool value) async {
-                  await PrivateModeService.instance
-                      .setPrivateModeAtLaunch(value);
-                  setState(() {});
+                  // Show confirmation dialog before making the change
+                  final confirmed = await showPlatformAlertDialog(
+                    context: context,
+                    title: "Confirmar alteração",
+                    content: value
+                        ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
+                        : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
+                    cancelActionText: "Cancelar",
+                    defaultActionText: "Confirmar",
+                  );
+
+                  // If user confirmed, proceed with the change
+                  if (confirmed == true) {
+                    try {
+                      // Update the value in the backend
+                      await PostUserSettings
+                          .updateAccrualBasisAccountingSetting(
+                        isAccrualBasisAccounting: value,
+                      );
+
+                      // Update the local user data
+                      userDataProvider
+                          .updateUserData({'accrual_basis_accounting': value});
+
+                      // Update the UI
+                      setState(() {});
+
+                      // Show success message
+                      _scaffoldMessenger!.showSnackBar(
+                        SnackBar(
+                          content: Text('Configuração atualizada com sucesso'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      // Show error message
+                      _scaffoldMessenger!.showSnackBar(
+                        SnackBar(
+                          content: Text('Erro ao atualizar configuração: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      print('Error updating competent_user setting: $e');
+                    }
+                  }
                 },
               );
-            },
-          ),
+            }),
+            // Calendar settings section
+            createListSeparator(context, "Calendário"),
 
-          createListSeparator(context, "Prestações"),
-          Builder(builder: (context) {
-            // Get the initial value from UserDataProvider
-            final userDataProvider = UserDataProvider.instance;
-            final isAccrualBasisAccounting =
-                userDataProvider.userData?['accrual_basis_accounting'] ?? false;
+            // Start of Week setting
+            ListTile(
+              title: const Text("Início da Semana"),
+              leading: const Icon(Icons.calendar_view_week),
+              trailing: DropdownButton<int>(
+                value: _startOfWeek,
+                onChanged: (value) async {
+                  if (value != null) {
+                    try {
+                      await app_prefs.SharedPreferencesAsync.instance
+                          .setStartOfWeek(value);
+                      setState(() {
+                        _startOfWeek = value;
+                      });
+                      // Send updated preferences to the backend
+                      final success =
+                          await PostUserSettings.updateDatePreferences(
+                        startOfWeek: _startOfWeek,
+                        startOfMonth: _startOfMonth,
+                        useWorkingDay: _startOfMonthWorkingDaysOnly,
+                      );
 
-            return SwitchListTile(
-              title: const Text("Regime de Competência"),
-              subtitle: const Text(
-                  "Lança o valor total de uma prestação na data da compra."),
-              secondary: const Icon(Icons.calendar_month),
-              value: isAccrualBasisAccounting,
+                      if (success) {
+                        if (kDebugMode) {
+                          print(
+                              'Successfully updated start of week preference');
+                        }
+                      } else if (mounted) {
+                        _showSnackBar(
+                            'Erro ao atualizar início da semana no servidor.');
+                      }
+                    } catch (e) {
+                      if (kDebugMode) {
+                        print('Error updating start of week: $e');
+                      }
+                      if (mounted) {
+                        _showSnackBar('Erro ao atualizar início da semana: $e');
+                      }
+                    }
+                  }
+                },
+                items: startOfWeekItems
+                    .map((item) => DropdownMenuItem<int>(
+                          value: item.value,
+                          child: Text(item.label),
+                        ))
+                    .toList(),
+                underline: Container(),
+              ),
+            ),
+
+            // Start of Month setting
+            ListTile(
+              title: const Text('Início do Mês'),
+              leading: const Icon(Icons.calendar_today_rounded),
+              trailing: DropdownButton<int>(
+                value: _startOfMonth,
+                onChanged: (value) async {
+                  if (value != null) {
+                    try {
+                      await app_prefs.SharedPreferencesAsync.instance
+                          .setStartOfMonth(value);
+                      setState(() {
+                        _startOfMonth = value;
+                      });
+                      // Send updated preferences to the backend
+                      final success =
+                          await PostUserSettings.updateDatePreferences(
+                        startOfWeek: _startOfWeek,
+                        startOfMonth: _startOfMonth,
+                        useWorkingDay: _startOfMonthWorkingDaysOnly,
+                      );
+
+                      if (success) {
+                        if (kDebugMode) {
+                          print(
+                              'Successfully updated start of month preference');
+                        }
+                      } else if (mounted) {
+                        _showSnackBar(
+                            'Erro ao atualizar início do mês no servidor.');
+                      }
+                    } catch (e) {
+                      if (kDebugMode) {
+                        print('Error updating start of month: $e');
+                      }
+                      if (mounted) {
+                        _showSnackBar('Erro ao atualizar início do mês: $e');
+                      }
+                    }
+                  }
+                },
+                items: startOfMonthItems
+                    .map((item) => DropdownMenuItem<int>(
+                          value: item.value,
+                          child: Text(item.label),
+                        ))
+                    .toList(),
+                underline: Container(),
+              ),
+            ),
+
+            createListSeparator(context, 'Notificações'),
+
+            // Debug section - shows current permission and preference states
+            if (kDebugMode)
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Debug Info:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Permission granted: $notificationsEnabled'),
+                    Text('Preferences: $_notificationPrefs'),
+                  ],
+                ),
+              ),
+
+            // Notification category toggles
+            SwitchListTile(
+              title: const Text('Geral'),
+              value: notificationsEnabled
+                  ? _notificationPrefs['general_enabled'] ?? false
+                  : false,
               onChanged: (bool value) async {
-                // Show confirmation dialog before making the change
-                final confirmed = await showPlatformAlertDialog(
-                  context: context,
-                  title: "Confirmar alteração",
-                  content: value
-                      ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
-                      : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
-                  cancelActionText: "Cancelar",
-                  defaultActionText: "Confirmar",
-                );
-
-                // If user confirmed, proceed with the change
-                if (confirmed == true) {
-                  try {
-                    // Update the value in the backend
-                    await PostUserSettings.updateAccrualBasisAccountingSetting(
-                      isAccrualBasisAccounting: value,
-                    );
-
-                    // Update the local user data
-                    userDataProvider
-                        .updateUserData({'accrual_basis_accounting': value});
-
-                    // Update the UI
-                    setState(() {});
-
-                    // Show success message
-                    _scaffoldMessenger!.showSnackBar(
-                      SnackBar(
-                        content: Text('Configuração atualizada com sucesso'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } catch (e) {
-                    // Show error message
-                    _scaffoldMessenger!.showSnackBar(
-                      SnackBar(
-                        content: Text('Erro ao atualizar configuração: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    print('Error updating competent_user setting: $e');
-                  }
+                // If enabling, ensure we have OS permission
+                if (value && !notificationsEnabled) {
+                  if (!await _ensureNotificationPermission()) return;
                 }
+                // Update preference through dedicated method
+                await _updateNotificationPreference(generalEnabled: value);
               },
-            );
-          }),
-          // Calendar settings section
-          createListSeparator(context, "Calendário"),
-
-          // Start of Week setting
-          ListTile(
-            title: const Text("Início da Semana"),
-            leading: const Icon(Icons.calendar_view_week),
-            trailing: DropdownButton<int>(
-              value: _startOfWeek,
-              onChanged: (value) async {
-                if (value != null) {
-                  try {
-                    await app_prefs.SharedPreferencesAsync.instance
-                        .setStartOfWeek(value);
-                    setState(() {
-                      _startOfWeek = value;
-                    });
-                    // Send updated preferences to the backend
-                    final success =
-                        await PostUserSettings.updateDatePreferences(
-                      startOfWeek: _startOfWeek,
-                      startOfMonth: _startOfMonth,
-                      useWorkingDay: _startOfMonthWorkingDaysOnly,
-                    );
-
-                    if (!success && mounted) {
-                      _showSnackBar(
-                          'Erro ao atualizar início da semana no servidor.');
-                    }
-                  } catch (e) {
-                    print('Error updating start of week: $e');
-                    if (mounted) {
-                      _showSnackBar('Erro ao atualizar início da semana: $e');
-                    }
-                  }
-                }
-              },
-              items: startOfWeekItems
-                  .map((item) => DropdownMenuItem<int>(
-                        value: item.value,
-                        child: Text(item.label),
-                      ))
-                  .toList(),
-              underline: Container(),
             ),
-          ),
-
-          // Start of Month setting
-          ListTile(
-            title: const Text('Início do Mês'),
-            leading: const Icon(Icons.calendar_today_rounded),
-            trailing: DropdownButton<int>(
-              value: _startOfMonth,
-              onChanged: (value) async {
-                if (value != null) {
-                  try {
-                    await app_prefs.SharedPreferencesAsync.instance
-                        .setStartOfMonth(value);
-                    setState(() {
-                      _startOfMonth = value;
-                    });
-                    // Send updated preferences to the backend
-                    final success =
-                        await PostUserSettings.updateDatePreferences(
-                      startOfWeek: _startOfWeek,
-                      startOfMonth: _startOfMonth,
-                      useWorkingDay: _startOfMonthWorkingDaysOnly,
-                    );
-
-                    if (!success && mounted) {
-                      _showSnackBar(
-                          'Erro ao atualizar início do mês no servidor.');
-                    }
-                  } catch (e) {
-                    print('Error updating start of month: $e');
-                    if (mounted) {
-                      _showSnackBar('Erro ao atualizar início do mês: $e');
-                    }
-                  }
+            SwitchListTile(
+              title: const Text('Orçamentos'),
+              value: notificationsEnabled
+                  ? _notificationPrefs['budgets_enabled'] ?? false
+                  : false,
+              onChanged: (bool value) async {
+                if (value && !notificationsEnabled) {
+                  if (!await _ensureNotificationPermission()) return;
                 }
+                await _updateNotificationPreference(budgetsEnabled: value);
               },
-              items: startOfMonthItems
-                  .map((item) => DropdownMenuItem<int>(
-                        value: item.value,
-                        child: Text(item.label),
-                      ))
-                  .toList(),
-              underline: Container(),
             ),
-          ),
+            SwitchListTile(
+              title: const Text('Transações'),
+              value: notificationsEnabled
+                  ? _notificationPrefs['transactions_enabled'] ?? false
+                  : false,
+              onChanged: (bool value) async {
+                if (value && !notificationsEnabled) {
+                  if (!await _ensureNotificationPermission()) return;
+                }
+                await _updateNotificationPreference(transactionsEnabled: value);
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Conta'),
+              value: notificationsEnabled
+                  ? _notificationPrefs['account_enabled'] ?? false
+                  : false,
+              onChanged: (bool value) async {
+                if (value && !notificationsEnabled) {
+                  if (!await _ensureNotificationPermission()) return;
+                }
+                await _updateNotificationPreference(accountEnabled: value);
+              },
+            ),
+            const SizedBox(height: 24),
 
-          // Working days checkbox
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          //   child: Row(
-          //     children: [
-          //       Checkbox(
-          //         value: _startOfMonthWorkingDaysOnly,
-          //         onChanged: (value) async {
-          //           if (value != null) {
-          //             try {
-          //               await app_prefs.SharedPreferencesAsync.instance
-          //                   .setStartOfMonthWorkingDaysOnly(value);
-          //               setState(() {
-          //                 _startOfMonthWorkingDaysOnly = value;
-          //               });
-          //               // Send updated preferences to the backend
-          //               final success =
-          //                   await PostUserSettings.updateDatePreferences(
-          //                 startOfWeek: _startOfWeek,
-          //                 startOfMonth: _startOfMonth,
-          //                 useWorkingDay: _startOfMonthWorkingDaysOnly,
-          //               );
-
-          //               if (!success && mounted) {
-          //                 _showSnackBar(
-          //                     'Erro ao atualizar configuração de dias úteis no servidor.');
-          //               }
-          //             } catch (e) {
-          //               print('Error updating working days setting: $e');
-          //               if (mounted) {
-          //                 _showSnackBar(
-          //                     'Erro ao atualizar configuração de dias úteis: $e');
-          //               }
-          //             }
-          //           }
-          //         },
-          //       ),
-          //       const Text('Considerar apenas dias úteis'),
-          //     ],
-          //   ),
-          // ),
-          createListSeparator(context, 'Notificações'),
-          // Notification category toggles
-          SwitchListTile(
-            title: const Text('Geral'),
-            value: notificationsEnabled ? prefsMap['general_enabled']! : false,
-            onChanged: (bool value) async {
-              // If enabling, ensure we have OS permission
-              if (value && !notificationsEnabled) {
-                if (!await _ensureNotificationPermission()) return;
-              }
-              // Update preference
-              final success = await NotificationPreferencesService.instance
-                  .updatePreferences(generalEnabled: value);
-              if (!success && mounted) {
-                _showSnackBar('Erro ao atualizar Notificações Gerais');
-              }
-              setState(() {});
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Orçamentos'),
-            value: notificationsEnabled ? prefsMap['budgets_enabled']! : false,
-            onChanged: (bool value) async {
-              if (value && !notificationsEnabled) {
-                if (!await _ensureNotificationPermission()) return;
-              }
-              final success = await NotificationPreferencesService.instance
-                  .updatePreferences(budgetsEnabled: value);
-              if (!success && mounted) {
-                _showSnackBar('Erro ao atualizar Notificações de Orçamentos');
-              }
-              setState(() {});
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Transações'),
-            value: notificationsEnabled
-                ? prefsMap['transactions_enabled']!
-                : false,
-            onChanged: (bool value) async {
-              if (value && !notificationsEnabled) {
-                if (!await _ensureNotificationPermission()) return;
-              }
-              final success = await NotificationPreferencesService.instance
-                  .updatePreferences(transactionsEnabled: value);
-              if (!success && mounted) {
-                _showSnackBar('Erro ao atualizar Notificações de Transações');
-              }
-              setState(() {});
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Conta'),
-            value: notificationsEnabled ? prefsMap['account_enabled']! : false,
-            onChanged: (bool value) async {
-              if (value && !notificationsEnabled) {
-                if (!await _ensureNotificationPermission()) return;
-              }
-              final success = await NotificationPreferencesService.instance
-                  .updatePreferences(accountEnabled: value);
-              if (!success && mounted) {
-                _showSnackBar('Erro ao atualizar Notificações de Conta');
-              }
-              setState(() {});
-            },
-          ),
-          const SizedBox(height: 24),
-
-          // Subscription management section
-          Center(
-            child: GestureDetector(
-              onTap: _openSubscriptionManagement,
-              child: Text(
-                'Gerencie sua assinatura',
-                style: TextStyle(
-                  color: Color(0xFF475466),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
+            // Subscription management section
+            Center(
+              child: GestureDetector(
+                onTap: _openSubscriptionManagement,
+                child: Text(
+                  'Gerencie sua assinatura',
+                  style: TextStyle(
+                    color: Color(0xFF475466),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
