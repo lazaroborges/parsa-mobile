@@ -37,9 +37,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       print("Message notification body: ${message.notification!.body}");
     }
   }
-
-  // We don't need to handle the reload action here as it will be processed
-  // when the app is opened via notification tap in onMessageOpenedApp or getInitialMessage
 }
 
 class FCMService {
@@ -56,9 +53,6 @@ class FCMService {
   static FCMService get instance => _instance;
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  // In-memory map of topic subscription states
-  final Map<NotificationCategory, bool> _notificationFilters = {};
 
   // Flag to track if FCM is initialized
   bool _isInitialized = false;
@@ -163,11 +157,17 @@ class FCMService {
         }
       });
 
-      // Get the FCM token and register it with backend
+      // Make sure FCM token is registered with the backend
       final token = await PermissionService.instance.getToken();
       if (token != null) {
         final success = await saveTokenToServer(token);
         _isTokenRegistered = success;
+
+        if (kDebugMode) {
+          print(_isTokenRegistered
+              ? 'FCM token successfully registered with backend'
+              : 'Failed to register FCM token with backend');
+        }
 
         // Setup token refresh listener
         messaging.onTokenRefresh.listen((newToken) async {
@@ -177,6 +177,8 @@ class FCMService {
           // Update our registered state
           _isTokenRegistered = await saveTokenToServer(newToken);
         });
+      } else if (kDebugMode) {
+        print('Failed to get FCM token during initialization');
       }
 
       final initialMessage = await messaging.getInitialMessage();
@@ -196,7 +198,7 @@ class FCMService {
             if (context != null) {
               _handleReloadAction(context);
             }
-            // Navigate to transactions
+            // Navigate to dashboard
             NavigationDelegate.instance.navigateTo('/dashboard');
           });
           return;
@@ -218,10 +220,6 @@ class FCMService {
         NavigationDelegate.instance
             .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
       }
-
-      // Load user preferences
-      await NotificationPreferencesService.instance
-          .getPreferences(forceRefresh: true);
 
       _isInitialized = true;
     } catch (e) {
@@ -293,7 +291,7 @@ class FCMService {
       bool refreshedViaTabsPage = false;
 
       if (context != null) {
-        // Find TabxsPage ancestor by traversing up the widget tree
+        // Find TabsPage ancestor by traversing up the widget tree
         TabsPageState? tabsPageState;
 
         // Look for TabsPage in the current context
@@ -358,11 +356,28 @@ class FCMService {
 
   // Register the FCM token for any service that needs it
   Future<bool> registerToken() async {
+    // If not initialized, try to initialize first
     if (!_isInitialized) {
       if (kDebugMode) {
-        print('Cannot register token: FCM not initialized');
+        print(
+            'FCM not initialized, attempting to initialize before registering token');
       }
-      return false;
+
+      try {
+        await initialize();
+        // If initialization failed, return false
+        if (!_isInitialized) {
+          if (kDebugMode) {
+            print('Cannot register token: FCM initialization failed');
+          }
+          return false;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error initializing FCM before token registration: $e');
+        }
+        return false;
+      }
     }
 
     if (_isTokenRegistered) {
@@ -487,5 +502,40 @@ class FCMService {
       }
       return null;
     }
+  }
+
+  // Method to handle when permissions are granted
+  Future<bool> handlePermissionGranted() async {
+    if (kDebugMode) {
+      print('FCM: Permission granted, initializing and registering token');
+    }
+
+    // Reset initialization state
+    resetInitializationState();
+
+    // Initialize FCM
+    await initialize();
+
+    // Register token with server and retry if it fails
+    bool result = await registerToken();
+
+    // Retry registration if it failed on first attempt
+    if (!result) {
+      if (kDebugMode) {
+        print('First token registration failed, retrying after short delay...');
+      }
+
+      // Wait a short time and try again
+      await Future.delayed(const Duration(milliseconds: 500));
+      result = await registerToken();
+
+      if (kDebugMode) {
+        print(result
+            ? 'Token registration succeeded on retry'
+            : 'Token registration failed even after retry');
+      }
+    }
+
+    return result;
   }
 }

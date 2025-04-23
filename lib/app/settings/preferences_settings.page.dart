@@ -73,9 +73,41 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       _startOfMonthWorkingDaysOnly =
           await prefs.getStartOfMonthWorkingDaysOnly();
 
+      // Check notification permissions
+      final hasPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
       // Fetch notification preferences from API using the service
+      // Force refresh to ensure we have the latest state
       _notificationPrefs = await NotificationPreferencesService.instance
           .getPreferences(forceRefresh: true);
+
+      if (kDebugMode) {
+        print('Notification permission status: $hasPermission');
+        print('Notification preferences: $_notificationPrefs');
+      }
+
+      // If permission is granted but somehow all preferences are disabled,
+      // automatically enable general notifications
+      if (hasPermission &&
+          !(_notificationPrefs['budgets_enabled'] == true ||
+              _notificationPrefs['general_enabled'] == true ||
+              _notificationPrefs['transactions_enabled'] == true ||
+              _notificationPrefs['account_enabled'] == true)) {
+        if (kDebugMode) {
+          print(
+              'Permission granted but all notifications disabled, enabling general notifications');
+        }
+
+        // Enable at least general notifications
+        await NotificationPreferencesService.instance.updatePreferences(
+          generalEnabled: true,
+        );
+
+        // Reload preferences
+        _notificationPrefs = await NotificationPreferencesService.instance
+            .getPreferences(forceRefresh: true);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error loading preferences: $e');
@@ -98,7 +130,42 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Refresh UI and preferences when app resumes from background
     if (state == AppLifecycleState.resumed) {
-      _loadPreferences();
+      _checkPermissionChanges();
+    }
+  }
+
+  // Check if notification permissions changed while app was in background
+  Future<void> _checkPermissionChanges() async {
+    // Store previous permission state before reloading
+    final previouslyHadPermission =
+        await PermissionService.instance.hasNotificationPermission();
+
+    // Reload all preferences
+    await _loadPreferences();
+
+    // Get the current permission state after reloading
+    final hasPermissionNow =
+        await PermissionService.instance.hasNotificationPermission();
+
+    // If permission was granted while in background or settings
+    if (!previouslyHadPermission && hasPermissionNow) {
+      if (kDebugMode) {
+        print("Notification permission was granted while in background!");
+      }
+
+      // Initialize and register FCM token
+      await FCMService.instance.handlePermissionGranted();
+
+      // Enable all notification categories since permission was just granted
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: true,
+        generalEnabled: true,
+        transactionsEnabled: true,
+        accountEnabled: true,
+      );
+
+      // Reload preferences to update UI
+      await _loadPreferences();
     }
   }
 
@@ -130,10 +197,30 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     final granted =
         await PermissionService.instance.requestNotificationPermission();
     if (granted) {
-      // Initialize FCM now that permission is granted
-      await FCMService.instance.initialize();
+      // Initialize and register FCM token
+      await FCMService.instance.handlePermissionGranted();
+
+      // Enable all notification categories since permission was just granted
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: true,
+        generalEnabled: true,
+        transactionsEnabled: true,
+        accountEnabled: true,
+      );
+
+      // Refresh UI to show new state
+      setState(() {
+        _notificationPrefs = {
+          'budgets_enabled': true,
+          'general_enabled': true,
+          'transactions_enabled': true,
+          'account_enabled': true,
+        };
+      });
+
       return true;
     }
+
     // If denied, prompt user to open system settings
     final goToSettings = await showPlatformAlertDialog(
       context: context,
@@ -143,9 +230,40 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       cancelActionText: "Cancelar",
       defaultActionText: "Ir para Configurações",
     );
+
     if (goToSettings == true) {
+      // Store pre-settings permission state
+      final preSettingsPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
+      // Open settings
       await openAppSettings();
+
+      // After returning from settings, check if permission was granted
+      await Future.delayed(const Duration(seconds: 2));
+      final postSettingsPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
+      // If permission was granted in settings
+      if (!preSettingsPermission && postSettingsPermission) {
+        // Initialize and register FCM token
+        await FCMService.instance.handlePermissionGranted();
+
+        // Enable all notification categories since permission was just granted
+        await NotificationPreferencesService.instance.updatePreferences(
+          budgetsEnabled: true,
+          generalEnabled: true,
+          transactionsEnabled: true,
+          accountEnabled: true,
+        );
+
+        // Reload preferences to update UI
+        await _loadPreferences();
+
+        return true;
+      }
     }
+
     return false;
   }
 
@@ -247,6 +365,58 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
             ),
           );
         });
+  }
+
+  // Custom Notification Icons for settings
+  Widget _buildGeneralNotificationIcon(BuildContext context,
+      {bool permissionGranted = true}) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        permissionGranted
+            ? Icons.notifications_active_outlined
+            : Icons.notifications_off_outlined,
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
+  Widget _buildBudgetNotificationIcon(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        Icons.savings_outlined, // Better icon for budget notifications
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
+  Widget _buildTransactionNotificationIcon(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        Icons.paid_outlined, // Better icon for transaction notifications
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
+  Widget _buildAccountNotificationIcon(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        Icons.account_balance_outlined,
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
   }
 
   @override
@@ -520,6 +690,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
               ),
             ),
 
+            // Create a custom notification section header with permission status indicator
             createListSeparator(context, 'Notificações'),
 
             // Debug section - shows current permission and preference states
@@ -542,57 +713,53 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                 ),
               ),
 
-            // Notification category toggles
+            // Always show General switch, but disable it when permissions not granted
             SwitchListTile(
               title: const Text('Geral'),
               value: notificationsEnabled
                   ? _notificationPrefs['general_enabled'] ?? false
                   : false,
+              secondary: _buildGeneralNotificationIcon(context,
+                  permissionGranted: notificationsEnabled),
               onChanged: (bool value) async {
-                // If enabling, ensure we have OS permission
-                if (value && !notificationsEnabled) {
-                  if (!await _ensureNotificationPermission()) return;
+                // If permissions not granted, always show settings dialog
+                if (!notificationsEnabled) {
+                  await _ensureNotificationPermission();
+                } else {
+                  // Otherwise just update the preference
+                  await _updateNotificationPreference(generalEnabled: value);
                 }
-                // Update preference through dedicated method
-                await _updateNotificationPreference(generalEnabled: value);
               },
             ),
-            SwitchListTile(
-              title: const Text('Orçamentos'),
-              value: notificationsEnabled
-                  ? _notificationPrefs['budgets_enabled'] ?? false
-                  : false,
-              onChanged: (bool value) async {
-                if (value && !notificationsEnabled) {
-                  if (!await _ensureNotificationPermission()) return;
-                }
-                await _updateNotificationPreference(budgetsEnabled: value);
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Transações'),
-              value: notificationsEnabled
-                  ? _notificationPrefs['transactions_enabled'] ?? false
-                  : false,
-              onChanged: (bool value) async {
-                if (value && !notificationsEnabled) {
-                  if (!await _ensureNotificationPermission()) return;
-                }
-                await _updateNotificationPreference(transactionsEnabled: value);
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Conta'),
-              value: notificationsEnabled
-                  ? _notificationPrefs['account_enabled'] ?? false
-                  : false,
-              onChanged: (bool value) async {
-                if (value && !notificationsEnabled) {
-                  if (!await _ensureNotificationPermission()) return;
-                }
-                await _updateNotificationPreference(accountEnabled: value);
-              },
-            ),
+
+            // Only show other notification categories if permission is granted
+            if (notificationsEnabled) ...[
+              SwitchListTile(
+                title: const Text('Orçamentos'),
+                secondary: _buildBudgetNotificationIcon(context),
+                value: _notificationPrefs['budgets_enabled'] ?? false,
+                onChanged: (bool value) async {
+                  await _updateNotificationPreference(budgetsEnabled: value);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Transações'),
+                secondary: _buildTransactionNotificationIcon(context),
+                value: _notificationPrefs['transactions_enabled'] ?? false,
+                onChanged: (bool value) async {
+                  await _updateNotificationPreference(
+                      transactionsEnabled: value);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Contas'),
+                secondary: _buildAccountNotificationIcon(context),
+                value: _notificationPrefs['account_enabled'] ?? false,
+                onChanged: (bool value) async {
+                  await _updateNotificationPreference(accountEnabled: value);
+                },
+              ),
+            ],
             const SizedBox(height: 24),
 
             // Subscription management section
