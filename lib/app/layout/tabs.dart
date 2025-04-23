@@ -37,6 +37,9 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   bool _isInitialized = false;
   bool isLoadingTags = true;
 
+  // Create a static global key for access from outside
+  static final GlobalKey<TabsPageState> globalKey = GlobalKey<TabsPageState>();
+
   @override
   void initState() {
     super.initState();
@@ -147,6 +150,42 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       setState(() {
         isLoadingTransactions = false;
       });
+    }
+  }
+
+  // Public method to refresh both transactions and accounts from anywhere in the app
+  // This can be called when a notification with action=reload is received
+  Future<void> refreshData({bool showLoading = true}) async {
+    if (!mounted) return;
+
+    if (showLoading) {
+      setState(() {
+        isLoading = true;
+        isLoadingTransactions = true;
+      });
+    }
+
+    try {
+      // Refresh both accounts and transactions in parallel
+      await Future.wait([
+        _fetchUserAccounts(),
+        fetchUserTransactions(null),
+      ]);
+
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      print('--Error refreshing data: $e');
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
     }
   }
 

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class PermissionService {
@@ -76,10 +75,6 @@ class PermissionService {
 
   /// Centralized method to request notification permissions on both Android and iOS
   Future<bool> requestNotifications() async {
-    // Mark that we've requested notification permission
-    await SharedPreferencesAsync.instance
-        .setNotificationPermissionRequested(true);
-
     if (Platform.isAndroid) {
       return _requestAndroidNotificationPermission();
     } else if (Platform.isIOS) {

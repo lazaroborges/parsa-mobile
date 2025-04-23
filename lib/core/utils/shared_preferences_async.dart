@@ -16,8 +16,6 @@ class SharedPreferencesAsync {
   static const String keyStartOfMonth = 'startOfMonth';
   static const String keyStartOfMonthWorkingDaysOnly =
       'startOfMonthWorkingDaysOnly';
-  static const String keyNotificationPermissionRequested =
-      'notification_permission_requested';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -193,17 +191,5 @@ class SharedPreferencesAsync {
   Future<bool> getStartOfMonthWorkingDaysOnly() async {
     final prefs = await _getPrefs();
     return prefs.getBool(keyStartOfMonthWorkingDaysOnly) ?? false;
-  }
-
-  /// Set notification permission requested flag
-  Future<bool> setNotificationPermissionRequested(bool value) async {
-    final prefs = await _getPrefs();
-    return prefs.setBool(keyNotificationPermissionRequested, value);
-  }
-
-  /// Get notification permission requested flag
-  Future<bool> getNotificationPermissionRequested() async {
-    final prefs = await _getPrefs();
-    return prefs.getBool(keyNotificationPermissionRequested) ?? false;
   }
 }

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
 import 'package:parsa/main.dart';
@@ -11,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:parsa/core/api/fetch_user_accounts.dart';
 
 enum NotificationCategory {
   budgets,
@@ -33,6 +37,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       print("Message notification body: ${message.notification!.body}");
     }
   }
+
+  // We don't need to handle the reload action here as it will be processed
+  // when the app is opened via notification tap in onMessageOpenedApp or getInitialMessage
 }
 
 class FCMService {
@@ -61,86 +68,6 @@ class FCMService {
 
   // Flag to track if token has been registered with server
   bool _isTokenRegistered = false;
-
-  // Get FCM token using the permission service
-  Future<String?> getToken() async {
-    return await PermissionService.instance.getToken();
-  }
-
-  // Check if notifications are enabled overall
-  Future<bool> getNotificationsEnabled() async {
-    final prefs =
-        await NotificationPreferencesService.instance.getPreferences();
-    // Consider notifications enabled if any category is enabled
-    return prefs['budgets_enabled'] == true ||
-        prefs['general_enabled'] == true ||
-        prefs['transactions_enabled'] == true ||
-        prefs['account_enabled'] == true;
-  }
-
-  // Method to reset initialization state for reinitializing after permission changes
-  void resetInitializationState() {
-    _isInitialized = false;
-    _isInitializing = false;
-    _isTokenRegistered = false;
-  }
-
-  // Register the FCM token for any service that needs it
-  Future<bool> registerToken() async {
-    if (!_isInitialized) {
-      if (kDebugMode) {
-        print('Cannot register token: FCM not initialized');
-      }
-      return false;
-    }
-
-    if (_isTokenRegistered) {
-      return true;
-    }
-
-    final token = await PermissionService.instance.getToken();
-    if (token == null) {
-      if (kDebugMode) {
-        print('Cannot register token: No token available');
-      }
-      return false;
-    }
-
-    final result = await saveTokenToServer(token);
-    _isTokenRegistered = result;
-    return result;
-  }
-
-  // Centralized method that handles both permission request and FCM initialization
-  Future<bool> requestPermissionAndInitialize() async {
-    // Request permissions first
-    final hasPermission =
-        await PermissionService.instance.requestPermissionWithFCM();
-
-    if (!hasPermission) {
-      if (kDebugMode) {
-        print("Notification permission denied by user");
-      }
-
-      // Update notification preferences to reflect permission state
-      await NotificationPreferencesService.instance.updatePreferences(
-        budgetsEnabled: false,
-        generalEnabled: false,
-        transactionsEnabled: false,
-        accountEnabled: false,
-      );
-
-      return false;
-    }
-
-    // If permission granted, initialize FCM
-    await initialize();
-
-    // Register token with server
-    await registerToken();
-
-    return true;
-  }
 
   Future<void> initialize() async {
     // Prevent multiple initializations
@@ -186,9 +113,16 @@ class FCMService {
           print("Received a foreground message: ${message.messageId}");
           print('Message data: ${message.data}');
         }
-        // TODO: Handle notification display
-        // Store the message data for displaying in the app
-        // This would be handled by a notification display service in a real app
+
+        // Check if this is a reload notification
+        if (message.data.containsKey('action') &&
+            message.data['action'] == 'reload') {
+          // Get current context
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            _handleReloadAction(context);
+          }
+        }
       });
 
       // Listen for when a user taps on a notification (app opened via notification).
@@ -198,6 +132,20 @@ class FCMService {
           print('Message data: ${message.data}');
         }
 
+        // Handle reload action
+        if (message.data.containsKey('action') &&
+            message.data['action'] == 'reload') {
+          // Handle reload action
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            _handleReloadAction(context);
+          }
+          // Navigate to transactions
+          NavigationDelegate.instance.navigateTo('/dashboard');
+          return;
+        }
+
+        // Handle standard route navigation
         if (message.data.containsKey('route')) {
           final route = message.data['route'];
           final queryParams = message.data['queryParams'] != null
@@ -238,7 +186,23 @@ class FCMService {
               'App was terminated and opened via notification: ${initialMessage.messageId}');
           print('Message data: ${initialMessage.data}');
         }
-        // Handle the notification data
+
+        // Handle reload action
+        if (initialMessage.data.containsKey('action') &&
+            initialMessage.data['action'] == 'reload') {
+          // Handle reload action - context will be available after app is fully loaded
+          Future.delayed(const Duration(seconds: 1), () {
+            final context = navigatorKey.currentContext;
+            if (context != null) {
+              _handleReloadAction(context);
+            }
+            // Navigate to transactions
+            NavigationDelegate.instance.navigateTo('/dashboard');
+          });
+          return;
+        }
+
+        // Handle standard route navigation
         final route = initialMessage.data['route'];
         final queryParams = initialMessage.data['queryParams'] != null
             ? jsonDecode(initialMessage.data['queryParams'])
@@ -267,6 +231,155 @@ class FCMService {
     } finally {
       _isInitializing = false;
     }
+  }
+
+  // Check if notifications are enabled overall
+  Future<bool> getNotificationsEnabled() async {
+    final prefs =
+        await NotificationPreferencesService.instance.getPreferences();
+    // Consider notifications enabled if any category is enabled
+    return prefs['budgets_enabled'] == true ||
+        prefs['general_enabled'] == true ||
+        prefs['transactions_enabled'] == true ||
+        prefs['account_enabled'] == true;
+  }
+
+  // Method to reset initialization state for reinitializing after permission changes
+  void resetInitializationState() {
+    _isInitialized = false;
+    _isInitializing = false;
+    _isTokenRegistered = false;
+  }
+
+  // Centralized method that handles both permission request and FCM initialization
+  Future<bool> requestPermissionAndInitialize() async {
+    // Request permissions first
+    final hasPermission =
+        await PermissionService.instance.requestPermissionWithFCM();
+
+    if (!hasPermission) {
+      if (kDebugMode) {
+        print("Notification permission denied by user");
+      }
+
+      // Update notification preferences to reflect permission state
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: false,
+        generalEnabled: false,
+        transactionsEnabled: false,
+        accountEnabled: false,
+      );
+
+      return false;
+    }
+
+    // If permission granted, initialize FCM
+    await initialize();
+
+    // Register token with server
+    await registerToken();
+
+    return true;
+  }
+
+  // Handle reload action from notification data
+  Future<void> _handleReloadAction(BuildContext? context) async {
+    if (kDebugMode) {
+      print("Handling reload action");
+    }
+
+    try {
+      // Try to refresh data using TabsPage if available
+      bool refreshedViaTabsPage = false;
+
+      if (context != null) {
+        // Find TabxsPage ancestor by traversing up the widget tree
+        TabsPageState? tabsPageState;
+
+        // Look for TabsPage in the current context
+        context.visitAncestorElements((element) {
+          if (element.widget is TabsPage) {
+            tabsPageState = element.findAncestorStateOfType<TabsPageState>();
+            return false;
+          }
+          return true;
+        });
+
+        if (tabsPageState != null) {
+          await tabsPageState!.refreshData(showLoading: false);
+          refreshedViaTabsPage = true;
+        }
+      }
+
+      // Fallback if TabsPage not found
+      if (!refreshedViaTabsPage) {
+        if (kDebugMode) {
+          print("TabsPage not found, refreshing directly");
+        }
+
+        // First fetch accounts, then transactions
+        await Future.wait([
+          fetchUserAccounts(),
+          fetchUserTransactions(null),
+        ]);
+      }
+
+      // Show snackbar if context is available (foreground scenario)
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Dados atualizados com sucesso"),
+            action: SnackBarAction(
+              label: 'Ver',
+              onPressed: () {
+                // Navigate to dashboard as per user's change
+                NavigationDelegate.instance.navigateTo('/dashboard');
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error handling reload action: $e");
+      }
+
+      // Show error snackbar if context is available
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Erro ao atualizar dados"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Register the FCM token for any service that needs it
+  Future<bool> registerToken() async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('Cannot register token: FCM not initialized');
+      }
+      return false;
+    }
+
+    if (_isTokenRegistered) {
+      return true;
+    }
+
+    final token = await PermissionService.instance.getToken();
+    if (token == null) {
+      if (kDebugMode) {
+        print('Cannot register token: No token available');
+      }
+      return false;
+    }
+
+    final result = await saveTokenToServer(token);
+    _isTokenRegistered = result;
+    return result;
   }
 
   /// Save the FCM token to your backend server with retry logic
@@ -373,30 +486,6 @@ class FCMService {
         print('Error getting access token: $e');
       }
       return null;
-    }
-  }
-
-  /// Load preferences from backend and populate the filters map
-  Future<void> _loadPreferencesFromBackend() async {
-    try {
-      final prefs =
-          await NotificationPreferencesService.instance.getPreferences();
-      // Map each enum to its corresponding key in prefs
-      for (final category in NotificationCategory.values) {
-        final key = '${category.toString().split('.').last}_enabled';
-        _notificationFilters[category] = prefs[key] ?? true;
-      }
-      if (kDebugMode) {
-        print('Loaded notification preferences: $_notificationFilters');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading preferences from backend: $e');
-      }
-      // Default all to enabled
-      for (final category in NotificationCategory.values) {
-        _notificationFilters[category] = true;
-      }
     }
   }
 }
