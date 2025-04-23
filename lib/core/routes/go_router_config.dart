@@ -17,6 +17,7 @@ import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -54,7 +55,10 @@ final goRouter = GoRouter(
           path: '/stats',
           builder: (context, state) {
             final filters = _parseFilters(state.uri.queryParameters);
-            return StatsPage(filters: filters);
+            return StatsPage(
+              filters: filters,
+              dateRangeService: const DatePeriodState(),
+            );
           },
           routes: [
             GoRoute(
@@ -62,35 +66,55 @@ final goRouter = GoRouter(
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
 
-                return StatsPage(initialIndex: 0, filters: filters);
+                return StatsPage(
+                  initialIndex: 0,
+                  filters: filters,
+                  dateRangeService: const DatePeriodState(),
+                );
               },
             ),
             GoRoute(
               path: 'subcategory',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
-                return StatsPage(initialIndex: 1, filters: filters);
+                return StatsPage(
+                  initialIndex: 1,
+                  filters: filters,
+                  dateRangeService: const DatePeriodState(),
+                );
               },
             ),
             GoRoute(
               path: 'cash-flow',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
-                return StatsPage(initialIndex: 2, filters: filters);
+                return StatsPage(
+                  initialIndex: 2,
+                  filters: filters,
+                  dateRangeService: const DatePeriodState(),
+                );
               },
             ),
             GoRoute(
               path: 'financial-health',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
-                return StatsPage(initialIndex: 3, filters: filters);
+                return StatsPage(
+                  initialIndex: 3,
+                  filters: filters,
+                  dateRangeService: const DatePeriodState(),
+                );
               },
             ),
             GoRoute(
               path: 'balance-evolution',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
-                return StatsPage(initialIndex: 4, filters: filters);
+                return StatsPage(
+                  initialIndex: 4,
+                  filters: filters,
+                  dateRangeService: const DatePeriodState(),
+                );
               },
             ),
           ],

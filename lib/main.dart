@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app_links/app_links.dart'; // Correctly imported package
 import 'package:drift/drift.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
@@ -38,19 +37,7 @@ import 'firebase_options.dart';
 import 'package:parsa/core/services/branch/branch_config.dart';
 // Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
-import 'package:parsa/core/models/date-utils/date_period_state.dart';
-
-// Import pages for routes
-import 'package:parsa/app/accounts/all_accounts.page.dart';
-import 'package:parsa/app/budgets/budgets.page.dart';
-import 'package:parsa/app/transactions/transactions.page.dart';
-import 'package:parsa/app/stats/stats.page.dart';
-import 'package:parsa/app/settings/settings.page.dart';
-import 'package:parsa/app/settings/preferences_settings.page.dart';
-import 'package:parsa/app/settings/about.page.dart';
-import 'package:parsa/app/settings/export.page.dart';
-import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
-
+import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 String apiEndpoint = '';
@@ -68,15 +55,12 @@ void main() async {
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
 
-  // Initialize Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print("Firebase initialized successfully");
-    
-    await initializeFirebaseMessaging();
-    
+
     // Initialize and configure Firebase Analytics
     firebaseAnalytics = FirebaseAnalytics.instance;
     await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
@@ -367,22 +351,12 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       theme: lightTheme,
       navigatorKey: navigatorKey,
       navigatorObservers: [
-        FirebaseAnalyticsObserver(analytics: firebaseAnalytics ?? FirebaseAnalytics.instance),
+        FirebaseAnalyticsObserver(
+            analytics: firebaseAnalytics ?? FirebaseAnalytics.instance),
         routeObserver,
         MainLayoutNavObserver()
       ],
-      routes: {
-        '/accounts': (context) => const AllAccountsPage(),
-        '/budgets': (context) => const BudgetsPage(),
-        '/transactions': (context) => const TransactionsPage(),
-        '/stats': (context) =>
-            const StatsPage(dateRangeService: DatePeriodState()),
-        '/settings': (context) => const SettingsPage(),
-        '/subscription': (context) => PremiumWidget(),
-        '/settings/preferences': (context) => const PreferencesSettingsPage(),
-        '/settings/about': (context) => const AboutPage(),
-        '/settings/export': (context) => const ExportDataPage(),
-      },
+      onGenerateRoute: MaterialAppRoutes.onGenerateRoute,
       builder: (context, child) {
         // Check if the device is iOS
         final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
@@ -507,47 +481,47 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   }
 }
 
+// // Simplified initialization for Firebase core and background message handler
+// Future<void> initializeFirebaseCore() async {
+//   try {
+//     // Initialize Firebase Messaging
+//     final messaging = FirebaseMessaging.instance;
 
-// This is what works in IOS. 
-Future<void> initializeFirebaseMessaging() async {
-  try {
-    // Initialize Firebase Messaging
-    final messaging = FirebaseMessaging.instance;
-    
-    // Get and print the FCM token
-    final fcmToken = await messaging.getToken();
-    print('FCM Token: $fcmToken');
-    
-    // Listen for token refreshes
-    messaging.onTokenRefresh.listen((newToken) {
-      print('FCM Token refreshed: $newToken');
-    });
-    
-    // iOS-specific setup (this is critical for iOS)
-    if (Platform.isIOS) {
-      await messaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      
-      // Request iOS notification permissions
-      final settings = await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-      
-      print('iOS Notification permission status: ${settings.authorizationStatus}');
-      
-      // Register with APNs - critical for iOS
-      final apnsToken = await messaging.getAPNSToken();
-      print('APNs Token: $apnsToken');
-    }
-    
-    print("Firebase Messaging initialized successfully");
-  } catch (e) {
-    print("Error initializing Firebase Messaging: $e");
-  }
-}
+//     // Get and print the FCM token
+//     final fcmToken = await messaging.getToken();
+//     print('FCM Token: $fcmToken');
+
+//     // Listen for token refreshes
+//     messaging.onTokenRefresh.listen((newToken) {
+//       print('FCM Token refreshed: $newToken');
+//     });
+
+//     // iOS-specific setup (this is critical for iOS)
+//     if (Platform.isIOS) {
+//       await messaging.setForegroundNotificationPresentationOptions(
+//         alert: true,
+//         badge: true,
+//         sound: true,
+//       );
+
+//       // Request iOS notification permissions
+//       final settings = await messaging.requestPermission(
+//         alert: true,
+//         badge: true,
+//         sound: true,
+//         provisional: false,
+//       );
+
+//       print(
+//           'iOS Notification permission status: ${settings.authorizationStatus}');
+
+//       // Register with APNs - critical for iOS
+//       final apnsToken = await messaging.getAPNSToken();
+//       print('APNs Token: $apnsToken');
+//     }
+
+//     print("Firebase Messaging initialized successfully");
+//   } catch (e) {
+//     print("Error initializing Firebase Messaging: $e");
+//   }
+// }

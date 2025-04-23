@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/layout/lazy_indexed_stack.dart';
-import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
@@ -19,9 +18,6 @@ import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'dart:io' show Platform;
-import 'package:permission_handler/permission_handler.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -41,6 +37,9 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   bool _isInitialized = false;
   bool isLoadingTags = true;
 
+  // Create a static global key for access from outside
+  static final GlobalKey<TabsPageState> globalKey = GlobalKey<TabsPageState>();
+
   @override
   void initState() {
     super.initState();
@@ -53,9 +52,8 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       _initializeData();
       _requestNotificationPermission();
       _setupDeepLinking();
-      // Initialize background authentication service
       BackgroundAuthService.instance.initialize(context);
-      _isInitialized = true; // Ensure this runs only once
+      _isInitialized = true;
     }
   }
 
@@ -63,54 +61,43 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   void dispose() {
     // Dispose of background authentication service
     BackgroundAuthService.instance.dispose();
+    // Reset notification preferences session flag for next app start
+    NotificationPreferencesService.instance.resetSessionFlag();
     super.dispose();
   }
 
-  // Request notification permission when the dashboard is opened
+  // Request notification permission using the FCM codelab approach
   Future<void> _requestNotificationPermission() async {
-    print("WE EXECUTING HERE??????");
-    final prefs = await SharedPreferences.getInstance();
-    final permissionRequested =
-        prefs.getBool('notification_permission_requested') ?? false;
+    try {
+      // Check if we've requested permission before
+      final prefs = await SharedPreferences.getInstance();
+      final permissionRequested =
+          prefs.getBool('notification_permission_requested') ?? false;
 
-    // Always check current permission status regardless of previous requests
-    final currentPermissionStatus =
-        await PermissionService.instance.hasNotificationPermission();
+      // Always check current permissions
+      final hasPermission =
+          await PermissionService.instance.hasNotificationPermission();
 
-    // If already has permission, just initialize FCM
-    if (currentPermissionStatus) {
-      await FCMService.instance.initialize();
-
-      // Make sure flag is set to true since we have permission
-      await prefs.setBool('notification_permission_requested', true);
-      return;
-    }
-
-    // Only show permission dialog if we haven't requested before
-    if (!permissionRequested) {
-      // Request permission using the permission service
-      final permissionGranted =
-          await PermissionService.instance.requestNotificationPermission();
-
-      if (permissionGranted) {
-        // If permission granted, initialize FCM
+      // If permission is already granted, just initialize FCM
+      // FCM service will handle getting preferences as needed
+      if (hasPermission) {
         await FCMService.instance.initialize();
-
-        // Enable notifications by default for new installs if permission is granted
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: true,
-          generalEnabled: true,
-        );
-      } else {
-        // Make sure notifications are disabled in backend
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: false,
-          generalEnabled: false,
-        );
+        return;
       }
 
-      // Always mark that we've requested permission
-      await prefs.setBool('notification_permission_requested', true);
+      // If we've never requested before, show the permission dialog
+      if (!permissionRequested) {
+        // Request permission with FCM (follows codelab example)
+        final success =
+            await FCMService.instance.requestPermissionAndInitialize();
+
+        // Mark that we've requested permission
+        await prefs.setBool('notification_permission_requested', true);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error handling notification permissions: $e');
+      }
     }
   }
 
@@ -163,6 +150,42 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       setState(() {
         isLoadingTransactions = false;
       });
+    }
+  }
+
+  // Public method to refresh both transactions and accounts from anywhere in the app
+  // This can be called when a notification with action=reload is received
+  Future<void> refreshData({bool showLoading = true}) async {
+    if (!mounted) return;
+
+    if (showLoading) {
+      setState(() {
+        isLoading = true;
+        isLoadingTransactions = true;
+      });
+    }
+
+    try {
+      // Refresh both accounts and transactions in parallel
+      await Future.wait([
+        _fetchUserAccounts(),
+        fetchUserTransactions(null),
+      ]);
+
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      print('--Error refreshing data: $e');
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
     }
   }
 
@@ -288,6 +311,19 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
         }
       }
     });
+  }
+
+  void navigateToTab(int index) {
+    if (mounted) {
+      final menuItems = getDestinations(context,
+          shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+
+      if (index >= 0 && index < menuItems.length) {
+        setState(() {
+          selectedDestination = menuItems[index];
+        });
+      }
+    }
   }
 }
 

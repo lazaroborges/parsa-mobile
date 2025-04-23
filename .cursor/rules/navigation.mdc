@@ -1,0 +1,76 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Deeplink and Push Notification Navigation
+
+## Push Notification Flow
+
+### Notification Anatomy
+Push notifications contain structured data with:
+- `route`: Path format like "transactions/123" or "budgets" (no leading slash)
+- `queryParams`: Optional JSON-encoded map for filtered views
+- `action`: Special actions like "reload" for data refresh
+
+### Notification Handling States
+
+1. **Foreground** (app is open)
+   - Messages received via `FirebaseMessaging.onMessage`
+   - "reload" actions trigger data refresh via `_handleReloadAction()`
+   - Standard navigation not automatically triggered
+
+2. **Background** (app minimized but in memory)
+   - User tapping notification captured by `FirebaseMessaging.onMessageOpenedApp`
+   - Routes processed by `navigateBasedOnNotificationRoute()`
+   - Authentication checks automatically handled by `BackgroundAuthService`
+
+3. **Terminated** (app fully closed)
+   - Initial message retrieved by `messaging.getInitialMessage()`
+   - Uses same routing logic but with delay to ensure app is loaded
+   - Authentication checks must complete before navigation
+
+### Authentication Requirements
+
+- Background state transitions > 2 minutes require re-authentication via:
+  1. Biometrics authentication (preferred)
+  2. Login screen fallback if biometrics unavailable
+  
+- Auth flow handled by `BackgroundAuthService` which:
+  - Tracks app lifecycle with `WidgetsBindingObserver`
+  - Shows `BiometricsCheckScreen` for verification
+  - Updates session via `SessionService.instance.registerUserSession()`
+
+## Navigation Architecture
+
+### Route Processing
+- Notifications use `NavigationDelegate.navigateBasedOnNotificationRoute(route, queryParams)`
+- Route format: `section/id` → parsed into section and optional ID
+- NavigationDelegate handles fetching required data before navigation
+
+### Supported Routes
+- ``: Navigate to dashboard
+- `budgets[/id]`: Navigate to all budgets or specific budget
+- `transactions[/id]`: Navigate to transactions list or specific transaction
+- `accounts[/id]`: Navigate to accounts list or specific account
+- `stats`: Navigate to statistics with optional filters
+
+### Error Handling
+- If entity lookup fails (invalid ID), fallback to section home
+- Invalid routes default to home page
+- Network errors gracefully handled with appropriate UI feedback
+
+## Query Parameters
+
+When navigating to filtered views, queryParams support:
+- `minDate`, `maxDate`: ISO8601 date strings
+- `categories`: Comma-separated category IDs
+- `accounts`: Comma-separated account IDs
+- `tags`: Comma-separated tag IDs
+- `search`: Text search term
+
+## Integration with Backend
+
+- Device registration for push notifications happens during app initialization
+- FCM tokens are registered with backend using `saveTokenToServer()`
+- Token refreshes automatically handled and sent to server

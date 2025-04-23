@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class PermissionService {
   // Singleton instance
@@ -16,14 +17,75 @@ class PermissionService {
   // Getter for the singleton instance
   static PermissionService get instance => _instance;
 
-  /// Request notification permissions
-  Future<bool> requestNotificationPermission() async {
+  // Store FCM token to avoid multiple retrievals
+  String? _fcmToken;
+  String? _apnsToken;
+
+  // Get the iOS APNs token
+  Future<String?> getAPNSToken() async {
+    if (!Platform.isIOS) return null;
+
+    try {
+      final messaging = FirebaseMessaging.instance;
+      _apnsToken = await messaging.getAPNSToken();
+
+      if (kDebugMode) {
+        print('APNs Token: $_apnsToken');
+      }
+
+      return _apnsToken;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting APNs token: $e');
+      }
+      return null;
+    }
+  }
+
+  // Get FCM token following the codelab example
+  Future<String?> getToken() async {
+    if (_fcmToken != null) return _fcmToken;
+
+    try {
+      final messaging = FirebaseMessaging.instance;
+
+      // Request a registration token for sending messages to users
+      _fcmToken = await messaging.getToken();
+
+      if (kDebugMode) {
+        print('Registration Token=$_fcmToken');
+      }
+
+      // Set up token refresh listener
+      messaging.onTokenRefresh.listen((newToken) {
+        _fcmToken = newToken;
+        if (kDebugMode) {
+          print('FCM Token refreshed: $newToken');
+        }
+      });
+
+      return _fcmToken;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting FCM token: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Centralized method to request notification permissions on both Android and iOS
+  Future<bool> requestNotifications() async {
     if (Platform.isAndroid) {
       return _requestAndroidNotificationPermission();
     } else if (Platform.isIOS) {
-      return await Permission.notification.request().isGranted;
+      return _requestIOSNotificationPermission();
     }
     return false;
+  }
+
+  /// Request notification permissions - legacy method for compatibility
+  Future<bool> requestNotificationPermission() async {
+    return requestNotifications();
   }
 
   /// Request notification permission for Android
@@ -43,6 +105,90 @@ class PermissionService {
     return true;
   }
 
+  /// Request notification permission following the codelab example
+  Future<bool> requestPermissionWithFCM() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+
+      // Request permission as shown in the codelab
+      final settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+
+      if (kDebugMode) {
+        print('Permission granted: ${settings.authorizationStatus}');
+      }
+
+      // Get token after permission is granted
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        await getToken();
+
+        // For iOS, also get the APNS token
+        if (Platform.isIOS) {
+          await getAPNSToken();
+        }
+      }
+
+      // Return true if permission granted
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error requesting notification permissions: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Request notification permission for iOS using Firebase Messaging
+  Future<bool> _requestIOSNotificationPermission() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+
+      // Configure presentation options for iOS
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      // Request iOS notification permissions
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+
+      if (kDebugMode) {
+        print(
+            'iOS Notification permission status: ${settings.authorizationStatus}');
+      }
+
+      // Get APNS token after permission is granted
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        await getAPNSToken();
+      }
+
+      // Check if permission was granted
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error requesting iOS notification permissions: $e');
+      }
+      return false;
+    }
+  }
+
   /// Check if the device is running Android 13 (API level 33) or higher
   Future<bool> _isAndroid13OrHigher() async {
     if (Platform.isAndroid) {
@@ -60,23 +206,27 @@ class PermissionService {
       }
       return true;
     } else if (Platform.isIOS) {
-      return await Permission.notification.isGranted;
+      try {
+        final messaging = FirebaseMessaging.instance;
+        final settings = await messaging.getNotificationSettings();
+        return settings.authorizationStatus == AuthorizationStatus.authorized ||
+            settings.authorizationStatus == AuthorizationStatus.provisional;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error checking iOS notification permission: $e');
+        }
+        return false;
+      }
     }
     return false;
   }
 
   /// Prepare device for FCM token retrieval by ensuring all required permissions
   Future<bool> prepareForFCMToken() async {
-    if (Platform.isAndroid) {
-      final hasPermission = await hasNotificationPermission();
-
-      if (!hasPermission) {
-        return await requestNotificationPermission();
-      }
-      return true;
-    } else if (Platform.isIOS) {
-      return await Permission.notification.request().isGranted;
+    final hasPermission = await hasNotificationPermission();
+    if (!hasPermission) {
+      return await requestPermissionWithFCM();
     }
-    return false;
+    return true;
   }
 }

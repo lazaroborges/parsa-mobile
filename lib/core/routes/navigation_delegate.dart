@@ -2,6 +2,7 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
+import 'package:flutter/foundation.dart';
 
 /// A delegate that handles navigation requests from services
 /// and provides context-aware navigation when possible
@@ -14,14 +15,23 @@ class NavigationDelegate {
   /// Navigate to a route using the global navigator key
   void navigateTo(String route, {Object? queryParams}) {
     try {
+      // Make sure the route starts with a forward slash
+      final normalizedRoute = route.startsWith('/') ? route : '/$route';
+
+      if (kDebugMode) {
+        print(
+            'Navigating to route: $normalizedRoute with params: $queryParams');
+      }
+
       // Use the global navigatorKey instead of goRouter
       if (navigatorKey.currentState != null) {
         // Special case for home route
-        if (route == '/' || route.isEmpty) {
+        if (normalizedRoute == '/' || normalizedRoute.isEmpty) {
           // Pop to root for home navigation
           navigatorKey.currentState!.popUntil((route) => route.isFirst);
         } else {
-          navigatorKey.currentState!.pushNamed(route, arguments: queryParams);
+          navigatorKey.currentState!
+              .pushNamed(normalizedRoute, arguments: queryParams);
         }
       } else {
         print('Error: Navigator is not available');
@@ -56,6 +66,9 @@ class NavigationDelegate {
   /// Navigate to a budget after fetching the budget data
   Future<void> navigateToBudget(String budgetId) async {
     try {
+      if (kDebugMode) {
+        print('Attempting to fetch budget with ID: $budgetId');
+      }
       final budget = await BudgetServive.instance.getBudgetById(budgetId).first;
 
       if (budget != null) {
@@ -64,7 +77,9 @@ class NavigationDelegate {
         navigateTo('/budgets');
       }
     } catch (e) {
-      print('Error: Failed to fetch budget $budgetId: $e');
+      if (kDebugMode) {
+        print('Error: Failed to fetch budget $budgetId: $e');
+      }
       navigateTo('/budgets');
     }
   }
@@ -152,6 +167,73 @@ class NavigationDelegate {
     } catch (e) {
       print('Error: Failed to navigate to stats: $e');
       navigateTo('/stats');
+    }
+  }
+
+  // Add a new method to handle notification routes
+  void navigateBasedOnNotificationRoute(String route,
+      {Map<String, String>? queryParams}) {
+    if (kDebugMode) {
+      print('NavigationDelegate: Processing notification route: $route');
+      print('NavigationDelegate: Query parameters: $queryParams');
+    }
+
+    final segments = route.split('/');
+    if (segments.isEmpty) return;
+
+    final section = segments[0].toLowerCase();
+    final id = segments.length > 1 ? segments[1] : null;
+
+    if (kDebugMode) {
+      print('Navigating to $route with queryParams: $queryParams');
+      print('Section: $section');
+      print('Id: $id');
+    }
+
+    switch (section) {
+      case '':
+        navigateTo('/');
+        break;
+      case 'dashboard':
+        // Navigate to home/dashboard
+        navigateTo('/');
+        break;
+      case 'budgets':
+        if (id != null) {
+          // Use direct route path with ID for budgets
+          navigateTo('/budgets/$id');
+        } else {
+          navigateTo('/budgets');
+        }
+        break;
+      case 'transactions':
+        if (id != null) {
+          // Use direct route path with ID for transactions
+          navigateTo('/transactions/$id');
+        } else if (queryParams != null) {
+          navigateToTransaction(params: queryParams);
+        } else {
+          navigateTo('/transactions');
+        }
+        break;
+      case 'accounts':
+        if (id != null) {
+          // Use direct route path with ID for accounts
+          navigateTo('/accounts/$id');
+        } else {
+          navigateTo('/accounts');
+        }
+        break;
+      case 'stats':
+        if (queryParams != null) {
+          navigateToStats('', queryParams);
+        } else {
+          navigateTo('/stats');
+        }
+        break;
+      default:
+        navigateTo('/');
+        break;
     }
   }
 }

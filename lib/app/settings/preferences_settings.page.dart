@@ -5,14 +5,14 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
-import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
 import 'widgets/settings_list_separator.dart';
+import 'package:parsa/core/services/notification/fcm_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PreferencesSettingsPage extends StatefulWidget {
   const PreferencesSettingsPage({super.key});
@@ -42,13 +42,15 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   int _startOfMonth = 1;
   bool _startOfMonthWorkingDaysOnly = false;
 
+  // Store notification preferences
+  Map<String, bool> _notificationPrefs = {};
+
   // Store ScaffoldMessengerState to avoid "Looking up a deactivated widget's ancestor" error
   ScaffoldMessengerState? _scaffoldMessenger;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Store a reference to ScaffoldMessenger
     _scaffoldMessenger = ScaffoldMessenger.of(context);
   }
 
@@ -60,14 +62,62 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   }
 
   Future<void> _loadPreferences() async {
-    final prefs = app_prefs.SharedPreferencesAsync.instance;
-    _startOfWeek = await prefs.getStartOfWeek();
-    _startOfMonth = await prefs.getStartOfMonth();
-    _startOfMonthWorkingDaysOnly = await prefs.getStartOfMonthWorkingDaysOnly();
+    try {
+      setState(() {
+        _isLoading = true;
+      });
 
-    setState(() {
-      _isLoading = false;
-    });
+      final prefs = app_prefs.SharedPreferencesAsync.instance;
+      _startOfWeek = await prefs.getStartOfWeek();
+      _startOfMonth = await prefs.getStartOfMonth();
+      _startOfMonthWorkingDaysOnly =
+          await prefs.getStartOfMonthWorkingDaysOnly();
+
+      // Check notification permissions
+      final hasPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
+      // Fetch notification preferences from API using the service
+      // Force refresh to ensure we have the latest state
+      _notificationPrefs = await NotificationPreferencesService.instance
+          .getPreferences(forceRefresh: true);
+
+      if (kDebugMode) {
+        print('Notification permission status: $hasPermission');
+        print('Notification preferences: $_notificationPrefs');
+      }
+
+      // If permission is granted but somehow all preferences are disabled,
+      // automatically enable general notifications
+      if (hasPermission &&
+          !(_notificationPrefs['budgets_enabled'] == true ||
+              _notificationPrefs['general_enabled'] == true ||
+              _notificationPrefs['transactions_enabled'] == true ||
+              _notificationPrefs['account_enabled'] == true)) {
+        if (kDebugMode) {
+          print(
+              'Permission granted but all notifications disabled, enabling general notifications');
+        }
+
+        // Enable at least general notifications
+        await NotificationPreferencesService.instance.updatePreferences(
+          generalEnabled: true,
+        );
+
+        // Reload preferences
+        _notificationPrefs = await NotificationPreferencesService.instance
+            .getPreferences(forceRefresh: true);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading preferences: $e');
+      }
+      _showSnackBar('Erro ao carregar preferências', isError: true);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -78,9 +128,44 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh UI when app resumes from background
+    // Refresh UI and preferences when app resumes from background
     if (state == AppLifecycleState.resumed) {
-      setState(() {});
+      _checkPermissionChanges();
+    }
+  }
+
+  // Check if notification permissions changed while app was in background
+  Future<void> _checkPermissionChanges() async {
+    // Store previous permission state before reloading
+    final previouslyHadPermission =
+        await PermissionService.instance.hasNotificationPermission();
+
+    // Reload all preferences
+    await _loadPreferences();
+
+    // Get the current permission state after reloading
+    final hasPermissionNow =
+        await PermissionService.instance.hasNotificationPermission();
+
+    // If permission was granted while in background or settings
+    if (!previouslyHadPermission && hasPermissionNow) {
+      if (kDebugMode) {
+        print("Notification permission was granted while in background!");
+      }
+
+      // Initialize and register FCM token
+      await FCMService.instance.handlePermissionGranted();
+
+      // Enable all notification categories since permission was just granted
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: true,
+        generalEnabled: true,
+        transactionsEnabled: true,
+        accountEnabled: true,
+      );
+
+      // Reload preferences to update UI
+      await _loadPreferences();
     }
   }
 
@@ -106,62 +191,115 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     }
   }
 
-  // Request notification permission using the existing permission service
-  Future<void> _requestNotificationPermission() async {
-    try {
-      // Reset FCM initialization state
-      FCMService.instance.resetInitializationState();
+  /// Ensure we have OS-level notification permission, asking or redirecting if needed
+  Future<bool> _ensureNotificationPermission() async {
+    // Mark we asked and attempt the platform request
+    final granted =
+        await PermissionService.instance.requestNotificationPermission();
+    if (granted) {
+      // Initialize and register FCM token
+      await FCMService.instance.handlePermissionGranted();
 
-      // Use the existing permission service
-      final permissionGranted =
-          await PermissionService.instance.requestNotificationPermission();
+      // Enable all notification categories since permission was just granted
+      await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: true,
+        generalEnabled: true,
+        transactionsEnabled: true,
+        accountEnabled: true,
+      );
 
-      if (permissionGranted) {
-        // Initialize FCM and update preferences
-        await FCMService.instance.initialize();
+      // Refresh UI to show new state
+      setState(() {
+        _notificationPrefs = {
+          'budgets_enabled': true,
+          'general_enabled': true,
+          'transactions_enabled': true,
+          'account_enabled': true,
+        };
+      });
+
+      return true;
+    }
+
+    // If denied, prompt user to open system settings
+    final goToSettings = await showPlatformAlertDialog(
+      context: context,
+      title: "Permissão Negada",
+      content:
+          "Para receber notificações, habilite as permissões nas configurações do seu dispositivo.",
+      cancelActionText: "Cancelar",
+      defaultActionText: "Ir para Configurações",
+    );
+
+    if (goToSettings == true) {
+      // Store pre-settings permission state
+      final preSettingsPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
+      // Open settings
+      await openAppSettings();
+
+      // After returning from settings, check if permission was granted
+      await Future.delayed(const Duration(seconds: 2));
+      final postSettingsPermission =
+          await PermissionService.instance.hasNotificationPermission();
+
+      // If permission was granted in settings
+      if (!preSettingsPermission && postSettingsPermission) {
+        // Initialize and register FCM token
+        await FCMService.instance.handlePermissionGranted();
+
+        // Enable all notification categories since permission was just granted
         await NotificationPreferencesService.instance.updatePreferences(
           budgetsEnabled: true,
           generalEnabled: true,
+          transactionsEnabled: true,
+          accountEnabled: true,
         );
 
-        // Update UI
-        setState(() {});
+        // Reload preferences to update UI
+        await _loadPreferences();
 
-        // Show success message
-        if (mounted) {
-          _scaffoldMessenger!.showSnackBar(
-            const SnackBar(
-              content: Text('Notificações ativadas com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Update a notification preference and refresh UI
+  Future<void> _updateNotificationPreference({
+    bool? budgetsEnabled,
+    bool? generalEnabled,
+    bool? transactionsEnabled,
+    bool? accountEnabled,
+  }) async {
+    try {
+      // Call API service to update preferences
+      final success =
+          await NotificationPreferencesService.instance.updatePreferences(
+        budgetsEnabled: budgetsEnabled,
+        generalEnabled: generalEnabled,
+        transactionsEnabled: transactionsEnabled,
+        accountEnabled: accountEnabled,
+      );
+
+      if (success) {
+        // Reload preferences from API to ensure UI reflects current state
+        _notificationPrefs = await NotificationPreferencesService.instance
+            .getPreferences(forceRefresh: true);
+
+        setState(() {});
       } else {
-        // Guide user to system settings if permission denied
-        if (mounted) {
-          showPlatformAlertDialog(
-            context: context,
-            title: "Permissão Negada",
-            content:
-                "Para receber notificações, você precisa habilitar as permissões nas configurações do seu dispositivo.",
-            cancelActionText: "Cancelar",
-            defaultActionText: "OK",
-          );
-        }
+        _showSnackBar('Erro ao atualizar preferência de notificação',
+            isError: true);
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error requesting notification permission: $e');
+        print('Error updating notification preference: $e');
       }
-
-      if (mounted) {
-        _scaffoldMessenger!.showSnackBar(
-          SnackBar(
-            content: Text('Ocorreu um erro ao solicitar permissão: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showSnackBar('Erro ao atualizar preferência de notificação: $e',
+          isError: true);
     }
   }
 
@@ -229,6 +367,58 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
         });
   }
 
+  // Custom Notification Icons for settings
+  Widget _buildGeneralNotificationIcon(BuildContext context,
+      {bool permissionGranted = true}) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        permissionGranted
+            ? Icons.notifications_active_outlined
+            : Icons.notifications_off_outlined,
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
+  Widget _buildBudgetNotificationIcon(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        Icons.savings_outlined, // Better icon for budget notifications
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
+  Widget _buildTransactionNotificationIcon(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        Icons.paid_outlined, // Better icon for transaction notifications
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
+  Widget _buildAccountNotificationIcon(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Icon(
+        Icons.account_balance_outlined,
+        size: 24,
+        color: Theme.of(context).iconTheme.color,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -238,38 +428,23 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
         title: Text(t.settings.title_short),
       ),
       body: FutureBuilder<bool>(
-        future: _checkPermissionRequested(),
-        builder: (context, requestedSnapshot) {
-          if (requestedSnapshot.connectionState == ConnectionState.waiting ||
+        future: PermissionService.instance.hasNotificationPermission(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
               _isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Only check actual permission status if it was requested previously
-          if (requestedSnapshot.data == true) {
-            return FutureBuilder<bool>(
-                future: PermissionService.instance.hasNotificationPermission(),
-                builder: (context, permissionSnapshot) {
-                  final bool showPermissionButton =
-                      permissionSnapshot.hasData &&
-                          !permissionSnapshot.data! &&
-                          requestedSnapshot.data!;
+          final bool hasPermission = snapshot.data ?? false;
 
-                  return _buildSettingsList(context, t, showPermissionButton);
-                });
-          }
-
-          // If permission was never requested, don't show button
-          return _buildSettingsList(context, t, false);
+          return _buildSettingsList(
+            context,
+            t,
+            hasPermission,
+          );
         },
       ),
     );
-  }
-
-  // Helper method to check if permission was requested before
-  Future<bool> _checkPermissionRequested() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('notification_permission_requested') ?? false;
   }
 
   // Helper function to safely show snackbar
@@ -284,9 +459,12 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     }
   }
 
-  // Build the settings list with or without notification button
+  // Build the settings list with notification toggles
   Widget _buildSettingsList(
-      BuildContext context, Translations t, bool showPermissionButton) {
+    BuildContext context,
+    Translations t,
+    bool notificationsEnabled,
+  ) {
     // Create items for start of week selection
     final startOfWeekItems = [
       SelectItem(
@@ -316,297 +494,291 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       );
     });
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Removed language section and unused stream builders
+    return RefreshIndicator(
+      onRefresh: _loadPreferences,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Removed language section and unused stream builders
 
-          createListSeparator(context, t.settings.security.title),
-          StreamBuilder(
-            stream: PrivateModeService.instance.getPrivateModeAtLaunch(),
-            builder: (context, snapshot) {
+            createListSeparator(context, t.settings.security.title),
+            StreamBuilder(
+              stream: PrivateModeService.instance.getPrivateModeAtLaunch(),
+              builder: (context, snapshot) {
+                return SwitchListTile(
+                  title: Text(t.settings.security.private_mode_at_launch),
+                  subtitle:
+                      Text(t.settings.security.private_mode_at_launch_descr),
+                  secondary: const Icon(Icons.phonelink_lock_outlined),
+                  value: snapshot.data ?? false,
+                  onChanged: (bool value) async {
+                    await PrivateModeService.instance
+                        .setPrivateModeAtLaunch(value);
+                    setState(() {});
+                  },
+                );
+              },
+            ),
+
+            createListSeparator(context, "Prestações"),
+            Builder(builder: (context) {
+              // Get the initial value from UserDataProvider
+              final userDataProvider = UserDataProvider.instance;
+              final isAccrualBasisAccounting =
+                  userDataProvider.userData?['accrual_basis_accounting'] ??
+                      false;
+
               return SwitchListTile(
-                title: Text(t.settings.security.private_mode_at_launch),
-                subtitle:
-                    Text(t.settings.security.private_mode_at_launch_descr),
-                secondary: const Icon(Icons.phonelink_lock_outlined),
-                value: snapshot.data ?? false,
+                title: const Text("Regime de Competência"),
+                subtitle: const Text(
+                    "Lança o valor total de uma prestação na data da compra."),
+                secondary: const Icon(Icons.calendar_month),
+                value: isAccrualBasisAccounting,
                 onChanged: (bool value) async {
-                  await PrivateModeService.instance
-                      .setPrivateModeAtLaunch(value);
-                  setState(() {});
+                  // Show confirmation dialog before making the change
+                  final confirmed = await showPlatformAlertDialog(
+                    context: context,
+                    title: "Confirmar alteração",
+                    content: value
+                        ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
+                        : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
+                    cancelActionText: "Cancelar",
+                    defaultActionText: "Confirmar",
+                  );
+
+                  // If user confirmed, proceed with the change
+                  if (confirmed == true) {
+                    try {
+                      // Update the value in the backend
+                      await PostUserSettings
+                          .updateAccrualBasisAccountingSetting(
+                        isAccrualBasisAccounting: value,
+                      );
+
+                      // Update the local user data
+                      userDataProvider
+                          .updateUserData({'accrual_basis_accounting': value});
+
+                      // Update the UI
+                      setState(() {});
+
+                      // Show success message
+                      _scaffoldMessenger!.showSnackBar(
+                        SnackBar(
+                          content: Text('Configuração atualizada com sucesso'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      // Show error message
+                      _scaffoldMessenger!.showSnackBar(
+                        SnackBar(
+                          content: Text('Erro ao atualizar configuração: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      print('Error updating competent_user setting: $e');
+                    }
+                  }
                 },
               );
-            },
-          ),
+            }),
+            // Calendar settings section
+            createListSeparator(context, "Calendário"),
 
-          createListSeparator(context, "Prestações"),
-          Builder(builder: (context) {
-            // Get the initial value from UserDataProvider
-            final userDataProvider = UserDataProvider.instance;
-            final isAccrualBasisAccounting =
-                userDataProvider.userData?['accrual_basis_accounting'] ?? false;
+            // Start of Week setting
+            ListTile(
+              title: const Text("Início da Semana"),
+              leading: const Icon(Icons.calendar_view_week),
+              trailing: DropdownButton<int>(
+                value: _startOfWeek,
+                onChanged: (value) async {
+                  if (value != null) {
+                    try {
+                      await app_prefs.SharedPreferencesAsync.instance
+                          .setStartOfWeek(value);
+                      setState(() {
+                        _startOfWeek = value;
+                      });
+                      // Send updated preferences to the backend
+                      final success =
+                          await PostUserSettings.updateDatePreferences(
+                        startOfWeek: _startOfWeek,
+                        startOfMonth: _startOfMonth,
+                        useWorkingDay: _startOfMonthWorkingDaysOnly,
+                      );
 
-            return SwitchListTile(
-              title: const Text("Regime de Competência"),
-              subtitle: const Text(
-                  "Lança o valor total de uma prestação na data da compra."),
-              secondary: const Icon(Icons.calendar_month),
-              value: isAccrualBasisAccounting,
-              onChanged: (bool value) async {
-                // Show confirmation dialog before making the change
-                final confirmed = await showPlatformAlertDialog(
-                  context: context,
-                  title: "Confirmar alteração",
-                  content: value
-                      ? "Ativar o regime de competência lançará o valor total de uma compra parcelada na data da compra. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?"
-                      : "Desativar o regime de competência irá lançar cada parcela na data de vencimento. Você pode perder dados relacionados a transações editadas anteriormente. Deseja continuar?",
-                  cancelActionText: "Cancelar",
-                  defaultActionText: "Confirmar",
-                );
-
-                // If user confirmed, proceed with the change
-                if (confirmed == true) {
-                  try {
-                    // Update the value in the backend
-                    await PostUserSettings.updateAccrualBasisAccountingSetting(
-                      isAccrualBasisAccounting: value,
-                    );
-
-                    // Update the local user data
-                    userDataProvider
-                        .updateUserData({'accrual_basis_accounting': value});
-
-                    // Update the UI
-                    setState(() {});
-
-                    // Show success message
-                    _scaffoldMessenger!.showSnackBar(
-                      SnackBar(
-                        content: Text('Configuração atualizada com sucesso'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } catch (e) {
-                    // Show error message
-                    _scaffoldMessenger!.showSnackBar(
-                      SnackBar(
-                        content: Text('Erro ao atualizar configuração: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    print('Error updating competent_user setting: $e');
-                  }
-                }
-              },
-            );
-          }),
-          // Calendar settings section
-          createListSeparator(context, "Configurações de Calendário"),
-
-          // Start of Week setting
-          ListTile(
-            title: const Text("Início da Semana"),
-            leading: const Icon(Icons.calendar_view_week),
-            trailing: DropdownButton<int>(
-              value: _startOfWeek,
-              onChanged: (value) async {
-                if (value != null) {
-                  try {
-                    await app_prefs.SharedPreferencesAsync.instance
-                        .setStartOfWeek(value);
-                    setState(() {
-                      _startOfWeek = value;
-                    });
-                    // Send updated preferences to the backend
-                    final success =
-                        await PostUserSettings.updateDatePreferences(
-                      startOfWeek: _startOfWeek,
-                      startOfMonth: _startOfMonth,
-                      useWorkingDay: _startOfMonthWorkingDaysOnly,
-                    );
-
-                    if (!success && mounted) {
-                      _showSnackBar(
-                          'Erro ao atualizar início da semana no servidor.');
-                    }
-                  } catch (e) {
-                    print('Error updating start of week: $e');
-                    if (mounted) {
-                      _showSnackBar('Erro ao atualizar início da semana: $e');
+                      if (success) {
+                        if (kDebugMode) {
+                          print(
+                              'Successfully updated start of week preference');
+                        }
+                      } else if (mounted) {
+                        _showSnackBar(
+                            'Erro ao atualizar início da semana no servidor.');
+                      }
+                    } catch (e) {
+                      if (kDebugMode) {
+                        print('Error updating start of week: $e');
+                      }
+                      if (mounted) {
+                        _showSnackBar('Erro ao atualizar início da semana: $e');
+                      }
                     }
                   }
-                }
-              },
-              items: startOfWeekItems
-                  .map((item) => DropdownMenuItem<int>(
-                        value: item.value,
-                        child: Text(item.label),
-                      ))
-                  .toList(),
-              underline: Container(),
+                },
+                items: startOfWeekItems
+                    .map((item) => DropdownMenuItem<int>(
+                          value: item.value,
+                          child: Text(item.label),
+                        ))
+                    .toList(),
+                underline: Container(),
+              ),
             ),
-          ),
 
-          // Start of Month setting
-          ListTile(
-            title: const Text('Início do Mês'),
-            leading: const Icon(Icons.calendar_today_rounded),
-            trailing: DropdownButton<int>(
-              value: _startOfMonth,
-              onChanged: (value) async {
-                if (value != null) {
-                  try {
-                    await app_prefs.SharedPreferencesAsync.instance
-                        .setStartOfMonth(value);
-                    setState(() {
-                      _startOfMonth = value;
-                    });
-                    // Send updated preferences to the backend
-                    final success =
-                        await PostUserSettings.updateDatePreferences(
-                      startOfWeek: _startOfWeek,
-                      startOfMonth: _startOfMonth,
-                      useWorkingDay: _startOfMonthWorkingDaysOnly,
-                    );
+            // Start of Month setting
+            ListTile(
+              title: const Text('Início do Mês'),
+              leading: const Icon(Icons.calendar_today_rounded),
+              trailing: DropdownButton<int>(
+                value: _startOfMonth,
+                onChanged: (value) async {
+                  if (value != null) {
+                    try {
+                      await app_prefs.SharedPreferencesAsync.instance
+                          .setStartOfMonth(value);
+                      setState(() {
+                        _startOfMonth = value;
+                      });
+                      // Send updated preferences to the backend
+                      final success =
+                          await PostUserSettings.updateDatePreferences(
+                        startOfWeek: _startOfWeek,
+                        startOfMonth: _startOfMonth,
+                        useWorkingDay: _startOfMonthWorkingDaysOnly,
+                      );
 
-                    if (!success && mounted) {
-                      _showSnackBar(
-                          'Erro ao atualizar início do mês no servidor.');
-                    }
-                  } catch (e) {
-                    print('Error updating start of month: $e');
-                    if (mounted) {
-                      _showSnackBar('Erro ao atualizar início do mês: $e');
+                      if (success) {
+                        if (kDebugMode) {
+                          print(
+                              'Successfully updated start of month preference');
+                        }
+                      } else if (mounted) {
+                        _showSnackBar(
+                            'Erro ao atualizar início do mês no servidor.');
+                      }
+                    } catch (e) {
+                      if (kDebugMode) {
+                        print('Error updating start of month: $e');
+                      }
+                      if (mounted) {
+                        _showSnackBar('Erro ao atualizar início do mês: $e');
+                      }
                     }
                   }
-                }
-              },
-              items: startOfMonthItems
-                  .map((item) => DropdownMenuItem<int>(
-                        value: item.value,
-                        child: Text(item.label),
-                      ))
-                  .toList(),
-              underline: Container(),
+                },
+                items: startOfMonthItems
+                    .map((item) => DropdownMenuItem<int>(
+                          value: item.value,
+                          child: Text(item.label),
+                        ))
+                    .toList(),
+                underline: Container(),
+              ),
             ),
-          ),
 
-          // Working days checkbox
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          //   child: Row(
-          //     children: [
-          //       Checkbox(
-          //         value: _startOfMonthWorkingDaysOnly,
-          //         onChanged: (value) async {
-          //           if (value != null) {
-          //             try {
-          //               await app_prefs.SharedPreferencesAsync.instance
-          //                   .setStartOfMonthWorkingDaysOnly(value);
-          //               setState(() {
-          //                 _startOfMonthWorkingDaysOnly = value;
-          //               });
-          //               // Send updated preferences to the backend
-          //               final success =
-          //                   await PostUserSettings.updateDatePreferences(
-          //                 startOfWeek: _startOfWeek,
-          //                 startOfMonth: _startOfMonth,
-          //                 useWorkingDay: _startOfMonthWorkingDaysOnly,
-          //               );
+            // Create a custom notification section header with permission status indicator
+            createListSeparator(context, 'Notificações'),
 
-          //               if (!success && mounted) {
-          //                 _showSnackBar(
-          //                     'Erro ao atualizar configuração de dias úteis no servidor.');
-          //               }
-          //             } catch (e) {
-          //               print('Error updating working days setting: $e');
-          //               if (mounted) {
-          //                 _showSnackBar(
-          //                     'Erro ao atualizar configuração de dias úteis: $e');
-          //               }
-          //             }
-          //           }
-          //         },
-          //       ),
-          //       const Text('Considerar apenas dias úteis'),
-          //     ],
-          //   ),
-          // ),
-
-          // Add notification section only if permissions were requested but denied
-          if (showPermissionButton)
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+            // Debug section - shows current permission and preference states
+            if (kDebugMode)
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.notifications_off,
-                            color: Colors.orange),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Notificações desativadas",
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Você está perdendo notificações importantes sobre sua conta e orçamentos",
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.notifications_active),
-                        label: const Text("Ativar Notificações"),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        onPressed: () async {
-                          await _requestNotificationPermission();
-                          setState(() {});
-                        },
-                      ),
-                    ),
+                    Text('Debug Info:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Permission granted: $notificationsEnabled'),
+                    Text('Preferences: $_notificationPrefs'),
                   ],
                 ),
               ),
+
+            // Always show General switch, but disable it when permissions not granted
+            SwitchListTile(
+              title: const Text('Geral'),
+              value: notificationsEnabled
+                  ? _notificationPrefs['general_enabled'] ?? false
+                  : false,
+              secondary: _buildGeneralNotificationIcon(context,
+                  permissionGranted: notificationsEnabled),
+              onChanged: (bool value) async {
+                // If permissions not granted, always show settings dialog
+                if (!notificationsEnabled) {
+                  await _ensureNotificationPermission();
+                } else {
+                  // Otherwise just update the preference
+                  await _updateNotificationPreference(generalEnabled: value);
+                }
+              },
             ),
-          Center(
-            child: GestureDetector(
-              onTap: _openSubscriptionManagement,
-              child: Text(
-                'Gerencie sua assinatura',
-                style: TextStyle(
-                  color: Color(0xFF475466),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
+
+            // Only show other notification categories if permission is granted
+            if (notificationsEnabled) ...[
+              SwitchListTile(
+                title: const Text('Orçamentos'),
+                secondary: _buildBudgetNotificationIcon(context),
+                value: _notificationPrefs['budgets_enabled'] ?? false,
+                onChanged: (bool value) async {
+                  await _updateNotificationPreference(budgetsEnabled: value);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Transações'),
+                secondary: _buildTransactionNotificationIcon(context),
+                value: _notificationPrefs['transactions_enabled'] ?? false,
+                onChanged: (bool value) async {
+                  await _updateNotificationPreference(
+                      transactionsEnabled: value);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Contas'),
+                secondary: _buildAccountNotificationIcon(context),
+                value: _notificationPrefs['account_enabled'] ?? false,
+                onChanged: (bool value) async {
+                  await _updateNotificationPreference(accountEnabled: value);
+                },
+              ),
+            ],
+            const SizedBox(height: 24),
+
+            // Subscription management section
+            Center(
+              child: GestureDetector(
+                onTap: _openSubscriptionManagement,
+                child: Text(
+                  'Gerencie sua assinatura',
+                  style: TextStyle(
+                    color: Color(0xFF475466),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
+          ],
+        ),
       ),
     );
   }
