@@ -132,10 +132,18 @@ class FCMService {
           // Handle reload action
           final context = navigatorKey.currentContext;
           if (context != null) {
-            _handleReloadAction(context);
+            // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
+            _handleReloadAction(context, isBackgroundOrTerminated: true);
+
+            // Navigate to dashboard using a more reliable approach
+            Navigator.of(context).popUntil((route) => route.isFirst);
+
+            // If using tabs, ensure the dashboard tab is selected
+            if (tabsPageKey.currentState != null) {
+              // Use index 0 for dashboard tab
+              tabsPageKey.currentState!.navigateToTab(0);
+            }
           }
-          // Navigate to transactions
-          NavigationDelegate.instance.navigateTo('/dashboard');
           return;
         }
 
@@ -189,17 +197,24 @@ class FCMService {
           print('Message data: ${initialMessage.data}');
         }
 
-        // Handle reload action
         if (initialMessage.data.containsKey('action') &&
             initialMessage.data['action'] == 'reload') {
           // Handle reload action - context will be available after app is fully loaded
           Future.delayed(const Duration(seconds: 1), () {
             final context = navigatorKey.currentContext;
             if (context != null) {
-              _handleReloadAction(context);
+              // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
+              _handleReloadAction(context, isBackgroundOrTerminated: true);
+
+              // Navigate to dashboard using a more reliable approach
+              Navigator.of(context).popUntil((route) => route.isFirst);
+
+              // If using tabs, ensure the dashboard tab is selected
+              if (tabsPageKey.currentState != null) {
+                // Use index 0 for dashboard tab
+                tabsPageKey.currentState!.navigateToTab(0);
+              }
             }
-            // Navigate to dashboard
-            NavigationDelegate.instance.navigateTo('/dashboard');
           });
           return;
         }
@@ -281,7 +296,8 @@ class FCMService {
   }
 
   // Handle reload action from notification data
-  Future<void> _handleReloadAction(BuildContext? context) async {
+  Future<void> _handleReloadAction(BuildContext? context,
+      {bool isBackgroundOrTerminated = false}) async {
     if (kDebugMode) {
       print("Handling reload action");
     }
@@ -322,16 +338,22 @@ class FCMService {
         ]);
       }
 
-      // Show snackbar if context is available (foreground scenario)
-      if (context != null && context.mounted) {
+      // Show snackbar ONLY if context is available AND this is a foreground scenario
+      if (context != null && context.mounted && !isBackgroundOrTerminated) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text("Dados atualizados com sucesso"),
             action: SnackBarAction(
               label: 'Ver',
               onPressed: () {
-                // Navigate to dashboard as per user's change
-                NavigationDelegate.instance.navigateTo('/dashboard');
+                // First pop to the root route
+                Navigator.of(context).popUntil((route) => route.isFirst);
+
+                // If using Tabs, ensure the correct tab is selected
+                if (tabsPageKey.currentState != null) {
+                  // Assuming 0 is the dashboard tab index - adjust if needed
+                  tabsPageKey.currentState!.navigateToTab(0);
+                }
               },
             ),
           ),
@@ -342,8 +364,8 @@ class FCMService {
         print("Error handling reload action: $e");
       }
 
-      // Show error snackbar if context is available
-      if (context != null && context.mounted) {
+      // Show error snackbar ONLY if context is available AND this is a foreground scenario
+      if (context != null && context.mounted && !isBackgroundOrTerminated) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text("Erro ao atualizar dados"),

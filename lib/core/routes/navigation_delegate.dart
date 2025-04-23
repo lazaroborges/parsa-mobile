@@ -191,6 +191,13 @@ class NavigationDelegate {
     }
 
     switch (section) {
+      case '':
+        navigateTo('/');
+        break;
+      case 'dashboard':
+        // Navigate to home/dashboard
+        navigateTo('/');
+        break;
       case 'budgets':
         if (id != null) {
           // Use direct route path with ID for budgets

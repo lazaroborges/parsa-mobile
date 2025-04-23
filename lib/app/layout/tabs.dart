@@ -312,6 +312,19 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
       }
     });
   }
+
+  void navigateToTab(int index) {
+    if (mounted) {
+      final menuItems = getDestinations(context,
+          shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+
+      if (index >= 0 && index < menuItems.length) {
+        setState(() {
+          selectedDestination = menuItems[index];
+        });
+      }
+    }
+  }
 }
 
 class FadeIndexedStack extends StatefulWidget {
