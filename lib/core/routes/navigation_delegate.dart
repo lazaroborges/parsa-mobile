@@ -3,6 +3,7 @@ import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
 import 'package:flutter/foundation.dart';
+import 'package:parsa/app/layout/tabs.dart';
 
 /// A delegate that handles navigation requests from services
 /// and provides context-aware navigation when possible
@@ -29,9 +30,66 @@ class NavigationDelegate {
         if (normalizedRoute == '/' || normalizedRoute.isEmpty) {
           // Pop to root for home navigation
           navigatorKey.currentState!.popUntil((route) => route.isFirst);
+          // Ensure the dashboard tab is selected
+          if (tabsPageKey.currentState != null) {
+            tabsPageKey.currentState!.navigateToTab(0);
+          }
         } else {
-          navigatorKey.currentState!
-              .pushNamed(normalizedRoute, arguments: queryParams);
+          // Check if we are already in TabsPage context
+          bool isInTabsPage = false;
+          navigatorKey.currentContext?.visitAncestorElements((element) {
+            if (element.widget is TabsPage) {
+              isInTabsPage = true;
+              return false;
+            }
+            return true;
+          });
+
+          if (isInTabsPage && tabsPageKey.currentState != null) {
+            // Map routes to tab indices
+            int tabIndex = 0;
+            if (normalizedRoute.startsWith('/stats')) {
+              tabIndex = 3; // Assuming stats is the 4th tab (index 3)
+            } else if (normalizedRoute.startsWith('/transactions')) {
+              tabIndex = 2; // Assuming transactions is the 3rd tab (index 2)
+            } else if (normalizedRoute.startsWith('/budgets')) {
+              tabIndex = 1; // Assuming budgets is the 2nd tab (index 1)
+            } else if (normalizedRoute.startsWith('/accounts')) {
+              tabIndex = 4; // Assuming accounts is the 5th tab (index 4)
+            }
+            // Navigate to the correct tab
+            tabsPageKey.currentState!.navigateToTab(tabIndex);
+            // If there are query parameters or specific sub-routes, handle them within the tab
+            if (queryParams != null || normalizedRoute.contains('/')) {
+              navigatorKey.currentState!
+                  .pushNamed(normalizedRoute, arguments: queryParams);
+            }
+          } else {
+            // If not in TabsPage, pop to root and then navigate
+            navigatorKey.currentState!.popUntil((route) => route.isFirst);
+            // Now push the TabsPage if needed, or ensure the correct tab is selected
+            if (tabsPageKey.currentState != null) {
+              int tabIndex = 0;
+              if (normalizedRoute.startsWith('/stats')) {
+                tabIndex = 3;
+              } else if (normalizedRoute.startsWith('/transactions')) {
+                tabIndex = 2;
+              } else if (normalizedRoute.startsWith('/budgets')) {
+                tabIndex = 1;
+              } else if (normalizedRoute.startsWith('/accounts')) {
+                tabIndex = 4;
+              }
+              tabsPageKey.currentState!.navigateToTab(tabIndex);
+              if (queryParams != null || normalizedRoute.contains('/')) {
+                navigatorKey.currentState!
+                    .pushNamed(normalizedRoute, arguments: queryParams);
+              }
+            } else {
+              // Fallback to pushing the route directly if TabsPage state is not available
+              navigatorKey.currentState!
+                  .pushNamed(normalizedRoute, arguments: queryParams);
+            }
+          }
         }
       } else {
         print('Error: Navigator is not available');

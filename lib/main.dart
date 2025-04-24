@@ -89,7 +89,7 @@ void main() async {
   );
 
   // Initialize Branch but don't process links yet
-  await BranchConfig.initialize();
+  // await BranchConfig.initialize();
 
   final app = MultiProvider(
     providers: [

@@ -165,30 +165,6 @@ class FCMService {
         }
       });
 
-      // Make sure FCM token is registered with the backend
-      final token = await PermissionService.instance.getToken();
-      if (token != null) {
-        final success = await saveTokenToServer(token);
-        _isTokenRegistered = success;
-
-        if (kDebugMode) {
-          print(_isTokenRegistered
-              ? 'FCM token successfully registered with backend'
-              : 'Failed to register FCM token with backend');
-        }
-
-        // Setup token refresh listener
-        messaging.onTokenRefresh.listen((newToken) async {
-          if (kDebugMode) {
-            print('FCM Token refreshed: $newToken');
-          }
-          // Update our registered state
-          _isTokenRegistered = await saveTokenToServer(newToken);
-        });
-      } else if (kDebugMode) {
-        print('Failed to get FCM token during initialization');
-      }
-
       final initialMessage = await messaging.getInitialMessage();
       if (initialMessage != null) {
         if (kDebugMode) {
@@ -234,6 +210,30 @@ class FCMService {
         // Use NavigationDelegate to navigate based on the route
         NavigationDelegate.instance
             .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
+      }
+
+      // Make sure FCM token is registered with the backend
+      final token = await PermissionService.instance.getToken();
+      if (token != null) {
+        final success = await saveTokenToServer(token);
+        _isTokenRegistered = success;
+
+        if (kDebugMode) {
+          print(_isTokenRegistered
+              ? 'FCM token successfully registered with backend'
+              : 'Failed to register FCM token with backend');
+        }
+
+        // Setup token refresh listener
+        messaging.onTokenRefresh.listen((newToken) async {
+          if (kDebugMode) {
+            print('FCM Token refreshed: $newToken');
+          }
+          // Update our registered state
+          _isTokenRegistered = await saveTokenToServer(newToken);
+        });
+      } else if (kDebugMode) {
+        print('Failed to get FCM token during initialization');
       }
 
       _isInitialized = true;
