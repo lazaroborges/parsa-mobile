@@ -151,7 +151,8 @@ class FCMService {
         if (message.data.containsKey('route')) {
           final route = message.data['route'];
           final queryParams = message.data['queryParams'] != null
-              ? jsonDecode(message.data['queryParams']) as Map<String, String>
+              ? (jsonDecode(message.data['queryParams']) as Map<String, dynamic>)
+                  .map((key, value) => MapEntry(key, value.toString()))
               : null;
 
           if (kDebugMode) {
@@ -198,8 +199,8 @@ class FCMService {
         // Handle standard route navigation
         final route = initialMessage.data['route'];
         final queryParams = initialMessage.data['queryParams'] != null
-            ? jsonDecode(initialMessage.data['queryParams'])
-                as Map<String, String>
+            ? (jsonDecode(initialMessage.data['queryParams']) as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, value.toString()))
             : null;
 
         if (kDebugMode) {
