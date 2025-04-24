@@ -41,6 +41,9 @@ Push notifications contain structured data with:
   - Shows `BiometricsCheckScreen` for verification
   - Updates session via `SessionService.instance.registerUserSession()`
 
+### Basic Widget Structure and Scaffolding 
+  - App needs to mount the [tabs.dart](mdc:lib/app/layout/tabs.dart) so it has the basic scaffolding and navigation bar.
+
 ## Navigation Architecture
 
 ### Route Processing
