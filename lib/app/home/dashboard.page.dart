@@ -12,6 +12,7 @@ import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/app/tags/tag_list.page.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
@@ -419,9 +420,14 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                 .getSetting(
                                                     SettingKey.userName),
                                             builder: (context, snapshot) {
-                                              final isSubscriber = userData != null && userData['is_subscriber'] == true;
-                                              
-                                              if (userData != null && userData['first_name'] != null) {
+                                              final isSubscriber = userData !=
+                                                      null &&
+                                                  userData['is_subscriber'] ==
+                                                      true;
+
+                                              if (userData != null &&
+                                                  userData['first_name'] !=
+                                                      null) {
                                                 final firstName = utf8.decode(
                                                     userData['first_name']
                                                         .toString()
@@ -446,67 +452,78 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                           ),
                                                     ),
                                                     if (isSubscriber) ...[
-                                                    const SizedBox(width: 8),
-                                                    Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        gradient:
-                                                            const LinearGradient(
-                                                          colors: [
-                                                              const Color(0xFF1c64f2),
-                                                              const Color(0xFF1724c9),
+                                                      const SizedBox(width: 8),
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 8,
+                                                                vertical: 2),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          gradient:
+                                                              const LinearGradient(
+                                                            colors: [
+                                                              const Color(
+                                                                  0xFF1c64f2),
+                                                              const Color(
+                                                                  0xFF1724c9),
+                                                            ],
+                                                            begin: Alignment
+                                                                .topLeft,
+                                                            end: Alignment
+                                                                .bottomRight,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(12),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                      0.2),
+                                                              blurRadius: 2,
+                                                              offset:
+                                                                  const Offset(
+                                                                      0, 1),
+                                                            ),
                                                           ],
-                                                          begin:
-                                                              Alignment.topLeft,
-                                                          end: Alignment
-                                                              .bottomRight,
                                                         ),
-                                                        borderRadius:
-                                                              BorderRadius.circular(12),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black
-                                                              .withOpacity(0.2),
-                                                          blurRadius: 2,
-                                                          offset:
-                                                              const Offset(0, 1),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.star,
-                                                          size: 12,
-                                                          color: Colors.white,
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 2),
-                                                        Text(
-                                                          "PREMIUM",
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 10,
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Icon(
+                                                              Icons.star,
+                                                              size: 12,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 2),
+                                                            Text(
+                                                              "PREMIUM",
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
                                                                 letterSpacing:
                                                                     0.5,
-                                                          ),
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
+                                                      ),
+                                                    ],
                                                   ],
                                                 );
                                               }
 
-                  if (!snapshot.hasData) {
+                                              if (!snapshot.hasData) {
                                                 return const Skeleton(
                                                     width: 70, height: 12);
                                               }
@@ -535,8 +552,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                         gradient:
                                                             const LinearGradient(
                                                           colors: [
-                                                            const Color(0xFF1c64f2),
-                                                            const Color(0xFF1724c9),
+                                                            const Color(
+                                                                0xFF1c64f2),
+                                                            const Color(
+                                                                0xFF1724c9),
                                                           ],
                                                           begin:
                                                               Alignment.topLeft,
@@ -544,15 +563,17 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                               .bottomRight,
                                                         ),
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                12),
+                                                            BorderRadius
+                                                                .circular(12),
                                                         boxShadow: [
                                                           BoxShadow(
                                                             color: Colors.black
-                                                                .withOpacity(0.2),
+                                                                .withOpacity(
+                                                                    0.2),
                                                             blurRadius: 2,
                                                             offset:
-                                                                const Offset(0, 1),
+                                                                const Offset(
+                                                                    0, 1),
                                                           ),
                                                         ],
                                                       ),
@@ -570,11 +591,14 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                           Text(
                                                             "PREMIUM",
                                                             style: TextStyle(
-                                                              color: Colors.white,
+                                                              color:
+                                                                  Colors.white,
                                                               fontSize: 10,
                                                               fontWeight:
-                                                                  FontWeight.bold,
-                                                              letterSpacing: 0.5,
+                                                                  FontWeight
+                                                                      .bold,
+                                                              letterSpacing:
+                                                                  0.5,
                                                             ),
                                                           ),
                                                         ],
@@ -864,7 +888,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 child: CardWithHeader(
                   title: t.home.last_transactions,
                   onHeaderButtonClick: () {
-                    RouteUtils.pushRoute(context, const TransactionsPage());
+                    tabsPageKey.currentState?.navigateToTab(1);
                   },
                   body: DashboardTransactionList(
                     child: TransactionListComponent(
@@ -917,12 +941,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               body: ChartByCategories(
                                   datePeriodState: dateRangeService),
                               onHeaderButtonClick: () {
-                                RouteUtils.pushRoute(
-                                  context,
-                                  StatsPage(
-                                      dateRangeService: dateRangeService,
-                                      initialIndex: 0),
-                                );
+                                tabsPageKey.currentState
+                                    ?.navigateToStatsTabWithIndex(0);
                               }),
 
                           const SizedBox(height: 12),
@@ -935,13 +955,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               endDate: dateRangeService.endDate,
                             ),
                             onHeaderButtonClick: () {
-                              RouteUtils.pushRoute(
-                                context,
-                                StatsPage(
-                                  dateRangeService: dateRangeService,
-                                  initialIndex: 2,
-                                ),
-                              );
+                              tabsPageKey.currentState
+                                  ?.navigateToStatsTabWithIndex(2);
                             },
                           ),
                           const SizedBox(height: 12),
@@ -953,15 +968,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                 maxDate: dateRangeService.endDate,
                               ),
                             ),
-                            onHeaderButtonClick: () {
-                              RouteUtils.pushRoute(
-                                context,
-                                StatsPage(
-                                  dateRangeService: dateRangeService,
-                                  initialIndex: 0,
-                                ),
-                              );
-                            },
+                            onHeaderButtonClick: () => RouteUtils.pushRoute(
+                              context,
+                              const TagListPage(),
+                            ),
                           ),
                           const SizedBox(height: 12),
                           StreamBuilder(

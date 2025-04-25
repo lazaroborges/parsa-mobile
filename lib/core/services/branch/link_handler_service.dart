@@ -213,7 +213,7 @@ class LinkHandlerService {
           }
         });
 
-        NavigationDelegate.instance.navigateToStats(subPath, stringParams);
+        // NavigationDelegate.instance.navigateToStats(subPath, stringParams);
         break;
 
       case 'subscription':

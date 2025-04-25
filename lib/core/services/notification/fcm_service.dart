@@ -151,7 +151,8 @@ class FCMService {
         if (message.data.containsKey('route')) {
           final route = message.data['route'];
           final queryParams = message.data['queryParams'] != null
-              ? (jsonDecode(message.data['queryParams']) as Map<String, dynamic>)
+              ? (jsonDecode(message.data['queryParams'])
+                      as Map<String, dynamic>)
                   .map((key, value) => MapEntry(key, value.toString()))
               : null;
 
@@ -161,8 +162,7 @@ class FCMService {
           }
 
           // Use NavigationDelegate to navigate based on the route
-          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route,
-              queryParams: queryParams);
+          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route);
         }
       });
 
@@ -199,7 +199,8 @@ class FCMService {
         // Handle standard route navigation
         final route = initialMessage.data['route'];
         final queryParams = initialMessage.data['queryParams'] != null
-            ? (jsonDecode(initialMessage.data['queryParams']) as Map<String, dynamic>)
+            ? (jsonDecode(initialMessage.data['queryParams'])
+                    as Map<String, dynamic>)
                 .map((key, value) => MapEntry(key, value.toString()))
             : null;
 
@@ -209,8 +210,7 @@ class FCMService {
         }
 
         // Use NavigationDelegate to navigate based on the route
-        NavigationDelegate.instance
-            .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
+        NavigationDelegate.instance.navigateBasedOnNotificationRoute(route);
       }
 
       // Make sure FCM token is registered with the backend
