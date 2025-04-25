@@ -114,7 +114,9 @@ class FCMService {
           // Get current context
           final context = navigatorKey.currentContext;
           if (context != null) {
-            _handleReloadAction(context);
+            // Extract itemId from message data - fix the key name to match item_id
+            final String? itemId = message.data['item_id'];
+            _handleReloadAction(context, itemId: itemId);
           }
         }
       });
@@ -132,8 +134,10 @@ class FCMService {
           // Handle reload action
           final context = navigatorKey.currentContext;
           if (context != null) {
+            // Fix the key name to match item_id
+            final String? itemId = message.data['item_id'];
             // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-            _handleReloadAction(context, isBackgroundOrTerminated: true);
+            _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
 
             // Navigate to dashboard using a more reliable approach
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -151,7 +155,8 @@ class FCMService {
         if (message.data.containsKey('route')) {
           final route = message.data['route'];
           final queryParams = message.data['queryParams'] != null
-              ? jsonDecode(message.data['queryParams']) as Map<String, String>
+              ? (jsonDecode(message.data['queryParams']) as Map<String, dynamic>)
+                  .map((key, value) => MapEntry(key, value.toString()))
               : null;
 
           if (kDebugMode) {
@@ -164,6 +169,55 @@ class FCMService {
               queryParams: queryParams);
         }
       });
+
+      final initialMessage = await messaging.getInitialMessage();
+      if (initialMessage != null) {
+        if (kDebugMode) {
+          print(
+              'App was terminated and opened via notification: ${initialMessage.messageId}');
+          print('Message data: ${initialMessage.data}');
+        }
+
+        if (initialMessage.data.containsKey('action') &&
+            initialMessage.data['action'] == 'reload') {
+          // Handle reload action - context will be available after app is fully loaded
+          Future.delayed(const Duration(seconds: 1), () {
+            final context = navigatorKey.currentContext;
+            if (context != null) {
+              // Fix the key name to match item_id
+              final String? itemId = initialMessage.data['item_id'];
+              // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
+              _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
+
+              // Navigate to dashboard using a more reliable approach
+              Navigator.of(context).popUntil((route) => route.isFirst);
+
+              // If using tabs, ensure the dashboard tab is selected
+              if (tabsPageKey.currentState != null) {
+                // Use index 0 for dashboard tab
+                tabsPageKey.currentState!.navigateToTab(0);
+              }
+            }
+          });
+          return;
+        }
+
+        // Handle standard route navigation
+        final route = initialMessage.data['route'];
+        final queryParams = initialMessage.data['queryParams'] != null
+            ? (jsonDecode(initialMessage.data['queryParams']) as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, value.toString()))
+            : null;
+
+        if (kDebugMode) {
+          print('Terminated app notification route: $route');
+          print('Terminated app notification queryParams: $queryParams');
+        }
+
+        // Use NavigationDelegate to navigate based on the route
+        NavigationDelegate.instance
+            .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
+      }
 
       // Make sure FCM token is registered with the backend
       final token = await PermissionService.instance.getToken();
@@ -187,53 +241,6 @@ class FCMService {
         });
       } else if (kDebugMode) {
         print('Failed to get FCM token during initialization');
-      }
-
-      final initialMessage = await messaging.getInitialMessage();
-      if (initialMessage != null) {
-        if (kDebugMode) {
-          print(
-              'App was terminated and opened via notification: ${initialMessage.messageId}');
-          print('Message data: ${initialMessage.data}');
-        }
-
-        if (initialMessage.data.containsKey('action') &&
-            initialMessage.data['action'] == 'reload') {
-          // Handle reload action - context will be available after app is fully loaded
-          Future.delayed(const Duration(seconds: 1), () {
-            final context = navigatorKey.currentContext;
-            if (context != null) {
-              // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-              _handleReloadAction(context, isBackgroundOrTerminated: true);
-
-              // Navigate to dashboard using a more reliable approach
-              Navigator.of(context).popUntil((route) => route.isFirst);
-
-              // If using tabs, ensure the dashboard tab is selected
-              if (tabsPageKey.currentState != null) {
-                // Use index 0 for dashboard tab
-                tabsPageKey.currentState!.navigateToTab(0);
-              }
-            }
-          });
-          return;
-        }
-
-        // Handle standard route navigation
-        final route = initialMessage.data['route'];
-        final queryParams = initialMessage.data['queryParams'] != null
-            ? jsonDecode(initialMessage.data['queryParams'])
-                as Map<String, String>
-            : null;
-
-        if (kDebugMode) {
-          print('Terminated app notification route: $route');
-          print('Terminated app notification queryParams: $queryParams');
-        }
-
-        // Use NavigationDelegate to navigate based on the route
-        NavigationDelegate.instance
-            .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
       }
 
       _isInitialized = true;
@@ -297,9 +304,9 @@ class FCMService {
 
   // Handle reload action from notification data
   Future<void> _handleReloadAction(BuildContext? context,
-      {bool isBackgroundOrTerminated = false}) async {
+      {bool isBackgroundOrTerminated = false, String? itemId}) async {
     if (kDebugMode) {
-      print("Handling reload action");
+      print("Handling reload action${itemId != null ? ' for itemId: $itemId' : ''}");
     }
 
     try {
@@ -331,11 +338,13 @@ class FCMService {
           print("TabsPage not found, refreshing directly");
         }
 
-        // First fetch accounts, then transactions
+        print("--------------------    Fetching transactions for item: $itemId");
+
+        // First fetch accounts, then transactions from ItemId
         await Future.wait([
           fetchUserAccounts(),
-          fetchUserTransactions(null),
         ]);
+        await fetchUserTransactions(null, item: itemId);
       }
 
       // Show snackbar ONLY if context is available AND this is a foreground scenario

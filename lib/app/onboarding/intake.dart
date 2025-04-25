@@ -168,7 +168,7 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
       //Mark intake as completed in SharedPreferences
       await SharedPreferencesAsync.instance.setIntakeCompleted(true);
 
-      // Navigate to subscription page using go_router
+      // Navigate to subscription page
       await Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => PremiumWidget()),

@@ -136,23 +136,6 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     }
   }
 
-  Future<void> _fetchAndSyncTransactions() async {
-    setState(() {
-      isLoadingTransactions = true;
-    });
-    try {
-      await fetchUserTransactions(null);
-      setState(() {
-        isLoadingTransactions = false;
-      });
-    } catch (e) {
-      print('--Error fetching user transactions: $e');
-      setState(() {
-        isLoadingTransactions = false;
-      });
-    }
-  }
-
   // Public method to refresh both transactions and accounts from anywhere in the app
   // This can be called when a notification with action=reload is received
   Future<void> refreshData({bool showLoading = true}) async {

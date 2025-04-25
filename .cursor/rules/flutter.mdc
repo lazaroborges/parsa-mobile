@@ -1,9 +1,0 @@
----
-description: Use Provider for context Instead of trying to pass variables and stuff through the widget three. 
-globs: *.dart
----
-
-# Your rule content
-Use Provider for context Instead of trying to pass variables and stuff through the widget three. 
-- You can @ files here
-- You can use markdown but dont have to
