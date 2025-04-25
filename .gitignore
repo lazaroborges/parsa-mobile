@@ -14,8 +14,9 @@ migrate_working_dir/
 .env
 correct_webview_convert.dart
 GoogleService-Info.plist
+*.p8
 *.rdb
-
+parsa-financial-parser-br-2-950fca6428a1.json
 # Firebase
 google-services.json
 ios/Runner/GoogleService-Info.plist 
