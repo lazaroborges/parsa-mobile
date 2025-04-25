@@ -119,7 +119,7 @@ class LinkHandlerService {
         if (path != null && path.isNotEmpty) {
           _routeBasedOnPath(path, customParams);
         } else {
-          NavigationDelegate.instance.navigateTo('/');
+          NavigationDelegate.instance.navigateToAppRoute('dashboard');
         }
       }
     } catch (e) {
@@ -143,109 +143,63 @@ class LinkHandlerService {
     final segments = cleanPath.split('/');
 
     if (segments.isEmpty) {
-      try {
-        NavigationDelegate.instance.navigateTo('/');
-      } catch (e) {
-        print('Error navigating to home: $e');
-      }
+      NavigationDelegate.instance.navigateToAppRoute('dashboard');
       return;
     }
 
-    // Get the main section and the ID if available
     final section = segments[0].toLowerCase();
     final id = segments.length > 1 ? segments[1] : params['id'];
 
     switch (section) {
+      case 'dashboard':
+        NavigationDelegate.instance.navigateToAppRoute('dashboard');
+        break;
       case 'budgets':
         if (id != null) {
-          NavigationDelegate.instance.navigateToBudget(id);
+          NavigationDelegate.instance.navigateToAppRoute('budgets/id', id: id);
         } else {
-          NavigationDelegate.instance.navigateTo('/budgets');
+          NavigationDelegate.instance.navigateToAppRoute('budgets');
         }
         break;
-
       case 'transactions':
         if (id != null) {
-          NavigationDelegate.instance.navigateToTransaction(transactionId: id);
+          NavigationDelegate.instance
+              .navigateToAppRoute('transactions/id', id: id);
         } else {
-          // Convert params to String,String map for filters
-          final stringParams = <String, String>{};
-          params.forEach((key, value) {
-            if (key is String) {
-              stringParams[key] = value;
-            }
-          });
-
-          if (stringParams.isNotEmpty) {
-            NavigationDelegate.instance
-                .navigateToTransaction(params: stringParams);
-          } else {
-            NavigationDelegate.instance.navigateTo('/transactions');
-          }
+          NavigationDelegate.instance.navigateToAppRoute('transactions');
         }
         break;
-
       case 'accounts':
         if (id != null) {
-          try {
-            NavigationDelegate.instance.navigateToAccount(id);
-          } catch (e) {
-            print('Error navigating to account $id: $e');
-          }
+          NavigationDelegate.instance.navigateToAppRoute('accounts/id', id: id);
         } else {
-          try {
-            NavigationDelegate.instance.navigateTo('/accounts');
-          } catch (e) {
-            print('Error navigating to accounts list: $e');
-          }
+          NavigationDelegate.instance.navigateToAppRoute('accounts');
         }
         break;
-
+      case 'tags':
+        if (id != null) {
+          NavigationDelegate.instance.navigateToAppRoute('tags/id', id: id);
+        } else {
+          NavigationDelegate.instance.navigateToAppRoute('tags');
+        }
+        break;
       case 'stats':
-        final subPath =
-            segments.length > 1 ? segments.sublist(1).join('/') : '';
-
-        // Convert params to String,String map for _navigateToStats
-        final stringParams = <String, String>{};
-        params.forEach((key, value) {
-          if (key is String) {
-            stringParams[key] = value;
-          }
-        });
-
-        // NavigationDelegate.instance.navigateToStats(subPath, stringParams);
-        break;
-
-      case 'subscription':
-        NavigationDelegate.instance.navigateTo('/subscription');
-        break;
-
-      case 'settings':
         if (segments.length > 1) {
-          final settingsSection = segments[1].toLowerCase();
-
-          switch (settingsSection) {
-            case 'preferences':
-              NavigationDelegate.instance.navigateTo('/settings/preferences');
-              break;
-            case 'about':
-              NavigationDelegate.instance.navigateTo('/settings/about');
-              break;
-            case 'export':
-              NavigationDelegate.instance.navigateTo('/settings/export');
-              break;
-            default:
-              NavigationDelegate.instance.navigateTo('/settings');
-              break;
-          }
+          final subPath = segments.sublist(1).join('/');
+          NavigationDelegate.instance.navigateToAppRoute('stats/$subPath');
         } else {
-          NavigationDelegate.instance.navigateTo('/settings');
+          NavigationDelegate.instance.navigateToAppRoute('stats');
         }
         break;
-
+      case 'subscription':
+        NavigationDelegate.instance.navigateToAppRoute('subscription');
+        break;
+      case 'settings':
+        NavigationDelegate.instance.navigateToAppRoute('settings');
+        break;
       default:
         print('Unhandled deep link path: $path');
-        NavigationDelegate.instance.navigateTo('/');
+        NavigationDelegate.instance.navigateToAppRoute('dashboard');
         break;
     }
   }

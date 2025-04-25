@@ -149,20 +149,19 @@ class FCMService {
 
         // Handle standard route navigation
         if (message.data.containsKey('route')) {
-          final route = message.data['route'];
-          final queryParams = message.data['queryParams'] != null
-              ? (jsonDecode(message.data['queryParams'])
-                      as Map<String, dynamic>)
-                  .map((key, value) => MapEntry(key, value.toString()))
-              : null;
-
-          if (kDebugMode) {
-            print('Notification route: $route');
-            print('Notification queryParams: $queryParams');
+          final route = message.data['route'] as String;
+          String? id;
+          // If route contains a slash and an id, split it
+          if (route.contains('/') && !route.startsWith('stats')) {
+            final parts = route.split('/');
+            if (parts.length == 2) {
+              NavigationDelegate.instance
+                  .navigateToAppRoute('${parts[0]}/id', id: parts[1]);
+              return;
+            }
           }
-
-          // Use NavigationDelegate to navigate based on the route
-          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route);
+          // For stats subroutes (e.g., stats/cash-flow)
+          NavigationDelegate.instance.navigateToAppRoute(route);
         }
       });
 
@@ -197,20 +196,17 @@ class FCMService {
         }
 
         // Handle standard route navigation
-        final route = initialMessage.data['route'];
-        final queryParams = initialMessage.data['queryParams'] != null
-            ? (jsonDecode(initialMessage.data['queryParams'])
-                    as Map<String, dynamic>)
-                .map((key, value) => MapEntry(key, value.toString()))
-            : null;
-
-        if (kDebugMode) {
-          print('Terminated app notification route: $route');
-          print('Terminated app notification queryParams: $queryParams');
+        final route = initialMessage.data['route'] as String;
+        String? id;
+        if (route.contains('/') && !route.startsWith('stats')) {
+          final parts = route.split('/');
+          if (parts.length == 2) {
+            NavigationDelegate.instance
+                .navigateToAppRoute('${parts[0]}/id', id: parts[1]);
+            return;
+          }
         }
-
-        // Use NavigationDelegate to navigate based on the route
-        NavigationDelegate.instance.navigateBasedOnNotificationRoute(route);
+        NavigationDelegate.instance.navigateToAppRoute(route);
       }
 
       // Make sure FCM token is registered with the backend

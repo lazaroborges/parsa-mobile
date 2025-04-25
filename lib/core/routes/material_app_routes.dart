@@ -60,7 +60,7 @@ class MaterialAppRoutes {
 
       return MaterialPageRoute(builder: (context) {
         return FutureBuilder<Budget?>(
-          future: BudgetServive.instance.getBudgetById(budgetId).first,
+          future: BudgetService.instance.getBudgetById(budgetId).first,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(

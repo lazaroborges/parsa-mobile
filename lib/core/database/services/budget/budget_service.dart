@@ -3,11 +3,11 @@ import 'package:parsa/core/api/post_methods/post_user_budget.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 
-class BudgetServive {
+class BudgetService {
   final AppDB db;
 
-  BudgetServive._(this.db);
-  static final BudgetServive instance = BudgetServive._(AppDB.instance);
+  BudgetService._(this.db);
+  static final BudgetService instance = BudgetService._(AppDB.instance);
 
   Future<bool> insertBudget(Budget budget, {bool skipServerSync = false}) {
     return db.transaction(() async {
