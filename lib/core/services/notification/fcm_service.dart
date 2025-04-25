@@ -343,8 +343,8 @@ class FCMService {
         // First fetch accounts, then transactions from ItemId
         await Future.wait([
           fetchUserAccounts(),
-          fetchUserTransactions(null, item: itemId),
         ]);
+        await fetchUserTransactions(null, item: itemId);
       }
 
       // Show snackbar ONLY if context is available AND this is a foreground scenario

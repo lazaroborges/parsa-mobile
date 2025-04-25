@@ -77,8 +77,6 @@ Future<void> syncTransactions(String apiResponse) async {
       print('No transactions to sync.');
       return;
     }
-
-
     // Ensure all tags exist
     Set<String> allTagIds = {};
     for (var apiTransaction in apiTransactions) {
