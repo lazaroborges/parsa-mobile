@@ -102,6 +102,9 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
         // Enable at least general notifications
         await NotificationPreferencesService.instance.updatePreferences(
           generalEnabled: true,
+          budgetsEnabled: true,
+          transactionsEnabled: true,
+          accountEnabled: true,
         );
 
         // Reload preferences
