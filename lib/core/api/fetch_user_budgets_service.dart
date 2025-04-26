@@ -47,7 +47,8 @@ class ApiBudget {
       startDate: json['start_date'] != null
           ? DateTime.parse(json['start_date'])
           : null,
-      endDate: json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
+      endDate:
+          json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
     );
   }
 }
@@ -57,7 +58,7 @@ Future<void> fetchUserBudgets(BuildContext context) async {
     // Get auth token directly from Auth0Provider instance
     final auth0Provider = Auth0Provider.instance;
     final credentials = await auth0Provider.credentials;
-    
+
     if (credentials == null) {
       print('User not authenticated. Cannot fetch budgets.');
       return;
@@ -77,7 +78,7 @@ Future<void> fetchUserBudgets(BuildContext context) async {
     if (response.statusCode == 200) {
       // Explicitly decode as UTF-8
       final String decodedBody = utf8.decode(response.bodyBytes);
-      
+
       // Sync the fetched budgets with the local database
       await syncBudgets(decodedBody);
     } else {
@@ -172,14 +173,14 @@ List<Budget> convertBudgetsToLocal(List<ApiBudget> apiBudgets) {
 }
 
 Future<void> insertBudgetsIntoDB(List<Budget> budgets) async {
-  final budgetService = BudgetServive.instance;
+  final budgetService = BudgetService.instance;
   final categoryService = CategoryService.instance;
-  
+
   for (final budget in budgets) {
     try {
       // Check if budget already exists
       final existingBudget = await budgetService.getBudgetById(budget.id).first;
-      
+
       // Create a copy of the budget without categories to avoid foreign key constraint errors
       Budget budgetWithoutCategories = Budget(
         id: budget.id,
@@ -192,40 +193,41 @@ Future<void> insertBudgetsIntoDB(List<Budget> budgets) async {
         startDate: budget.startDate,
         endDate: budget.endDate,
       );
-      
+
       // First insert/update the budget without categories
       if (existingBudget != null) {
-        await budgetService.updateBudget(budgetWithoutCategories, skipServerSync: true);
+        await budgetService.updateBudget(budgetWithoutCategories,
+            skipServerSync: true);
       } else {
-        await budgetService.insertBudget(budgetWithoutCategories, skipServerSync: true);
+        await budgetService.insertBudget(budgetWithoutCategories,
+            skipServerSync: true);
       }
-      
+
       // Now handle the categories - map category names to IDs
       if (budget.categories != null && budget.categories!.isNotEmpty) {
         List<String> categoryIds = [];
-        
+
         // For each category name, find the corresponding category ID
         for (String categoryName in budget.categories!) {
-          final category = await categoryService.getCategoryByName(categoryName).first;
+          final category =
+              await categoryService.getCategoryByName(categoryName).first;
           if (category != null) {
             categoryIds.add(category.id);
-            
+
             // Insert the budget-category relationship
             await budgetService.db.into(budgetService.db.budgetCategory).insert(
-              BudgetCategoryData(
-                budgetID: budget.id,
-                categoryID: category.id
-              )
-            );
+                BudgetCategoryData(
+                    budgetID: budget.id, categoryID: category.id));
           } else {
             print('Category not found for name: $categoryName');
           }
         }
-        
-        print('Mapped categories for budget ${budget.id}: ${categoryIds.length} of ${budget.categories!.length} found');
+
+        print(
+            'Mapped categories for budget ${budget.id}: ${categoryIds.length} of ${budget.categories!.length} found');
       }
     } catch (e) {
       print('Error saving budget ${budget.id}: $e');
     }
   }
-} 
+}

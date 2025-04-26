@@ -4,6 +4,12 @@ import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/providers/link_provider.dart';
+import 'package:parsa/core/routes/pending_navigation.dart';
+import 'package:parsa/core/database/services/account/account_service.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/routes/pending_navigation.dart';
+import 'package:parsa/main.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -12,6 +18,7 @@ class LinkHandlerService {
 
   StreamSubscription<Map>? _branchSubscription;
   bool _isProcessingDeepLink = false;
+  PendingNavigation? pendingNavigation;
 
   /// Initialize the link handler service and set up Branch SDK listeners
   Future<void> initialize() async {
@@ -136,70 +143,76 @@ class LinkHandlerService {
       return;
     }
 
-    // Handle path that might have leading slash
     final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-
-    // Split path into segments
     final segments = cleanPath.split('/');
 
     if (segments.isEmpty) {
-      NavigationDelegate.instance.navigateToAppRoute('dashboard');
+      pendingNavigation = PendingNavigation(route: 'dashboard');
       return;
     }
 
     final section = segments[0].toLowerCase();
     final id = segments.length > 1 ? segments[1] : params['id'];
+    Future<dynamic>? dataFuture;
+    final context = navigatorKey.currentContext;
 
     switch (section) {
       case 'dashboard':
-        NavigationDelegate.instance.navigateToAppRoute('dashboard');
+        pendingNavigation = PendingNavigation(route: 'dashboard');
         break;
       case 'budgets':
         if (id != null) {
-          NavigationDelegate.instance.navigateToAppRoute('budgets/id', id: id);
+          dataFuture = BudgetService.instance.getBudgetById(id).first;
+          pendingNavigation = PendingNavigation(
+              route: 'budgets/id', id: id, dataFuture: dataFuture);
         } else {
-          NavigationDelegate.instance.navigateToAppRoute('budgets');
+          pendingNavigation = PendingNavigation(route: 'budgets');
         }
         break;
       case 'transactions':
         if (id != null) {
-          NavigationDelegate.instance
-              .navigateToAppRoute('transactions/id', id: id);
+          dataFuture = TransactionService.instance.getTransactionById(id).first;
+          pendingNavigation = PendingNavigation(
+              route: 'transactions/id', id: id, dataFuture: dataFuture);
         } else {
-          NavigationDelegate.instance.navigateToAppRoute('transactions');
+          pendingNavigation = PendingNavigation(route: 'transactions');
         }
         break;
       case 'accounts':
         if (id != null) {
-          NavigationDelegate.instance.navigateToAppRoute('accounts/id', id: id);
+          dataFuture = AccountService.instance.getAccountById(id).first;
+          pendingNavigation = PendingNavigation(
+              route: 'accounts/id', id: id, dataFuture: dataFuture);
         } else {
-          NavigationDelegate.instance.navigateToAppRoute('accounts');
+          pendingNavigation = PendingNavigation(route: 'accounts');
         }
         break;
       case 'tags':
-        if (id != null) {
-          NavigationDelegate.instance.navigateToAppRoute('tags/id', id: id);
+        if (id != null && context != null) {
+          dataFuture = fetchAndFindTagById(context, id);
+          pendingNavigation = PendingNavigation(
+              route: 'tags/id', id: id, dataFuture: dataFuture);
         } else {
-          NavigationDelegate.instance.navigateToAppRoute('tags');
+          pendingNavigation = PendingNavigation(route: 'tags');
         }
         break;
       case 'stats':
         if (segments.length > 1) {
           final subPath = segments.sublist(1).join('/');
-          NavigationDelegate.instance.navigateToAppRoute('stats/$subPath');
+          pendingNavigation = PendingNavigation(route: 'stats/$subPath');
         } else {
-          NavigationDelegate.instance.navigateToAppRoute('stats');
+          pendingNavigation = PendingNavigation(route: 'stats');
         }
         break;
       case 'subscription':
-        NavigationDelegate.instance.navigateToAppRoute('subscription');
+        pendingNavigation = PendingNavigation(route: 'subscription');
         break;
       case 'settings':
-        NavigationDelegate.instance.navigateToAppRoute('settings');
+        pendingNavigation = PendingNavigation(route: 'settings');
         break;
       default:
         print('Unhandled deep link path: $path');
-        NavigationDelegate.instance.navigateToAppRoute('dashboard');
+        pendingNavigation = PendingNavigation(route: 'dashboard');
         break;
     }
   }

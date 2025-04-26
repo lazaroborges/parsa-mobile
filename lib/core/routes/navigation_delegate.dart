@@ -2,6 +2,7 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
+import 'package:flutter/widgets.dart';
 
 class NavigationDelegate {
   static final NavigationDelegate _instance = NavigationDelegate._();
@@ -9,35 +10,50 @@ class NavigationDelegate {
 
   NavigationDelegate._();
 
-  Future<void> navigateToAppRoute(String route, {String? id}) async {
+  void _deferTabNavigation(VoidCallback nav) {
+    if (tabsPageKey.currentState == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => nav());
+    } else {
+      nav();
+    }
+  }
+
+  Future<void> navigateToAppRoute(String route,
+      {String? id, dynamic data}) async {
     try {
       switch (route) {
         case 'dashboard':
-          tabsPageKey.currentState?.navigateToTab(0);
+          _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(0));
           break;
         case 'transactions':
-          tabsPageKey.currentState?.navigateToTab(1);
+          _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(1));
           break;
         case 'stats':
-          tabsPageKey.currentState?.navigateToStatsTabWithIndex(0);
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(0));
           break;
         case 'stats/category':
-          tabsPageKey.currentState?.navigateToStatsTabWithIndex(1);
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(0));
           break;
         case 'stats/subcategory':
-          tabsPageKey.currentState?.navigateToStatsTabWithIndex(2);
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(1));
           break;
         case 'stats/cash-flow':
-          tabsPageKey.currentState?.navigateToStatsTabWithIndex(3);
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(2));
           break;
         case 'stats/financial-health':
-          tabsPageKey.currentState?.navigateToStatsTabWithIndex(4);
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(3));
           break;
         case 'stats/balance-evolution':
-          tabsPageKey.currentState?.navigateToStatsTabWithIndex(5);
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(4));
           break;
         case 'settings':
-          tabsPageKey.currentState?.navigateToTab(3);
+          _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(3));
           break;
         case 'accounts':
           navigatorKey.currentState?.pushNamed('/accounts');
@@ -45,7 +61,7 @@ class NavigationDelegate {
         case 'accounts/id':
           if (id != null) {
             final account =
-                await AccountService.instance.getAccountById(id).first;
+                data ?? await AccountService.instance.getAccountById(id).first;
             if (account != null) {
               navigatorKey.currentState?.pushNamed('/accounts/$id');
             } else {
@@ -58,7 +74,8 @@ class NavigationDelegate {
           break;
         case 'budgets/id':
           if (id != null) {
-            final budget = await BudgetService.instance.getBudgetById(id).first;
+            final budget =
+                data ?? await BudgetService.instance.getBudgetById(id).first;
             if (budget != null) {
               navigatorKey.currentState?.pushNamed('/budgets/$id');
             } else {
@@ -71,12 +88,17 @@ class NavigationDelegate {
           break;
         case 'tags/id':
           if (id != null) {
-            navigatorKey.currentState?.pushNamed('/tags/$id');
+            final tag = data;
+            if (tag != null) {
+              navigatorKey.currentState?.pushNamed('/tags/$id');
+            } else {
+              navigatorKey.currentState?.pushNamed('/tags');
+            }
           }
           break;
         case 'transactions/id':
           if (id != null) {
-            final transaction =
+            final transaction = data ??
                 await TransactionService.instance.getTransactionById(id).first;
             if (transaction != null) {
               navigatorKey.currentState?.pushNamed('/transactions/$id');
@@ -86,7 +108,7 @@ class NavigationDelegate {
           }
           break;
         case 'subscription':
-          navigatorKey.currentState?.pushNamed('/subscription');
+          navigatorKey.currentState?.pushReplacementNamed('/subscription');
           break;
         default:
           tabsPageKey.currentState?.navigateToTab(0);

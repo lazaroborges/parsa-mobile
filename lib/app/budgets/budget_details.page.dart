@@ -68,7 +68,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
     final t = Translations.of(context);
 
     return StreamBuilder(
-        stream: BudgetServive.instance.getBudgetById(widget.budget.id),
+        stream: BudgetService.instance.getBudgetById(widget.budget.id),
         initialData: widget.budget,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return Container();
@@ -106,7 +106,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
                     ).then((confirmed) {
                       if (confirmed != true) return;
 
-                      BudgetServive.instance
+                      BudgetService.instance
                           .deleteBudget(budget.id)
                           .then((value) {
                         Navigator.pop(context);

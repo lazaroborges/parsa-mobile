@@ -975,7 +975,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                           ),
                           const SizedBox(height: 12),
                           StreamBuilder(
-                            stream: BudgetServive.instance.getBudgets(),
+                            stream: BudgetService.instance.getBudgets(),
                             builder: (context, snapshot) {
                               if (!snapshot.hasData) {
                                 return const LinearProgressIndicator();

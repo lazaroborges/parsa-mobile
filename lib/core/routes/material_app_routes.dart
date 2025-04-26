@@ -10,6 +10,8 @@ import 'package:parsa/app/settings/preferences_settings.page.dart';
 import 'package:parsa/app/settings/about.page.dart';
 import 'package:parsa/app/settings/export.page.dart';
 import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
+import 'package:parsa/app/tags/tag_list.page.dart';
+import 'package:parsa/app/tags/tag_form_page.dart';
 import 'package:parsa/core/models/budget/budget.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
@@ -18,6 +20,9 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:flutter/foundation.dart';
+import 'package:parsa/core/database/services/tags/tags_service.dart';
+import 'package:parsa/core/database/app_db.dart';
+import 'package:parsa/core/models/tags/tag.dart';
 
 class MaterialAppRoutes {
   /// Route generator function for MaterialApp to handle both static and dynamic routes
@@ -77,6 +82,39 @@ class MaterialAppRoutes {
                     limitAmount: 0,
                   ),
             );
+          },
+        );
+      });
+    }
+
+    // Tag routes
+    if (routeMatches(['tags'])) {
+      return MaterialPageRoute(builder: (_) => const TagListPage());
+    }
+
+    // Handle direct tag ID paths
+    if (pathSegments.length == 2 && pathSegments[0] == 'tags') {
+      final tagId = pathSegments[1];
+      print('Navigating to tag details for ID: $tagId');
+
+      return MaterialPageRoute(builder: (context) {
+        return FutureBuilder<TagInDB?>(
+          future: TagService.instance.getTagById(tagId).first,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final tag = snapshot.data;
+            if (tag == null) {
+              // Fallback to tags list if tag not found
+              return const TagListPage();
+            }
+
+            // Convert TagInDB to Tag for TagFormPage
+            return TagFormPage(tag: Tag.fromTagInDB(tag));
           },
         );
       });

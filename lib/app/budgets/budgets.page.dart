@@ -27,7 +27,7 @@ class BudgetsPage extends StatelessWidget {
                 const BudgetFormPage(prevPage: BudgetsPage()),
               )),
       body: StreamBuilder(
-          stream: BudgetServive.instance.getBudgets(),
+          stream: BudgetService.instance.getBudgets(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Column(
