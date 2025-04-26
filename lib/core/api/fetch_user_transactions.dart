@@ -17,18 +17,19 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
 
-
-Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int? cousinValue}) async {
+Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int? cousinValue, String? item}) async {
   String url;
-  
-  
-  if (cousinValue != null) {
-    print('Fetching transactions for cousin value: $cousinValue');
-    url = '$apiEndpoint/api/transactions/?cousin=$cousinValue';
-  } else if (nextPageUrl != null) {
-    // Extract just the path and query parameters from the full URL
+
+  if (nextPageUrl != null) {
+    print("Fetching next page using URL: $nextPageUrl");
     Uri nextUri = Uri.parse(nextPageUrl);
     url = '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
+  } else if (item != null) {
+    print("Fetching transactions for item: $item");
+    url = '$apiEndpoint/api/transactions/?item=$item';
+  } else if (cousinValue != null) {
+    print("Fetching transactions for cousin value: $cousinValue");
+    url = '$apiEndpoint/api/transactions/?cousin=$cousinValue';
   } else {
     url = '$apiEndpoint/api/transactions/';
     if (accountId != null) {
@@ -36,7 +37,7 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
     }
   }
 
-  //print('Requesting URL: $url'); // Add this for debugging
+  print('--------Requesting URL: $url');
   
   final auth0Provider = Auth0Provider.instance;
   final credentials = await auth0Provider.credentials;
@@ -76,8 +77,6 @@ Future<void> syncTransactions(String apiResponse) async {
       print('No transactions to sync.');
       return;
     }
-
-
     // Ensure all tags exist
     Set<String> allTagIds = {};
     for (var apiTransaction in apiTransactions) {

@@ -117,7 +117,9 @@ class FCMService {
           // Get current context
           final context = navigatorKey.currentContext;
           if (context != null) {
-            _handleReloadAction(context);
+            // Extract itemId from message data - fix the key name to match item_id
+            final String? itemId = message.data['item_id'];
+            _handleReloadAction(context, itemId: itemId);
           }
         }
       });
@@ -135,8 +137,10 @@ class FCMService {
           // Handle reload action
           final context = navigatorKey.currentContext;
           if (context != null) {
+            // Fix the key name to match item_id
+            final String? itemId = message.data['item_id'];
             // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-            _handleReloadAction(context, isBackgroundOrTerminated: true);
+            _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
 
             // Navigate to dashboard using a more reliable approach
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -202,8 +206,10 @@ class FCMService {
           Future.delayed(const Duration(seconds: 1), () {
             final context = navigatorKey.currentContext;
             if (context != null) {
+              // Fix the key name to match item_id
+              final String? itemId = initialMessage.data['item_id'];
               // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-              _handleReloadAction(context, isBackgroundOrTerminated: true);
+              _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
 
               // Navigate to dashboard using a more reliable approach
               Navigator.of(context).popUntil((route) => route.isFirst);
@@ -337,9 +343,9 @@ class FCMService {
 
   // Handle reload action from notification data
   Future<void> _handleReloadAction(BuildContext? context,
-      {bool isBackgroundOrTerminated = false}) async {
+      {bool isBackgroundOrTerminated = false, String? itemId}) async {
     if (kDebugMode) {
-      print("Handling reload action");
+      print("Handling reload action${itemId != null ? ' for itemId: $itemId' : ''}");
     }
 
     try {
@@ -371,11 +377,13 @@ class FCMService {
           print("TabsPage not found, refreshing directly");
         }
 
-        // First fetch accounts, then transactions
+        print("--------------------    Fetching transactions for item: $itemId");
+
+        // First fetch accounts, then transactions from ItemId
         await Future.wait([
           fetchUserAccounts(),
-          fetchUserTransactions(null),
         ]);
+        await fetchUserTransactions(null, item: itemId);
       }
 
       // Show snackbar ONLY if context is available AND this is a foreground scenario
