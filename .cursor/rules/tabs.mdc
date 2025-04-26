@@ -1,0 +1,67 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Navigation and Tab Structure in Parsa App
+
+## Overview
+The Parsa app is a financial management application with a tab-based navigation system that allows users to access different sections such as Dashboard, Budgets, Transactions, Stats, and Settings. This rule explains the app's entry point, authentication flow, main pages, tab structure, and how navigation works, including navigating to specific pages via tabs and the navigation bar.
+
+## Entry Point and Initial Flow
+- **Main Entry Point**: The app starts in [main.dart](mdc:lib/main.dart), which initializes Firebase, sets up environment variables, and configures providers for state management (e.g., `Auth0Provider` for authentication).
+- **Authentication Check**: The app checks if the user is authenticated using `Auth0Provider.checkLoginStatus()`. If not authenticated, it navigates to [IntroPage](mdc:lib/app/onboarding/intro.page.dart) for login.
+- **Biometric Verification**: Post-authentication, a biometric check is performed via [BiometricsCheckScreen](mdc:lib/core/services/auth/biometrics_check_screen.dart). Upon success, it checks if the user has completed onboarding and a questionnaire to decide the next screen.
+- **Onboarding and Intake**: If not onboarded, users are directed to [OnboardingPage](mdc:lib/app/onboarding/onboarding.dart). If onboarded but questionnaire/intake is incomplete, they are sent to [IntakeForm](mdc:lib/app/onboarding/intake.dart).
+- **Main Interface**: Once all checks are passed, users are directed to [TabsPage](mdc:lib/app/layout/tabs.dart), which serves as the central hub for navigation.
+
+## Authentication Flow
+- **Auth0 Integration**: Authentication is managed by `Auth0Provider`, ensuring users are logged in before accessing the main app. Credentials are verified before navigation.
+- **Background Authentication**: [BackgroundAuthService](mdc:lib/core/services/auth/background_auth_service.dart) handles re-authentication for app transitions from background to foreground after a timeout (e.g., 2 minutes), using biometrics or fallback to login.
+- **Impact on Navigation**: Navigation to protected routes requires authentication, and deep links or notifications wait for authentication before processing.
+
+## Main Pages and Tab Structure
+The main interface of the app is managed by [TabsPage](mdc:lib/app/layout/tabs.dart), which uses a tabbed layout to switch between different sections. The tabs are defined in [destinations.dart](mdc:lib/core/routes/destinations.dart) as follows:
+
+- **Dashboard (Index 0)**: The home screen, accessible via the first tab or by navigating to `/`. Represented by `DashboardPage` with ID `AppMenuDestinationsID.dashboard`.
+- **Budgets (Index 1)**: Displays a list of budgets, accessible via `/budgets`. Represented by `BudgetsPage` with ID `AppMenuDestinationsID.budgets`.
+- **Transactions (Index 2)**: Shows transaction history, accessible via `/transactions`. Represented by `TransactionsPage` with ID `AppMenuDestinationsID.transactions`.
+- **Stats (Index 3)**: Provides statistical insights, accessible via `/stats`. Represented by `StatsPage` with ID `AppMenuDestinationsID.stats`.
+- **Settings (Index 4)**: Includes user settings and more options, accessible via `/settings`. Represented by `SettingsPage` with ID `AppMenuDestinationsID.settings`.
+
+**Note**: On mobile devices (smaller screens), only Dashboard, Transactions, Stats, and Settings are shown in the bottom navigation bar. On larger screens, a sidebar ([NavigationSidebar](mdc:lib/app/layout/navigation_sidebar.dart)) may display all destinations.
+
+## Navigation Mechanisms
+Navigation in Parsa is handled through Flutter's `Navigator`, custom route generation, and a `NavigationDelegate` for context-aware navigation.
+
+- **Route Generation**: Defined in [material_app_routes.dart](mdc:lib/core/routes/material_app_routes.dart), it dynamically generates routes for paths like `/budgets/{id}` by fetching data and rendering detail pages. Fallbacks to list pages occur if entities are not found.
+- **Navigation Delegate**: The singleton class `NavigationDelegate` in [navigation_delegate.dart](mdc:lib/core/routes/navigation_delegate.dart) provides methods to navigate to specific routes or entities (e.g., `navigateToAccount`, `navigateToBudget`). It uses a global `navigatorKey` for navigation and maps routes to tab indices in `TabsPage`.
+- **Tab Navigation**: Within `TabsPage`, users switch between sections using a bottom navigation bar (mobile) or sidebar (larger screens). The `navigateToTab` method in `TabsPageState` changes the selected tab based on index.
+- **Direct Navigation**: Users can navigate to specific pages via deep links, notifications, or tapping list items, triggering routes like `/transactions/{id}`.
+- **Deep Linking and Notifications**: Deep links are captured using `AppLinks` and processed after authentication. Notifications use `NavigationDelegate.navigateBasedOnNotificationRoute` to parse routes like `transactions/123` and navigate to the correct tab and detail page.
+
+## Navigating to a Specific Page via Tabs
+To navigate to a specific page using tabs programmatically (e.g., from a notification or deep link), follow these steps:
+1. **Access TabsPageState**: Use the global key `tabsPageKey` defined in [main.dart](mdc:lib/main.dart) to access the current state of `TabsPage`.
+2. **Call navigateToTab**: Invoke `tabsPageKey.currentState!.navigateToTab(index)` with the appropriate index for the desired page.
+   - Index 0: Dashboard
+   - Index 1: Budgets
+   - Index 2: Transactions
+   - Index 3: Stats
+   - Index 4: Settings (or Accounts on larger screens, though typically Settings in mobile view)
+3. **Handle Sub-Routes**: If navigating to a specific entity within a tab (e.g., a specific transaction), after setting the tab, use `navigatorKey.currentState!.pushNamed(route)` to navigate to the detail page with the appropriate route (e.g., `/transactions/123`).
+
+**Example**: To navigate to the Transactions page, use `tabsPageKey.currentState!.navigateToTab(2)`. For a specific transaction, follow with `navigatorKey.currentState!.pushNamed('/transactions/123')`.
+
+## Navigation Bar and Sidebar
+- **Bottom Navigation Bar**: On smaller screens (mobile), the bottom navigation bar in `TabsPage` displays a subset of destinations (Dashboard, Transactions, Stats, Settings). Tapping a destination changes the tab using `changePage` method in `TabsPageState`.
+- **Sidebar**: On larger screens, a sidebar ([NavigationSidebar](mdc:lib/app/layout/navigation_sidebar.dart)) is used, accessible via `navigationSidebarKey`. It can display all destinations, and selecting an item updates the selected destination in both sidebar and `TabsPage`.
+- **Responsive Design**: The app uses `BreakPoint` from [breakpoints.dart](mdc:lib/core/presentation/responsive/breakpoints.dart) to determine screen size and adjust navigation UI accordingly.
+
+## Key Points for Navigation
+- Use `NavigationDelegate` for context-aware navigation, especially for notifications and deep links.
+- Ensure authentication is verified before processing navigation requests to protected routes.
+- Fallback to home (`/`) or relevant list pages if navigation fails or entities are not found.
+- Tab indices are fixed based on `getDestinations` and `getAllDestinations` in [destinations.dart](mdc:lib/core/routes/destinations.dart), but visibility may vary by screen size.
+
+This rule provides a comprehensive guide to navigating the Parsa app, ensuring developers can programmatically or manually access any page via tabs or direct routes.

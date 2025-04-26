@@ -119,8 +119,10 @@ void main() async {
 }
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
-final GlobalKey<NavigationSidebarState> navigationSidebarKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Sidebar key not used anymore
+final GlobalKey<NavigationSidebarState> navigationSidebarKey = GlobalKey();
 
 class MonekinAppEntryPoint extends StatefulWidget {
   const MonekinAppEntryPoint({

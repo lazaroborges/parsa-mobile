@@ -17,6 +17,7 @@ import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
+import 'package:parsa/main.dart';
 
 import '../../core/presentation/widgets/no_results.dart';
 import 'components/budget_card.dart';
@@ -67,7 +68,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
     final t = Translations.of(context);
 
     return StreamBuilder(
-        stream: BudgetServive.instance.getBudgetById(widget.budget.id),
+        stream: BudgetService.instance.getBudgetById(widget.budget.id),
         initialData: widget.budget,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return Container();
@@ -105,7 +106,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
                     ).then((confirmed) {
                       if (confirmed != true) return;
 
-                      BudgetServive.instance
+                      BudgetService.instance
                           .deleteBudget(budget.id)
                           .then((value) {
                         Navigator.pop(context);
@@ -150,7 +151,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
                               StatsPage(
                                 initialIndex: 1,
                                 filters: budget.trFilters,
-                                dateRangeService: DatePeriodState(),
+                                dateRangeService: const DatePeriodState(),
                               ),
                             );
                           },

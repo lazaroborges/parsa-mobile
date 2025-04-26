@@ -141,10 +141,10 @@ List<MainMenuDestination> getDestinations(
   if (isMobileMode) {
     toReturn = toReturn
         .where((element) => [
-              AppMenuDestinationsID.dashboard,
-              AppMenuDestinationsID.transactions,
-              AppMenuDestinationsID.stats,
-              AppMenuDestinationsID.settings,
+              AppMenuDestinationsID.dashboard, // 0
+              AppMenuDestinationsID.transactions, // 1
+              AppMenuDestinationsID.stats, // 2
+              AppMenuDestinationsID.settings, // 3
             ].contains(element.id))
         .toList();
   }

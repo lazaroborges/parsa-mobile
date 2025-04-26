@@ -12,9 +12,12 @@ import '../../../firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:provider/provider.dart';
-import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
+import 'package:parsa/core/routes/pending_navigation.dart';
+import 'package:parsa/core/database/services/account/account_service.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 
 enum NotificationCategory {
   budgets,
@@ -153,20 +156,39 @@ class FCMService {
 
         // Handle standard route navigation
         if (message.data.containsKey('route')) {
-          final route = message.data['route'];
-          final queryParams = message.data['queryParams'] != null
-              ? (jsonDecode(message.data['queryParams']) as Map<String, dynamic>)
-                  .map((key, value) => MapEntry(key, value.toString()))
-              : null;
-
-          if (kDebugMode) {
-            print('Notification route: $route');
-            print('Notification queryParams: $queryParams');
+          final route = message.data['route'] as String;
+          String? id;
+          Future<dynamic>? dataFuture;
+          // If route contains a slash and an id, split it
+          if (route.contains('/') && !route.startsWith('stats')) {
+            final parts = route.split('/');
+            if (parts.length == 2) {
+              id = parts[1];
+              switch (parts[0]) {
+                case 'accounts':
+                  dataFuture = AccountService.instance.getAccountById(id).first;
+                  break;
+                case 'budgets':
+                  dataFuture = BudgetService.instance.getBudgetById(id).first;
+                  break;
+                case 'transactions':
+                  dataFuture =
+                      TransactionService.instance.getTransactionById(id).first;
+                  break;
+                case 'tags':
+                  final context = navigatorKey.currentContext;
+                  if (context != null) {
+                    dataFuture = fetchAndFindTagById(context, id);
+                  }
+                  break;
+              }
+              pendingNavigation = PendingNavigation(
+                  route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+              return;
+            }
           }
-
-          // Use NavigationDelegate to navigate based on the route
-          NavigationDelegate.instance.navigateBasedOnNotificationRoute(route,
-              queryParams: queryParams);
+          // For stats subroutes (e.g., stats/cash-flow)
+          pendingNavigation = PendingNavigation(route: route);
         }
       });
 
@@ -203,20 +225,37 @@ class FCMService {
         }
 
         // Handle standard route navigation
-        final route = initialMessage.data['route'];
-        final queryParams = initialMessage.data['queryParams'] != null
-            ? (jsonDecode(initialMessage.data['queryParams']) as Map<String, dynamic>)
-                .map((key, value) => MapEntry(key, value.toString()))
-            : null;
-
-        if (kDebugMode) {
-          print('Terminated app notification route: $route');
-          print('Terminated app notification queryParams: $queryParams');
+        final route = initialMessage.data['route'] as String;
+        String? id;
+        Future<dynamic>? dataFuture;
+        if (route.contains('/') && !route.startsWith('stats')) {
+          final parts = route.split('/');
+          if (parts.length == 2) {
+            id = parts[1];
+            switch (parts[0]) {
+              case 'accounts':
+                dataFuture = AccountService.instance.getAccountById(id).first;
+                break;
+              case 'budgets':
+                dataFuture = BudgetService.instance.getBudgetById(id).first;
+                break;
+              case 'transactions':
+                dataFuture =
+                    TransactionService.instance.getTransactionById(id).first;
+                break;
+              case 'tags':
+                final context = navigatorKey.currentContext;
+                if (context != null) {
+                  dataFuture = fetchAndFindTagById(context, id);
+                }
+                break;
+            }
+            pendingNavigation = PendingNavigation(
+                route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+            return;
+          }
         }
-
-        // Use NavigationDelegate to navigate based on the route
-        NavigationDelegate.instance
-            .navigateBasedOnNotificationRoute(route, queryParams: queryParams);
+        pendingNavigation = PendingNavigation(route: route);
       }
 
       // Make sure FCM token is registered with the backend

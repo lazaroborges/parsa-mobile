@@ -8,8 +8,6 @@ import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:parsa/core/api/post_methods/post_subscriptions.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-import 'dart:io' show Platform;
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intake.dart';
 

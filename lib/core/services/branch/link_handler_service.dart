@@ -4,6 +4,12 @@ import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/providers/link_provider.dart';
+import 'package:parsa/core/routes/pending_navigation.dart';
+import 'package:parsa/core/database/services/account/account_service.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/routes/pending_navigation.dart';
+import 'package:parsa/main.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -12,6 +18,7 @@ class LinkHandlerService {
 
   StreamSubscription<Map>? _branchSubscription;
   bool _isProcessingDeepLink = false;
+  PendingNavigation? pendingNavigation;
 
   /// Initialize the link handler service and set up Branch SDK listeners
   Future<void> initialize() async {
@@ -119,7 +126,7 @@ class LinkHandlerService {
         if (path != null && path.isNotEmpty) {
           _routeBasedOnPath(path, customParams);
         } else {
-          NavigationDelegate.instance.navigateTo('/');
+          NavigationDelegate.instance.navigateToAppRoute('dashboard');
         }
       }
     } catch (e) {
@@ -136,116 +143,76 @@ class LinkHandlerService {
       return;
     }
 
-    // Handle path that might have leading slash
     final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-
-    // Split path into segments
     final segments = cleanPath.split('/');
 
     if (segments.isEmpty) {
-      try {
-        NavigationDelegate.instance.navigateTo('/');
-      } catch (e) {
-        print('Error navigating to home: $e');
-      }
+      pendingNavigation = PendingNavigation(route: 'dashboard');
       return;
     }
 
-    // Get the main section and the ID if available
     final section = segments[0].toLowerCase();
     final id = segments.length > 1 ? segments[1] : params['id'];
+    Future<dynamic>? dataFuture;
+    final context = navigatorKey.currentContext;
 
     switch (section) {
+      case 'dashboard':
+        pendingNavigation = PendingNavigation(route: 'dashboard');
+        break;
       case 'budgets':
         if (id != null) {
-          NavigationDelegate.instance.navigateToBudget(id);
+          dataFuture = BudgetService.instance.getBudgetById(id).first;
+          pendingNavigation = PendingNavigation(
+              route: 'budgets/id', id: id, dataFuture: dataFuture);
         } else {
-          NavigationDelegate.instance.navigateTo('/budgets');
+          pendingNavigation = PendingNavigation(route: 'budgets');
         }
         break;
-
       case 'transactions':
         if (id != null) {
-          NavigationDelegate.instance.navigateToTransaction(transactionId: id);
+          dataFuture = TransactionService.instance.getTransactionById(id).first;
+          pendingNavigation = PendingNavigation(
+              route: 'transactions/id', id: id, dataFuture: dataFuture);
         } else {
-          // Convert params to String,String map for filters
-          final stringParams = <String, String>{};
-          params.forEach((key, value) {
-            if (key is String) {
-              stringParams[key] = value;
-            }
-          });
-
-          if (stringParams.isNotEmpty) {
-            NavigationDelegate.instance
-                .navigateToTransaction(params: stringParams);
-          } else {
-            NavigationDelegate.instance.navigateTo('/transactions');
-          }
+          pendingNavigation = PendingNavigation(route: 'transactions');
         }
         break;
-
       case 'accounts':
         if (id != null) {
-          try {
-            NavigationDelegate.instance.navigateToAccount(id);
-          } catch (e) {
-            print('Error navigating to account $id: $e');
-          }
+          dataFuture = AccountService.instance.getAccountById(id).first;
+          pendingNavigation = PendingNavigation(
+              route: 'accounts/id', id: id, dataFuture: dataFuture);
         } else {
-          try {
-            NavigationDelegate.instance.navigateTo('/accounts');
-          } catch (e) {
-            print('Error navigating to accounts list: $e');
-          }
+          pendingNavigation = PendingNavigation(route: 'accounts');
         }
         break;
-
+      case 'tags':
+        if (id != null && context != null) {
+          dataFuture = fetchAndFindTagById(context, id);
+          pendingNavigation = PendingNavigation(
+              route: 'tags/id', id: id, dataFuture: dataFuture);
+        } else {
+          pendingNavigation = PendingNavigation(route: 'tags');
+        }
+        break;
       case 'stats':
-        final subPath =
-            segments.length > 1 ? segments.sublist(1).join('/') : '';
-
-        // Convert params to String,String map for _navigateToStats
-        final stringParams = <String, String>{};
-        params.forEach((key, value) {
-          if (key is String) {
-            stringParams[key] = value;
-          }
-        });
-
-        NavigationDelegate.instance.navigateToStats(subPath, stringParams);
-        break;
-
-      case 'subscription':
-        NavigationDelegate.instance.navigateTo('/subscription');
-        break;
-
-      case 'settings':
         if (segments.length > 1) {
-          final settingsSection = segments[1].toLowerCase();
-
-          switch (settingsSection) {
-            case 'preferences':
-              NavigationDelegate.instance.navigateTo('/settings/preferences');
-              break;
-            case 'about':
-              NavigationDelegate.instance.navigateTo('/settings/about');
-              break;
-            case 'export':
-              NavigationDelegate.instance.navigateTo('/settings/export');
-              break;
-            default:
-              NavigationDelegate.instance.navigateTo('/settings');
-              break;
-          }
+          final subPath = segments.sublist(1).join('/');
+          pendingNavigation = PendingNavigation(route: 'stats/$subPath');
         } else {
-          NavigationDelegate.instance.navigateTo('/settings');
+          pendingNavigation = PendingNavigation(route: 'stats');
         }
         break;
-
+      case 'subscription':
+        pendingNavigation = PendingNavigation(route: 'subscription');
+        break;
+      case 'settings':
+        pendingNavigation = PendingNavigation(route: 'settings');
+        break;
       default:
         print('Unhandled deep link path: $path');
-        NavigationDelegate.instance.navigateTo('/');
+        pendingNavigation = PendingNavigation(route: 'dashboard');
         break;
     }
   }

@@ -97,14 +97,14 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
     );
 
     if (isEditMode) {
-      BudgetServive.instance.updateBudget(toPush).then((value) {
+      BudgetService.instance.updateBudget(toPush).then((value) {
         onSuccess();
       }).catchError((error) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.toString())));
       });
     } else {
-      BudgetServive.instance.insertBudget(toPush).then((value) {
+      BudgetService.instance.insertBudget(toPush).then((value) {
         onSuccess();
       }).catchError((error) {
         ScaffoldMessenger.of(context)

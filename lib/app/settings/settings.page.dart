@@ -16,7 +16,7 @@ import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
-import 'package:parsa/core/models/date-utils/date_period_state.dart';
+import 'package:parsa/main.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -54,15 +54,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         context, const PreferencesSettingsPage()),
                   ),
                   const SizedBox(height: 8),
-                  // SettingCardItem(
-                  //   title: 'Notificações',
-                  //   subtitle: 'Gerenciar preferências de notificações',
-                  //   icon: Icons.notifications_outlined,
-                  //   mainAxis: Axis.horizontal,
-                  //   onTap: () => RouteUtils.pushRoute(
-                  //       context, const NotificationSettingsPage()),
-                  // ),
-                  // const SizedBox(height: 8),
                   SettingCardItem(
                     title: t.more.data.display,
                     subtitle: t.more.data.display_descr,
@@ -99,10 +90,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           child: SettingCardItem(
                             title: t.stats.title,
                             icon: Icons.area_chart_rounded,
-                            onTap: () => RouteUtils.pushRoute(
-                                context,
-                                const StatsPage(
-                                    dateRangeService: DatePeriodState())),
+                            onTap: () =>
+                                tabsPageKey.currentState?.navigateToTab(2),
                           ),
                         ),
                         const SizedBox(width: 8),

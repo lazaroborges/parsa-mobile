@@ -18,6 +18,10 @@ import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
+import 'package:parsa/app/stats/stats.page.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
+import 'package:parsa/core/routes/pending_navigation.dart';
+import 'package:parsa/core/routes/navigation_delegate.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -27,7 +31,8 @@ class TabsPage extends StatefulWidget {
   State<TabsPage> createState() => TabsPageState();
 }
 
-class TabsPageState extends State<TabsPage> with CousinAlertMixin {
+class TabsPageState extends State<TabsPage>
+    with CousinAlertMixin, WidgetsBindingObserver {
   MainMenuDestination? selectedDestination;
   Map<String, dynamic>? userData;
   bool isLoading = true;
@@ -40,9 +45,19 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
   // Create a static global key for access from outside
   static final GlobalKey<TabsPageState> globalKey = GlobalKey<TabsPageState>();
 
+  // Field to store the desired initial index for StatsPage
+  int _statsInitialIndex = 0;
+  // Field to store the key for StatsPage to force rebuild
+  Key _statsPageKey = UniqueKey();
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Defer navigation until after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _processPendingNav();
+    });
   }
 
   @override
@@ -59,11 +74,34 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Dispose of background authentication service
     BackgroundAuthService.instance.dispose();
     // Reset notification preferences session flag for next app start
     NotificationPreferencesService.instance.resetSessionFlag();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _processPendingNav();
+      });
+    }
+  }
+
+  Future<void> _processPendingNav() async {
+    if (pendingNavigation != null) {
+      final nav = pendingNavigation!;
+      dynamic data;
+      if (nav.dataFuture != null) {
+        data = await nav.dataFuture;
+      }
+      await NavigationDelegate.instance
+          .navigateToAppRoute(nav.route, id: nav.id, data: data);
+      pendingNavigation = null;
+    }
   }
 
   // Request notification permission using the FCM codelab approach
@@ -208,6 +246,13 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
     FocusScope.of(context).unfocus();
   }
 
+  /// Call this to navigate to the Stats tab and set the initial subtab
+  void navigateToStatsTabWithIndex(int index) {
+    _statsInitialIndex = index;
+    _statsPageKey = UniqueKey(); // Force StatsPage to rebuild
+    navigateToTab(2); // Assuming Stats is tab index 2 in your setup
+  }
+
   @override
   Widget build(BuildContext context) {
     final menuItems = getDestinations(context,
@@ -239,7 +284,17 @@ class TabsPageState extends State<TabsPage> with CousinAlertMixin {
           index: allDestinations
               .indexWhere((element) => element.id == selectedDestination?.id),
           duration: const Duration(milliseconds: 300),
-          children: allDestinations.map((e) => e.destination).toList(),
+          children: allDestinations.asMap().entries.map((entry) {
+            // If this is the Stats tab, inject the initialIndex and key
+            if (entry.value.destination is StatsPage) {
+              return StatsPage(
+                key: _statsPageKey,
+                initialIndex: _statsInitialIndex,
+                dateRangeService: const DatePeriodState(),
+              );
+            }
+            return entry.value.destination;
+          }).toList(),
         );
       }),
     );
