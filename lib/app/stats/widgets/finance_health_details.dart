@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:parsa/app/stats/widgets/daily_cash_flow_charts.dart';
 import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
+import 'package:parsa/core/models/date-utils/date_period.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
+import 'package:parsa/core/models/date-utils/period_type.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/html_text.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
@@ -62,6 +66,21 @@ class _FinanceHealthDetailsState extends State<FinanceHealthDetails> {
     );
   }
 
+  DatePeriodState _createDatePeriodState() {
+    // If we have min and max date in filters, create a custom date range
+    if (widget.filters.minDate != null && widget.filters.maxDate != null) {
+      return DatePeriodState(
+        datePeriod: DatePeriod.customRange(
+          widget.filters.minDate!,
+          widget.filters.maxDate!,
+        ),
+      );
+    }
+    
+    // Default to this month if no date range specified
+    return const DatePeriodState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -83,6 +102,15 @@ class _FinanceHealthDetailsState extends State<FinanceHealthDetails> {
                 bodyPadding: const EdgeInsets.all(16),
                 body:
                     FinanceHealthMainInfo(financeHealthData: financeHealthData),
+              ),
+              const SizedBox(height: 16),
+              CardWithHeader(
+                title: "Fluxo de caixa",
+                bodyPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                body: DailyCashFlowChart(
+                  filters: widget.filters,
+                  dateRange: _createDatePeriodState(),
+                ),
               ),
               const SizedBox(height: 16),
               Builder(builder: (context) {
@@ -125,7 +153,6 @@ class _FinanceHealthDetailsState extends State<FinanceHealthDetails> {
                               '$savingsText\n\n${t.financial_health.savings_percentage.suggestion}',
                           index: 1)
                     ],
-                    //elevation: 0,
                   ),
                 );
               }),

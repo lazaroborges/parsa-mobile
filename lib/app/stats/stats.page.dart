@@ -247,15 +247,7 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
                       filters: filters,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  CardWithHeader(
-                    title: t.stats.by_periods,
-                    bodyPadding: const EdgeInsets.only(bottom: 12, top: 16),
-                    body: BalanceBarChart(
-                      dateRange: dateRangeService,
-                      filters: filters,
-                    ),
-                  )
+
                 ]),
                 buildContainerWithPadding(
                   [
