@@ -11,6 +11,9 @@ import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
+import 'package:parsa/core/models/date-utils/date_period.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 class BudgetListCard extends StatelessWidget {
   const BudgetListCard({
@@ -84,6 +87,16 @@ class _BudgetItem extends StatelessWidget {
 
   final Budget budget;
 
+  Future<Map<String, dynamic>> _getPeriodPrefs() async {
+    final prefs = app_prefs.SharedPreferencesAsync.instance;
+    final startOfMonthDay = await prefs.getStartOfMonth();
+    final startOfWeek = await prefs.getStartOfWeek();
+    return {
+      'startOfMonthDay': startOfMonthDay,
+      'startOfWeek': startOfWeek,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -94,266 +107,297 @@ class _BudgetItem extends StatelessWidget {
     final labelStyle = Theme.of(context).textTheme.bodyMedium;
     final appColors = AppColors.of(context);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () =>
-            RouteUtils.pushRoute(context, BudgetDetailsPage(budget: budget)),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ROW 1: Title with periodicity and budget type
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getPeriodPrefs(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final startOfMonthDay = snapshot.data!['startOfMonthDay'] as int;
+        final startOfWeek = snapshot.data!['startOfWeek'] as int;
+        final periodState = DatePeriodState(
+          datePeriod: budget.intervalPeriod != null
+              ? DatePeriod.withPeriods(budget.intervalPeriod!)
+              : DatePeriod.customRange(budget.startDate, budget.endDate),
+          startOfMonthDay: startOfMonthDay,
+          startOfWeek: startOfWeek,
+        );
+        final toReturn = periodState.getDates();
+        final currentDateRange =
+            DateTimeRange(start: toReturn.$1!, end: toReturn.$2!);
+        final daysToTheEnd = currentDateRange.end.isAfter(DateTime.now())
+            ? currentDateRange.end.difference(DateTime.now()).inDays
+            : 0;
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => RouteUtils.pushRoute(
+                context, BudgetDetailsPage(budget: budget)),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title with periodicity
-                  Expanded(
-                    flex: 4,
-                    child: RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: budget.name,
-                            style: titleStyle,
-                          ),
-                          TextSpan(
-                            text: " - ",
-                            style: titleStyle.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                              fontWeight: FontWeight.w300,
-                            ),
-                          ),
-                          TextSpan(
-                            text: budget.intervalPeriod != null
-                                ? _getPeriodicityText(
-                                    budget.intervalPeriod!, context)
-                                : _formatDateRange(
-                                    budget.currentDateRange.start,
-                                    budget.currentDateRange.end),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
+                  // ROW 1: Title with periodicity and budget type
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title with periodicity
+                      Expanded(
+                        flex: 4,
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: budget.name,
+                                style: titleStyle,
+                              ),
+                              TextSpan(
+                                text: " - ",
+                                style: titleStyle.copyWith(
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurfaceVariant,
+                                  fontWeight: FontWeight.w300,
                                 ),
+                              ),
+                              TextSpan(
+                                text: budget.intervalPeriod != null
+                                    ? _getPeriodicityText(
+                                        budget.intervalPeriod!, context)
+                                    : _formatDateRange(currentDateRange.start,
+                                        currentDateRange.end),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Budget type chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: budget.intervalPeriod != null
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          budget.intervalPeriod != null
+                              ? 'Recorrente'
+                              : 'Único',
+                          style:
+                              Theme.of(context).textTheme.labelSmall!.copyWith(
+                                    color: budget.intervalPeriod != null
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSecondaryContainer,
+                                  ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ROW 2: Budget status indicator
+                  _buildBudgetStatusIndicator(
+                      context, labelStyle, daysToTheEnd),
+
+                  const SizedBox(height: 8),
+
+                  // ROW 3: Progress bar and values
+                  StreamBuilder<double>(
+                    stream: budget.currentValue,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const LinearProgressIndicator();
+                      }
+
+                      final currentValue = snapshot.data!;
+                      final remainingAmount = budget.limitAmount - currentValue;
+                      final percentage = currentValue / budget.limitAmount;
+                      final isOverBudget = currentValue > budget.limitAmount;
+
+                      // Calculate the default speed (expenses per day)
+                      final totalDays = currentDateRange.end
+                          .difference(currentDateRange.start)
+                          .inDays;
+                      final defaultDailyRate = budget.limitAmount / totalDays;
+
+                      // Calculate the actual daily rate so far (how much spent per day on average)
+                      // Add 1 to avoid division by zero if we're on day 1
+                      final daysPassed = DateTime.now()
+                              .difference(currentDateRange.start)
+                              .inDays +
+                          1;
+                      final actualDailyRate = currentValue / daysPassed;
+
+                      // Determine the progress bar color based on spending rate
+                      Color progressBarColor;
+                      if (percentage > 1) {
+                        // If over budget, always use danger color
+                        progressBarColor = appColors.danger;
+                      } else if (actualDailyRate <= defaultDailyRate) {
+                        // If spending less than or equal to the default rate, use primary color
+                        progressBarColor =
+                            Theme.of(context).colorScheme.primary;
+                      } else if (actualDailyRate <= defaultDailyRate * 2) {
+                        // If spending more than default but less than 2x default, use warning color (yellow/orange)
+                        progressBarColor = Colors.orange;
+                      } else {
+                        // If spending more than 2x the default rate, use danger color
+                        progressBarColor = appColors.danger;
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Progress bar
+                          AnimatedProgressBar(
+                            width: 10, // Slightly increased height
+                            radius: 16, // Increased radius for MD3 style
+                            value: percentage > 1 ? 1 : percentage,
+                            color: progressBarColor,
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Current/total values and remaining amount
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Current / total value
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Gasto",
+                                    style: labelStyle,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  RichText(
+                                    text: TextSpan(
+                                      style: labelStyle,
+                                      children: [
+                                        WidgetSpan(
+                                          child: CurrencyDisplayer(
+                                            amountToConvert: currentValue,
+                                            showDecimals: false,
+                                            integerStyle: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                              color: isOverBudget
+                                                  ? appColors.danger
+                                                  : null,
+                                            ),
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: ' / ',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w300,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                        ),
+                                        WidgetSpan(
+                                          child: CurrencyDisplayer(
+                                            amountToConvert: budget.limitAmount,
+                                            showDecimals: false,
+                                            integerStyle: TextStyle(
+                                              fontWeight: FontWeight.w300,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // Remaining amount or overspent
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    isOverBudget
+                                        ? "Passou"
+                                        : (remainingAmount == 0
+                                            ? "Restou"
+                                            : (daysToTheEnd < 0 &&
+                                                    remainingAmount > 0
+                                                ? "Economizou"
+                                                : "Restam")),
+                                    style: labelStyle,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  CurrencyDisplayer(
+                                    amountToConvert: isOverBudget
+                                        ? remainingAmount.abs()
+                                        : remainingAmount,
+                                    showDecimals: false,
+                                    integerStyle: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      color: isOverBudget
+                                          ? appColors.danger
+                                          : (daysToTheEnd < 0 &&
+                                                  remainingAmount > 0
+                                              ? appColors.success
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Budget type chip
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: budget.intervalPeriod != null
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : Theme.of(context).colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      budget.intervalPeriod != null ? 'Recorrente' : 'Único',
-                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                            color: budget.intervalPeriod != null
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer,
-                          ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
-
-              const SizedBox(height: 8),
-
-              // ROW 2: Budget status indicator
-              _buildBudgetStatusIndicator(context, labelStyle),
-
-              const SizedBox(height: 8),
-
-              // ROW 3: Progress bar and values
-              StreamBuilder<double>(
-                stream: budget.currentValue,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const LinearProgressIndicator();
-                  }
-
-                  final currentValue = snapshot.data!;
-                  final remainingAmount = budget.limitAmount - currentValue;
-                  final percentage = currentValue / budget.limitAmount;
-                  final isOverBudget = currentValue > budget.limitAmount;
-
-                  // Calculate the default speed (expenses per day)
-                  final totalDays = budget.currentDateRange.end
-                      .difference(budget.currentDateRange.start)
-                      .inDays;
-                  final defaultDailyRate = budget.limitAmount / totalDays;
-
-                  // Calculate the actual daily rate so far (how much spent per day on average)
-                  // Add 1 to avoid division by zero if we're on day 1
-                  final daysPassed = DateTime.now()
-                          .difference(budget.currentDateRange.start)
-                          .inDays +
-                      1;
-                  final actualDailyRate = currentValue / daysPassed;
-
-                  // Determine the progress bar color based on spending rate
-                  Color progressBarColor;
-                  if (percentage > 1) {
-                    // If over budget, always use danger color
-                    progressBarColor = appColors.danger;
-                  } else if (actualDailyRate <= defaultDailyRate) {
-                    // If spending less than or equal to the default rate, use primary color
-                    progressBarColor = Theme.of(context).colorScheme.primary;
-                  } else if (actualDailyRate <= defaultDailyRate * 2) {
-                    // If spending more than default but less than 2x default, use warning color (yellow/orange)
-                    progressBarColor = Colors.orange;
-                  } else {
-                    // If spending more than 2x the default rate, use danger color
-                    progressBarColor = appColors.danger;
-                  }
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Progress bar
-                      AnimatedProgressBar(
-                        width: 10, // Slightly increased height
-                        radius: 16, // Increased radius for MD3 style
-                        value: percentage > 1 ? 1 : percentage,
-                        color: progressBarColor,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Current/total values and remaining amount
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Current / total value
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Gasto",
-                                style: labelStyle,
-                              ),
-                              const SizedBox(height: 4),
-                              RichText(
-                                text: TextSpan(
-                                  style: labelStyle,
-                                  children: [
-                                    WidgetSpan(
-                                      child: CurrencyDisplayer(
-                                        amountToConvert: currentValue,
-                                        showDecimals: false,
-                                        integerStyle: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          color: isOverBudget
-                                              ? appColors.danger
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: ' / ',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w300,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
-                                    ),
-                                    WidgetSpan(
-                                      child: CurrencyDisplayer(
-                                        amountToConvert: budget.limitAmount,
-                                        showDecimals: false,
-                                        integerStyle: TextStyle(
-                                          fontWeight: FontWeight.w300,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Remaining amount or overspent
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                isOverBudget
-                                    ? "Passou"
-                                    : (remainingAmount == 0
-                                        ? "Restou"
-                                        : (budget.daysToTheEnd < 0 &&
-                                                remainingAmount > 0
-                                            ? "Economizou"
-                                            : "Restam")),
-                                style: labelStyle,
-                              ),
-                              const SizedBox(height: 4),
-                              CurrencyDisplayer(
-                                amountToConvert: isOverBudget
-                                    ? remainingAmount.abs()
-                                    : remainingAmount,
-                                showDecimals: false,
-                                integerStyle: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  color: isOverBudget
-                                      ? appColors.danger
-                                      : (budget.daysToTheEnd < 0 &&
-                                              remainingAmount > 0
-                                          ? appColors.success
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   // Helper method to build the budget status indicator
-  Widget _buildBudgetStatusIndicator(BuildContext context, TextStyle? style) {
+  Widget _buildBudgetStatusIndicator(
+      BuildContext context, TextStyle? style, int daysToTheEnd) {
     final theme = Theme.of(context);
     final appColors = AppColors.of(context);
     final statusStyle = Theme.of(context).textTheme.bodyMedium;
 
-    if (budget.daysToTheEnd < 0) {
+    if (daysToTheEnd < 0) {
       // Orçamento concluído
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -384,7 +428,7 @@ class _BudgetItem extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            "Restam ${budget.daysToTheEnd} dias",
+            "Restam ${daysToTheEnd} dias",
             style: statusStyle!.copyWith(
               color: theme.colorScheme.primary,
             ),

@@ -54,7 +54,6 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
   Future<void> _initializeStateAsync() async {
     final prefs = SharedPreferencesAsync.instance;
     final startDay = await prefs.getStartOfMonth();
-    final useWorking = await prefs.getStartOfMonthWorkingDaysOnly();
     final startWeek = await prefs.getStartOfWeek();
 
     if (mounted) {
@@ -63,7 +62,6 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
           datePeriod: widget.dateRangeService.datePeriod,
           periodModifier: widget.dateRangeService.periodModifier,
           startOfMonthDay: startDay,
-          useWorkingDays: useWorking,
           startOfWeek: startWeek,
         );
         _isStateInitialized = true;
@@ -94,18 +92,15 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
   Future<void> _refreshPreferences() async {
     final prefs = SharedPreferencesAsync.instance;
     final startDay = await prefs.getStartOfMonth();
-    final useWorking = await prefs.getStartOfMonthWorkingDaysOnly();
     final startWeek = await prefs.getStartOfWeek();
 
     bool needsUpdate = dateRangeService.startOfMonthDay != startDay ||
-        dateRangeService.useWorkingDays != useWorking ||
         dateRangeService.startOfWeek != startWeek;
 
     if (mounted && needsUpdate) {
       setState(() {
         dateRangeService = dateRangeService.copyWith(
           startOfMonthDay: startDay,
-          useWorkingDays: useWorking,
           startOfWeek: startWeek,
         );
       });
@@ -193,7 +188,6 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
                 setState(() {
                   dateRangeService = value.copyWith(
                     startOfMonthDay: dateRangeService.startOfMonthDay,
-                    useWorkingDays: dateRangeService.useWorkingDays,
                     startOfWeek: dateRangeService.startOfWeek,
                   );
                 });

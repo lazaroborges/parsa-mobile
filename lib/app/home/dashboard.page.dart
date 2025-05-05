@@ -117,8 +117,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       final prefsAsync = app_prefs.SharedPreferencesAsync.instance;
       final localStartOfWeek = await prefsAsync.getStartOfWeek();
       final localStartOfMonth = await prefsAsync.getStartOfMonth();
-      final localUseWorkingDay =
-          await prefsAsync.getStartOfMonthWorkingDaysOnly();
 
       // Fetch backend preferences using the fetchUserSettings function
       final backendPrefs = await PostUserSettings.fetchUserSettings();
@@ -130,8 +128,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
         // Use null-aware coalescing operator to handle missing or null values
         final backendStartOfMonth = backendPrefs['startOfMonth'] as int? ?? 1;
-        final backendUseWorkingDay =
-            backendPrefs['useWorkingDay'] as bool? ?? false;
 
         // Compare and update local preferences if they differ
         bool preferencesChanged = false;
@@ -143,11 +139,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
         if (localStartOfMonth != backendStartOfMonth) {
           await prefsAsync.setStartOfMonth(backendStartOfMonth);
-          preferencesChanged = true;
-        }
-
-        if (localUseWorkingDay != backendUseWorkingDay) {
-          await prefsAsync.setStartOfMonthWorkingDaysOnly(backendUseWorkingDay);
           preferencesChanged = true;
         }
 
@@ -220,12 +211,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
   Future<void> _initializeDateRangeService() async {
     final prefsAsync = app_prefs.SharedPreferencesAsync.instance;
     final startDay = await prefsAsync.getStartOfMonth();
-    final useWorking = await prefsAsync.getStartOfMonthWorkingDaysOnly();
     final startWeek = await prefsAsync.getStartOfWeek();
 
     bool needsUpdate = !_isDateRangeInitialized ||
         dateRangeService.startOfMonthDay != startDay ||
-        dateRangeService.useWorkingDays != useWorking ||
         dateRangeService.startOfWeek != startWeek;
 
     if (mounted && needsUpdate) {
@@ -234,7 +223,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           datePeriod: dateRangeService.datePeriod,
           periodModifier: dateRangeService.periodModifier,
           startOfMonthDay: startDay,
-          useWorkingDays: useWorking,
           startOfWeek: startWeek,
         );
         _isDateRangeInitialized = true;
@@ -673,8 +661,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                           datePeriod: value,
                                           startOfMonthDay:
                                               dateRangeService.startOfMonthDay,
-                                          useWorkingDays:
-                                              dateRangeService.useWorkingDays,
                                           startOfWeek:
                                               dateRangeService.startOfWeek,
                                         );

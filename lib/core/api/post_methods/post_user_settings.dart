@@ -85,7 +85,6 @@ class PostUserSettings {
   static Future<bool> updateDatePreferences({
     required int startOfWeek,
     required int startOfMonth,
-    required bool useWorkingDay,
     int maxRetries = 3,
   }) async {
     int retryCount = 0;
@@ -113,7 +112,7 @@ class PostUserSettings {
           body: jsonEncode({
             'startOfWeek': startOfWeekString,
             'startOfMonth': startOfMonth,
-            'useWorkingDay': useWorkingDay,
+            'useWorkingDay': false,
           }),
         );
 
@@ -212,7 +211,6 @@ class PostUserSettings {
       return {
         'startOfWeek': await prefsAsync.getStartOfWeek(),
         'startOfMonth': await prefsAsync.getStartOfMonth(),
-        'useWorkingDay': await prefsAsync.getStartOfMonthWorkingDaysOnly(),
       };
     }
   }
