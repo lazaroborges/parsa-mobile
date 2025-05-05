@@ -8,7 +8,6 @@ import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
-import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/main.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
@@ -199,9 +198,15 @@ class LinkHandlerService {
       case 'stats':
         if (segments.length > 1) {
           final subPath = segments.sublist(1).join('/');
-          pendingNavigation = PendingNavigation(route: 'stats/$subPath');
+          pendingNavigation = PendingNavigation(
+              route: 'stats/$subPath',
+              queryParams:
+                  params.map((k, v) => MapEntry(k.toString(), v.toString())));
         } else {
-          pendingNavigation = PendingNavigation(route: 'stats');
+          pendingNavigation = PendingNavigation(
+              route: 'stats',
+              queryParams:
+                  params.map((k, v) => MapEntry(k.toString(), v.toString())));
         }
         break;
       case 'subscription':

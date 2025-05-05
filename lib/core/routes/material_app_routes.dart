@@ -23,8 +23,6 @@ import 'package:flutter/foundation.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/tags/tag.dart';
-import 'package:parsa/app/stats/stats.page.dart';
-import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 
 class MaterialAppRoutes {
@@ -215,74 +213,6 @@ class MaterialAppRoutes {
               return const TransactionsPage();
             }
             return TransactionsPage(filters: filters);
-          },
-        );
-      });
-    }
-
-    // Stats routes
-    if (routeMatches(['stats'])) {
-      return MaterialPageRoute(builder: (context) {
-        return FutureBuilder<List<String>>(
-          future: () async {
-            debugPrint(
-                '[NAV] Stats route: queryParams = ' + queryParams.toString());
-            if (queryParams.containsKey('queryParams') &&
-                queryParams['queryParams'] is Map<String, String>) {
-              final Map<String, String> qp =
-                  queryParams['queryParams'] as Map<String, String>;
-              List<String> categoryNames = qp['categories']?.split(',') ?? [];
-              List<String> categoryIds = [];
-              for (final name in categoryNames) {
-                if (name.trim().isEmpty) continue;
-                final cat = await CategoryService.instance
-                    .getCategoryByName(name.trim())
-                    .first;
-                if (cat != null) categoryIds.add(cat.id);
-              }
-              return List<String>.from(categoryIds);
-            }
-            return <String>[];
-          }(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()));
-            }
-            TransactionFilters filters = const TransactionFilters();
-            bool validFilters = false;
-            if (queryParams.containsKey('queryParams') &&
-                queryParams['queryParams'] is Map<String, String>) {
-              final Map<String, String> qp =
-                  queryParams['queryParams'] as Map<String, String>;
-              filters = TransactionFilters(
-                minDate: qp['minDate'] != null
-                    ? DateTime.tryParse(qp['minDate']!)
-                    : null,
-                maxDate: qp['maxDate'] != null
-                    ? DateTime.tryParse(qp['maxDate']!)
-                    : null,
-                searchValue: qp['search'],
-                accountsIDs: qp['accounts']?.split(','),
-                categories: snapshot.data,
-                tagsIDs: qp['tags']?.split(','),
-              );
-              validFilters = qp.isNotEmpty;
-              debugPrint(
-                  '[NAV] Stats filters constructed: ' + filters.toString());
-            }
-            if (!validFilters) {
-              debugPrint(
-                  '[NAV] Stats: No valid filters, redirecting to plain StatsPage');
-              return StatsPage(
-                filters: const TransactionFilters(),
-                dateRangeService: const DatePeriodState(),
-              );
-            }
-            return StatsPage(
-              filters: filters,
-              dateRangeService: const DatePeriodState(),
-            );
           },
         );
       });

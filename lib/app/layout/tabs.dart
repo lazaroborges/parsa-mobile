@@ -22,6 +22,8 @@ import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -48,6 +50,8 @@ class TabsPageState extends State<TabsPage>
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
   Key _statsPageKey = UniqueKey();
+  TransactionFilters? _statsFilters;
+  TransactionFilters? _transactionsFilters;
 
   @override
   void initState() {
@@ -245,11 +249,19 @@ class TabsPageState extends State<TabsPage>
     FocusScope.of(context).unfocus();
   }
 
-  /// Call this to navigate to the Stats tab and set the initial subtab
-  void navigateToStatsTabWithIndex(int index) {
+  /// Call this to navigate to the Stats tab and set the initial subtab and filters
+  void navigateToStatsTabWithFilters(
+      {int index = 0, TransactionFilters? filters}) {
     _statsInitialIndex = index;
+    _statsFilters = filters;
     _statsPageKey = UniqueKey(); // Force StatsPage to rebuild
-    navigateToTab(2); // Assuming Stats is tab index 2 in your setup
+    navigateToTab(2); // Assuming Stats is tab index 2
+  }
+
+  /// Call this to navigate to the Transactions tab and set filters
+  void navigateToTransactionsTabWithFilters({TransactionFilters? filters}) {
+    _transactionsFilters = filters;
+    navigateToTab(1); // Assuming Transactions is tab index 1
   }
 
   @override
@@ -284,11 +296,19 @@ class TabsPageState extends State<TabsPage>
               .indexWhere((element) => element.id == selectedDestination?.id),
           duration: const Duration(milliseconds: 300),
           children: allDestinations.asMap().entries.map((entry) {
-            // If this is the Stats tab, inject the initialIndex and key
+            // If this is the Transactions tab, inject filters
+            if (entry.value.destination.runtimeType.toString() ==
+                'TransactionsPage') {
+              return TransactionsPage(
+                filters: _transactionsFilters,
+              );
+            }
+            // If this is the Stats tab, inject the initialIndex, filters, and key
             if (entry.value.destination is StatsPage) {
               return StatsPage(
                 key: _statsPageKey,
                 initialIndex: _statsInitialIndex,
+                filters: _statsFilters ?? const TransactionFilters(),
                 dateRangeService: const DatePeriodState(),
               );
             }

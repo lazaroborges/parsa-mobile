@@ -18,6 +18,7 @@ import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/routes/navigation_delegate.dart';
 
 enum NotificationCategory {
   budgets,
@@ -125,41 +126,34 @@ class FCMService {
       });
 
       // Listen for when a user taps on a notification (app opened via notification).
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      FirebaseMessaging.onMessageOpenedApp
+          .listen((RemoteMessage message) async {
         if (kDebugMode) {
-          print('User tapped on notification: ${message.messageId}');
+          print('User tapped on notification: [32m${message.messageId}[0m');
           print('Message data: ${message.data}');
         }
 
         // Handle reload action
         if (message.data.containsKey('action') &&
             message.data['action'] == 'reload') {
-          // Handle reload action
           final context = navigatorKey.currentContext;
           if (context != null) {
-            // Fix the key name to match item_id
             final String? itemId = message.data['item_id'];
-            // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
             _handleReloadAction(context,
                 isBackgroundOrTerminated: true, itemId: itemId);
-
-            // Navigate to dashboard using a more reliable approach
             Navigator.of(context).popUntil((route) => route.isFirst);
-
-            // If using tabs, ensure the dashboard tab is selected
             if (tabsPageKey.currentState != null) {
-              // Use index 0 for dashboard tab
               tabsPageKey.currentState!.navigateToTab(0);
             }
           }
           return;
         }
 
-        // Handle standard route navigation
+        // Handle standard route navigation using NavigationDelegate
         if (message.data.containsKey('route')) {
           final route = message.data['route'] as String;
           String? id;
-          Future<dynamic>? dataFuture;
+          dynamic data;
           Map<String, String>? queryParams;
 
           // Parse queryParams if present and valid
@@ -178,41 +172,42 @@ class FCMService {
             }
           }
 
-          // If route contains a slash and an id, split it
           if (route.contains('/') && !route.startsWith('stats')) {
             final parts = route.split('/');
             if (parts.length == 2) {
               id = parts[1];
               switch (parts[0]) {
                 case 'accounts':
-                  dataFuture = AccountService.instance.getAccountById(id).first;
+                  data = await AccountService.instance.getAccountById(id).first;
                   break;
                 case 'budgets':
-                  dataFuture = BudgetService.instance.getBudgetById(id).first;
+                  data = await BudgetService.instance.getBudgetById(id).first;
                   break;
                 case 'transactions':
-                  dataFuture =
-                      TransactionService.instance.getTransactionById(id).first;
+                  data = await TransactionService.instance
+                      .getTransactionById(id)
+                      .first;
                   break;
                 case 'tags':
                   final context = navigatorKey.currentContext;
                   if (context != null) {
-                    dataFuture = fetchAndFindTagById(context, id);
+                    data = await fetchAndFindTagById(context, id);
                   }
                   break;
               }
-              pendingNavigation = PendingNavigation(
-                route: '${parts[0]}/id',
+              await NavigationDelegate.instance.navigateToAppRoute(
+                '${parts[0]}/id',
                 id: id,
-                dataFuture: dataFuture,
+                data: data,
                 queryParams: queryParams,
               );
               return;
             }
           }
-          // For stats subroutes (e.g., stats/cash-flow) or list routes
-          pendingNavigation =
-              PendingNavigation(route: route, queryParams: queryParams);
+          await NavigationDelegate.instance.navigateToAppRoute(
+            route,
+            queryParams: queryParams,
+          );
         }
       });
 
@@ -226,22 +221,14 @@ class FCMService {
 
         if (initialMessage.data.containsKey('action') &&
             initialMessage.data['action'] == 'reload') {
-          // Handle reload action - context will be available after app is fully loaded
           Future.delayed(const Duration(seconds: 1), () {
             final context = navigatorKey.currentContext;
             if (context != null) {
-              // Fix the key name to match item_id
               final String? itemId = initialMessage.data['item_id'];
-              // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
               _handleReloadAction(context,
                   isBackgroundOrTerminated: true, itemId: itemId);
-
-              // Navigate to dashboard using a more reliable approach
               Navigator.of(context).popUntil((route) => route.isFirst);
-
-              // If using tabs, ensure the dashboard tab is selected
               if (tabsPageKey.currentState != null) {
-                // Use index 0 for dashboard tab
                 tabsPageKey.currentState!.navigateToTab(0);
               }
             }
@@ -249,13 +236,12 @@ class FCMService {
           return;
         }
 
-        // Handle standard route navigation
+        // Handle standard route navigation using NavigationDelegate
         final route = initialMessage.data['route'] as String;
         String? id;
-        Future<dynamic>? dataFuture;
+        dynamic data;
         Map<String, String>? queryParams;
 
-        // Parse queryParams if present and valid
         if (initialMessage.data.containsKey('queryParams')) {
           try {
             final qpRaw = initialMessage.data['queryParams'];
@@ -277,33 +263,36 @@ class FCMService {
             id = parts[1];
             switch (parts[0]) {
               case 'accounts':
-                dataFuture = AccountService.instance.getAccountById(id).first;
+                data = await AccountService.instance.getAccountById(id).first;
                 break;
               case 'budgets':
-                dataFuture = BudgetService.instance.getBudgetById(id).first;
+                data = await BudgetService.instance.getBudgetById(id).first;
                 break;
               case 'transactions':
-                dataFuture =
-                    TransactionService.instance.getTransactionById(id).first;
+                data = await TransactionService.instance
+                    .getTransactionById(id)
+                    .first;
                 break;
               case 'tags':
                 final context = navigatorKey.currentContext;
                 if (context != null) {
-                  dataFuture = fetchAndFindTagById(context, id);
+                  data = await fetchAndFindTagById(context, id);
                 }
                 break;
             }
-            pendingNavigation = PendingNavigation(
-              route: '${parts[0]}/id',
+            await NavigationDelegate.instance.navigateToAppRoute(
+              '${parts[0]}/id',
               id: id,
-              dataFuture: dataFuture,
+              data: data,
               queryParams: queryParams,
             );
             return;
           }
         }
-        pendingNavigation =
-            PendingNavigation(route: route, queryParams: queryParams);
+        await NavigationDelegate.instance.navigateToAppRoute(
+          route,
+          queryParams: queryParams,
+        );
       }
 
       // Make sure FCM token is registered with the backend

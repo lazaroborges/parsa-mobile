@@ -3,6 +3,8 @@ import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
 import 'package:flutter/widgets.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/database/services/category/category_service.dart';
 
 class NavigationDelegate {
   static final NavigationDelegate _instance = NavigationDelegate._();
@@ -18,12 +20,55 @@ class NavigationDelegate {
     }
   }
 
+  Future<Map<String, String>> _convertCategoryNamesToIds(
+      Map<String, String> queryParams) async {
+    if (queryParams.containsKey('categories')) {
+      final names = queryParams['categories']!
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      List<String> ids = [];
+      for (final name in names) {
+        final cat =
+            await CategoryService.instance.getCategoryByName(name).first;
+        if (cat != null) ids.add(cat.id);
+      }
+      if (ids.isNotEmpty) {
+        final qp = Map<String, String>.from(queryParams);
+        qp['categories'] = ids.join(',');
+        return qp;
+      }
+    }
+    return queryParams;
+  }
+
   Future<void> navigateToAppRoute(String route,
       {String? id, dynamic data, Map<String, String>? queryParams}) async {
     try {
+      // If queryParams are present and this is a tab route, use tab navigation
       if (queryParams != null && queryParams.isNotEmpty && id == null) {
+        Map<String, String> qp = queryParams;
+        if (route.startsWith('stats') || route == 'transactions') {
+          qp = await _convertCategoryNamesToIds(queryParams);
+        }
+        if (route.startsWith('stats')) {
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: _statsTabIndexFromRoute(route),
+                    filters: TransactionFilters.fromMap(qp),
+                  ));
+          return;
+        } else if (route == 'transactions') {
+          _deferTabNavigation(() =>
+              tabsPageKey.currentState?.navigateToTransactionsTabWithFilters(
+                filters: TransactionFilters.fromMap(qp),
+              ));
+          return;
+        }
+        // For non-tab routes, fallback to pushNamed
         navigatorKey.currentState
-            ?.pushNamed('/$route', arguments: {'queryParams': queryParams});
+            ?.pushNamed('/$route', arguments: {'queryParams': qp});
         return;
       }
       switch (route) {
@@ -31,31 +76,66 @@ class NavigationDelegate {
           _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(0));
           break;
         case 'transactions':
-          _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(1));
+          _deferTabNavigation(() =>
+              tabsPageKey.currentState?.navigateToTransactionsTabWithFilters(
+                filters: queryParams != null && queryParams.isNotEmpty
+                    ? TransactionFilters.fromMap(queryParams)
+                    : null,
+              ));
           break;
         case 'stats':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(0));
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: 0,
+                    filters: queryParams != null && queryParams.isNotEmpty
+                        ? TransactionFilters.fromMap(queryParams)
+                        : null,
+                  ));
           break;
         case 'stats/category':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(0));
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: 0,
+                    filters: queryParams != null && queryParams.isNotEmpty
+                        ? TransactionFilters.fromMap(queryParams)
+                        : null,
+                  ));
           break;
         case 'stats/subcategory':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(1));
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: 1,
+                    filters: queryParams != null && queryParams.isNotEmpty
+                        ? TransactionFilters.fromMap(queryParams)
+                        : null,
+                  ));
           break;
         case 'stats/cash-flow':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(2));
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: 2,
+                    filters: queryParams != null && queryParams.isNotEmpty
+                        ? TransactionFilters.fromMap(queryParams)
+                        : null,
+                  ));
           break;
         case 'stats/financial-health':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(3));
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: 3,
+                    filters: queryParams != null && queryParams.isNotEmpty
+                        ? TransactionFilters.fromMap(queryParams)
+                        : null,
+                  ));
           break;
         case 'stats/balance-evolution':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(4));
+              () => tabsPageKey.currentState?.navigateToStatsTabWithFilters(
+                    index: 4,
+                    filters: queryParams != null && queryParams.isNotEmpty
+                        ? TransactionFilters.fromMap(queryParams)
+                        : null,
+                  ));
           break;
         case 'settings':
           _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(3));
@@ -121,6 +201,24 @@ class NavigationDelegate {
     } catch (e) {
       print('Error: Failed to navigate to $route: $e');
       tabsPageKey.currentState?.navigateToTab(0);
+    }
+  }
+
+  int _statsTabIndexFromRoute(String route) {
+    switch (route) {
+      case 'stats':
+      case 'stats/category':
+        return 0;
+      case 'stats/subcategory':
+        return 1;
+      case 'stats/cash-flow':
+        return 2;
+      case 'stats/financial-health':
+        return 3;
+      case 'stats/balance-evolution':
+        return 4;
+      default:
+        return 0;
     }
   }
 }

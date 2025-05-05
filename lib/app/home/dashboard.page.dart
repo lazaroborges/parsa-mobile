@@ -942,7 +942,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                   datePeriodState: dateRangeService),
                               onHeaderButtonClick: () {
                                 tabsPageKey.currentState
-                                    ?.navigateToStatsTabWithIndex(0);
+                                    ?.navigateToStatsTabWithFilters(index: 0);
                               }),
 
                           const SizedBox(height: 12),
@@ -956,7 +956,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                             ),
                             onHeaderButtonClick: () {
                               tabsPageKey.currentState
-                                  ?.navigateToStatsTabWithIndex(2);
+                                  ?.navigateToStatsTabWithFilters(index: 2);
                             },
                           ),
                           const SizedBox(height: 12),
@@ -1437,7 +1437,6 @@ int _mapStringToStartOfWeek(String? startOfWeek) {
       return 6; // DateTime.saturday;
     case 'sunday':
       return 7; // DateTime.sunday;
-    // Add string number handling
     case '1':
       return 1;
     case '6':

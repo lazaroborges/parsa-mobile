@@ -112,6 +112,18 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant StatsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If filters changed, update state
+    if (widget.filters != oldWidget.filters) {
+      setState(() {
+        filters = widget.filters;
+      });
+    }
+    // If initialIndex changed, you may want to handle that as well (optional)
+  }
+
   Widget buildContainerWithPadding(
     List<Widget> children, {
     EdgeInsetsGeometry padding =
