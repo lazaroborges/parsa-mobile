@@ -19,8 +19,13 @@ class NavigationDelegate {
   }
 
   Future<void> navigateToAppRoute(String route,
-      {String? id, dynamic data}) async {
+      {String? id, dynamic data, Map<String, String>? queryParams}) async {
     try {
+      if (queryParams != null && queryParams.isNotEmpty && id == null) {
+        navigatorKey.currentState
+            ?.pushNamed('/$route', arguments: {'queryParams': queryParams});
+        return;
+      }
       switch (route) {
         case 'dashboard':
           _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(0));

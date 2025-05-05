@@ -47,7 +47,6 @@ class TabsPageState extends State<TabsPage>
 
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
-  // Field to store the key for StatsPage to force rebuild
   Key _statsPageKey = UniqueKey();
 
   @override
@@ -98,8 +97,8 @@ class TabsPageState extends State<TabsPage>
       if (nav.dataFuture != null) {
         data = await nav.dataFuture;
       }
-      await NavigationDelegate.instance
-          .navigateToAppRoute(nav.route, id: nav.id, data: data);
+      await NavigationDelegate.instance.navigateToAppRoute(nav.route,
+          id: nav.id, data: data, queryParams: nav.queryParams);
       pendingNavigation = null;
     }
   }

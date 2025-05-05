@@ -140,7 +140,8 @@ class FCMService {
             // Fix the key name to match item_id
             final String? itemId = message.data['item_id'];
             // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-            _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
+            _handleReloadAction(context,
+                isBackgroundOrTerminated: true, itemId: itemId);
 
             // Navigate to dashboard using a more reliable approach
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -159,6 +160,24 @@ class FCMService {
           final route = message.data['route'] as String;
           String? id;
           Future<dynamic>? dataFuture;
+          Map<String, String>? queryParams;
+
+          // Parse queryParams if present and valid
+          if (message.data.containsKey('queryParams')) {
+            try {
+              final qpRaw = message.data['queryParams'];
+              if (qpRaw is String && qpRaw.isNotEmpty) {
+                final decoded = jsonDecode(qpRaw);
+                if (decoded is Map) {
+                  queryParams = decoded
+                      .map((k, v) => MapEntry(k.toString(), v.toString()));
+                }
+              }
+            } catch (e) {
+              if (kDebugMode) print('Failed to parse queryParams: $e');
+            }
+          }
+
           // If route contains a slash and an id, split it
           if (route.contains('/') && !route.startsWith('stats')) {
             final parts = route.split('/');
@@ -183,12 +202,17 @@ class FCMService {
                   break;
               }
               pendingNavigation = PendingNavigation(
-                  route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+                route: '${parts[0]}/id',
+                id: id,
+                dataFuture: dataFuture,
+                queryParams: queryParams,
+              );
               return;
             }
           }
-          // For stats subroutes (e.g., stats/cash-flow)
-          pendingNavigation = PendingNavigation(route: route);
+          // For stats subroutes (e.g., stats/cash-flow) or list routes
+          pendingNavigation =
+              PendingNavigation(route: route, queryParams: queryParams);
         }
       });
 
@@ -209,7 +233,8 @@ class FCMService {
               // Fix the key name to match item_id
               final String? itemId = initialMessage.data['item_id'];
               // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-              _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
+              _handleReloadAction(context,
+                  isBackgroundOrTerminated: true, itemId: itemId);
 
               // Navigate to dashboard using a more reliable approach
               Navigator.of(context).popUntil((route) => route.isFirst);
@@ -228,6 +253,24 @@ class FCMService {
         final route = initialMessage.data['route'] as String;
         String? id;
         Future<dynamic>? dataFuture;
+        Map<String, String>? queryParams;
+
+        // Parse queryParams if present and valid
+        if (initialMessage.data.containsKey('queryParams')) {
+          try {
+            final qpRaw = initialMessage.data['queryParams'];
+            if (qpRaw is String && qpRaw.isNotEmpty) {
+              final decoded = jsonDecode(qpRaw);
+              if (decoded is Map) {
+                queryParams =
+                    decoded.map((k, v) => MapEntry(k.toString(), v.toString()));
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) print('Failed to parse queryParams: $e');
+          }
+        }
+
         if (route.contains('/') && !route.startsWith('stats')) {
           final parts = route.split('/');
           if (parts.length == 2) {
@@ -251,11 +294,16 @@ class FCMService {
                 break;
             }
             pendingNavigation = PendingNavigation(
-                route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+              route: '${parts[0]}/id',
+              id: id,
+              dataFuture: dataFuture,
+              queryParams: queryParams,
+            );
             return;
           }
         }
-        pendingNavigation = PendingNavigation(route: route);
+        pendingNavigation =
+            PendingNavigation(route: route, queryParams: queryParams);
       }
 
       // Make sure FCM token is registered with the backend
@@ -345,7 +393,8 @@ class FCMService {
   Future<void> _handleReloadAction(BuildContext? context,
       {bool isBackgroundOrTerminated = false, String? itemId}) async {
     if (kDebugMode) {
-      print("Handling reload action${itemId != null ? ' for itemId: $itemId' : ''}");
+      print(
+          "Handling reload action${itemId != null ? ' for itemId: $itemId' : ''}");
     }
 
     try {
@@ -377,7 +426,8 @@ class FCMService {
           print("TabsPage not found, refreshing directly");
         }
 
-        print("--------------------    Fetching transactions for item: $itemId");
+        print(
+            "--------------------    Fetching transactions for item: $itemId");
 
         // First fetch accounts, then transactions from ItemId
         await Future.wait([
