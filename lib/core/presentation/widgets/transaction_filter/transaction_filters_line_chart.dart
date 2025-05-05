@@ -122,7 +122,7 @@ class TransactionFiltersLineChart {
                 transaction.title.contains(searchValue!) |
                 c.name.contains(searchValue!)),
           if (minDate != null) transaction.date.isBiggerOrEqualValue(minDate!),
-          if (maxDate != null) transaction.date.isSmallerThanValue(maxDate!),
+          if (maxDate != null) transaction.date.isSmallerOrEqualValue(maxDate!),
           if (accountsIDs != null && !includeReceivingAccountsInAccountFilters)
             transaction.accountID.isIn(accountsIDs!),
           if (accountsIDs != null && includeReceivingAccountsInAccountFilters)
@@ -153,7 +153,8 @@ class TransactionFiltersLineChart {
       maxDate: maxDate,
       searchValue: searchValue,
       includeParentCategoriesInSearch: includeParentCategoriesInSearch,
-      includeReceivingAccountsInAccountFilters: includeReceivingAccountsInAccountFilters,
+      includeReceivingAccountsInAccountFilters:
+          includeReceivingAccountsInAccountFilters,
       minValue: minValue,
       maxValue: maxValue,
       transactionTypes: transactionTypes,

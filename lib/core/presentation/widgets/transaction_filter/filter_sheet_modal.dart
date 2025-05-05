@@ -342,7 +342,8 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                             onDateSelected: (DateTime value) {
                               setState(() {
                                 filtersToReturn = filtersToReturn.copyWith(
-                                  maxDate: value.toLocal(),
+                                  maxDate: DateTime(value.year, value.month,
+                                      value.day, 23, 59, 59, 999),
                                 );
                               });
                             },

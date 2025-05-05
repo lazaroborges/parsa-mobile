@@ -131,7 +131,7 @@ class TransactionFilters {
                 transaction.title.contains(searchValue!) |
                 c.name.contains(searchValue!)),
           if (minDate != null) transaction.date.isBiggerOrEqualValue(minDate!),
-          if (maxDate != null) transaction.date.isSmallerThanValue(maxDate!),
+          if (maxDate != null) transaction.date.isSmallerOrEqualValue(maxDate!),
           if (accountsIDs != null && !includeReceivingAccountsInAccountFilters)
             transaction.accountID.isIn(accountsIDs!),
           if (accountsIDs != null && includeReceivingAccountsInAccountFilters)
@@ -153,14 +153,10 @@ class TransactionFilters {
                     c,
                     p6)
                 .toList()),
-          if (cousinFilter != null)
-            transaction.cousin.equals(cousinFilter!),
+          if (cousinFilter != null) transaction.cousin.equals(cousinFilter!),
           if (positiveValuesOnly != null)
             CustomExpression(
-                positiveValuesOnly! 
-                    ? '(t.value > 0)' 
-                    : '(t.value < 0)'
-            ),
+                positiveValuesOnly! ? '(t.value > 0)' : '(t.value < 0)'),
         ]);
   }
 }

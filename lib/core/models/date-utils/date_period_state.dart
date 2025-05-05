@@ -49,6 +49,10 @@ DateTime _calculatePeriodStart(
   }
 }
 
+DateTime _setEndOfDay(DateTime date) {
+  return DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+}
+
 @CopyWith()
 class DatePeriodState {
   final DatePeriod datePeriod;
@@ -112,11 +116,9 @@ class DatePeriodState {
 
       switch (datePeriod.periodicity) {
         case Periodicity.year:
-          // Leave Year logic as it was
           return (
             DateUtils.dateOnly(DateTime(currentYear + periodModifier, 1, 1)),
-            DateUtils.dateOnly(
-                DateTime(currentYear + 1 + periodModifier, 12, 31))
+            _setEndOfDay(DateTime(currentYear + 1 + periodModifier, 12, 31))
           );
 
         case Periodicity.month:
@@ -134,7 +136,7 @@ class DatePeriodState {
           final endDateInclusive =
               nextPeriodStartDate.subtract(const Duration(days: 1));
 
-          return (startDate, endDateInclusive);
+          return (startDate, _setEndOfDay(endDateInclusive));
 
         case Periodicity.week:
           // ----- Focus on fixing this case -----
@@ -156,14 +158,13 @@ class DatePeriodState {
           final targetWeekEndDate =
               targetWeekStartDate.add(const Duration(days: 6));
 
-          return (targetWeekStartDate, targetWeekEndDate);
+          return (targetWeekStartDate, _setEndOfDay(targetWeekEndDate));
         // ----- End of fix -----
 
         case Periodicity.day:
-          // Leave Day logic as it was
           final targetDate = DateUtils.dateOnly(DateTime(
               currentYear, currentMonth, currentDayOfMonth + periodModifier));
-          return (targetDate, targetDate);
+          return (targetDate, _setEndOfDay(targetDate));
 
         default:
           return (null, null);
@@ -181,7 +182,8 @@ class DatePeriodState {
 
       return (
         DateUtils.dateOnly(datePeriod.customDateRange.$1!.add(offsetDuration)),
-        DateUtils.dateOnly(datePeriod.customDateRange.$2!.add(offsetDuration))
+        _setEndOfDay(DateUtils.dateOnly(
+            datePeriod.customDateRange.$2!.add(offsetDuration)))
       );
     } else if (datePeriod.periodType == PeriodType.lastDays) {
       final now = DateUtils.dateOnly(DateTime.now());
@@ -194,7 +196,7 @@ class DatePeriodState {
       final startDate =
           endDate.subtract(Duration(days: datePeriod.lastDays - 1));
 
-      return (startDate, endDate);
+      return (startDate, _setEndOfDay(endDate));
     } else if (datePeriod.periodType == PeriodType.allTime) {
       return (null, null);
     }
