@@ -118,7 +118,7 @@ class DatePeriodState {
         case Periodicity.year:
           return (
             DateUtils.dateOnly(DateTime(currentYear + periodModifier, 1, 1)),
-            _setEndOfDay(DateTime(currentYear + 1 + periodModifier, 12, 31))
+            _setEndOfDay(DateTime(currentYear + periodModifier, 12, 31))
           );
 
         case Periodicity.month:
