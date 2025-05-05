@@ -12,8 +12,11 @@ import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
+import 'package:parsa/core/models/date-utils/date_period.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
-class BudgetCard extends StatelessWidget {
+class BudgetCard extends StatefulWidget {
   const BudgetCard({
     super.key,
     required this.budget,
@@ -26,7 +29,51 @@ class BudgetCard extends StatelessWidget {
   final bool showDivider;
 
   @override
+  State<BudgetCard> createState() => _BudgetCardState();
+}
+
+class _BudgetCardState extends State<BudgetCard> {
+  DateTimeRange? _currentDateRange;
+  int? _daysToTheEnd;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferencesAndCalculate();
+  }
+
+  Future<void> _loadPreferencesAndCalculate() async {
+    final prefs = app_prefs.SharedPreferencesAsync.instance;
+    final startOfMonthDay = await prefs.getStartOfMonth();
+    final startOfWeek = await prefs.getStartOfWeek();
+
+    final periodState = DatePeriodState(
+      datePeriod: widget.budget.intervalPeriod != null
+          ? DatePeriod.withPeriods(widget.budget.intervalPeriod!)
+          : DatePeriod.customRange(
+              widget.budget.startDate, widget.budget.endDate),
+      startOfMonthDay: startOfMonthDay,
+      startOfWeek: startOfWeek,
+    );
+    final toReturn = periodState.getDates();
+    setState(() {
+      _currentDateRange = DateTimeRange(start: toReturn.$1!, end: toReturn.$2!);
+      _daysToTheEnd = _currentDateRange!.end.isAfter(DateTime.now())
+          ? _currentDateRange!.end.difference(DateTime.now()).inDays
+          : 0;
+      _loading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading || _currentDateRange == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final currentDateRange = _currentDateRange!;
+    final daysToTheEnd = _daysToTheEnd!;
+
     final titleStyle = Theme.of(context)
         .textTheme
         .titleMedium!
@@ -59,10 +106,10 @@ class BudgetCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isHeader
+          onTap: widget.isHeader
               ? null
               : () => RouteUtils.pushRoute(
-                  context, BudgetDetailsPage(budget: budget)),
+                  context, BudgetDetailsPage(budget: widget.budget)),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -80,7 +127,7 @@ class BudgetCard extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: budget.name,
+                              text: widget.budget.name,
                               style: titleStyle,
                             ),
                             TextSpan(
@@ -93,12 +140,11 @@ class BudgetCard extends StatelessWidget {
                               ),
                             ),
                             TextSpan(
-                              text: budget.intervalPeriod != null
+                              text: widget.budget.intervalPeriod != null
                                   ? _getPeriodicityText(
-                                      budget.intervalPeriod!, context)
-                                  : _formatDateRange(
-                                      budget.currentDateRange.start,
-                                      budget.currentDateRange.end),
+                                      widget.budget.intervalPeriod!, context)
+                                  : _formatDateRange(currentDateRange.start,
+                                      currentDateRange.end),
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium!
@@ -120,15 +166,17 @@ class BudgetCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: budget.intervalPeriod != null
+                        color: widget.budget.intervalPeriod != null
                             ? Theme.of(context).colorScheme.primaryContainer
                             : Theme.of(context).colorScheme.secondaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        budget.intervalPeriod != null ? 'Recorrente' : 'Único',
+                        widget.budget.intervalPeriod != null
+                            ? 'Recorrente'
+                            : 'Único',
                         style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                              color: budget.intervalPeriod != null
+                              color: widget.budget.intervalPeriod != null
                                   ? Theme.of(context)
                                       .colorScheme
                                       .onPrimaryContainer
@@ -145,33 +193,36 @@ class BudgetCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // ROW 2: Budget status indicator
-                _buildBudgetStatusIndicator(context, labelStyle),
+                _buildBudgetStatusIndicator(context, labelStyle, daysToTheEnd),
 
                 const SizedBox(height: 8),
 
                 // ROW 3: Progress bar and values
                 StreamBuilder<double>(
-                  stream: budget.currentValue,
+                  stream: widget.budget.currentValue,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const LinearProgressIndicator();
                     }
 
                     final currentValue = snapshot.data!;
-                    final remainingAmount = budget.limitAmount - currentValue;
-                    final percentage = currentValue / budget.limitAmount;
-                    final isOverBudget = currentValue > budget.limitAmount;
+                    final remainingAmount =
+                        widget.budget.limitAmount - currentValue;
+                    final percentage = currentValue / widget.budget.limitAmount;
+                    final isOverBudget =
+                        currentValue > widget.budget.limitAmount;
 
                     // Calculate the default speed (expenses per day)
-                    final totalDays = budget.currentDateRange.end
-                        .difference(budget.currentDateRange.start)
+                    final totalDays = currentDateRange.end
+                        .difference(currentDateRange.start)
                         .inDays;
-                    final defaultDailyRate = budget.limitAmount / totalDays;
+                    final defaultDailyRate =
+                        widget.budget.limitAmount / totalDays;
 
                     // Calculate the actual daily rate so far (how much spent per day on average)
                     // Add 1 to avoid division by zero if we're on day 1
                     final daysPassed = DateTime.now()
-                            .difference(budget.currentDateRange.start)
+                            .difference(currentDateRange.start)
                             .inDays +
                         1;
                     final actualDailyRate = currentValue / daysPassed;
@@ -246,7 +297,8 @@ class BudgetCard extends StatelessWidget {
                                       ),
                                       WidgetSpan(
                                         child: CurrencyDisplayer(
-                                          amountToConvert: budget.limitAmount,
+                                          amountToConvert:
+                                              widget.budget.limitAmount,
                                           showDecimals: false,
                                           integerStyle: TextStyle(
                                             fontWeight: FontWeight.w300,
@@ -271,7 +323,7 @@ class BudgetCard extends StatelessWidget {
                                       ? "Passou"
                                       : (remainingAmount == 0
                                           ? "Restou"
-                                          : (budget.daysToTheEnd < 0 &&
+                                          : (daysToTheEnd < 0 &&
                                                   remainingAmount > 0
                                               ? "Economizou"
                                               : "Restam")),
@@ -288,7 +340,7 @@ class BudgetCard extends StatelessWidget {
                                     fontSize: 16,
                                     color: isOverBudget
                                         ? appColors.danger
-                                        : (budget.daysToTheEnd < 0 &&
+                                        : (daysToTheEnd < 0 &&
                                                 remainingAmount > 0
                                             ? appColors.success
                                             : Theme.of(context)
@@ -305,7 +357,7 @@ class BudgetCard extends StatelessWidget {
                   },
                 ),
 
-                // if (isHeader && budget.isActiveBudget) ...[
+                // if (isHeader && widget.budget.isActiveBudget) ...[
                 //   const SizedBox(height: 16),
                 //   Divider(
                 //     height: 1,
@@ -318,16 +370,16 @@ class BudgetCard extends StatelessWidget {
                 //     stream: CurrencyService.instance.getUserPreferredCurrency(),
                 //     builder: (context, snapshot) {
                 //       return StreamBuilder(
-                //         stream: budget.currentValue,
+                //         stream: widget.budget.currentValue,
                 //         builder: (context, budgetCurrentValue) {
                 //           // Calculate remaining amount first
-                //           final remaining = budget.limitAmount -
+                //           final remaining = widget.budget.limitAmount -
                 //               (budgetCurrentValue.data ?? 0);
 
                 //           // Add guard check to prevent division by zero
                 //           final dailyAmount = remaining > 0
-                //               ? (budget.daysToTheEnd > 0
-                //                   ? remaining / budget.daysToTheEnd
+                //               ? (daysToTheEnd > 0
+                //                   ? remaining / daysToTheEnd
                 //                   : remaining) // If days to end is 0, use the full remaining amount
                 //               : 0.0;
 
@@ -360,7 +412,7 @@ class BudgetCard extends StatelessWidget {
                 //                       ),
                 //                     ),
                 //                     Text(
-                //                       " por dia nos próximos ${budget.daysToTheEnd} dias",
+                //                       " por dia nos próximos ${daysToTheEnd} dias",
                 //                       style: Theme.of(context)
                 //                           .textTheme
                 //                           .bodyMedium!
@@ -389,13 +441,14 @@ class BudgetCard extends StatelessWidget {
   }
 
   // Helper method to build the budget status indicator
-  Widget _buildBudgetStatusIndicator(BuildContext context, TextStyle? style) {
+  Widget _buildBudgetStatusIndicator(
+      BuildContext context, TextStyle? style, int daysToTheEnd) {
     final t = Translations.of(context);
     final theme = Theme.of(context);
     final appColors = AppColors.of(context);
     final statusStyle = Theme.of(context).textTheme.bodyMedium;
 
-    if (budget.daysToTheEnd < 0) {
+    if (daysToTheEnd < 0) {
       // Orçamento concluído
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -414,7 +467,7 @@ class BudgetCard extends StatelessWidget {
           ),
         ],
       );
-    } else if (budget.isActiveBudget) {
+    } else if (widget.budget.isActiveBudget) {
       // Orçamento ativo - mostrar dias restantes
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -426,14 +479,14 @@ class BudgetCard extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            "Restam ${budget.daysToTheEnd} dias",
+            "Restam ${daysToTheEnd} dias",
             style: statusStyle!.copyWith(
               color: theme.colorScheme.primary,
             ),
           ),
         ],
       );
-    } else if (budget.isPastBudget) {
+    } else if (widget.budget.isPastBudget) {
       // Orçamento concluído
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -452,7 +505,7 @@ class BudgetCard extends StatelessWidget {
           ),
         ],
       );
-    } else if (budget.isFutureBudget) {
+    } else if (widget.budget.isFutureBudget) {
       // Orçamento não iniciado
       return Row(
         mainAxisSize: MainAxisSize.min,
