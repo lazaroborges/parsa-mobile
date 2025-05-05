@@ -14,8 +14,6 @@ class SharedPreferencesAsync {
   static const String keyIntakeCompleted = 'intakeCompleted';
   static const String keyStartOfWeek = 'startOfWeek';
   static const String keyStartOfMonth = 'startOfMonth';
-  static const String keyStartOfMonthWorkingDaysOnly =
-      'startOfMonthWorkingDaysOnly';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -179,17 +177,5 @@ class SharedPreferencesAsync {
   Future<int> getStartOfMonth() async {
     final prefs = await _getPrefs();
     return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
-  }
-
-  /// Set whether to count only working days for start of month
-  Future<bool> setStartOfMonthWorkingDaysOnly(bool value) async {
-    final prefs = await _getPrefs();
-    return prefs.setBool(keyStartOfMonthWorkingDaysOnly, value);
-  }
-
-  /// Get whether to count only working days for start of month
-  Future<bool> getStartOfMonthWorkingDaysOnly() async {
-    final prefs = await _getPrefs();
-    return prefs.getBool(keyStartOfMonthWorkingDaysOnly) ?? false;
   }
 }

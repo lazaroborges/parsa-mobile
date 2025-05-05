@@ -11,40 +11,13 @@ part 'date_period_state.g.dart';
 /// If useWorkingDays is true, it finds the Nth (startDay) working day of the month.
 /// If useWorkingDays is false, it uses the literal startDay, clamping to the end of the month if invalid.
 /// Returns a DateTime with time set to 00:00:00 (DateOnly).
-DateTime _calculatePeriodStart(
-    int year, int month, int startDay, bool useWorkingDays) {
-  // Handle invalid startDay parameter immediately (e.g., <= 0)
+DateTime _calculatePeriodStart(int year, int month, int startDay) {
   if (startDay <= 0) {
     startDay = 1;
   }
-
-  if (!useWorkingDays) {
-    // Original logic: just get the day, clamping to month end if invalid
-    try {
-      // Ensure DateOnly
-      return DateUtils.dateOnly(DateTime(year, month, startDay));
-    } catch (e) {
-      // Ensure DateOnly for last day of month
-      return DateUtils.dateOnly(DateTime(year, month + 1, 0));
-    }
-  } else {
-    // New logic: Find the Nth working day (N = startDay)
-    int workingDaysFound = 0;
-    // Start from the first day (already DateOnly)
-    DateTime currentDate = DateUtils.dateOnly(DateTime(year, month, 1));
-
-    while (currentDate.month == month) {
-      final int dayOfWeek = currentDate.weekday;
-      if (dayOfWeek != DateTime.saturday && dayOfWeek != DateTime.sunday) {
-        workingDaysFound++;
-      }
-      if (workingDaysFound == startDay) {
-        return currentDate; // Already DateOnly
-      }
-      currentDate =
-          currentDate.add(const Duration(days: 1)); // Preserves DateOnly
-    }
-    // Fallback: Return last day of month (DateOnly)
+  try {
+    return DateUtils.dateOnly(DateTime(year, month, startDay));
+  } catch (e) {
     return DateUtils.dateOnly(DateTime(year, month + 1, 0));
   }
 }
@@ -58,14 +31,12 @@ class DatePeriodState {
   final DatePeriod datePeriod;
   final int periodModifier;
   final int startOfMonthDay;
-  final bool useWorkingDays;
   final int startOfWeek;
 
   const DatePeriodState({
     this.datePeriod = const DatePeriod(periodType: PeriodType.cycle),
     this.periodModifier = 0,
     this.startOfMonthDay = 1,
-    this.useWorkingDays = false,
     this.startOfWeek = DateTime.sunday,
   });
 
@@ -122,16 +93,15 @@ class DatePeriodState {
           );
 
         case Periodicity.month:
-          // Leave Month logic as it was (with Nth working day calculation)
           final targetBaseMonth = currentMonth + periodModifier;
           final targetYear = currentYear;
 
-          final startDate = _calculatePeriodStart(targetYear, targetBaseMonth,
-              this.startOfMonthDay, this.useWorkingDays);
+          final startDate = _calculatePeriodStart(
+              targetYear, targetBaseMonth, this.startOfMonthDay);
 
           final nextPeriodBaseMonth = targetBaseMonth + 1;
-          final nextPeriodStartDate = _calculatePeriodStart(targetYear,
-              nextPeriodBaseMonth, this.startOfMonthDay, this.useWorkingDays);
+          final nextPeriodStartDate = _calculatePeriodStart(
+              targetYear, nextPeriodBaseMonth, this.startOfMonthDay);
 
           final endDateInclusive =
               nextPeriodStartDate.subtract(const Duration(days: 1));
