@@ -13,8 +13,6 @@ abstract class _$DatePeriodStateCWProxy {
 
   DatePeriodState startOfMonthDay(int startOfMonthDay);
 
-  DatePeriodState useWorkingDays(bool useWorkingDays);
-
   DatePeriodState startOfWeek(int startOfWeek);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `DatePeriodState(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -27,7 +25,6 @@ abstract class _$DatePeriodStateCWProxy {
     DatePeriod? datePeriod,
     int? periodModifier,
     int? startOfMonthDay,
-    bool? useWorkingDays,
     int? startOfWeek,
   });
 }
@@ -51,10 +48,6 @@ class _$DatePeriodStateCWProxyImpl implements _$DatePeriodStateCWProxy {
       this(startOfMonthDay: startOfMonthDay);
 
   @override
-  DatePeriodState useWorkingDays(bool useWorkingDays) =>
-      this(useWorkingDays: useWorkingDays);
-
-  @override
   DatePeriodState startOfWeek(int startOfWeek) =>
       this(startOfWeek: startOfWeek);
 
@@ -70,7 +63,6 @@ class _$DatePeriodStateCWProxyImpl implements _$DatePeriodStateCWProxy {
     Object? datePeriod = const $CopyWithPlaceholder(),
     Object? periodModifier = const $CopyWithPlaceholder(),
     Object? startOfMonthDay = const $CopyWithPlaceholder(),
-    Object? useWorkingDays = const $CopyWithPlaceholder(),
     Object? startOfWeek = const $CopyWithPlaceholder(),
   }) {
     return DatePeriodState(
@@ -89,11 +81,6 @@ class _$DatePeriodStateCWProxyImpl implements _$DatePeriodStateCWProxy {
           ? _value.startOfMonthDay
           // ignore: cast_nullable_to_non_nullable
           : startOfMonthDay as int,
-      useWorkingDays: useWorkingDays == const $CopyWithPlaceholder() ||
-              useWorkingDays == null
-          ? _value.useWorkingDays
-          // ignore: cast_nullable_to_non_nullable
-          : useWorkingDays as bool,
       startOfWeek:
           startOfWeek == const $CopyWithPlaceholder() || startOfWeek == null
               ? _value.startOfWeek

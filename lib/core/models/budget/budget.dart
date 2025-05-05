@@ -29,7 +29,7 @@ class Budget extends BudgetInDB {
         categories != null && categories.isEmpty ? null : categories;
 
     this.accounts = accounts != null && accounts.isEmpty ? null : accounts;
-    
+
     this.tags = tags != null && tags.isEmpty ? null : tags;
   }
 

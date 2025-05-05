@@ -40,7 +40,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   bool _isLoading = true;
   int _startOfWeek = 7;
   int _startOfMonth = 1;
-  bool _startOfMonthWorkingDaysOnly = false;
 
   // Store notification preferences
   Map<String, bool> _notificationPrefs = {};
@@ -70,8 +69,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
       final prefs = app_prefs.SharedPreferencesAsync.instance;
       _startOfWeek = await prefs.getStartOfWeek();
       _startOfMonth = await prefs.getStartOfMonth();
-      _startOfMonthWorkingDaysOnly =
-          await prefs.getStartOfMonthWorkingDaysOnly();
 
       // Check notification permissions
       final hasPermission =
@@ -610,7 +607,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                           await PostUserSettings.updateDatePreferences(
                         startOfWeek: _startOfWeek,
                         startOfMonth: _startOfMonth,
-                        useWorkingDay: _startOfMonthWorkingDaysOnly,
                       );
 
                       if (success) {
@@ -661,7 +657,6 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                           await PostUserSettings.updateDatePreferences(
                         startOfWeek: _startOfWeek,
                         startOfMonth: _startOfMonth,
-                        useWorkingDay: _startOfMonthWorkingDaysOnly,
                       );
 
                       if (success) {
