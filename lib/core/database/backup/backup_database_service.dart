@@ -78,7 +78,7 @@ class BackupDatabaseService {
         transaction.value.toStringAsFixed(2),
         dateFormatter.format(transaction.date),
         transaction.title ?? '',
-        transaction.notes ?? '',
+        transaction.notes?.replaceAll('\n', ' - ') ?? '',
         transaction.account.name,
         transaction.account.currencyId,
         if (transaction.isIncomeOrExpense)
