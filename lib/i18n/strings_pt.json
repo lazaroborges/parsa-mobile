@@ -267,7 +267,7 @@
     "synch-manual": "Manualmente",
     "yes": "Sim",
     "no": "Não",
-    "delete_openfinance_error": "Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção 'Desconsiderada' dentro do card da transação.",
+    "delete_openfinance_error": "Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção 'Desconsiderada' dentro do card da transação.",
     "last-update": "Última atualização",
     "payment-method": "Forma de pagamento",
     "create": "Nova transação",
@@ -626,7 +626,8 @@
       "value": "Quantidade limite",
       "create": "Adicionar orçamento",
       "edit": "Editar orçamento",
-      "negative-warn": "Os orçamentos não podem ter um valor negativo"
+      "negative-warn": "Os orçamentos não podem ter um valor negativo",
+      "null-warn": "O valor inserido é inválido."
     },
     "DETAILS": {
       "title": "Detalhes do orçamento",

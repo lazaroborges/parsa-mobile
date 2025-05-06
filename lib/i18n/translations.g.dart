@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 616
+/// Strings: 617
 ///
-/// Built on 2025-05-05 at 21:35 UTC
+/// Built on 2025-05-06 at 12:32 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -354,7 +354,7 @@ class _TranslationsTransactionPt {
 	String get synch_manual => 'Manualmente';
 	String get yes => 'Sim';
 	String get no => 'Não';
-	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
+	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 	String get last_update => 'Última atualização';
 	String get payment_method => 'Forma de pagamento';
 	String get create => 'Nova transação';
@@ -1185,6 +1185,7 @@ class _TranslationsBudgetsFormPt {
 	String get create => 'Adicionar orçamento';
 	String get edit => 'Editar orçamento';
 	String get negative_warn => 'Os orçamentos não podem ter um valor negativo';
+	String get null_warn => 'O valor inserido é inválido.';
 }
 
 // Path: budgets.details
@@ -1849,7 +1850,7 @@ extension on Translations {
 			case 'transaction.synch_manual': return 'Manualmente';
 			case 'transaction.yes': return 'Sim';
 			case 'transaction.no': return 'Não';
-			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
+			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 			case 'transaction.last_update': return 'Última atualização';
 			case 'transaction.payment_method': return 'Forma de pagamento';
 			case 'transaction.create': return 'Nova transação';
@@ -2145,6 +2146,7 @@ extension on Translations {
 			case 'budgets.form.create': return 'Adicionar orçamento';
 			case 'budgets.form.edit': return 'Editar orçamento';
 			case 'budgets.form.negative_warn': return 'Os orçamentos não podem ter um valor negativo';
+			case 'budgets.form.null_warn': return 'O valor inserido é inválido.';
 			case 'budgets.details.title': return 'Detalhes do orçamento';
 			case 'budgets.details.statistics': return 'Insights';
 			case 'budgets.details.budget_value': return 'Orçado';
