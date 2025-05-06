@@ -97,11 +97,11 @@ class DatePeriodState {
           final targetYear = currentYear;
 
           final startDate = _calculatePeriodStart(
-              targetYear, targetBaseMonth, this.startOfMonthDay);
+              targetYear, targetBaseMonth, startOfMonthDay);
 
           final nextPeriodBaseMonth = targetBaseMonth + 1;
           final nextPeriodStartDate = _calculatePeriodStart(
-              targetYear, nextPeriodBaseMonth, this.startOfMonthDay);
+              targetYear, nextPeriodBaseMonth, startOfMonthDay);
 
           final endDateInclusive =
               nextPeriodStartDate.subtract(const Duration(days: 1));
@@ -113,7 +113,7 @@ class DatePeriodState {
           // Calculate days to subtract to get to the start of the *current* week based on preference
           // `startOfWeek` is 1-7 (Mon-Sun), `now.weekday` is also 1-7
           final daysSinceStartOfWeek =
-              (now.weekday - this.startOfWeek + DateTime.daysPerWeek) %
+              (now.weekday - startOfWeek + DateTime.daysPerWeek) %
                   DateTime.daysPerWeek;
 
           // Start date of the *current* week (already DateOnly because 'now' is)
