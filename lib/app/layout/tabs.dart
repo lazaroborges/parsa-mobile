@@ -22,8 +22,8 @@ import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -50,14 +50,14 @@ class TabsPageState extends State<TabsPage>
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
   Key _statsPageKey = UniqueKey();
-  TransactionFilters? _statsFilters;
-  TransactionFilters? _transactionsFilters;
+
+  TransactionFilters? _transactionFilters;
+  Key _transactionsPageKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Defer navigation until after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
     });
@@ -101,8 +101,8 @@ class TabsPageState extends State<TabsPage>
       if (nav.dataFuture != null) {
         data = await nav.dataFuture;
       }
-      await NavigationDelegate.instance.navigateToAppRoute(nav.route,
-          id: nav.id, data: data, queryParams: nav.queryParams);
+      await NavigationDelegate.instance
+          .navigateToAppRoute(nav.route, id: nav.id, data: data);
       pendingNavigation = null;
     }
   }
@@ -249,19 +249,24 @@ class TabsPageState extends State<TabsPage>
     FocusScope.of(context).unfocus();
   }
 
-  /// Call this to navigate to the Stats tab and set the initial subtab and filters
-  void navigateToStatsTabWithFilters(
-      {int index = 0, TransactionFilters? filters}) {
+  /// Call this to navigate to the Stats tab and set the initial subtab
+  void navigateToStatsTab(int index) {
     _statsInitialIndex = index;
-    _statsFilters = filters;
-    _statsPageKey = UniqueKey(); // Force StatsPage to rebuild
-    navigateToTab(2); // Assuming Stats is tab index 2
+    _statsPageKey = UniqueKey();
+    navigateToTab(2);
   }
 
-  /// Call this to navigate to the Transactions tab and set filters
-  void navigateToTransactionsTabWithFilters({TransactionFilters? filters}) {
-    _transactionsFilters = filters;
-    navigateToTab(1); // Assuming Transactions is tab index 1
+  void navigateToTransactionsTab(TransactionFilters filters) {
+    debugPrint('[TabsPage] Setting filters for Transactions tab: ' +
+        filters.toString());
+    final menuItems = getDestinations(context,
+        shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+    setState(() {
+      _transactionFilters = filters;
+      _transactionsPageKey = UniqueKey();
+      selectedDestination = menuItems[1];
+    });
+    debugPrint('[TabsPage] Navigated to Transactions tab');
   }
 
   @override
@@ -296,20 +301,22 @@ class TabsPageState extends State<TabsPage>
               .indexWhere((element) => element.id == selectedDestination?.id),
           duration: const Duration(milliseconds: 300),
           children: allDestinations.asMap().entries.map((entry) {
-            // If this is the Transactions tab, inject filters
-            if (entry.value.destination.runtimeType.toString() ==
-                'TransactionsPage') {
-              return TransactionsPage(
-                filters: _transactionsFilters,
-              );
-            }
-            // If this is the Stats tab, inject the initialIndex, filters, and key
+            // If this is the Stats tab, inject the initialIndex and key
             if (entry.value.destination is StatsPage) {
               return StatsPage(
                 key: _statsPageKey,
                 initialIndex: _statsInitialIndex,
-                filters: _statsFilters ?? const TransactionFilters(),
                 dateRangeService: const DatePeriodState(),
+              );
+            }
+            // If this is the Transactions tab, inject filters and key
+            if (entry.value.destination.runtimeType.toString() ==
+                'TransactionsPage') {
+              debugPrint('[TabsPage] Building TransactionsPage with filters: ' +
+                  (_transactionFilters?.toString() ?? 'null'));
+              return TransactionsPage(
+                key: _transactionsPageKey,
+                filters: _transactionFilters,
               );
             }
             return entry.value.destination;

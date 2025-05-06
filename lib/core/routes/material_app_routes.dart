@@ -23,10 +23,9 @@ import 'package:flutter/foundation.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/tags/tag.dart';
-import 'package:parsa/core/database/services/category/category_service.dart';
 
 class MaterialAppRoutes {
-  /// Route generator function for MaterialApp to handle bRoth static and dynamic routes
+  /// Route generator function for MaterialApp to handle both static and dynamic routes
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     if (settings.name == null) return null;
 
@@ -158,64 +157,38 @@ class MaterialAppRoutes {
 
     // Transaction routes
     if (routeMatches(['transactions'])) {
-      return MaterialPageRoute(builder: (context) {
-        return FutureBuilder<List<String>>(
-          future: () async {
-            debugPrint('[NAV] Transactions route: queryParams = ' +
-                queryParams.toString());
-            if (queryParams.containsKey('queryParams') &&
-                queryParams['queryParams'] is Map<String, String>) {
-              final Map<String, String> qp =
-                  queryParams['queryParams'] as Map<String, String>;
-              List<String> categoryNames = qp['categories']?.split(',') ?? [];
-              List<String> categoryIds = [];
-              for (final name in categoryNames) {
-                if (name.trim().isEmpty) continue;
-                final cat = await CategoryService.instance
-                    .getCategoryByName(name.trim())
-                    .first;
-                if (cat != null) categoryIds.add(cat.id);
-              }
-              return List<String>.from(categoryIds);
-            }
-            return <String>[];
-          }(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()));
-            }
-            TransactionFilters filters = const TransactionFilters();
-            bool validFilters = false;
-            if (queryParams.containsKey('queryParams') &&
-                queryParams['queryParams'] is Map<String, String>) {
-              final Map<String, String> qp =
-                  queryParams['queryParams'] as Map<String, String>;
-              filters = TransactionFilters(
-                minDate: qp['minDate'] != null
-                    ? DateTime.tryParse(qp['minDate']!)
-                    : null,
-                maxDate: qp['maxDate'] != null
-                    ? DateTime.tryParse(qp['maxDate']!)
-                    : null,
-                searchValue: qp['search'],
-                accountsIDs: qp['accounts']?.split(','),
-                categories: snapshot.data,
-                tagsIDs: qp['tags']?.split(','),
-              );
-              validFilters = qp.isNotEmpty;
-              debugPrint('[NAV] Transactions filters constructed: ' +
-                  filters.toString());
-            }
-            if (!validFilters) {
-              debugPrint(
-                  '[NAV] Transactions: No valid filters, redirecting to plain TransactionsPage');
-              return const TransactionsPage();
-            }
-            return TransactionsPage(filters: filters);
-          },
+      // Extract filters from queryParams consistently
+      TransactionFilters filters = const TransactionFilters();
+
+      if (queryParams.containsKey('queryParams') &&
+          queryParams['queryParams'] is Map<String, dynamic>) {
+        // Handle case where queryParams is passed directly from FCM notification
+        final Map<String, dynamic> filterData =
+            queryParams['queryParams'] as Map<String, dynamic>;
+
+        // Create TransactionFilters using the constructor with extracted values
+        filters = TransactionFilters(
+          minDate: filterData['minDate'] != null
+              ? DateTime.parse(filterData['minDate'] as String)
+              : null,
+          maxDate: filterData['maxDate'] != null
+              ? DateTime.parse(filterData['maxDate'] as String)
+              : null,
+          searchValue: filterData['search'] as String?,
+          accountsIDs: filterData['accounts'] != null
+              ? (filterData['accounts'] as String).split(',')
+              : null,
+          categories: filterData['categories'] != null
+              ? (filterData['categories'] as String).split(',')
+              : null,
+          tagsIDs: filterData['tags'] != null
+              ? (filterData['tags'] as String).split(',')
+              : null,
         );
-      });
+      }
+
+      return MaterialPageRoute(
+          builder: (_) => TransactionsPage(filters: filters));
     }
 
     // Handle direct transaction ID paths

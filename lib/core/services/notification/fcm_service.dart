@@ -126,88 +126,118 @@ class FCMService {
       });
 
       // Listen for when a user taps on a notification (app opened via notification).
-      FirebaseMessaging.onMessageOpenedApp
-          .listen((RemoteMessage message) async {
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         if (kDebugMode) {
-          print('User tapped on notification: [32m${message.messageId}[0m');
+          print('User tapped on notification: ${message.messageId}');
           print('Message data: ${message.data}');
         }
 
         // Handle reload action
         if (message.data.containsKey('action') &&
             message.data['action'] == 'reload') {
+          // Handle reload action
           final context = navigatorKey.currentContext;
           if (context != null) {
+            // Fix the key name to match item_id
             final String? itemId = message.data['item_id'];
+            // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
             _handleReloadAction(context,
                 isBackgroundOrTerminated: true, itemId: itemId);
+
+            // Navigate to dashboard using a more reliable approach
             Navigator.of(context).popUntil((route) => route.isFirst);
+
+            // If using tabs, ensure the dashboard tab is selected
             if (tabsPageKey.currentState != null) {
+              // Use index 0 for dashboard tab
               tabsPageKey.currentState!.navigateToTab(0);
             }
           }
           return;
         }
 
-        // Handle standard route navigation using NavigationDelegate
+        // Handle standard route navigation
         if (message.data.containsKey('route')) {
+          if (kDebugMode) print('Found route in message data');
           final route = message.data['route'] as String;
           String? id;
-          dynamic data;
           Map<String, String>? queryParams;
 
-          // Parse queryParams if present and valid
+          // Parse queryParams if present
           if (message.data.containsKey('queryParams')) {
+            if (kDebugMode) print('Found queryParams in message data');
             try {
               final qpRaw = message.data['queryParams'];
               if (qpRaw is String && qpRaw.isNotEmpty) {
+                if (kDebugMode) print('QueryParams is a non-empty string');
                 final decoded = jsonDecode(qpRaw);
                 if (decoded is Map) {
                   queryParams = decoded
                       .map((k, v) => MapEntry(k.toString(), v.toString()));
                 }
+              } else if (qpRaw is Map) {
+                if (kDebugMode) print('QueryParams is a Map');
+                queryParams =
+                    qpRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
               }
             } catch (e) {
               if (kDebugMode) print('Failed to parse queryParams: $e');
             }
           }
 
-          if (route.contains('/') && !route.startsWith('stats')) {
+          // If this is a tab route, navigate directly
+          if (route == 'transactions' || route.startsWith('stats')) {
+            if (kDebugMode) print('Navigating to tab route: $route');
+            NavigationDelegate.instance.navigateToAppRoute(
+              route,
+              id: id,
+              queryParams: queryParams,
+            );
+            return;
+          }
+
+          // Otherwise, use pendingNavigation for non-tab/detail navigation
+          Future<dynamic>? dataFuture;
+          // If route contains a slash and an id, split it
+          if (route.contains('/')) {
+            if (kDebugMode) print('Route contains slash, splitting: $route');
             final parts = route.split('/');
             if (parts.length == 2) {
+              if (kDebugMode)
+                print('Route has 2 parts, processing detail navigation');
               id = parts[1];
               switch (parts[0]) {
                 case 'accounts':
-                  data = await AccountService.instance.getAccountById(id).first;
+                  if (kDebugMode) print('Fetching account data for id: $id');
+                  dataFuture = AccountService.instance.getAccountById(id).first;
                   break;
                 case 'budgets':
-                  data = await BudgetService.instance.getBudgetById(id).first;
+                  if (kDebugMode) print('Fetching budget data for id: $id');
+                  dataFuture = BudgetService.instance.getBudgetById(id).first;
                   break;
                 case 'transactions':
-                  data = await TransactionService.instance
-                      .getTransactionById(id)
-                      .first;
+                  if (kDebugMode)
+                    print('Fetching transaction data for id: $id');
+                  dataFuture =
+                      TransactionService.instance.getTransactionById(id).first;
                   break;
                 case 'tags':
+                  if (kDebugMode) print('Fetching tag data for id: $id');
                   final context = navigatorKey.currentContext;
                   if (context != null) {
-                    data = await fetchAndFindTagById(context, id);
+                    dataFuture = fetchAndFindTagById(context, id);
                   }
                   break;
               }
-              await NavigationDelegate.instance.navigateToAppRoute(
-                '${parts[0]}/id',
-                id: id,
-                data: data,
-                queryParams: queryParams,
-              );
+              pendingNavigation = PendingNavigation(
+                  route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
               return;
             }
           }
-          await NavigationDelegate.instance.navigateToAppRoute(
-            route,
-            queryParams: queryParams,
-          );
+          // For other routes, fallback to pendingNavigation
+          if (kDebugMode)
+            print('Using fallback pendingNavigation for route: $route');
+          pendingNavigation = PendingNavigation(route: route);
         }
       });
 
@@ -221,14 +251,22 @@ class FCMService {
 
         if (initialMessage.data.containsKey('action') &&
             initialMessage.data['action'] == 'reload') {
+          // Handle reload action - context will be available after app is fully loaded
           Future.delayed(const Duration(seconds: 1), () {
             final context = navigatorKey.currentContext;
             if (context != null) {
+              // Fix the key name to match item_id
               final String? itemId = initialMessage.data['item_id'];
+              // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
               _handleReloadAction(context,
                   isBackgroundOrTerminated: true, itemId: itemId);
+
+              // Navigate to dashboard using a more reliable approach
               Navigator.of(context).popUntil((route) => route.isFirst);
+
+              // If using tabs, ensure the dashboard tab is selected
               if (tabsPageKey.currentState != null) {
+                // Use index 0 for dashboard tab
                 tabsPageKey.currentState!.navigateToTab(0);
               }
             }
@@ -236,63 +274,90 @@ class FCMService {
           return;
         }
 
-        // Handle standard route navigation using NavigationDelegate
-        final route = initialMessage.data['route'] as String;
-        String? id;
-        dynamic data;
-        Map<String, String>? queryParams;
+        // Handle standard route navigation
+        if (initialMessage.data.containsKey('route')) {
+          if (kDebugMode) print('Found route in initialMessage data');
+          final route = initialMessage.data['route'] as String;
+          String? id;
+          Map<String, String>? queryParams;
 
-        if (initialMessage.data.containsKey('queryParams')) {
-          try {
-            final qpRaw = initialMessage.data['queryParams'];
-            if (qpRaw is String && qpRaw.isNotEmpty) {
-              final decoded = jsonDecode(qpRaw);
-              if (decoded is Map) {
-                queryParams =
-                    decoded.map((k, v) => MapEntry(k.toString(), v.toString()));
-              }
-            }
-          } catch (e) {
-            if (kDebugMode) print('Failed to parse queryParams: $e');
-          }
-        }
-
-        if (route.contains('/') && !route.startsWith('stats')) {
-          final parts = route.split('/');
-          if (parts.length == 2) {
-            id = parts[1];
-            switch (parts[0]) {
-              case 'accounts':
-                data = await AccountService.instance.getAccountById(id).first;
-                break;
-              case 'budgets':
-                data = await BudgetService.instance.getBudgetById(id).first;
-                break;
-              case 'transactions':
-                data = await TransactionService.instance
-                    .getTransactionById(id)
-                    .first;
-                break;
-              case 'tags':
-                final context = navigatorKey.currentContext;
-                if (context != null) {
-                  data = await fetchAndFindTagById(context, id);
+          // Parse queryParams if present
+          if (initialMessage.data.containsKey('queryParams')) {
+            if (kDebugMode) print('Found queryParams in initialMessage data');
+            try {
+              final qpRaw = initialMessage.data['queryParams'];
+              if (qpRaw is String && qpRaw.isNotEmpty) {
+                if (kDebugMode) print('QueryParams is a non-empty string');
+                final decoded = jsonDecode(qpRaw);
+                if (decoded is Map) {
+                  queryParams = decoded
+                      .map((k, v) => MapEntry(k.toString(), v.toString()));
                 }
-                break;
+              } else if (qpRaw is Map) {
+                if (kDebugMode) print('QueryParams is a Map');
+                queryParams =
+                    qpRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
+              }
+            } catch (e) {
+              if (kDebugMode) print('Failed to parse queryParams: $e');
             }
-            await NavigationDelegate.instance.navigateToAppRoute(
-              '${parts[0]}/id',
+          }
+
+          // If this is a tab route, navigate directly
+          if (route == 'transactions' || route.startsWith('stats')) {
+            if (kDebugMode)
+              print('Navigating to tab route from initialMessage: $route');
+            NavigationDelegate.instance.navigateToAppRoute(
+              route,
               id: id,
-              data: data,
               queryParams: queryParams,
             );
             return;
           }
+
+          // Otherwise, use pendingNavigation for non-tab/detail navigation
+          Future<dynamic>? dataFuture;
+          // If route contains a slash and an id, split it
+          if (route.contains('/')) {
+            if (kDebugMode) print('Route contains slash, splitting: $route');
+            final parts = route.split('/');
+            if (parts.length == 2) {
+              if (kDebugMode)
+                print('Route has 2 parts, processing detail navigation');
+              id = parts[1];
+              switch (parts[0]) {
+                case 'accounts':
+                  if (kDebugMode) print('Fetching account data for id: $id');
+                  dataFuture = AccountService.instance.getAccountById(id).first;
+                  break;
+                case 'budgets':
+                  if (kDebugMode) print('Fetching budget data for id: $id');
+                  dataFuture = BudgetService.instance.getBudgetById(id).first;
+                  break;
+                case 'transactions':
+                  if (kDebugMode)
+                    print('Fetching transaction data for id: $id');
+                  dataFuture =
+                      TransactionService.instance.getTransactionById(id).first;
+                  break;
+                case 'tags':
+                  if (kDebugMode) print('Fetching tag data for id: $id');
+                  final context = navigatorKey.currentContext;
+                  if (context != null) {
+                    dataFuture = fetchAndFindTagById(context, id);
+                  }
+                  break;
+              }
+              pendingNavigation = PendingNavigation(
+                  route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+              return;
+            }
+          }
+          // For other routes, fallback to pendingNavigation
+          if (kDebugMode)
+            print('Using fallback pendingNavigation for route: $route');
+          pendingNavigation = PendingNavigation(route: route);
         }
-        await NavigationDelegate.instance.navigateToAppRoute(
-          route,
-          queryParams: queryParams,
-        );
       }
 
       // Make sure FCM token is registered with the backend

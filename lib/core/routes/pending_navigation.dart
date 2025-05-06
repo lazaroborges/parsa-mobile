@@ -7,13 +7,11 @@ class PendingNavigation {
   final String route;
   final String? id;
   final Future<dynamic>? dataFuture;
-  final Map<String, String>? queryParams;
 
   PendingNavigation({
     required this.route,
     this.id,
     this.dataFuture,
-    this.queryParams,
   });
 }
 

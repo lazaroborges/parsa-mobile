@@ -5,15 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
-import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
-import 'package:parsa/app/notifications/notifications_page.dart';
-import 'package:parsa/app/stats/stats.page.dart';
-import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/tags/tag_list.page.dart';
-import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -24,23 +19,18 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/dates/date_period_modal.dart';
-import 'package:parsa/core/models/date-utils/date_period.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/presentation/widgets/tappable.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/presentation/widgets/trending_value.dart';
 import 'package:parsa/core/presentation/widgets/user_avatar.dart';
-import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/services/finance_health_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart'; // Import the TransactionListComponent
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
-
-import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 
@@ -219,9 +209,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
     if (mounted && needsUpdate) {
       setState(() {
-        dateRangeService = DatePeriodState(
-          datePeriod: dateRangeService.datePeriod,
-          periodModifier: dateRangeService.periodModifier,
+        dateRangeService = dateRangeService.copyWith(
           startOfMonthDay: startDay,
           startOfWeek: startWeek,
         );
@@ -927,8 +915,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               body: ChartByCategories(
                                   datePeriodState: dateRangeService),
                               onHeaderButtonClick: () {
-                                tabsPageKey.currentState
-                                    ?.navigateToStatsTabWithFilters(index: 0);
+                                tabsPageKey.currentState?.navigateToStatsTab(0);
                               }),
 
                           const SizedBox(height: 12),
@@ -941,8 +928,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               endDate: dateRangeService.endDate,
                             ),
                             onHeaderButtonClick: () {
-                              tabsPageKey.currentState
-                                  ?.navigateToStatsTabWithFilters(index: 2);
+                              tabsPageKey.currentState?.navigateToStatsTab(2);
                             },
                           ),
                           const SizedBox(height: 12),
@@ -1423,6 +1409,7 @@ int _mapStringToStartOfWeek(String? startOfWeek) {
       return 6; // DateTime.saturday;
     case 'sunday':
       return 7; // DateTime.sunday;
+    // Add string number handling
     case '1':
       return 1;
     case '6':
