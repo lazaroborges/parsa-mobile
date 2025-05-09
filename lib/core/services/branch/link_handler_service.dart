@@ -198,15 +198,9 @@ class LinkHandlerService {
       case 'stats':
         if (segments.length > 1) {
           final subPath = segments.sublist(1).join('/');
-          pendingNavigation = PendingNavigation(
-              route: 'stats/$subPath',
-              queryParams:
-                  params.map((k, v) => MapEntry(k.toString(), v.toString())));
+          pendingNavigation = PendingNavigation(route: 'stats/$subPath');
         } else {
-          pendingNavigation = PendingNavigation(
-              route: 'stats',
-              queryParams:
-                  params.map((k, v) => MapEntry(k.toString(), v.toString())));
+          pendingNavigation = PendingNavigation(route: 'stats');
         }
         break;
       case 'subscription':

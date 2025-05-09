@@ -131,6 +131,11 @@ class FCMService {
           print('User tapped on notification: ${message.messageId}');
           print('Message data: ${message.data}');
         }
+        // Post notification opened event using notification_id from payload
+        final notificationId = message.data['notification_id'];
+        if (notificationId is String && notificationId.isNotEmpty) {
+          postOpenNotification(notificationId);
+        }
 
         // Handle reload action
         if (message.data.containsKey('action') &&
@@ -247,6 +252,11 @@ class FCMService {
           print(
               'App was terminated and opened via notification: ${initialMessage.messageId}');
           print('Message data: ${initialMessage.data}');
+        }
+        // Post notification opened event using notification_id from payload
+        final notificationId = initialMessage.data['notification_id'];
+        if (notificationId is String && notificationId.isNotEmpty) {
+          postOpenNotification(notificationId);
         }
 
         if (initialMessage.data.containsKey('action') &&
@@ -711,5 +721,36 @@ class FCMService {
     }
 
     return result;
+  }
+
+  /// Post to backend when a notification is opened (background/terminated)
+  Future<void> postOpenNotification(String notificationId) async {
+    if (notificationId.isEmpty) return;
+    try {
+      final accessToken = await _getAccessToken();
+      if (accessToken == null) {
+        if (kDebugMode) {
+          print('No access token available for posting open notification');
+        }
+        return;
+      }
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/messaging/open/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken,
+        },
+        body: jsonEncode({'notification_id': notificationId}),
+      );
+      if (kDebugMode) {
+        print(
+            'Notification open POST status: \x1B[36m${response.statusCode}\x1B[0m');
+        print('Notification open POST response: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error posting open notification: $e');
+      }
+    }
   }
 }
