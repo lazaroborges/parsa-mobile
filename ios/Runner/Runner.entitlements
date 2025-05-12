@@ -13,5 +13,9 @@
 		<string>applinks:ymhog.test.app.link</string>
 		<string>applinks:app.parsa-ai.com.br</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.parsa.app</string>
+	</array>
 </dict>
 </plist>

@@ -34,7 +34,6 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:parsa/core/services/branch/branch_config.dart';
 // Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';

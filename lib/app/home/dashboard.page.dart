@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
@@ -65,6 +66,10 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
+import 'package:flutter/services.dart';
+
+import 'package:parsa/core/presentation/widgets/app_lifecycle_observer.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -78,6 +83,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
   bool _isDateRangeInitialized = false;
+  static const platform = MethodChannel('com.parsa.app/balance');
 
   @override
   void initState() {
@@ -85,6 +91,15 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
     _loadBalanceType();
     _initializePrivateMode();
     _initializeDashboard();
+    
+    // Add app lifecycle listener to update widget when app resumes
+    WidgetsBinding.instance.addObserver(AppLifecycleObserver(
+      onResume: () {
+        if (mounted) {
+          _updateWidgetData();
+        }
+      },
+    ));
   }
 
   @override
@@ -101,6 +116,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
   void dispose() {
     // Unsubscribe from the RouteObserver
     routeObserver.unsubscribe(this);
+    
+    // Remove app lifecycle observer
+    WidgetsBinding.instance.removeObserver(AppLifecycleObserver(
+      onResume: () {},
+    ));
     super.dispose();
   }
 
@@ -242,7 +262,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
     try {
       // First fetch user data
-      unawaited(fetchUserDataAtServer());
+      await fetchUserDataAtServer();
 
       // Then fetch accounts and tags before transactions and budget
       await Future.wait([
@@ -255,6 +275,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         fetchUserTransactions(null),
         fetchUserBudgets(context),
       ]);
+      
+      // Update widget data after data is refreshed
+      _updateWidgetData();
     } catch (e) {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
@@ -265,6 +288,53 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           isLoadingTransactions = false;
         });
       }
+    }
+  }
+
+  Future<void> _updateWidgetData() async {
+    if (!Platform.isIOS) return;
+    
+    final userData = Provider.of<UserDataProvider>(context, listen: false).userData;
+    if (userData == null) return;
+    
+    try {
+      // Get available balance from userData
+      final availableBalance = userData['balance_available']?.toDouble() ?? 0.0;
+      
+      // Get income and expense for the current period
+      double income = 0.0;
+      double expense = 0.0;
+      
+      // Use AccountService to get income and expense data
+      await Future.wait([
+        AccountService.instance.getAccountsBalance(
+          filters: TransactionFilters(
+            minDate: dateRangeService.startDate,
+            maxDate: dateRangeService.endDate,
+            transactionTypes: [TransactionType.I],
+          ),
+        ).first.then((value) => income = value.abs()),
+        
+        AccountService.instance.getAccountsBalance(
+          filters: TransactionFilters(
+            minDate: dateRangeService.startDate,
+            maxDate: dateRangeService.endDate,
+            transactionTypes: [TransactionType.E],
+          ),
+        ).first.then((value) => expense = value.abs()),
+      ]);
+      
+      // Use method channel to send data to iOS
+      await platform.invokeMethod('updateWidgetData', {
+        'availableBalance': availableBalance,
+        'income': income,
+        'expense': expense,
+        'currency': 'R\$', // Brazilian Real
+      });
+      
+      print('Widget data updated successfully');
+    } catch (e) {
+      print('Error updating widget data: $e');
     }
   }
 
@@ -317,6 +387,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // Save the balance type preference
       app_prefs.SharedPreferencesAsync.instance
           .setBalanceType(currentBalanceType.name);
+          
+      // Update widget data when balance type changes
+      _updateWidgetData();
     });
   }
 
