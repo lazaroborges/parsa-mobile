@@ -51,8 +51,6 @@ class MaterialAppRoutes {
     // Extract query parameters
     final queryParams = settings.arguments as Map<String, dynamic>? ?? {};
 
-    // Route matching and generation
-
     // Budget routes
     if (routeMatches(['budgets'])) {
       return MaterialPageRoute(builder: (_) => const BudgetsPage());
@@ -253,15 +251,10 @@ class MaterialAppRoutes {
       return null; // Return null to let MaterialApp use its home property
     }
 
-    // No route found
-    print('No route found for ${settings.name}');
-    return MaterialPageRoute(
-      builder: (_) => Scaffold(
-        body: Center(
-          child: Text('Route ${settings.name} not found'),
-        ),
-      ),
-    );
+    // No route found: always redirect to home/main page
+    print('No route found for \\${settings.name}, redirecting to home.');
+    // You can return null to let MaterialApp use its home, or explicitly return a route to TabsPage if needed.
+    return null;
   }
 
   /// Helper method to convert route name with parameters to an actual route path
