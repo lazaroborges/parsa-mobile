@@ -15,7 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:parsa/core/services/branch/link_handler_service.dart';
 import 'package:parsa/core/providers/link_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
 import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
@@ -23,9 +22,6 @@ import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
-import 'package:parsa/core/providers/bank_callback_provider.dart';
-import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -174,8 +170,6 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  // Public method to refresh both transactions and accounts from anywhere in the app
-  // This can be called when a notification with action=reload is received
   Future<void> refreshData({bool showLoading = true}) async {
     if (!mounted) return;
 
@@ -237,7 +231,7 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
-    navigationSidebarKey.currentState?.setSelectedDestination(destination);
+    // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {
       selectedDestination = destination;
@@ -323,7 +317,6 @@ class TabsPageState extends State<TabsPage>
     );
   }
 
-  // Set up deep linking with authentication check
   void _setupDeepLinking() {
     // Initialize the deep link handler
     _initializeDeepLinkHandler();
@@ -341,78 +334,10 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  // Called by LinkHandlerService when a bank callback is detected
-  Future<void> checkBankCallbackFlag() async {
-    if (kDebugMode) {
-      print('🏦 TabsPage: checkBankCallbackFlag() called');
-    }
-
-    // Check if the widget is still mounted before proceeding
-    if (!mounted) {
-      if (kDebugMode) {
-        print('🏦 TabsPage: Widget not mounted, skipping callback handling');
-      }
-      BankCallbackProvider.instance.reset();
-      return;
-    }
-
-    final bankCallbackProvider =
-        Provider.of<BankCallbackProvider>(context, listen: false);
-    if (!bankCallbackProvider.bankCallbackReceived) {
-      return;
-    }
-
-    try {
-      // Check if user can connect more accounts
-      final errorMessage = await checkItemAvailability(context);
-      final canConnectMoreAccounts = errorMessage == null;
-
-      if (kDebugMode) {
-        print(
-            '🏦 TabsPage: Can connect more accounts: $canConnectMoreAccounts');
-        if (errorMessage != null) {
-          print('🏦 TabsPage: Error message: $errorMessage');
-        }
-      }
-
-      // Only show the dialog if the user can connect more accounts and the widget is still mounted
-      if (canConnectMoreAccounts && mounted) {
-        // Use Future.microtask to avoid build-phase errors
-        Future.microtask(() async {
-          if (mounted) {
-            await BankCallbackDialog.showAndHandle(context);
-          }
-        });
-      } else if (mounted) {
-        // Show error message if the user cannot connect more accounts
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text(errorMessage ?? 'Erro ao verificar disponibilidade')),
-        );
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('🏦 TabsPage: Error during bank callback check: $e');
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao verificar disponibilidade')),
-        );
-      }
-    } finally {
-      // Always reset the flag regardless of the result
-      bankCallbackProvider.reset();
-    }
-  }
-
   // Schedule processing of any pending deep links
   void _schedulePendingLinkProcessing() {
-    // Schedule processing of pending links after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      LinkHandlerService.instance.processPendingDeepLinks();
-
-      // Clear any URI data from the provider directly
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await LinkHandlerService.instance.processPendingDeepLinks();
       LinkProvider.instance.clearPendingUri();
     });
   }

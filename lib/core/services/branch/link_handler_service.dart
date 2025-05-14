@@ -10,7 +10,9 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
-import 'package:parsa/core/providers/bank_callback_provider.dart';
+import 'package:parsa/app/accounts/bank_callback_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:parsa/core/utils/check_items_availability.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -38,13 +40,25 @@ class LinkHandlerService {
               'Branch SDK stream error: ${platformException.code} - ${platformException.message}');
         },
       );
+
+      // Listen for callback links via LinkProvider (live handling)
+      LinkProvider.instance.addListener(() async {
+        final pendingUri = LinkProvider.instance.pendingUri;
+        if (pendingUri != null &&
+            pendingUri.scheme == 'com.parsa.app' &&
+            pendingUri.host == 'callback') {
+          debugPrint(
+              '[LinkHandlerService] (initialize) Received live callback link: $pendingUri');
+          await _handleCallbackLink(pendingUri);
+        }
+      });
     } catch (e) {
       print('Error initializing LinkHandlerService: $e');
     }
   }
 
   /// Process any stored URI from LinkProvider
-  void processPendingDeepLinks({Function? onComplete}) {
+  Future<void> processPendingDeepLinks({Function? onComplete}) async {
     if (_isProcessingDeepLink) {
       return;
     }
@@ -56,18 +70,25 @@ class LinkHandlerService {
       final pendingUri = linkProvider.pendingUri;
 
       if (pendingUri != null) {
-        // Extract path and params from URI
-        final path = pendingUri.path.isNotEmpty
-            ? pendingUri.path
-            : pendingUri.toString().split('://').last;
+        final uriStr = pendingUri.toString();
 
-        // Handle URI directly for standard deep links
-        _routeBasedOnPath(path, pendingUri.queryParameters);
+        // --- Branch Link ---
+        if (uriStr.contains('app.link')) {
+          debugPrint(
+              '[LinkHandlerService] (processPendingDeepLinks) Handling Branch link: $pendingUri (will rely on Branch SDK listener, not calling handleDeepLink)');
+          // Do not call FlutterBranchSdk.handleDeepLink; rely on the Branch SDK listener.
+        }
 
-        // For Branch links, also let Branch SDK handle them
-        if (pendingUri.toString().contains('app.link') ||
-            pendingUri.scheme == 'com.parsa.app') {
-          FlutterBranchSdk.handleDeepLink(pendingUri.toString());
+        // --- Callback Link ---
+        else if (pendingUri.scheme == 'com.parsa.app' &&
+            pendingUri.host == 'callback') {
+          debugPrint(
+              '[LinkHandlerService] (processPendingDeepLinks) Handling callback link: $pendingUri');
+          await _handleCallbackLink(pendingUri);
+        }
+        // --- Unknown Link ---
+        else {
+          print('Unhandled deep link: $uriStr');
         }
 
         // Call onComplete callback if provided
@@ -87,6 +108,8 @@ class LinkHandlerService {
     try {
       final linkProvider = LinkProvider.instance;
       if (linkProvider.pendingUri != null) {
+        debugPrint(
+            '[LinkHandlerService] Clearing pending URI: ${linkProvider.pendingUri}');
         linkProvider.clearPendingUri();
       }
     } catch (e) {
@@ -106,21 +129,6 @@ class LinkHandlerService {
         print('Processing Branch data: $data');
       }
 
-      // Extract custom data if available and set the bank callback flag if present
-      Map<String, String> customParams = {};
-      if (data.containsKey('custom_data')) {
-        final customData = data['custom_data'];
-        if (customData is Map) {
-          customData.forEach((key, value) {
-            customParams[key.toString()] = value.toString();
-          });
-        }
-      }
-      // Set the bank callback flag if the param is present and true
-      if (customParams['bank_callback'] == 'true') {
-        BankCallbackProvider.instance.setBankCallbackReceived(true);
-      }
-
       if (data.containsKey('+clicked_branch_link') &&
           data['+clicked_branch_link'] == true) {
         String? path;
@@ -129,11 +137,19 @@ class LinkHandlerService {
         if (data.containsKey('\$deeplink_path')) {
           path = data['\$deeplink_path'] as String?;
         }
+        if (data.containsKey('\$deeplink_path')) {
+          debugPrint(
+              '[LinkHandlerService] Branch data contains deeplink_path: ${data['\$deeplink_path']}');
+        }
 
         // If we have a path, route based on it
         if (path != null && path.isNotEmpty) {
-          _routeBasedOnPath(path, customParams);
+          debugPrint(
+              '[LinkHandlerService] Routing based on deeplink_path: $path');
+          _routeBasedOnPath(path, {});
         } else {
+          debugPrint(
+              '[LinkHandlerService] No deeplink_path found, routing to dashboard');
           NavigationDelegate.instance.navigateToAppRoute('dashboard');
         }
       }
@@ -144,10 +160,43 @@ class LinkHandlerService {
     }
   }
 
+  /// Handle callback link logic (shared by pending and live handling)
+  Future<void> _handleCallbackLink(Uri pendingUri) async {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      try {
+        final errorMessage = await checkItemAvailability(context);
+        final canConnectMoreAccounts = errorMessage == null;
+        if (canConnectMoreAccounts) {
+          await Future.microtask(() async {
+            await BankCallbackDialog.showAndHandle(context);
+          });
+        } else {
+          // Show error if user cannot connect more accounts
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text(errorMessage ?? 'Erro ao verificar disponibilidade')),
+          );
+        }
+      } catch (e) {
+        print('Error checking account availability: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao verificar disponibilidade')),
+        );
+      }
+    } else {
+      print('No context available for BankCallbackDialog');
+    }
+  }
+
   /// Route to the appropriate page based on the path and parameters
   void _routeBasedOnPath(String path, Map<dynamic, String> params) {
+    debugPrint(
+        '[LinkHandlerService] Entered _routeBasedOnPath with path: $path, params: $params');
     final auth0Provider = Auth0Provider.instance;
     if (auth0Provider.credentials == null) {
+      debugPrint('[LinkHandlerService] No credentials, aborting navigation.');
       return;
     }
 
@@ -155,72 +204,99 @@ class LinkHandlerService {
     final segments = cleanPath.split('/');
 
     if (segments.isEmpty) {
-      pendingNavigation = PendingNavigation(route: 'dashboard');
+      debugPrint(
+          '[LinkHandlerService] No segments found, routing to dashboard.');
+      NavigationDelegate.instance.navigateToAppRoute('dashboard');
       return;
     }
 
     final section = segments[0].toLowerCase();
+    debugPrint('[LinkHandlerService] Routing section: $section');
     final id = segments.length > 1 ? segments[1] : params['id'];
-    Future<dynamic>? dataFuture;
     final context = navigatorKey.currentContext;
 
     switch (section) {
       case 'dashboard':
-        pendingNavigation = PendingNavigation(route: 'dashboard');
+        debugPrint('[LinkHandlerService] Routing to dashboard');
+        NavigationDelegate.instance.navigateToAppRoute('dashboard');
         break;
       case 'budgets':
+        debugPrint('[LinkHandlerService] Routing to budgets, id: $id');
         if (id != null) {
-          dataFuture = BudgetService.instance.getBudgetById(id).first;
-          pendingNavigation = PendingNavigation(
-              route: 'budgets/id', id: id, dataFuture: dataFuture);
+          BudgetService.instance.getBudgetById(id).first.then((data) {
+            NavigationDelegate.instance.navigateToAppRoute(
+              'budgets/id',
+              id: id,
+              data: data,
+            );
+          });
         } else {
-          pendingNavigation = PendingNavigation(route: 'budgets');
+          NavigationDelegate.instance.navigateToAppRoute('budgets');
         }
         break;
       case 'transactions':
+        debugPrint('[LinkHandlerService] Routing to transactions, id: $id');
         if (id != null) {
-          dataFuture = TransactionService.instance.getTransactionById(id).first;
-          pendingNavigation = PendingNavigation(
-              route: 'transactions/id', id: id, dataFuture: dataFuture);
+          TransactionService.instance.getTransactionById(id).first.then((data) {
+            NavigationDelegate.instance.navigateToAppRoute(
+              'transactions/id',
+              id: id,
+              data: data,
+            );
+          });
         } else {
-          pendingNavigation = PendingNavigation(route: 'transactions');
+          NavigationDelegate.instance.navigateToAppRoute('transactions');
         }
         break;
       case 'accounts':
+        debugPrint('[LinkHandlerService] Routing to accounts, id: $id');
         if (id != null) {
-          dataFuture = AccountService.instance.getAccountById(id).first;
-          pendingNavigation = PendingNavigation(
-              route: 'accounts/id', id: id, dataFuture: dataFuture);
+          AccountService.instance.getAccountById(id).first.then((data) {
+            NavigationDelegate.instance.navigateToAppRoute(
+              'accounts/id',
+              id: id,
+              data: data,
+            );
+          });
         } else {
-          pendingNavigation = PendingNavigation(route: 'accounts');
+          NavigationDelegate.instance.navigateToAppRoute('accounts');
         }
         break;
       case 'tags':
+        debugPrint('[LinkHandlerService] Routing to tags, id: $id');
         if (id != null && context != null) {
-          dataFuture = fetchAndFindTagById(context, id);
-          pendingNavigation = PendingNavigation(
-              route: 'tags/id', id: id, dataFuture: dataFuture);
+          fetchAndFindTagById(context, id).then((data) {
+            NavigationDelegate.instance.navigateToAppRoute(
+              'tags/id',
+              id: id,
+              data: data,
+            );
+          });
         } else {
-          pendingNavigation = PendingNavigation(route: 'tags');
+          NavigationDelegate.instance.navigateToAppRoute('tags');
         }
         break;
       case 'stats':
+        debugPrint('[LinkHandlerService] Routing to stats');
         if (segments.length > 1) {
           final subPath = segments.sublist(1).join('/');
-          pendingNavigation = PendingNavigation(route: 'stats/$subPath');
+          NavigationDelegate.instance.navigateToAppRoute('stats/$subPath');
         } else {
-          pendingNavigation = PendingNavigation(route: 'stats');
+          NavigationDelegate.instance.navigateToAppRoute('stats');
         }
         break;
       case 'subscription':
-        pendingNavigation = PendingNavigation(route: 'subscription');
+        debugPrint('[LinkHandlerService] Routing to subscription');
+        NavigationDelegate.instance.navigateToAppRoute('subscription');
         break;
       case 'settings':
-        pendingNavigation = PendingNavigation(route: 'settings');
+        debugPrint('[LinkHandlerService] Routing to settings');
+        NavigationDelegate.instance.navigateToAppRoute('settings');
         break;
       default:
+        debugPrint('[LinkHandlerService] Unhandled deep link path: $path');
         print('Unhandled deep link path: $path');
-        pendingNavigation = PendingNavigation(route: 'dashboard');
+        NavigationDelegate.instance.navigateToAppRoute('dashboard');
         break;
     }
   }

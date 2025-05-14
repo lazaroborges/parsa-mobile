@@ -39,7 +39,6 @@ import 'package:parsa/core/services/branch/branch_config.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
-import 'package:parsa/core/providers/bank_callback_provider.dart';
 
 String apiEndpoint = '';
 
@@ -62,7 +61,6 @@ void main() async {
     );
     print("Firebase initialized successfully");
 
-    // Initialize and configure Firebase Analytics
     firebaseAnalytics = FirebaseAnalytics.instance;
     await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
     print("Firebase Analytics initialized and enabled");
@@ -90,7 +88,7 @@ void main() async {
   );
 
   // Initialize Branch but don't process links yet
-  // await BranchConfig.initialize();
+  await BranchConfig.initialize();
 
   final app = MultiProvider(
     providers: [
@@ -100,7 +98,6 @@ void main() async {
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
       ChangeNotifierProvider(create: (_) => LinkProvider.instance),
-      ChangeNotifierProvider(create: (_) => BankCallbackProvider.instance),
     ],
     child: const MonekinAppEntryPoint(),
   );
@@ -124,7 +121,7 @@ final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Sidebar key not used anymore
-final GlobalKey<NavigationSidebarState> navigationSidebarKey = GlobalKey();
+// final GlobalKey<NavigationSidebarState> navigationSidebarKey = GlobalKey();
 
 class MonekinAppEntryPoint extends StatefulWidget {
   const MonekinAppEntryPoint({
@@ -391,7 +388,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     ],
                   ),
                   if (widget.introSeen)
-                    NavigationSidebar(key: navigationSidebarKey)
+                    // NavigationSidebar(key: navigationSidebarKey)
+                    const SizedBox.shrink()
                 ],
               );
 
