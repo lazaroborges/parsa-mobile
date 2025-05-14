@@ -58,8 +58,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="ymhog.app.link" />
-				<data android:scheme="https" android:host="ymhog-alternate.app.link" />
+				<data android:scheme="https" android:host="parsa-ai.app.link" />
+				<data android:scheme="https" android:host="parsa-ai-alternate.app.link" />
 			</intent-filter>
 
             <!-- Branch App Links - Test App -->
@@ -67,8 +67,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="ymhog.app-test.link" />
-				<data android:scheme="https" android:host="ymhog-alternate.app-test.link" />
+				<data android:scheme="https" android:host="parsa-ai.app-test.link" />
+				<data android:scheme="https" android:host="parsa-ai-alternate.app-test.link" />
 			</intent-filter>
 
         </activity>

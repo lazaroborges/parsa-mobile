@@ -39,6 +39,7 @@ import 'package:parsa/core/services/branch/branch_config.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:parsa/core/providers/bank_callback_provider.dart';
 
 String apiEndpoint = '';
 
@@ -99,6 +100,7 @@ void main() async {
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
       ChangeNotifierProvider(create: (_) => LinkProvider.instance),
+      ChangeNotifierProvider(create: (_) => BankCallbackProvider.instance),
     ],
     child: const MonekinAppEntryPoint(),
   );
@@ -482,48 +484,3 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     });
   }
 }
-
-// // Simplified initialization for Firebase core and background message handler
-// Future<void> initializeFirebaseCore() async {
-//   try {
-//     // Initialize Firebase Messaging
-//     final messaging = FirebaseMessaging.instance;
-
-//     // Get and print the FCM token
-//     final fcmToken = await messaging.getToken();
-//     print('FCM Token: $fcmToken');
-
-//     // Listen for token refreshes
-//     messaging.onTokenRefresh.listen((newToken) {
-//       print('FCM Token refreshed: $newToken');
-//     });
-
-//     // iOS-specific setup (this is critical for iOS)
-//     if (Platform.isIOS) {
-//       await messaging.setForegroundNotificationPresentationOptions(
-//         alert: true,
-//         badge: true,
-//         sound: true,
-//       );
-
-//       // Request iOS notification permissions
-//       final settings = await messaging.requestPermission(
-//         alert: true,
-//         badge: true,
-//         sound: true,
-//         provisional: false,
-//       );
-
-//       print(
-//           'iOS Notification permission status: ${settings.authorizationStatus}');
-
-//       // Register with APNs - critical for iOS
-//       final apnsToken = await messaging.getAPNSToken();
-//       print('APNs Token: $apnsToken');
-//     }
-
-//     print("Firebase Messaging initialized successfully");
-//   } catch (e) {
-//     print("Error initializing Firebase Messaging: $e");
-//   }
-// }

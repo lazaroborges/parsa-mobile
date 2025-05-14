@@ -16,7 +16,6 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:parsa/core/services/branch/link_handler_service.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
 import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
@@ -24,6 +23,9 @@ import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/providers/bank_callback_provider.dart';
+import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -43,9 +45,6 @@ class TabsPageState extends State<TabsPage>
   // Initialization flag
   bool _isInitialized = false;
   bool isLoadingTags = true;
-
-  // Create a static global key for access from outside
-  static final GlobalKey<TabsPageState> globalKey = GlobalKey<TabsPageState>();
 
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
@@ -78,9 +77,7 @@ class TabsPageState extends State<TabsPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Dispose of background authentication service
     BackgroundAuthService.instance.dispose();
-    // Reset notification preferences session flag for next app start
     NotificationPreferencesService.instance.resetSessionFlag();
     super.dispose();
   }
@@ -344,36 +341,79 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  // Process any pending links with authentication check
-  void _schedulePendingLinkProcessing() {
-    // Slightly delay to ensure app is fully loaded
-    Future.delayed(Duration(milliseconds: 500), () {
-      if (!mounted) return;
+  // Called by LinkHandlerService when a bank callback is detected
+  Future<void> checkBankCallbackFlag() async {
+    if (kDebugMode) {
+      print('🏦 TabsPage: checkBankCallbackFlag() called');
+    }
 
-      // Check for pending URI in provider
-      final linkProvider = Provider.of<LinkProvider>(context, listen: false);
-      final pendingUri = linkProvider.pendingUri;
+    // Check if the widget is still mounted before proceeding
+    if (!mounted) {
+      if (kDebugMode) {
+        print('🏦 TabsPage: Widget not mounted, skipping callback handling');
+      }
+      BankCallbackProvider.instance.reset();
+      return;
+    }
 
-      if (pendingUri != null) {
-        // Check authentication before processing
-        final auth0Provider =
-            Provider.of<Auth0Provider>(context, listen: false);
+    final bankCallbackProvider =
+        Provider.of<BankCallbackProvider>(context, listen: false);
+    if (!bankCallbackProvider.bankCallbackReceived) {
+      return;
+    }
 
-        if (auth0Provider.credentials != null) {
-          // User is authenticated, process the link
-          LinkHandlerService.instance.processPendingDeepLinks(onComplete: () {
-            // Clear the pending URI after successful processing
-            Future.delayed(Duration(milliseconds: 300), () {
-              if (mounted) {
-                LinkHandlerService.instance.clearPendingUri();
-              }
-            });
-          });
-        } else {
-          print(
-              'Auth credentials not available, deep link will be processed after login');
+    try {
+      // Check if user can connect more accounts
+      final errorMessage = await checkItemAvailability(context);
+      final canConnectMoreAccounts = errorMessage == null;
+
+      if (kDebugMode) {
+        print(
+            '🏦 TabsPage: Can connect more accounts: $canConnectMoreAccounts');
+        if (errorMessage != null) {
+          print('🏦 TabsPage: Error message: $errorMessage');
         }
       }
+
+      // Only show the dialog if the user can connect more accounts and the widget is still mounted
+      if (canConnectMoreAccounts && mounted) {
+        // Use Future.microtask to avoid build-phase errors
+        Future.microtask(() async {
+          if (mounted) {
+            await BankCallbackDialog.showAndHandle(context);
+          }
+        });
+      } else if (mounted) {
+        // Show error message if the user cannot connect more accounts
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(errorMessage ?? 'Erro ao verificar disponibilidade')),
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('🏦 TabsPage: Error during bank callback check: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao verificar disponibilidade')),
+        );
+      }
+    } finally {
+      // Always reset the flag regardless of the result
+      bankCallbackProvider.reset();
+    }
+  }
+
+  // Schedule processing of any pending deep links
+  void _schedulePendingLinkProcessing() {
+    // Schedule processing of pending links after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      LinkHandlerService.instance.processPendingDeepLinks();
+
+      // Clear any URI data from the provider directly
+      LinkProvider.instance.clearPendingUri();
     });
   }
 

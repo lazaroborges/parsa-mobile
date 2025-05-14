@@ -55,7 +55,6 @@ To navigate to a specific page using tabs programmatically (e.g., from a notific
 
 ## Navigation Bar and Sidebar
 - **Bottom Navigation Bar**: On smaller screens (mobile), the bottom navigation bar in `TabsPage` displays a subset of destinations (Dashboard, Transactions, Stats, Settings). Tapping a destination changes the tab using `changePage` method in `TabsPageState`.
-- **Sidebar**: On larger screens, a sidebar ([NavigationSidebar](mdc:lib/app/layout/navigation_sidebar.dart)) is used, accessible via `navigationSidebarKey`. It can display all destinations, and selecting an item updates the selected destination in both sidebar and `TabsPage`.
 - **Responsive Design**: The app uses `BreakPoint` from [breakpoints.dart](mdc:lib/core/presentation/responsive/breakpoints.dart) to determine screen size and adjust navigation UI accordingly.
 
 ## Key Points for Navigation

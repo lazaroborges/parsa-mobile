@@ -55,6 +55,8 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
+import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -886,6 +888,28 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         ),
                       ),
                     ),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.help_outline),
+                    label:
+                        const Text('Classificar transações não categorizadas'),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const UncategorizedClassificationPage(
+                                  transactionCount: 32),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),

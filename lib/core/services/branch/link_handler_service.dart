@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
@@ -9,6 +10,7 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/core/providers/bank_callback_provider.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -100,6 +102,24 @@ class LinkHandlerService {
 
     try {
       _isProcessingDeepLink = true;
+      if (kDebugMode) {
+        print('Processing Branch data: $data');
+      }
+
+      // Extract custom data if available and set the bank callback flag if present
+      Map<String, String> customParams = {};
+      if (data.containsKey('custom_data')) {
+        final customData = data['custom_data'];
+        if (customData is Map) {
+          customData.forEach((key, value) {
+            customParams[key.toString()] = value.toString();
+          });
+        }
+      }
+      // Set the bank callback flag if the param is present and true
+      if (customParams['bank_callback'] == 'true') {
+        BankCallbackProvider.instance.setBankCallbackReceived(true);
+      }
 
       if (data.containsKey('+clicked_branch_link') &&
           data['+clicked_branch_link'] == true) {
@@ -108,17 +128,6 @@ class LinkHandlerService {
         // Extract deeplink path if available
         if (data.containsKey('\$deeplink_path')) {
           path = data['\$deeplink_path'] as String?;
-        }
-
-        // Extract custom data if available
-        Map<String, String> customParams = {};
-        if (data.containsKey('custom_data')) {
-          final customData = data['custom_data'];
-          if (customData is Map) {
-            customData.forEach((key, value) {
-              customParams[key.toString()] = value.toString();
-            });
-          }
         }
 
         // If we have a path, route based on it

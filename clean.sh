@@ -1,4 +1,4 @@
-clean the caches 
+## clean the caches 
 
 rm -rf ~/Library/Developer/Xcode/DerivedData
 pod deintegrate
