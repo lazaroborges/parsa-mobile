@@ -13,7 +13,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
-import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 
@@ -22,6 +21,10 @@ class BackgroundAuthService with WidgetsBindingObserver {
   static final BackgroundAuthService _instance =
       BackgroundAuthService._internal();
   static BackgroundAuthService get instance => _instance;
+
+  // --- Suppress next auth flag ---
+  /// If true, skip authentication after background ONCE (e.g., after Pluggy callback)
+  static bool suppressNextAuth = false;
 
   // Private constructor for singleton
   BackgroundAuthService._internal();
@@ -69,6 +72,15 @@ class BackgroundAuthService with WidgetsBindingObserver {
 
     final now = DateTime.now();
     final difference = now.difference(_backgroundTime!);
+
+    // --- Suppress auth if flag is set (e.g., after Pluggy callback) ---
+    if (BackgroundAuthService.suppressNextAuth) {
+      BackgroundAuthService.suppressNextAuth = false;
+      debugPrint(
+          '[BackgroundAuthService] Suppressing auth after background due to Pluggy callback.');
+      _backgroundTime = null;
+      return;
+    }
 
     // If app was in background for more than threshold, require authentication
     if (difference >= _backgroundThreshold) {

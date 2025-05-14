@@ -133,7 +133,8 @@ class NavigationDelegate {
             final transaction = data ??
                 await TransactionService.instance.getTransactionById(id).first;
             if (transaction != null) {
-              navigatorKey.currentState?.pushNamed('/transactions/$id');
+              navigatorKey.currentState
+                  ?.pushReplacementNamed('/transactions/$id');
             } else {
               tabsPageKey.currentState?.navigateToTab(1);
             }

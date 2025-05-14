@@ -39,6 +39,7 @@ import 'package:parsa/core/services/branch/branch_config.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 String apiEndpoint = '';
 
@@ -444,6 +445,14 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
                   );
+                  // After navigation, process pending deep links
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    debugPrint(
+                        '[main.dart] Calling processPendingDeepLinks after TabsPage navigation');
+                    await LinkHandlerService.instance.processPendingDeepLinks();
+                    debugPrint(
+                        '[main.dart] Finished processPendingDeepLinks after TabsPage navigation');
+                  });
                 } else {
                   print(
                       "Questionnaire not filled or user data null, checking intake form.");
@@ -472,6 +481,14 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           context,
           MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
         );
+        // After navigation, process pending deep links
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          debugPrint(
+              '[main.dart] Calling processPendingDeepLinks after TabsPage navigation (intake)');
+          await LinkHandlerService.instance.processPendingDeepLinks();
+          debugPrint(
+              '[main.dart] Finished processPendingDeepLinks after TabsPage navigation (intake)');
+        });
       } else {
         // If intake is not completed, show IntakeForm
         Navigator.pushReplacement(

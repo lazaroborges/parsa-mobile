@@ -13,6 +13,7 @@ import 'package:parsa/main.dart';
 import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/core/services/auth/background_auth_service.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -21,7 +22,6 @@ class LinkHandlerService {
 
   StreamSubscription<Map>? _branchSubscription;
   bool _isProcessingDeepLink = false;
-  PendingNavigation? pendingNavigation;
 
   /// Initialize the link handler service and set up Branch SDK listeners
   Future<void> initialize() async {
@@ -40,18 +40,6 @@ class LinkHandlerService {
               'Branch SDK stream error: ${platformException.code} - ${platformException.message}');
         },
       );
-
-      // Listen for callback links via LinkProvider (live handling)
-      LinkProvider.instance.addListener(() async {
-        final pendingUri = LinkProvider.instance.pendingUri;
-        if (pendingUri != null &&
-            pendingUri.scheme == 'com.parsa.app' &&
-            pendingUri.host == 'callback') {
-          debugPrint(
-              '[LinkHandlerService] (initialize) Received live callback link: $pendingUri');
-          await _handleCallbackLink(pendingUri);
-        }
-      });
     } catch (e) {
       print('Error initializing LinkHandlerService: $e');
     }
@@ -84,6 +72,10 @@ class LinkHandlerService {
             pendingUri.host == 'callback') {
           debugPrint(
               '[LinkHandlerService] (processPendingDeepLinks) Handling callback link: $pendingUri');
+          // Set suppressNextAuth to skip background auth after Pluggy callback
+          BackgroundAuthService.suppressNextAuth = true;
+          debugPrint(
+              '[LinkHandlerService] Set suppressNextAuth = true due to Pluggy callback');
           await _handleCallbackLink(pendingUri);
         }
         // --- Unknown Link ---
@@ -162,17 +154,25 @@ class LinkHandlerService {
 
   /// Handle callback link logic (shared by pending and live handling)
   Future<void> _handleCallbackLink(Uri pendingUri) async {
+    debugPrint(
+        '[LinkHandlerService] Entered _handleCallbackLink with uri: $pendingUri');
     final context = navigatorKey.currentContext;
     if (context != null) {
       try {
+        debugPrint(
+            '[LinkHandlerService] Checking account availability for callback link...');
         final errorMessage = await checkItemAvailability(context);
         final canConnectMoreAccounts = errorMessage == null;
+        debugPrint(
+            '[LinkHandlerService] Account availability check result: canConnectMoreAccounts=$canConnectMoreAccounts, errorMessage=$errorMessage');
         if (canConnectMoreAccounts) {
+          debugPrint('[LinkHandlerService] Showing BankCallbackDialog...');
           await Future.microtask(() async {
             await BankCallbackDialog.showAndHandle(context);
           });
         } else {
-          // Show error if user cannot connect more accounts
+          debugPrint(
+              '[LinkHandlerService] Cannot connect more accounts, showing error.');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content:
@@ -186,6 +186,8 @@ class LinkHandlerService {
         );
       }
     } else {
+      debugPrint(
+          '[LinkHandlerService] No context available for BankCallbackDialog');
       print('No context available for BankCallbackDialog');
     }
   }
