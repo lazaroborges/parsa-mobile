@@ -22,17 +22,13 @@ class BackgroundAuthService with WidgetsBindingObserver {
       BackgroundAuthService._internal();
   static BackgroundAuthService get instance => _instance;
 
-  // --- Suppress next auth flag ---
-  /// If true, skip authentication after background ONCE (e.g., after Pluggy callback)
-  static bool suppressNextAuth = false;
-
   // Private constructor for singleton
   BackgroundAuthService._internal();
 
   // Fields
   DateTime? _backgroundTime;
   BuildContext? _context;
-  final _backgroundThreshold = const Duration(minutes: 2);
+  final _backgroundThreshold = const Duration(seconds: 200);
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _isInitialized = false;
 
@@ -72,15 +68,6 @@ class BackgroundAuthService with WidgetsBindingObserver {
 
     final now = DateTime.now();
     final difference = now.difference(_backgroundTime!);
-
-    // --- Suppress auth if flag is set (e.g., after Pluggy callback) ---
-    if (BackgroundAuthService.suppressNextAuth) {
-      BackgroundAuthService.suppressNextAuth = false;
-      debugPrint(
-          '[BackgroundAuthService] Suppressing auth after background due to Pluggy callback.');
-      _backgroundTime = null;
-      return;
-    }
 
     // If app was in background for more than threshold, require authentication
     if (difference >= _backgroundThreshold) {

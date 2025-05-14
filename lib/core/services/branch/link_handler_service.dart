@@ -13,7 +13,6 @@ import 'package:parsa/main.dart';
 import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/core/services/auth/background_auth_service.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -72,10 +71,6 @@ class LinkHandlerService {
             pendingUri.host == 'callback') {
           debugPrint(
               '[LinkHandlerService] (processPendingDeepLinks) Handling callback link: $pendingUri');
-          // Set suppressNextAuth to skip background auth after Pluggy callback
-          BackgroundAuthService.suppressNextAuth = true;
-          debugPrint(
-              '[LinkHandlerService] Set suppressNextAuth = true due to Pluggy callback');
           await _handleCallbackLink(pendingUri);
         }
         // --- Unknown Link ---
