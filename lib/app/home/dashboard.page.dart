@@ -56,6 +56,14 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
 import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
+import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
+import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/utils/transaction_utils.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+
+import 'package:parsa/core/database/services/category/category_service.dart';
+
+import 'package:parsa/core/models/category/category.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -894,23 +902,73 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    icon: const Icon(Icons.help_outline),
-                    label:
-                        const Text('Classificar transações não categorizadas'),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const UncategorizedClassificationPage(
-                                  transactionCount: 32),
-                        ),
-                      );
-                    },
-                  ),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Builder(
+                  builder: (context) {
+                    return FutureBuilder<int>(
+                      future: countTransactionsByCategoryName('Lazer'),
+                      builder: (context, snapshot) {
+                        final uncategorizedCount =
+                            snapshot.hasData ? snapshot.data! : 0;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FilledButton.icon(
+                              icon: const Icon(Icons.help_outline),
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                      'Classificar transações não categorizadas'),
+                                  if (uncategorizedCount > 0) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '$uncategorizedCount',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              onPressed: uncategorizedCount == 0
+                                  ? null
+                                  : () async {
+                                      final result =
+                                          await UncategorizedFoundDialog.show(
+                                              context,
+                                              transactionCount:
+                                                  uncategorizedCount);
+                                      if (result == true) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                UncategorizedClassificationPage(
+                                                    transactionCount:
+                                                        uncategorizedCount),
+                                          ),
+                                        );
+                                      }
+                                    },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
 

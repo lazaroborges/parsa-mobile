@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 617
+/// Strings: 618
 ///
-/// Built on 2025-05-06 at 12:32 UTC
+/// Built on 2025-05-15 at 19:07 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1128,6 +1128,7 @@ class _TranslationsAccountConnectionErrorsPt {
 	String get not_subscribed => 'Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.';
 	String get limit_reached => 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 	String get daily_limit_reached => 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
+	String get item_connection_in_progress => 'Uma conta está em processo de conexão. Por favor, aguarde um momento e tente novamente.';
 	String get default_message => 'Não foi possível conectar no momento. Tente novamente mais tarde.';
 }
 
@@ -2054,6 +2055,7 @@ extension on Translations {
 			case 'account.connection_errors.not_subscribed': return 'Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.';
 			case 'account.connection_errors.limit_reached': return 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 			case 'account.connection_errors.daily_limit_reached': return 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
+			case 'account.connection_errors.item_connection_in_progress': return 'Uma conta está em processo de conexão. Por favor, aguarde um momento e tente novamente.';
 			case 'account.connection_errors.default_message': return 'Não foi possível conectar no momento. Tente novamente mais tarde.';
 			case 'currencies.currency_converter': return 'Conversor de moedas';
 			case 'currencies.currency': return 'Moeda';

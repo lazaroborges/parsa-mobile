@@ -81,6 +81,7 @@ dependencies:
   flutter_branch_sdk: ^8.4.1
   firebase_analytics: ^11.3.0
   flutter_local_notifications: ^19.1.0
+  flutter_card_swiper: ^7.0.2
 
   
 dev_dependencies:

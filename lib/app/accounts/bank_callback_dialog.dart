@@ -57,112 +57,115 @@ class _BankCallbackDialogWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
-    final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
       elevation: 0,
-      backgroundColor: appColors.modalBackground,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      backgroundColor: const Color(0xFFF8F9FE),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
               children: [
-                Icon(
-                  Icons.account_balance,
-                  size: 56,
-                  color: appColors.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Conexão Concluída',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: appColors.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Sua conta bancária foi conectada com sucesso. Deseja conectar outra conta bancária?',
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: appColors.onSurface,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    if (showPdfOption) ...[
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Esperando carregamento da conta...')),
-                            );
-                            Navigator.of(context).pop(false);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, 52),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            side: BorderSide(color: appColors.primary),
-                          ),
-                          child: Text(
-                            'Não',
-                            style: textTheme.labelLarge,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(true);
-                        },
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          backgroundColor: appColors.primary,
-                        ),
-                        child: Text(
-                          'Sim, conectar',
-                          style: textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: appColors.onPrimary,
-                          ),
-                        ),
-                      ),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.account_balance,
+                      size: 40,
+                      color: appColors.primary,
                     ),
-                  ],
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(false),
+                    child: Icon(
+                      Icons.close,
+                      size: 24,
+                      color: appColors.primary,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          Positioned(
-            right: 8,
-            top: 8,
-            child: IconButton(
-              icon: Icon(Icons.close, color: appColors.onSurface),
-              style: IconButton.styleFrom(
-                backgroundColor: appColors.surface,
+            const SizedBox(height: 16),
+            // Title
+            Text(
+              'Conexão Concluída',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: appColors.onSurface,
               ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            // Body
+            Text(
+              'Sua conta bancária\nfoi conectada com sucesso!',
+              style: TextStyle(
+                fontSize: 16,
+                color: appColors.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Deseja conectar outra conta?',
+              style: TextStyle(
+                fontSize: 16,
+                color: appColors.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            // Connect another account button
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: appColors.primary,
+                foregroundColor: appColors.onPrimary,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+              ),
+              child: const Text(
+                'Sim, conectar',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
               onPressed: () {
+                if (showPdfOption) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Esperando carregamento da conta...'),
+                    ),
+                  );
+                }
                 Navigator.of(context).pop(false);
               },
+              // Don't connect another account button
+              child: Text(
+                'Não conectar',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: appColors.primary,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

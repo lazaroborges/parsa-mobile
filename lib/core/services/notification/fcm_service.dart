@@ -19,6 +19,7 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
+import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
 
 enum NotificationCategory {
   budgets,
@@ -121,6 +122,19 @@ class FCMService {
             // Extract itemId from message data - fix the key name to match item_id
             final String? itemId = message.data['item_id'];
             _handleReloadAction(context, itemId: itemId);
+            // After handling reload, show the uncategorized dialog (for now, always show for testing)
+            Future.delayed(const Duration(milliseconds: 500), () async {
+              debugPrint(
+                  '[FCMService] Opening UncategorizedFoundDialog after push notification and BankCallbackDialog response = no');
+              final result = await UncategorizedFoundDialog.show(context,
+                  transactionCount: 3);
+              if (result == true) {
+                // User chose to reclassify now, navigate to the classification page
+                Navigator.of(context)
+                    .pushNamed('/uncategorized-classification');
+              }
+              // If false or null, do nothing (Mais tarde)
+            });
           }
         }
       });
@@ -157,6 +171,19 @@ class FCMService {
               // Use index 0 for dashboard tab
               tabsPageKey.currentState!.navigateToTab(0);
             }
+            // After handling reload, show the uncategorized dialog (for now, always show for testing)
+            Future.delayed(const Duration(milliseconds: 500), () async {
+              debugPrint(
+                  '[FCMService] Opening UncategorizedFoundDialog after push notification and BankCallbackDialog response = no');
+              final result = await UncategorizedFoundDialog.show(context,
+                  transactionCount: 3);
+              if (result == true) {
+                // User chose to reclassify now, navigate to the classification page
+                Navigator.of(context)
+                    .pushNamed('/uncategorized-classification');
+              }
+              // If false or null, do nothing (Mais tarde)
+            });
           }
           return;
         }
