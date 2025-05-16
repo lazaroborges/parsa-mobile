@@ -27,9 +27,7 @@ class UncategorizedFoundDialog {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => UncategorizedClassificationPage(
-            transactionCount: transactionCount,
-          ),
+          builder: (context) => UncategorizedClassificationPage(),
         ),
       );
     }

@@ -56,9 +56,8 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
 import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
-import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/utils/transaction_utils.dart';
+import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 
 import 'package:parsa/core/database/services/category/category_service.dart';
@@ -868,48 +867,14 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: CardWithHeader(
-                  title: t.home.last_transactions,
-                  onHeaderButtonClick: () {
-                    tabsPageKey.currentState?.navigateToTab(1);
-                  },
-                  body: DashboardTransactionList(
-                    child: TransactionListComponent(
-                      heroTagBuilder: (tr) =>
-                          'dashboard-page__tr-icon-${tr.id}',
-                      filters: TransactionFilters(
-                        status: TransactionStatus.notIn({
-                          TransactionStatus.pending,
-                          TransactionStatus.voided,
-                          TransactionStatus.notconsidered
-                        }),
-                      ),
-                      limit: 5,
-                      showGroupDivider: false,
-                      prevPage: const DashboardPage(),
-                      onEmptyList: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          t.transaction.list.empty,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Builder(
                   builder: (context) {
-                    return FutureBuilder<int>(
-                      future: countTransactionsByCategoryName('Lazer'),
+                    return FutureBuilder<List<MoneyTransaction>>(
+                      future: getTopUncategorizedFlatByCousin(limit: 10),
                       builder: (context, snapshot) {
-                        final uncategorizedCount =
-                            snapshot.hasData ? snapshot.data! : 0;
+                        final uncategorizedTxs = snapshot.data ?? [];
+                        final uncategorizedCount = uncategorizedTxs.length;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -946,22 +911,13 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               ),
                               onPressed: uncategorizedCount == 0
                                   ? null
-                                  : () async {
-                                      final result =
-                                          await UncategorizedFoundDialog.show(
-                                              context,
-                                              transactionCount:
-                                                  uncategorizedCount);
-                                      if (result == true) {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                UncategorizedClassificationPage(
-                                                    transactionCount:
-                                                        uncategorizedCount),
-                                          ),
-                                        );
-                                      }
+                                  : () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              UncategorizedClassificationPage(),
+                                        ),
+                                      );
                                     },
                             ),
                           ],
@@ -969,6 +925,40 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                       },
                     );
                   },
+                ),
+              ),
+
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: CardWithHeader(
+                  title: t.home.last_transactions,
+                  onHeaderButtonClick: () {
+                    tabsPageKey.currentState?.navigateToTab(1);
+                  },
+                  body: DashboardTransactionList(
+                    child: TransactionListComponent(
+                      heroTagBuilder: (tr) =>
+                          'dashboard-page__tr-icon-${tr.id}',
+                      filters: TransactionFilters(
+                        status: TransactionStatus.notIn({
+                          TransactionStatus.pending,
+                          TransactionStatus.voided,
+                          TransactionStatus.notconsidered
+                        }),
+                      ),
+                      limit: 5,
+                      showGroupDivider: false,
+                      prevPage: const DashboardPage(),
+                      onEmptyList: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          t.transaction.list.empty,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
