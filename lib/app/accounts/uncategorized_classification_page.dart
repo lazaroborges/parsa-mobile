@@ -9,6 +9,8 @@ import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
+import 'package:parsa/core/api/post_methods/post_user_cousin_rules.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 
 class UncategorizedClassificationPage extends StatefulWidget {
   const UncategorizedClassificationPage({Key? key}) : super(key: key);
@@ -20,17 +22,16 @@ class UncategorizedClassificationPage extends StatefulWidget {
 
 class _UncategorizedClassificationPageState
     extends State<UncategorizedClassificationPage> {
-  List<TransactionGroup> groups = [];
+  List<TransactionGroupByType> groups = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Classificar Transações ('
-            '\${groups.fold<int>(0, (sum, g) => sum + g.count)})'),
+        title: Text('Reclassificar Transações'),
       ),
-      body: FutureBuilder<List<TransactionGroup>>(
-        future: getTopUncategorizedGroups(limit: 10),
+      body: FutureBuilder<List<TransactionGroupByType>>(
+        future: getTopUncategorizedGroupsByType(limit: 10),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -47,9 +48,9 @@ class _UncategorizedClassificationPageState
               child: CardSwiper(
                 cardsCount: groups.length,
                 cardBuilder: (context, index, percentX, percentY) {
-                  return TransactionGroupCard(group: groups[index]);
+                  return TransactionGroupCardByType(group: groups[index]);
                 },
-                numberOfCardsDisplayed: 1,
+                numberOfCardsDisplayed: 2,
                 onSwipe: (prev, curr, direction) async {
                   if (direction == CardSwiperDirection.right) {
                     final group = groups[prev];
@@ -57,11 +58,9 @@ class _UncategorizedClassificationPageState
                       context,
                       modal: CategoryPicker(
                         selectedCategory: group.transactions.first.category,
-                        categoryType: [
-                          CategoryType.B,
-                          CategoryType.E,
-                          CategoryType.I
-                        ],
+                        categoryType: group.type == CategoryType.E
+                            ? [CategoryType.B, CategoryType.I]
+                            : [CategoryType.E, CategoryType.B],
                       ),
                     );
                     if (selectedCategory != null) {
@@ -69,7 +68,26 @@ class _UncategorizedClassificationPageState
                           TransactionService.instance.insertOrUpdateTransaction(
                             tx.copyWith(
                                 categoryID: drift.Value(selectedCategory.id)),
+                            null,
+                            1, // notMassUpdate: 1 to suppress cousin modal
                           )));
+                      final triggeringId =
+                          group.transactions.first.id.toString();
+                      final cousinValue = group.cousin;
+                      final changes = {
+                        'categoryName': selectedCategory.name,
+                        'categoryId': selectedCategory.id,
+                      };
+                      try {
+                        await PostUserCousinRules.updateCousinRules(
+                          cousinValue: cousinValue,
+                          triggeringId: triggeringId,
+                          changes: changes,
+                          applyToFuture: true,
+                        );
+                      } catch (e) {
+                        print('Failed to update cousin rules: $e');
+                      }
                       setState(() {
                         groups.removeAt(prev);
                       });
@@ -236,19 +254,26 @@ class TransactionSwipeCard extends StatelessWidget {
   }
 }
 
-/// A single card showing a transaction group summary and detail list.
-class TransactionGroupCard extends StatefulWidget {
-  final TransactionGroup group;
-  const TransactionGroupCard({Key? key, required this.group}) : super(key: key);
-  @override
-  State<TransactionGroupCard> createState() => _TransactionGroupCardState();
-}
+/// A single card showing a transaction group summary and detail list, by cousin and type.
+class TransactionGroupCardByType extends StatelessWidget {
+  final TransactionGroupByType group;
+  const TransactionGroupCardByType({Key? key, required this.group})
+      : super(key: key);
 
-class _TransactionGroupCardState extends State<TransactionGroupCard> {
+  void _reviewAll(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FullTransactionListPage(
+          cousin: group.cousin,
+          prevPage: const UncategorizedClassificationPage(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final g = widget.group;
-
+    final g = group;
     // Find the first non-transfer transaction title to use as card title
     String cardTitle = 'Transações não categorizadas';
     for (var tx in g.transactions) {
@@ -260,6 +285,34 @@ class _TransactionGroupCardState extends State<TransactionGroupCard> {
       }
     }
 
+    // Instructional rules above the card
+    final instructions = Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Deslize para direita para reclassificar',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+          Text(
+            'Deslize para esquerda para descartar',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+        ],
+      ),
+    );
+
     return Card(
       margin: const EdgeInsets.all(12),
       elevation: 4,
@@ -267,8 +320,8 @@ class _TransactionGroupCardState extends State<TransactionGroupCard> {
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Highlight transaction count and total value
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(
@@ -319,11 +372,9 @@ class _TransactionGroupCardState extends State<TransactionGroupCard> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // Use CardWithHeader to display transactions - this takes most of the space
-            Expanded(
+            SizedBox(
+              height: 92.0 * 4, // Approximate height for 4 transactions
               child: CardWithHeader(
                 title: 'Transações deste grupo',
                 bodyPadding: EdgeInsets.zero,
@@ -331,8 +382,14 @@ class _TransactionGroupCardState extends State<TransactionGroupCard> {
                   heroTagBuilder: (tr) => 'class-page__tr-icon-${tr.id}',
                   filters: TransactionFilters(
                     cousinFilter: g.cousin,
+                    status: [
+                      TransactionStatus.pending,
+                      TransactionStatus.reconciled,
+                      TransactionStatus.unreconciled,
+                      TransactionStatus.voided,
+                    ],
                   ),
-                  limit: 100,
+                  limit: 4,
                   accountNameMaxLength: 10,
                   showGroupDivider: false,
                   showDate: true,
@@ -341,30 +398,63 @@ class _TransactionGroupCardState extends State<TransactionGroupCard> {
                 ),
               ),
             ),
-
-            const SizedBox(height: 8),
-
-            // Instructions at the bottom - more compact
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.swipe, color: Colors.amber, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Deslize para a direita para categorizar todas estas transações.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ],
+            Center(
+              child: TextButton.icon(
+                onPressed: () => _reviewAll(context),
+                icon: const Icon(Icons.list_alt),
+                label: const Text('Ver todas as transações'),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                ),
               ),
             ),
+            instructions,
+            // Highlight transaction count and total value
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Full transaction list page for a cousin group
+class FullTransactionListPage extends StatelessWidget {
+  final int cousin;
+  final Widget prevPage;
+  const FullTransactionListPage(
+      {Key? key, required this.cousin, required this.prevPage})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Todas as transações do grupo'),
+      ),
+      body: CardWithHeader(
+        title: 'Todas as transações',
+        body: TransactionListComponent(
+          heroTagBuilder: (tr) => 'review-page__tr-icon-${tr.id}',
+          filters: TransactionFilters(
+            cousinFilter: cousin,
+            status: [
+              TransactionStatus.pending,
+              TransactionStatus.reconciled,
+              TransactionStatus.unreconciled,
+              TransactionStatus.voided,
+            ],
+          ),
+          limit: 100,
+          accountNameMaxLength: 10,
+          showGroupDivider: false,
+          showDate: true,
+          prevPage: prevPage,
+          onEmptyList: const Text('Nenhuma transação encontrada'),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
+import 'package:parsa/core/models/category/category.dart';
 
 // Map of uncategorized pluggy category codes to display names
 const Map<String, String> NA_CATEGORIES = {
@@ -136,5 +137,52 @@ Future<List<TransactionGroup>> getTopUncategorizedGroups(
       .map((e) => TransactionGroup(cousin: e.key, transactions: e.value))
       .toList()
     ..sort((a, b) => b.totalValue.compareTo(a.totalValue));
+  return groups.take(limit).toList();
+}
+
+/// Represents a group of transactions sharing the same cousin id and category type.
+class TransactionGroupByType {
+  final int cousin;
+  final CategoryType type;
+  final List<MoneyTransaction> transactions;
+  TransactionGroupByType({
+    required this.cousin,
+    required this.type,
+    required this.transactions,
+  });
+
+  /// Sum of all transaction values in this group.
+  double get totalValue =>
+      transactions.fold(0.0, (sum, tx) => sum + (tx.value ?? 0));
+
+  /// Number of transactions in this group.
+  int get count => transactions.length;
+}
+
+/// Fetches uncategorized transactions, groups them by cousin id and category type,
+/// sorts by absolute total value descending, and returns the top [limit] groups.
+Future<List<TransactionGroupByType>> getTopUncategorizedGroupsByType(
+    {int limit = 10}) async {
+  final uncats = await getUncategorizedTransactions();
+  // Exclude transactions with status notconsidered
+  final filtered = uncats
+      .where((tx) => tx.status != TransactionStatus.notconsidered)
+      .toList();
+  final Map<String, List<MoneyTransaction>> byCousinType = {};
+  for (var tx in filtered) {
+    if (tx.cousin != null && tx.category?.type != null) {
+      final key = '${tx.cousin}_${tx.category!.type.name}';
+      byCousinType.putIfAbsent(key, () => []).add(tx);
+    }
+  }
+  final groups = byCousinType.entries.map((e) {
+    final firstTx = e.value.first;
+    return TransactionGroupByType(
+      cousin: firstTx.cousin!,
+      type: firstTx.category!.type,
+      transactions: e.value,
+    );
+  }).toList()
+    ..sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
   return groups.take(limit).toList();
 }
