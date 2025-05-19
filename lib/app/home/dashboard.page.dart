@@ -870,11 +870,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Builder(
                   builder: (context) {
-                    return FutureBuilder<List<MoneyTransaction>>(
-                      future: getTopUncategorizedFlatByCousin(limit: 10),
+                    return FutureBuilder<int>(
+                      future: countTopUncategorizedTransactions(),
                       builder: (context, snapshot) {
-                        final uncategorizedTxs = snapshot.data ?? [];
-                        final uncategorizedCount = uncategorizedTxs.length;
+                        final uncategorizedCount = snapshot.data ?? 0;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [

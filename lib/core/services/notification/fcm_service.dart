@@ -24,6 +24,7 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
+import 'package:parsa/core/utils/uncategorized_utils.dart';
 
 enum NotificationCategory {
   budgets,
@@ -525,8 +526,9 @@ class FCMService {
         Future.delayed(const Duration(milliseconds: 500), () async {
           debugPrint(
               '[FCMService] Opening UncategorizedFoundDialog after reload action');
+          final count = await countTopUncategorizedTransactions();
           final result = await UncategorizedFoundDialog.show(context!,
-              transactionCount: 3);
+              transactionCount: count);
           if (result == true) {
             Navigator.of(context!).push(
               MaterialPageRoute(

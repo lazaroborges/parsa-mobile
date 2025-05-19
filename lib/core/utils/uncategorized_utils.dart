@@ -1,7 +1,5 @@
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
-import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/category/category.dart';
 
@@ -37,113 +35,45 @@ const Map<String, String> NA_CATEGORIES = {
 // Set of uncategorized category display names
 final Set<String> UNCATEGORIZED_CATEGORY_NAMES = NA_CATEGORIES.values.toSet();
 
+/// Fetches all transactions and returns only those considered 'uncategorized'.
+/// A transaction is uncategorized if its category name is in the uncategorized set
+/// and its status is not 'notconsidered'.
 Future<List<MoneyTransaction>> getUncategorizedTransactions() async {
   final allTransactions =
       await TransactionService.instance.getTransactions().first;
-  return filterUncategorizedTransactions(allTransactions);
+  final uncats = filterUncategorizedTransactions(allTransactions);
+  return uncats;
 }
 
-/// Returns a Future<int> with the count of uncategorized transactions.
-Future<int> countUncategorizedTransactions() async {
-  final uncategorizedTransactions = await getUncategorizedTransactions();
-  return uncategorizedTransactions.length;
+/// Returns the count of transactions in the top [limit] income and expense uncategorized groups.
+Future<int> countTopUncategorizedTransactions({int limit = 5}) async {
+  final groupsMap = await getTopUncategorizedGroupsSplitByType(limit: limit);
+  final topIncome = groupsMap[CategoryType.I] ?? [];
+  final topExpense = groupsMap[CategoryType.E] ?? [];
+  final allTxs =
+      [...topIncome, ...topExpense].expand((g) => g.transactions).toList();
+  return allTxs.length;
 }
 
-/// Filters transactions whose category name matches one of the uncategorized names and excludes notconsidered status
+/// Filters a list of transactions, returning only those that are uncategorized.
+/// A transaction is uncategorized if its category name is in the uncategorized set
+/// and its status is not 'notconsidered'.
 List<MoneyTransaction> filterUncategorizedTransactions(
     List<MoneyTransaction> allTransactions) {
-  return allTransactions
+  final filtered = allTransactions
       .where((tx) =>
           tx.category?.name != null &&
           UNCATEGORIZED_CATEGORY_NAMES.contains(tx.category!.name) &&
           tx.status != TransactionStatus.notconsidered)
       .toList();
+  return filtered;
 }
 
-/// Returns a Future<List<MoneyTransaction>> for a given category name (e.g., 'Lazer').
-Future<List<MoneyTransaction>> getTransactionsByCategoryName(
-    String categoryName) async {
-  final category =
-      await CategoryService.instance.getCategoryByName(categoryName).first;
-  if (category == null) return [];
-  return await TransactionService.instance
-      .getTransactions(filters: TransactionFilters(categories: [category.id]))
-      .first;
-}
-
-/// Returns a Future<int> for the count of transactions for a given category name.
-Future<int> countTransactionsByCategoryName(String categoryName) async {
-  final txs = await getTransactionsByCategoryName(categoryName);
-  return txs.length;
-}
-
-// New helper: group uncategorized transactions by cousin
-Future<List<List<MoneyTransaction>>> getTopUncategorizedByCousin(
-    {int limit = 10}) async {
-  final allTxs = await getUncategorizedTransactions();
-
-  // Group by non-null cousin id
-  final Map<int, List<MoneyTransaction>> byCousin = {};
-  for (var tx in allTxs) {
-    if (tx.cousin != null) {
-      byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
-    }
-  }
-
-  // Sort groups by size descending and take top [limit]
-  final entries = byCousin.entries.toList()
-    ..sort((a, b) => b.value.length.compareTo(a.value.length));
-  final topEntries = entries.take(limit).toList();
-  print(
-      'Taking top ${topEntries.length} cousin IDs: ${topEntries.map((e) => e.key).join(', ')}');
-
-  // Return only the transaction lists
-  return topEntries.map((e) => e.value).toList();
-}
-
-// New helper: flatten the top cousin groups into a single list
-Future<List<MoneyTransaction>> getTopUncategorizedFlatByCousin(
-    {int limit = 10}) async {
-  final groups = await getTopUncategorizedByCousin(limit: limit);
-  return groups.expand((g) => g).toList();
-}
-
-/// Represents a group of transactions sharing the same cousin id.
-class TransactionGroup {
-  final int cousin;
-  final List<MoneyTransaction> transactions;
-  TransactionGroup({required this.cousin, required this.transactions});
-
-  /// Sum of all transaction values in this group.
-  double get totalValue =>
-      transactions.fold(0.0, (sum, tx) => sum + (tx.value ?? 0));
-
-  /// Number of transactions in this group.
-  int get count => transactions.length;
-}
-
-/// Fetches uncategorized transactions, groups them by cousin id,
-/// sorts by total value descending, and returns the top [limit] groups.
-Future<List<TransactionGroup>> getTopUncategorizedGroups(
-    {int limit = 10}) async {
-  final uncats = await getUncategorizedTransactions();
-  final Map<int, List<MoneyTransaction>> byCousin = {};
-  for (var tx in uncats) {
-    if (tx.cousin != null) {
-      byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
-    }
-  }
-  final groups = byCousin.entries
-      .map((e) => TransactionGroup(cousin: e.key, transactions: e.value))
-      .toList()
-    ..sort((a, b) => b.totalValue.compareTo(a.totalValue));
-  return groups.take(limit).toList();
-}
-
-/// Represents a group of transactions sharing the same cousin id and category type.
+/// Represents a group of transactions sharing the same cousin id and classified as income or expense.
+/// The type is set by the grouping logic, not by the category.
 class TransactionGroupByType {
   final int cousin;
-  final CategoryType type;
+  final CategoryType type; // Set by grouping logic: I for income, E for expense
   final List<MoneyTransaction> transactions;
   TransactionGroupByType({
     required this.cousin,
@@ -159,8 +89,8 @@ class TransactionGroupByType {
   int get count => transactions.length;
 }
 
-/// Fetches uncategorized transactions, groups them by cousin id and category type,
-/// sorts by absolute total value descending, and returns the top [limit] groups.
+/// Groups uncategorized transactions by cousin id, and classifies each group as income or expense
+/// based on the sign of the transaction values. Returns the top [limit] groups by absolute value.
 Future<List<TransactionGroupByType>> getTopUncategorizedGroupsByType(
     {int limit = 10}) async {
   final uncats = await getUncategorizedTransactions();
@@ -168,21 +98,76 @@ Future<List<TransactionGroupByType>> getTopUncategorizedGroupsByType(
   final filtered = uncats
       .where((tx) => tx.status != TransactionStatus.notconsidered)
       .toList();
-  final Map<String, List<MoneyTransaction>> byCousinType = {};
+  final Map<int, List<MoneyTransaction>> byCousin = {};
   for (var tx in filtered) {
-    if (tx.cousin != null && tx.category?.type != null) {
-      final key = '${tx.cousin}_${tx.category!.type.name}';
-      byCousinType.putIfAbsent(key, () => []).add(tx);
+    if (tx.cousin != null) {
+      byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
     }
   }
-  final groups = byCousinType.entries.map((e) {
-    final firstTx = e.value.first;
+  final groups = byCousin.entries.map((e) {
+    final txs = e.value;
+    final sum = txs.fold(0.0, (s, tx) => s + (tx.value ?? 0));
+    final type = sum >= 0 ? CategoryType.I : CategoryType.E;
     return TransactionGroupByType(
-      cousin: firstTx.cousin!,
-      type: firstTx.category!.type,
-      transactions: e.value,
+      cousin: e.key,
+      type: type,
+      transactions: txs,
     );
   }).toList()
     ..sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
   return groups.take(limit).toList();
+}
+
+/// Returns a map with the top [limit] expense and income uncategorized groups by amount.
+/// This function splits all uncategorized transactions into income (value > 0) and expense (value < 0),
+/// groups each by cousin id, and returns the top [limit] of each type.
+Future<Map<CategoryType, List<TransactionGroupByType>>>
+    getTopUncategorizedGroupsSplitByType({int limit = 5}) async {
+  final uncats = await getUncategorizedTransactions();
+  // Split into income and expense transactions
+  final incomeTxs = uncats.where((tx) => (tx.value ?? 0) > 0).toList();
+  final expenseTxs = uncats.where((tx) => (tx.value ?? 0) < 0).toList();
+
+  // Group each by cousin
+  Map<int, List<MoneyTransaction>> groupByCousin(List<MoneyTransaction> txs) {
+    final map = <int, List<MoneyTransaction>>{};
+    for (var tx in txs) {
+      if (tx.cousin != null) {
+        map.putIfAbsent(tx.cousin!, () => []).add(tx);
+      }
+    }
+    return map;
+  }
+
+  final incomeGroupsMap = groupByCousin(incomeTxs);
+  final expenseGroupsMap = groupByCousin(expenseTxs);
+
+  final incomeGroups = incomeGroupsMap.entries
+      .map((e) => TransactionGroupByType(
+            cousin: e.key,
+            type: CategoryType.I,
+            transactions: e.value,
+          ))
+      .toList()
+    ..sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
+
+  final expenseGroups = expenseGroupsMap.entries
+      .map((e) => TransactionGroupByType(
+            cousin: e.key,
+            type: CategoryType.E,
+            transactions: e.value,
+          ))
+      .toList()
+    ..sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
+
+  print('[DEBUG] getTopUncategorizedGroupsSplitByType:');
+  print(
+      '  Top 5 expense: ${expenseGroups.take(limit).map((g) => g.cousin).toList()}');
+  print(
+      '  Top 5 income: ${incomeGroups.take(limit).map((g) => g.cousin).toList()}');
+
+  return {
+    CategoryType.E: expenseGroups.take(limit).toList(),
+    CategoryType.I: incomeGroups.take(limit).toList(),
+  };
 }

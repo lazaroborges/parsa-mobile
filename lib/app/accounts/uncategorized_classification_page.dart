@@ -22,7 +22,7 @@ class UncategorizedClassificationPage extends StatefulWidget {
 
 class _UncategorizedClassificationPageState
     extends State<UncategorizedClassificationPage> {
-  List<TransactionGroupByType> groups = [];
+  List<TransactionGroupByType> interleavedGroups = [];
 
   @override
   Widget build(BuildContext context) {
@@ -30,30 +30,57 @@ class _UncategorizedClassificationPageState
       appBar: AppBar(
         title: Text('Reclassificar Transações'),
       ),
-      body: FutureBuilder<List<TransactionGroupByType>>(
-        future: getTopUncategorizedGroupsByType(limit: 10),
+      body: FutureBuilder<Map<CategoryType, List<TransactionGroupByType>>>(
+        future: getTopUncategorizedGroupsSplitByType(limit: 5),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          groups = snapshot.data!;
-          if (groups.isEmpty) {
+          final incomeGroups = snapshot.data![CategoryType.I] ?? [];
+          final expenseGroups = snapshot.data![CategoryType.E] ?? [];
+
+          // Interleave the two lists: income, expense, income, expense, ...
+          interleavedGroups = [];
+          int maxLen = incomeGroups.length > expenseGroups.length
+              ? incomeGroups.length
+              : expenseGroups.length;
+          for (int i = 0; i < maxLen; i++) {
+            if (i < incomeGroups.length) interleavedGroups.add(incomeGroups[i]);
+            if (i < expenseGroups.length)
+              interleavedGroups.add(expenseGroups[i]);
+          }
+
+          if (interleavedGroups.isEmpty) {
             return const Center(
                 child: Text('Nenhuma transação não categorizada.'));
           }
+
+          if (interleavedGroups.length == 1) {
+            // Only one card, show it centered
+            final group = interleavedGroups.first;
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _LabeledTransactionGroupCard(group: group),
+              ),
+            );
+          }
+
+          // 2 or more: use CardSwiper
           return Center(
             child: SizedBox(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height * 0.8,
               child: CardSwiper(
-                cardsCount: groups.length,
+                cardsCount: interleavedGroups.length,
                 cardBuilder: (context, index, percentX, percentY) {
-                  return TransactionGroupCardByType(group: groups[index]);
+                  final group = interleavedGroups[index];
+                  return _LabeledTransactionGroupCard(group: group);
                 },
                 numberOfCardsDisplayed: 2,
                 onSwipe: (prev, curr, direction) async {
                   if (direction == CardSwiperDirection.right) {
-                    final group = groups[prev];
+                    final group = interleavedGroups[prev];
                     final selectedCategory = await showCategoryPickerModal(
                       context,
                       modal: CategoryPicker(
@@ -89,7 +116,7 @@ class _UncategorizedClassificationPageState
                         print('Failed to update cousin rules: $e');
                       }
                       setState(() {
-                        groups.removeAt(prev);
+                        interleavedGroups.removeAt(prev);
                       });
                     }
                   }
@@ -100,6 +127,40 @@ class _UncategorizedClassificationPageState
           );
         },
       ),
+    );
+  }
+}
+
+/// Card with a label for income/expense type
+class _LabeledTransactionGroupCard extends StatelessWidget {
+  final TransactionGroupByType group;
+  const _LabeledTransactionGroupCard({Key? key, required this.group})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: group.type == CategoryType.I
+                ? Colors.green.withOpacity(0.15)
+                : Colors.red.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            group.type == CategoryType.I ? 'Receita' : 'Despesa',
+            style: TextStyle(
+              color: group.type == CategoryType.I ? Colors.green : Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        TransactionGroupCardByType(group: group),
+      ],
     );
   }
 }

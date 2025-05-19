@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
+import 'package:parsa/core/utils/uncategorized_utils.dart';
 
 class UncategorizedFoundDialog {
   /// Shows a dialog informing the user about uncategorized transactions.
@@ -20,7 +21,8 @@ class UncategorizedFoundDialog {
   /// to the reclassification page if the user chooses to reclassify now.
   static Future<void> showAndHandle(BuildContext context,
       {required int transactionCount}) async {
-    final result = await show(context, transactionCount: transactionCount);
+    final count = await countTopUncategorizedTransactions();
+    final result = await show(context, transactionCount: count);
 
     if (result == true && context.mounted) {
       // User wants to reclassify now, navigate to the classification page
