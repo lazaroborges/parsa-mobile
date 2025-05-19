@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 /// A modal dialog that asks the user if they want to connect another bank account
 /// after returning from a bank connection flow.
@@ -10,7 +11,7 @@ class BankCallbackDialog {
   ///
   /// Returns true if the user wants to connect another account, false otherwise.
   static Future<bool?> show(BuildContext context,
-      {bool showPdfOption = true}) async {
+      {bool showUncategorizedOption = true}) async {
     // Show the dialog with a safety check
     if (!context.mounted) {
       if (kDebugMode) {
@@ -22,8 +23,8 @@ class BankCallbackDialog {
     return showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) =>
-          _BankCallbackDialogWidget(showPdfOption: showPdfOption),
+      builder: (dialogContext) => _BankCallbackDialogWidget(
+          showUncategorizedOption: showUncategorizedOption),
     );
   }
 
@@ -47,11 +48,11 @@ class BankCallbackDialog {
 }
 
 class _BankCallbackDialogWidget extends StatelessWidget {
-  final bool showPdfOption;
+  final bool showUncategorizedOption;
 
   const _BankCallbackDialogWidget({
     Key? key,
-    this.showPdfOption = true,
+    this.showUncategorizedOption = true,
   }) : super(key: key);
 
   @override
@@ -145,14 +146,16 @@ class _BankCallbackDialogWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () {
-                if (showPdfOption) {
+              onPressed: () async {
+                if (showUncategorizedOption) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Esperando carregamento da conta...'),
                     ),
                   );
                 }
+                await SharedPreferencesAsync.instance
+                    .setBankDialogAnsweredNo(true);
                 Navigator.of(context).pop(false);
               },
               // Don't connect another account button

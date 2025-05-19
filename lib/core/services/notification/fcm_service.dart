@@ -20,6 +20,10 @@ import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
 
 enum NotificationCategory {
   budgets,
@@ -122,19 +126,6 @@ class FCMService {
             // Extract itemId from message data - fix the key name to match item_id
             final String? itemId = message.data['item_id'];
             _handleReloadAction(context, itemId: itemId);
-            // After handling reload, show the uncategorized dialog (for now, always show for testing)
-            Future.delayed(const Duration(milliseconds: 500), () async {
-              debugPrint(
-                  '[FCMService] Opening UncategorizedFoundDialog after push notification and BankCallbackDialog response = no');
-              final result = await UncategorizedFoundDialog.show(context,
-                  transactionCount: 3);
-              if (result == true) {
-                // User chose to reclassify now, navigate to the classification page
-                Navigator.of(context)
-                    .pushNamed('/uncategorized-classification');
-              }
-              // If false or null, do nothing (Mais tarde)
-            });
           }
         }
       });
@@ -171,19 +162,6 @@ class FCMService {
               // Use index 0 for dashboard tab
               tabsPageKey.currentState!.navigateToTab(0);
             }
-            // After handling reload, show the uncategorized dialog (for now, always show for testing)
-            Future.delayed(const Duration(milliseconds: 500), () async {
-              debugPrint(
-                  '[FCMService] Opening UncategorizedFoundDialog after push notification and BankCallbackDialog response = no');
-              final result = await UncategorizedFoundDialog.show(context,
-                  transactionCount: 3);
-              if (result == true) {
-                // User chose to reclassify now, navigate to the classification page
-                Navigator.of(context)
-                    .pushNamed('/uncategorized-classification');
-              }
-              // If false or null, do nothing (Mais tarde)
-            });
           }
           return;
         }
@@ -525,6 +503,38 @@ class FCMService {
           fetchUserAccounts(),
         ]);
         await fetchUserTransactions(null, item: itemId);
+      }
+
+      // After data refresh, check if we should show the uncategorized dialog
+      bool shouldShowUncategorized = false;
+      final bankDialogAnsweredNo =
+          await SharedPreferencesAsync.instance.getBankDialogAnsweredNo();
+      final errorMessage = await checkItemAvailability(context!);
+      if (bankDialogAnsweredNo) {
+        shouldShowUncategorized = true;
+        await SharedPreferencesAsync.instance.clearBankDialogAnsweredNo();
+      } else if (errorMessage != null &&
+          errorMessage ==
+              Translations.of(context!)
+                  .account
+                  .connection_errors
+                  .limit_reached) {
+        shouldShowUncategorized = true;
+      }
+      if (shouldShowUncategorized) {
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          debugPrint(
+              '[FCMService] Opening UncategorizedFoundDialog after reload action');
+          final result = await UncategorizedFoundDialog.show(context!,
+              transactionCount: 3);
+          if (result == true) {
+            Navigator.of(context!).push(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const UncategorizedClassificationPage()),
+            );
+          }
+        });
       }
 
       // Show snackbar ONLY if context is available AND this is a foreground scenario

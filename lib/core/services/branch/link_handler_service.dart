@@ -168,17 +168,17 @@ class LinkHandlerService {
         } else {
           debugPrint(
               '[LinkHandlerService] Cannot connect more accounts, showing error.');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text(errorMessage ?? 'Erro ao verificar disponibilidade')),
-          );
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(
+          //       content:
+          //           Text(errorMessage ?? 'Erro ao verificar disponibilidade')),
+          // );
         }
       } catch (e) {
         print('Error checking account availability: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao verificar disponibilidade')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Erro ao verificar disponibilidade')),
+        // );
       }
     } else {
       debugPrint(
