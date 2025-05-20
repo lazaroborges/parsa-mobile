@@ -73,7 +73,7 @@ List<MoneyTransaction> filterUncategorizedTransactions(
 /// The type is set by the grouping logic, not by the category.
 class TransactionGroupByType {
   final int cousin;
-  final CategoryType type; // Set by grouping logic: I for income, E for expense
+  final CategoryType type;
   final List<MoneyTransaction> transactions;
   TransactionGroupByType({
     required this.cousin,
