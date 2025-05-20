@@ -22,7 +22,7 @@ class BankCallbackDialog {
 
     return showDialog<bool>(
       context: context,
-      barrierDismissible: true,
+      barrierDismissible: false,
       builder: (dialogContext) => _BankCallbackDialogWidget(
           showUncategorizedOption: showUncategorizedOption),
     );
@@ -82,18 +82,18 @@ class _BankCallbackDialogWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(false),
-                    child: Icon(
-                      Icons.close,
-                      size: 24,
-                      color: appColors.primary,
-                    ),
-                  ),
-                ),
+                // Positioned(
+                //   right: 0,
+                //   top: 0,
+                //   child: GestureDetector(
+                //     onTap: () => Navigator.of(context).pop(false),
+                //     child: Icon(
+                //       Icons.close,
+                //       size: 24,
+                //       color: appColors.primary,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(height: 16),
