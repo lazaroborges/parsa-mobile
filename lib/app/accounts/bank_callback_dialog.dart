@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
 /// A modal dialog that asks the user if they want to connect another bank account
 /// after returning from a bank connection flow.
@@ -154,8 +154,15 @@ class _BankCallbackDialogWidget extends StatelessWidget {
                     ),
                   );
                 }
-                await SharedPreferencesAsync.instance
-                    .setBankDialogAnsweredNo(true);
+                // Call the API to set has_finished_openfinance_flow = true
+                final success = await PostUserSettings.finishOpenFinanceFlow();
+                if (!success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao finalizar fluxo Open Finance.'),
+                    ),
+                  );
+                }
                 Navigator.of(context).pop(false);
               },
               // Don't connect another account button

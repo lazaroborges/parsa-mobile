@@ -20,11 +20,9 @@ import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
-import 'package:parsa/core/utils/shared_preferences_async.dart';
-import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 
 enum NotificationCategory {
   budgets,
@@ -506,23 +504,9 @@ class FCMService {
         await fetchUserTransactions(null, item: itemId);
       }
 
-      // After data refresh, check if we should show the uncategorized dialog
-      bool shouldShowUncategorized = false;
-      final bankDialogAnsweredNo =
-          await SharedPreferencesAsync.instance.getBankDialogAnsweredNo();
-      final errorMessage = await checkItemAvailability(context!);
-      if (bankDialogAnsweredNo) {
-        shouldShowUncategorized = true;
-        await SharedPreferencesAsync.instance.clearBankDialogAnsweredNo();
-      } else if (errorMessage != null &&
-          errorMessage ==
-              Translations.of(context!)
-                  .account
-                  .connection_errors
-                  .limit_reached) {
-        shouldShowUncategorized = true;
-      }
-      if (shouldShowUncategorized) {
+      final userData = UserDataProvider.instance.userData;
+      if (userData != null &&
+          userData['has_finished_openfinance_flow'] == true) {
         Future.delayed(const Duration(milliseconds: 500), () async {
           debugPrint(
               '[FCMService] Opening UncategorizedFoundDialog after reload action');
@@ -568,7 +552,7 @@ class FCMService {
       // Show error snackbar ONLY if context is available AND this is a foreground scenario
       if (context != null && context.mounted && !isBackgroundOrTerminated) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: const Text("Erro ao atualizar dados"),
             backgroundColor: Colors.red,
           ),

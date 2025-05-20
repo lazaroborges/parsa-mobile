@@ -447,11 +447,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                   );
                   // After navigation, process pending deep links
                   WidgetsBinding.instance.addPostFrameCallback((_) async {
-                    debugPrint(
-                        '[main.dart] Calling processPendingDeepLinks after TabsPage navigation');
                     await LinkHandlerService.instance.processPendingDeepLinks();
-                    debugPrint(
-                        '[main.dart] Finished processPendingDeepLinks after TabsPage navigation');
                   });
                 } else {
                   print(
@@ -483,11 +479,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         );
         // After navigation, process pending deep links
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          debugPrint(
-              '[main.dart] Calling processPendingDeepLinks after TabsPage navigation (intake)');
           await LinkHandlerService.instance.processPendingDeepLinks();
-          debugPrint(
-              '[main.dart] Finished processPendingDeepLinks after TabsPage navigation (intake)');
         });
       } else {
         // If intake is not completed, show IntakeForm

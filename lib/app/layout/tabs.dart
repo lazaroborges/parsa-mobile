@@ -22,6 +22,9 @@ import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -41,6 +44,8 @@ class TabsPageState extends State<TabsPage>
   // Initialization flag
   bool _isInitialized = false;
   bool isLoadingTags = true;
+  // Flag to ensure BankCallbackDialog is only shown once per session
+  bool _hasCheckedBankCallback = false;
 
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
@@ -55,6 +60,19 @@ class TabsPageState extends State<TabsPage>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
+      // Show BankCallbackDialog if needed (only once per session)
+      if (!_hasCheckedBankCallback) {
+        _hasCheckedBankCallback = true;
+        final userData = UserDataProvider.instance.userData;
+        final hasFinished = userData?['has_finished_openfinance_flow'] == true;
+        print('hasFinished: $hasFinished');
+        if (!hasFinished) {
+          final canConnect = await checkItemAvailability(context) == null;
+          if (canConnect && context.mounted) {
+            await BankCallbackDialog.showAndHandle(context);
+          }
+        }
+      }
     });
   }
 

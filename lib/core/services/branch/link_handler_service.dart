@@ -65,14 +65,6 @@ class LinkHandlerService {
               '[LinkHandlerService] (processPendingDeepLinks) Handling Branch link: $pendingUri (will rely on Branch SDK listener, not calling handleDeepLink)');
           // Do not call FlutterBranchSdk.handleDeepLink; rely on the Branch SDK listener.
         }
-
-        // --- Callback Link ---
-        else if (pendingUri.scheme == 'com.parsa.app' &&
-            pendingUri.host == 'callback') {
-          debugPrint(
-              '[LinkHandlerService] (processPendingDeepLinks) Handling callback link: $pendingUri');
-          await _handleCallbackLink(pendingUri);
-        }
         // --- Unknown Link ---
         else {
           print('Unhandled deep link: $uriStr');
@@ -144,46 +136,6 @@ class LinkHandlerService {
       print('Error processing Branch data: $e');
     } finally {
       _isProcessingDeepLink = false;
-    }
-  }
-
-  /// Handle callback link logic (shared by pending and live handling)
-  Future<void> _handleCallbackLink(Uri pendingUri) async {
-    debugPrint(
-        '[LinkHandlerService] Entered _handleCallbackLink with uri: $pendingUri');
-    final context = navigatorKey.currentContext;
-    if (context != null) {
-      try {
-        debugPrint(
-            '[LinkHandlerService] Checking account availability for callback link...');
-        final errorMessage = await checkItemAvailability(context);
-        final canConnectMoreAccounts = errorMessage == null;
-        debugPrint(
-            '[LinkHandlerService] Account availability check result: canConnectMoreAccounts=$canConnectMoreAccounts, errorMessage=$errorMessage');
-        if (canConnectMoreAccounts) {
-          debugPrint('[LinkHandlerService] Showing BankCallbackDialog...');
-          await Future.microtask(() async {
-            await BankCallbackDialog.showAndHandle(context);
-          });
-        } else {
-          debugPrint(
-              '[LinkHandlerService] Cannot connect more accounts, showing error.');
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //       content:
-          //           Text(errorMessage ?? 'Erro ao verificar disponibilidade')),
-          // );
-        }
-      } catch (e) {
-        print('Error checking account availability: $e');
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('Erro ao verificar disponibilidade')),
-        // );
-      }
-    } else {
-      debugPrint(
-          '[LinkHandlerService] No context available for BankCallbackDialog');
-      print('No context available for BankCallbackDialog');
     }
   }
 

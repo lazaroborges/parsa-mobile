@@ -14,7 +14,6 @@ class SharedPreferencesAsync {
   static const String keyIntakeCompleted = 'intakeCompleted';
   static const String keyStartOfWeek = 'startOfWeek';
   static const String keyStartOfMonth = 'startOfMonth';
-  static const String keyBankDialogAnsweredNo = 'bankDialogAnsweredNo';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -178,23 +177,5 @@ class SharedPreferencesAsync {
   Future<int> getStartOfMonth() async {
     final prefs = await _getPrefs();
     return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
-  }
-
-  /// Set if the user answered No to the bank dialog
-  Future<bool> setBankDialogAnsweredNo(bool value) async {
-    final prefs = await _getPrefs();
-    return prefs.setBool(keyBankDialogAnsweredNo, value);
-  }
-
-  /// Get if the user answered No to the bank dialog
-  Future<bool> getBankDialogAnsweredNo() async {
-    final prefs = await _getPrefs();
-    return prefs.getBool(keyBankDialogAnsweredNo) ?? false;
-  }
-
-  /// Clear the bank dialog answered No flag
-  Future<bool> clearBankDialogAnsweredNo() async {
-    final prefs = await _getPrefs();
-    return prefs.remove(keyBankDialogAnsweredNo);
   }
 }
