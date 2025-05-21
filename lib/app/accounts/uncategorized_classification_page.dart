@@ -11,6 +11,9 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/api/post_methods/post_user_cousin_rules.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
+import 'package:parsa/core/extensions/color.extensions.dart';
 
 class UncategorizedClassificationPage extends StatefulWidget {
   const UncategorizedClassificationPage({Key? key}) : super(key: key);
@@ -30,34 +33,22 @@ class _UncategorizedClassificationPageState
       appBar: AppBar(
         title: Text('Reclassificar Transações'),
       ),
-      body: FutureBuilder<Map<CategoryType, List<TransactionGroupByType>>>(
-        future: getTopUncategorizedGroupsSplitByType(limit: 5),
+      body: FutureBuilder<List<TransactionGroupByType>>(
+        future: getTopUncategorizedGroupsByCousinTotalAmount(limit: 10),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final incomeGroups = snapshot.data![CategoryType.I] ?? [];
-          final expenseGroups = snapshot.data![CategoryType.E] ?? [];
+          final groups = snapshot.data!;
 
-          // Interleave the two lists: income, expense, income, expense, ...
-          interleavedGroups = [];
-          int maxLen = incomeGroups.length > expenseGroups.length
-              ? incomeGroups.length
-              : expenseGroups.length;
-          for (int i = 0; i < maxLen; i++) {
-            if (i < incomeGroups.length) interleavedGroups.add(incomeGroups[i]);
-            if (i < expenseGroups.length)
-              interleavedGroups.add(expenseGroups[i]);
-          }
-
-          if (interleavedGroups.isEmpty) {
+          if (groups.isEmpty) {
             return const Center(
                 child: Text('Nenhuma transação não categorizada.'));
           }
 
-          if (interleavedGroups.length == 1) {
+          if (groups.length == 1) {
             // Only one card, show it centered
-            final group = interleavedGroups.first;
+            final group = groups.first;
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -72,20 +63,20 @@ class _UncategorizedClassificationPageState
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height * 0.8,
               child: CardSwiper(
-                cardsCount: interleavedGroups.length,
+                cardsCount: groups.length,
                 cardBuilder: (context, index, percentX, percentY) {
-                  final group = interleavedGroups[index];
+                  final group = groups[index];
                   return _LabeledTransactionGroupCard(group: group);
                 },
                 numberOfCardsDisplayed: 2,
                 onSwipe: (prev, curr, direction) async {
                   if (direction == CardSwiperDirection.right) {
-                    final group = interleavedGroups[prev];
+                    final group = groups[prev];
                     final selectedCategory = await showCategoryPickerModal(
                       context,
                       modal: CategoryPicker(
                         selectedCategory: group.transactions.first.category,
-                        categoryType: group.type == CategoryType.E
+                        categoryType: group.type == CategoryType.I
                             ? [CategoryType.B, CategoryType.I]
                             : [CategoryType.E, CategoryType.B],
                       ),
@@ -116,7 +107,7 @@ class _UncategorizedClassificationPageState
                         print('Failed to update cousin rules: $e');
                       }
                       setState(() {
-                        interleavedGroups.removeAt(prev);
+                        groups.removeAt(prev);
                       });
                     }
                   }
@@ -218,26 +209,6 @@ class TransactionSwipeCard extends StatelessWidget {
   final dynamic tx;
   const TransactionSwipeCard({Key? key, required this.tx}) : super(key: key);
 
-  // Helper to parse color strings robustly (supports null, 0x, #, or plain int)
-  Color _parseColor(String? colorStr) {
-    if (colorStr == null) return const Color(0xFF888888);
-    try {
-      String hex = colorStr.trim();
-      if (hex.startsWith('#')) {
-        hex = hex.substring(1);
-      }
-      if (hex.startsWith('0x')) {
-        hex = hex.substring(2);
-      }
-      if (hex.length == 6) {
-        hex = 'FF$hex'; // add alpha if missing
-      }
-      return Color(int.parse(hex, radix: 16));
-    } catch (e) {
-      return const Color(0xFF888888);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final category = tx.category;
@@ -274,7 +245,9 @@ class TransactionSwipeCard extends StatelessWidget {
               InfoTileWithIconAndColor(
                 icon: category.icon,
                 data: category.name ?? 'Não categorizada',
-                color: _parseColor(category.color),
+                color: category.color != null
+                    ? ColorHex.get(category.color)
+                    : const Color(0xFF888888),
                 isAccount: false,
                 iconId: category.iconId,
               )
@@ -324,9 +297,16 @@ class TransactionGroupCardByType extends StatelessWidget {
   void _reviewAll(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FullTransactionListPage(
-          cousin: group.cousin,
-          prevPage: const UncategorizedClassificationPage(),
+        builder: (context) => TransactionsPage(
+          filters: TransactionFilters(
+            cousinFilter: group.cousin,
+            transactionTypes: [
+              group.type == CategoryType.I
+                  ? TransactionType.I
+                  : TransactionType.E
+            ],
+            // Add other filters as needed
+          ),
         ),
       ),
     );
@@ -412,7 +392,8 @@ class TransactionGroupCardByType extends StatelessWidget {
                     amountToConvert: g.totalValue,
                     integerStyle: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: g.totalValue >= 0 ? Colors.green : Colors.red,
+                      color:
+                          g.type == CategoryType.I ? Colors.green : Colors.red,
                     ),
                   ),
                 ],
@@ -435,7 +416,7 @@ class TransactionGroupCardByType extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 92.0 * 4, // Approximate height for 4 transactions
+              height: 88.0 * 4, // Approximate height for 4 transactions
               child: CardWithHeader(
                 title: 'Transações deste grupo',
                 bodyPadding: EdgeInsets.zero,
@@ -448,6 +429,11 @@ class TransactionGroupCardByType extends StatelessWidget {
                       TransactionStatus.reconciled,
                       TransactionStatus.unreconciled,
                       TransactionStatus.voided,
+                    ],
+                    transactionTypes: [
+                      g.type == CategoryType.I
+                          ? TransactionType.I
+                          : TransactionType.E
                     ],
                   ),
                   limit: 4,
