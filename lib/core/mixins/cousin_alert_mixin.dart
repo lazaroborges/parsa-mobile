@@ -7,6 +7,7 @@ import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/api/post_methods/post_user_cousin_rules.dart';
+import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
   @override
@@ -140,6 +141,8 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                               changes: changes.toJson(),
                               applyToFuture: _applyToFuture,
                             );
+                            // Play success sound after successful recategorization
+                            await AppSoundPlayer.playSuccessSound();
                             Navigator.pop(context, true);
                           } catch (e) {
                             print('Failed to update cousin rules: $e');

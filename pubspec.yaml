@@ -23,6 +23,9 @@ dependencies:
   flutter_pluggy_connect: ^3.0.1
   webview_flutter: ^4.10.0
 
+  # Audio
+  just_audio: ^0.9.44
+
   # General
   cupertino_icons: ^1.0.0
   collection: ^1.18.0
@@ -139,6 +142,7 @@ flutter:
     - assets/icons/supported_selectable_icons/logos/financial_institutions/611.svg
     - assets/institutions/
     - assets/png_icons/
+    - assets/sounds/
     - assets/sql/
     - assets/sql/migrations/
     - .env

@@ -33,6 +33,7 @@ import 'package:parsa/app/categories/selectors/category_picker.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_notes_modal.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_title_modal.dart';
+import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -90,10 +91,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             categoryID: drift.Value(selectedCategory.id),
           ),
         )
-            .then((value) {
+            .then((value) async {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
+          await AppSoundPlayer.playSuccessSound();
           setState(() {}); // Refresh the UI
         }).catchError((error) {
           ScaffoldMessenger.of(context).showSnackBar(

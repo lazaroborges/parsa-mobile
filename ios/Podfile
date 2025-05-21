@@ -38,11 +38,11 @@ target 'Runner' do
 
 end
 
-target 'FinancialSummaryExtension' do
-  use_frameworks!
-  use_modular_headers!
-  inherit! :search_paths
-end
+# target 'FinancialSummaryExtension' do
+#   use_frameworks!
+#   use_modular_headers!
+#   inherit! :search_paths
+# end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|

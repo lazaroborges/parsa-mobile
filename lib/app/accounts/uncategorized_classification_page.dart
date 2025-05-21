@@ -14,6 +14,7 @@ import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
+import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 class UncategorizedClassificationPage extends StatefulWidget {
   const UncategorizedClassificationPage({Key? key}) : super(key: key);
@@ -70,6 +71,8 @@ class _UncategorizedClassificationPageState
                 },
                 numberOfCardsDisplayed: 2,
                 onSwipe: (prev, curr, direction) async {
+                  // Play swipe sound on every swipe
+                  await AppSoundPlayer.playSwipeSound();
                   if (direction == CardSwiperDirection.right) {
                     final group = groups[prev];
                     final selectedCategory = await showCategoryPickerModal(
@@ -103,6 +106,8 @@ class _UncategorizedClassificationPageState
                           changes: changes,
                           applyToFuture: true,
                         );
+                        // Play success sound after successful recategorization
+                        await AppSoundPlayer.playSuccessSound();
                       } catch (e) {
                         print('Failed to update cousin rules: $e');
                       }

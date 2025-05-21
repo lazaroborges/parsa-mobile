@@ -5,6 +5,7 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'pluggy_connector.dart';
 import 'account_form.dart';
 import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
+import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 class AccountConnectionModal extends StatelessWidget {
   const AccountConnectionModal({Key? key}) : super(key: key);
@@ -127,6 +128,8 @@ class AccountConnectionModal extends StatelessWidget {
                               } else {
                                 // Close the modal first
                                 Navigator.pop(context);
+
+                                await AppSoundPlayer.playErrorSound();
 
                                 // Show the error message in a SnackBar
                                 ScaffoldMessenger.of(context).showSnackBar(

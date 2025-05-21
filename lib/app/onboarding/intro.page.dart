@@ -13,6 +13,7 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/presentation/audio/audio.dart';
 
 import '../../core/presentation/app_colors.dart';
 
@@ -178,6 +179,8 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     const EdgeInsets.symmetric(vertical: 12),
                               ),
                               onPressed: () async {
+                                AppSoundPlayer.playButtonClickSound();
+
                                 print('Login attempt started');
                                 try {
                                   await auth0Provider.login();

@@ -40,6 +40,7 @@ import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:parsa/core/services/branch/link_handler_service.dart';
+import 'package:parsa/core/presentation/audio/audio.dart';
 
 String apiEndpoint = '';
 
@@ -55,6 +56,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
+
+  // Initialize sound settings
+  await SoundSettings.initialize();
 
   try {
     await Firebase.initializeApp(
