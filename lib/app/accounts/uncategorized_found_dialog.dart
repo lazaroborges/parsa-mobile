@@ -5,7 +5,7 @@ import 'package:parsa/core/utils/uncategorized_utils.dart';
 
 class UncategorizedFoundDialog {
   /// Shows a dialog informing the user about uncategorized transactions.
-  /// [transactionCount] is the number of uncategorized transactions found.
+  /// [transactionCount] is the total number of uncategorized transactions.
   /// Returns true if the user wants to reclassify now, false if they choose later.
   static Future<bool?> show(BuildContext context,
       {required int transactionCount}) async {
@@ -20,8 +20,14 @@ class UncategorizedFoundDialog {
   /// Shows the dialog and handles the user's choice, including navigation
   /// to the reclassification page if the user chooses to reclassify now.
   static Future<void> showAndHandle(BuildContext context,
-      {required int transactionCount}) async {
-    final count = await countTopUncategorizedTransactions();
+      {List<Map<String, dynamic>>? top10Groups}) async {
+    int count;
+    if (top10Groups != null) {
+      count = top10Groups.fold<int>(
+          0, (sum, g) => sum + (g['totalTransactions'] as int));
+    } else {
+      count = await countTopUncategorizedTransactions();
+    }
     final result = await show(context, transactionCount: count);
 
     if (result == true && context.mounted) {
@@ -99,7 +105,7 @@ class _UncategorizedFoundDialogWidget extends StatelessWidget {
             const SizedBox(height: 16),
             // Body
             Text(
-              'Encontramos $transactionCount transações\nnão classificadas.',
+              'Encontramos $transactionCount transações não classificadas.',
               style: TextStyle(
                 fontSize: 16,
                 color: appColors.onSurface,

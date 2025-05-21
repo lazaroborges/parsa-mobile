@@ -64,6 +64,9 @@ import 'package:parsa/core/database/services/category/category_service.dart';
 
 import 'package:parsa/core/models/category/category.dart';
 
+import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
+import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -870,10 +873,17 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Builder(
                   builder: (context) {
-                    return FutureBuilder<int>(
-                      future: countTopUncategorizedTransactions(),
+                    return FutureBuilder<List<Map<String, dynamic>>>(
+                      future: getUncategorizedGroupSummaries(),
                       builder: (context, snapshot) {
-                        final uncategorizedCount = snapshot.data ?? 0;
+                        final groups = snapshot.data ?? [];
+                        // Sort by TotalAmount descending and take top 10
+                        final top10 = List<Map<String, dynamic>>.from(groups)
+                          ..sort((a, b) => (b['TotalAmount'] as num)
+                              .compareTo(a['TotalAmount'] as num));
+                        final displayList = top10.take(10).toList();
+                        final totalTransactions = displayList.fold<int>(0,
+                            (sum, g) => sum + (g['totalTransactions'] as int));
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -884,7 +894,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                 children: [
                                   const Text(
                                       'Classificar transações não categorizadas'),
-                                  if (uncategorizedCount > 0) ...[
+                                  if (totalTransactions > 0) ...[
                                     const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -896,7 +906,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        '$uncategorizedCount',
+                                        '$totalTransactions',
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .colorScheme
@@ -908,14 +918,28 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                   ],
                                 ],
                               ),
-                              onPressed: uncategorizedCount == 0
+                              onPressed: totalTransactions == 0
                                   ? null
-                                  : () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              UncategorizedClassificationPage(),
-                                        ),
+                                  : () async {
+                                      await UncategorizedFoundDialog
+                                          .showAndHandle(context,
+                                              top10Groups: displayList);
+                                    },
+                            ),
+                            const SizedBox(height: 8),
+                            FilledButton.icon(
+                              icon: const Icon(Icons.swipe),
+                              label:
+                                  const Text('Classificar com Swipe (Overlay)'),
+                              onPressed: totalTransactions == 0
+                                  ? null
+                                  : () async {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: true,
+                                        barrierColor: Colors.transparent,
+                                        builder: (context) =>
+                                            const UncategorizedClassificationOverlay(),
                                       );
                                     },
                             ),

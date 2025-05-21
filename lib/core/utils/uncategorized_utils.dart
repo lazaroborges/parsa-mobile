@@ -208,3 +208,18 @@ Future<List<TransactionGroupByType>>
     ..sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
   return groups.take(limit).toList();
 }
+
+/// Returns a list of summaries for all uncategorized (NA) transaction groups.
+/// Each summary contains:
+///   cousin_id, type (income/expense), TotalAmount (abs), totalTransactions
+Future<List<Map<String, dynamic>>> getUncategorizedGroupSummaries() async {
+  final groups = await getTopUncategorizedGroupsByCousinTotalAmountSeparated();
+  return groups
+      .map((g) => {
+            'cousin_id': g.cousin,
+            'type': g.type == CategoryType.I ? 'income' : 'expense',
+            'TotalAmount': g.totalValue.abs(),
+            'totalTransactions': g.transactions.length,
+          })
+      .toList();
+}

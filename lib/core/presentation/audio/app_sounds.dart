@@ -47,12 +47,14 @@ class AppSounds {
   }
 
   /// Plays the success sound.
+  /// Add in the normal and cousin_id recategorization
   static Future<void> playSuccess({double volume = 0.6}) async {
     await play(success, volume: volume);
   }
 
   /// Plays the error sound.
-  static Future<void> playError({double volume = 1.0}) async {
+  /// Added in failed new connection flow
+  static Future<void> playError({double volume = 0.4}) async {
     await play(error, volume: volume);
   }
 
@@ -67,12 +69,14 @@ class AppSounds {
   }
 
   /// Plays the button click sound.
+  /// Added in intro screen
   static Future<void> playButtonClick({double volume = 1.0}) async {
     await play(buttonClick, volume: volume);
   }
 
   /// Plays the swipe sound.
-  static Future<void> playSwipe({double volume = 1.0}) async {
+  /// Added in recategorize screen
+  static Future<void> playSwipe({double volume = 0.8}) async {
     await play(swipe, volume: volume);
   }
 

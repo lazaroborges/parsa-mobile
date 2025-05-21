@@ -516,8 +516,8 @@ class FCMService {
           if (result == true) {
             Navigator.of(context!).push(
               MaterialPageRoute(
-                  builder: (context) =>
-                      const UncategorizedClassificationPage()),
+                builder: (context) => const UncategorizedClassificationPage(),
+              ),
             );
           }
         });
