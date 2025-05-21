@@ -26,6 +26,8 @@ class UncategorizedClassificationPage extends StatefulWidget {
 
 class _UncategorizedClassificationPageState
     extends State<UncategorizedClassificationPage> {
+  List<TransactionGroupByType>? _groups; // State variable for card data
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,7 +40,10 @@ class _UncategorizedClassificationPageState
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final groups = snapshot.data!;
+          // Only assign once, so CardSwiper can mutate it
+          _groups ??= List.from(snapshot.data!);
+
+          final groups = _groups!;
           if (groups.isEmpty) {
             return const Center(
                 child: Text('Nenhuma transação não categorizada.'));
@@ -55,7 +60,7 @@ class _UncategorizedClassificationPageState
           return Center(
             child: SizedBox(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.8,
+              height: MediaQuery.of(context).size.height * 0.75,
               child: CardSwiper(
                 cardsCount: groups.length,
                 cardBuilder: (context, index, percentX, percentY) {
@@ -63,6 +68,10 @@ class _UncategorizedClassificationPageState
                   return _LabeledTransactionGroupCard(group: group);
                 },
                 numberOfCardsDisplayed: 3,
+                allowedSwipeDirection: AllowedSwipeDirection.only(
+                  left: true,
+                  right: true,
+                ),
                 onSwipe: (prev, curr, direction) async {
                   await AppSoundPlayer.playSwipeSound();
                   if (direction == CardSwiperDirection.right) {
@@ -102,12 +111,64 @@ class _UncategorizedClassificationPageState
                       } catch (e) {
                         print('Failed to update cousin rules: $e');
                       }
-                      setState(() {
-                        groups.removeAt(prev);
-                      });
                     }
                   }
                   return true;
+                },
+                onEnd: () {
+                  // Show loading dialog, then after a short delay, show continue dialog
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => AlertDialog(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          SizedBox(height: 24),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 24),
+                          Text(
+                            'Carregando Relatório',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  );
+                  Future.delayed(const Duration(seconds: 2), () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => AlertDialog(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Relatório pronto!',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const _PlaceholderNextPage(),
+                                  ),
+                                );
+                              },
+                              child: const Text('Continuar'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  });
                 },
               ),
             ),
@@ -200,10 +261,10 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
     final isIncome = group.type == CategoryType.I;
     final amountColor = isIncome ? Colors.green : Colors.red;
     // Get the first non-empty, non-generic title from the group's transactions
-    String displayTitle = 'NA';
+    String displayTitle = 'Não identificado';
     for (final tx in group.transactions) {
       final cleaned = cleanTitle(tx.title);
-      if (cleaned != 'NA') {
+      if (cleaned != 'NA' && cleaned != 'Não identificado') {
         displayTitle = cleaned;
         break;
       }
@@ -222,15 +283,14 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              flex: 2,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
                 child: Text(
                   displayTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
-                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                 ),
@@ -287,7 +347,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
               title: 'Transações deste grupo',
               bodyPadding: EdgeInsets.zero,
               body: SizedBox(
-                height: 88.0 * 4, // Fixed height for 4 transactions
+                height: 78.0 * 4, // Fixed height for 4 transactions
                 child: TransactionListComponent(
                   heroTagBuilder: (tr) => 'class-page__tr-icon-${tr.id}',
                   filters: TransactionFilters(
@@ -313,7 +373,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             // --- See All Button ---
             Center(
               child: TextButton.icon(
@@ -343,7 +403,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 label: const Text('Ver todas as transações'),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             // --- Instructions Box ---
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -371,6 +431,18 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PlaceholderNextPage extends StatelessWidget {
+  const _PlaceholderNextPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Próxima Página')),
+      body: const Center(child: Text('Conteúdo futuro aqui.')),
     );
   }
 }
