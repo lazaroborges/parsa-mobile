@@ -62,13 +62,13 @@ void main() async {
     print("Firebase initialized successfully");
 
     // Initialize and configure Firebase Analytics only in release mode
-    if (kReleaseMode) {
+    // if (kReleaseMode) {
       firebaseAnalytics = FirebaseAnalytics.instance;
       await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
-      print("Firebase Analytics initialized and enabled");
-    } else {
-      print("Firebase Analytics skipped in debug mode");
-    }
+    //   print("Firebase Analytics initialized and enabled");
+    // } else {
+    //   print("Firebase Analytics skipped in debug mode");
+    // }
   } catch (e) {
     print("Error initializing Firebase: $e");
   }
