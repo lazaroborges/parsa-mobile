@@ -26,6 +26,11 @@ class ServerHealthCheck extends StatelessWidget {
               priceMonthly: priceMonthly,
               priceYearly: priceYearly,
             ),
+            settings: RouteSettings(
+              arguments: {
+                'source': 'subscription_page',
+              },
+            ),
           ),
         );
       } else {

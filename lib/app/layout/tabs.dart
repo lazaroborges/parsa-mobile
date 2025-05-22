@@ -22,6 +22,8 @@ import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/main.dart' show firebaseAnalytics;
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -237,6 +239,16 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
+    // Track destination click in Firebase Analytics
+    firebaseAnalytics?.logEvent(
+      name: 'navigation_destination_click',
+      parameters: {
+        'destination_id': destination.id.toString(),
+        'destination_label': destination.label,
+        'navigation_type': 'bottom_navigation', // or 'sidebar' depending on context
+      },
+    );
+
     navigationSidebarKey.currentState?.setSelectedDestination(destination);
 
     setState(() {

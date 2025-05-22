@@ -10,6 +10,8 @@ import 'package:parsa/core/api/post_methods/post_subscriptions.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intake.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/main.dart' show firebaseAnalytics;
 
 class PremiumWidget extends StatefulWidget {
   final int? priceMonthly;
@@ -52,6 +54,11 @@ class _PremiumWidgetState extends State<PremiumWidget> {
   void initState() {
     super.initState();
 
+    // Track page view when subscription page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _trackSubscriptionPageView();
+    });
+
     // Initialize prices from widget parameters
     priceMonthly = widget.priceMonthly ?? 2499; // Default value if null
     priceYearly = widget.priceYearly ?? 24999; // Default value if null
@@ -72,6 +79,29 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
     // Initialize the store
     _initializeStore();
+  }
+
+  void _trackSubscriptionPageView() {
+    // Try to determine the source from the navigation stack
+    String? source;
+    
+    // Get the current route information if available
+    final route = ModalRoute.of(context);
+    if (route != null && route.settings.arguments != null) {
+      // If arguments were passed, try to extract source
+      final args = route.settings.arguments;
+      if (args is Map && args.containsKey('source')) {
+        source = args['source'] as String?;
+      }
+    }
+    
+    // Track subscription page view
+    firebaseAnalytics?.logEvent(
+      name: 'subscription_page_viewed',
+      parameters: {
+        'source': source ?? 'unknown',
+      },
+    );
   }
 
   Future<void> _initializeStore() async {
@@ -419,6 +449,15 @@ class _PremiumWidgetState extends State<PremiumWidget> {
 
   Future<void> _buySubscription(ProductDetails product) async {
     try {
+      // Track purchase button click
+      firebaseAnalytics?.logEvent(
+        name: 'subscription_purchase_initiated',
+        parameters: {
+          'plan_type': selectedPlan ?? 'unknown',
+          'product_id': product.id,
+        },
+      );
+
       developer.log('Initiating purchase for product: ${product.id}');
 
       // Clear pending transactions for iOS only
