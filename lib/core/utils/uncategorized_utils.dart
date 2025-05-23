@@ -39,21 +39,23 @@ final Set<String> UNCATEGORIZED_CATEGORY_NAMES = NA_CATEGORIES.values.toSet();
 /// A transaction is uncategorized if its category name is in the uncategorized set
 /// and its status is not 'notconsidered'.
 Future<List<MoneyTransaction>> getUncategorizedTransactions() async {
+  print('[PERF] getUncategorizedTransactions: START');
+  final startTime = DateTime.now();
+
   final allTransactions =
       await TransactionService.instance.getTransactions().first;
-  final uncats = filterUncategorizedTransactions(allTransactions);
-  return uncats;
-}
+  final fetchTime = DateTime.now();
+  print(
+      '[PERF] Fetched all transactions: ${fetchTime.difference(startTime).inMilliseconds}ms (${allTransactions.length} transactions)');
 
-/// Returns the count of transactions in the top [limit] income and expense uncategorized groups.
-Future<int> countTopUncategorizedTransactions({int limit = 5}) async {
-  final groupsMap =
-      await getTopUncategorizedGroupsByCousinAndType(limit: limit);
-  final topIncome = groupsMap[CategoryType.I] ?? [];
-  final topExpense = groupsMap[CategoryType.E] ?? [];
-  final allTxs =
-      [...topIncome, ...topExpense].expand((g) => g.transactions).toList();
-  return allTxs.length;
+  final uncats = filterUncategorizedTransactions(allTransactions);
+  final filterTime = DateTime.now();
+  print(
+      '[PERF] Filtered uncategorized: ${filterTime.difference(fetchTime).inMilliseconds}ms (${uncats.length} uncategorized)');
+  print(
+      '[PERF] getUncategorizedTransactions: TOTAL ${filterTime.difference(startTime).inMilliseconds}ms');
+
+  return uncats;
 }
 
 /// Filters a list of transactions, returning only those that are uncategorized.
@@ -100,121 +102,70 @@ class TransactionGroupByType {
   int get count => transactions.length;
 }
 
-/// Groups uncategorized transactions by cousin id and type (income/expense),
-/// and returns the top [limit] groups for each type, sorted by absolute total value.
-Future<Map<CategoryType, List<TransactionGroupByType>>>
-    getTopUncategorizedGroupsByCousinAndType({
-  int limit = 10,
-}) async {
+/// OPTIMIZED: Gets the top 10 uncategorized groups efficiently in a single pass
+/// This avoids the N+1 query problem by fetching all data once and grouping it
+Future<List<TransactionGroupByType>>
+    getTop10UncategorizedGroupsOptimized() async {
+  print('[PERF] getTop10UncategorizedGroupsOptimized: START');
+  final startTime = DateTime.now();
+
+  // Fetch all uncategorized transactions once
   final uncats = await getUncategorizedTransactions();
-  // Filter out transactions with status notconsidered
+  final fetchTime = DateTime.now();
+  print(
+      '[PERF] OPTIMIZED: Fetched uncategorized transactions: ${fetchTime.difference(startTime).inMilliseconds}ms (${uncats.length} transactions)');
+
+  // Filter out transactions with status notconsidered and group by cousin
   final filtered = uncats
-      .where((tx) => tx.status != TransactionStatus.notconsidered)
+      .where((tx) =>
+          tx.status != TransactionStatus.notconsidered && tx.cousin != null)
       .toList();
-  // Group by cousin id and type
+
   final Map<int, List<MoneyTransaction>> byCousin = {};
   for (var tx in filtered) {
-    if (tx.cousin != null) {
-      byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
-    }
+    byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
   }
-  // For each cousin, split into income and expense groups
-  List<TransactionGroupByType> incomeGroups = [];
-  List<TransactionGroupByType> expenseGroups = [];
+
+  // Create all groups (income and expense separately)
+  List<TransactionGroupByType> allGroups = [];
   byCousin.forEach((cousin, txs) {
     final incomeTxs = txs.where((tx) => (tx.value ?? 0) > 0).toList();
     final expenseTxs = txs.where((tx) => (tx.value ?? 0) < 0).toList();
+
     if (incomeTxs.isNotEmpty) {
-      incomeGroups.add(TransactionGroupByType(
+      allGroups.add(TransactionGroupByType(
         cousin: cousin,
         type: CategoryType.I,
         transactions: incomeTxs,
       ));
     }
     if (expenseTxs.isNotEmpty) {
-      expenseGroups.add(TransactionGroupByType(
+      allGroups.add(TransactionGroupByType(
         cousin: cousin,
         type: CategoryType.E,
         transactions: expenseTxs,
       ));
     }
   });
-  incomeGroups.sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
-  expenseGroups
-      .sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
-  return {
-    CategoryType.I: incomeGroups.take(limit).toList(),
-    CategoryType.E: expenseGroups.take(limit).toList(),
-  };
-}
 
-/// Returns the top [limit] groups (income and expense, separated) as a single list, sorted by absolute value.
-Future<List<TransactionGroupByType>>
-    getTopUncategorizedGroupsByCousinTotalAmountSeparated({
-  int limit = 10,
-}) async {
-  final groupsMap =
-      await getTopUncategorizedGroupsByCousinAndType(limit: limit);
-  final allGroups = <TransactionGroupByType>[];
-  allGroups.addAll(groupsMap[CategoryType.I] ?? []);
-  allGroups.addAll(groupsMap[CategoryType.E] ?? []);
+  // Sort by total value and take top 10
   allGroups.sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
-  return allGroups.take(limit).toList();
+  final result = allGroups.take(10).toList();
+
+  final endTime = DateTime.now();
+  print(
+      '[PERF] OPTIMIZED: Total time: ${endTime.difference(startTime).inMilliseconds}ms (${result.length} groups)');
+
+  return result;
 }
 
-/// For a given cousin id, get all uncategorized transactions of a specific type (income or expense).
-Future<List<MoneyTransaction>> getUncategorizedTransactionsForCousinAndType(
-    int cousin, CategoryType type) async {
-  final uncats = await getUncategorizedTransactions();
-  final filtered = uncats
-      .where((tx) =>
-          tx.status != TransactionStatus.notconsidered &&
-          tx.cousin == cousin &&
-          ((type == CategoryType.I && (tx.value ?? 0) > 0) ||
-              (type == CategoryType.E && (tx.value ?? 0) < 0)))
-      .toList();
-  return filtered;
-}
-
-/// Groups uncategorized transactions by cousin id and returns the top [limit] groups
-/// ranked by the absolute total amount (income or expense combined).
-Future<List<TransactionGroupByType>>
-    getTopUncategorizedGroupsByCousinTotalAmount({
-  int limit = 10,
-}) async {
-  final uncats = await getUncategorizedTransactions();
-  // Filter out transactions with status notconsidered
-  final filtered = uncats
-      .where((tx) => tx.status != TransactionStatus.notconsidered)
-      .toList();
-  // Group by cousin id
-  final Map<int, List<MoneyTransaction>> byCousin = {};
-  for (var tx in filtered) {
-    if (tx.cousin != null) {
-      byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
-    }
-  }
-  // Create groups and sort by absolute total value
-  final groups = byCousin.entries.map((e) {
-    final txs = e.value;
-    final total = txs.fold(0.0, (sum, tx) => sum + (tx.value ?? 0));
-    return TransactionGroupByType(
-      cousin: e.key,
-      // Type is not relevant here, but we can infer it if needed
-      type: total >= 0 ? CategoryType.I : CategoryType.E,
-      transactions: txs,
-    );
-  }).toList()
-    ..sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
-  return groups.take(limit).toList();
-}
-
-/// Returns a list of summaries for all uncategorized (NA) transaction groups.
-/// Each summary contains:
-///   cousin_id, type (income/expense), TotalAmount (abs), totalTransactions
+/// OPTIMIZED: Gets summaries efficiently using the optimized approach
 Future<List<Map<String, dynamic>>> getUncategorizedGroupSummaries() async {
-  final groups = await getTopUncategorizedGroupsByCousinTotalAmountSeparated();
-  return groups
+  print('[PERF] getUncategorizedGroupSummaries (OPTIMIZED): START');
+  final startTime = DateTime.now();
+
+  final groups = await getTop10UncategorizedGroupsOptimized();
+  final result = groups
       .map((g) => {
             'cousin_id': g.cousin,
             'type': g.type == CategoryType.I ? 'income' : 'expense',
@@ -222,4 +173,23 @@ Future<List<Map<String, dynamic>>> getUncategorizedGroupSummaries() async {
             'totalTransactions': g.transactions.length,
           })
       .toList();
+
+  final endTime = DateTime.now();
+  print(
+      '[PERF] getUncategorizedGroupSummaries (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms');
+  return result;
+}
+
+/// Returns the count of transactions in the top uncategorized groups (optimized)
+Future<int> countTopUncategorizedTransactions({int limit = 10}) async {
+  print('[PERF] countTopUncategorizedTransactions (OPTIMIZED): START');
+  final startTime = DateTime.now();
+
+  final groups = await getTop10UncategorizedGroupsOptimized();
+  final count = groups.fold<int>(0, (sum, g) => sum + g.count);
+
+  final endTime = DateTime.now();
+  print(
+      '[PERF] countTopUncategorizedTransactions (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms (count: $count)');
+  return count;
 }

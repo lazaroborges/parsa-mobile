@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
+import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 
@@ -18,7 +18,7 @@ class UncategorizedFoundDialog {
   }
 
   /// Shows the dialog and handles the user's choice, including navigation
-  /// to the reclassification page if the user chooses to reclassify now.
+  /// to the reclassification overlay if the user chooses to reclassify now.
   static Future<void> showAndHandle(BuildContext context,
       {List<Map<String, dynamic>>? top10Groups}) async {
     int count;
@@ -31,12 +31,12 @@ class UncategorizedFoundDialog {
     final result = await show(context, transactionCount: count);
 
     if (result == true && context.mounted) {
-      // User wants to reclassify now, navigate to the classification page
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => UncategorizedClassificationPage(),
-        ),
+      // User wants to reclassify now, show the overlay
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierColor: Colors.transparent,
+        builder: (context) => const UncategorizedClassificationOverlay(),
       );
     }
   }

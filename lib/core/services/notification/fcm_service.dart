@@ -20,7 +20,7 @@ import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
 import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
-import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
+import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 
@@ -70,6 +70,9 @@ class FCMService {
 
   // Flag to track if token has been registered with server
   bool _isTokenRegistered = false;
+
+  // Flag to track if uncategorized dialog has been shown this session
+  bool _hasShownUncategorizedDialog = false;
 
   Future<void> initialize() async {
     // Prevent multiple initializations
@@ -426,6 +429,25 @@ class FCMService {
     _isTokenRegistered = false;
   }
 
+  // Method to reset the uncategorized dialog session flag
+  void resetUncategorizedDialogSession() {
+    _hasShownUncategorizedDialog = false;
+    if (kDebugMode) {
+      print('[FCMService] Reset uncategorized dialog session flag');
+    }
+  }
+
+  // Method to check if uncategorized dialog has been shown this session
+  bool get hasShownUncategorizedDialog => _hasShownUncategorizedDialog;
+
+  // Method to manually mark uncategorized dialog as shown (for use in other parts of the app)
+  void markUncategorizedDialogAsShown() {
+    _hasShownUncategorizedDialog = true;
+    if (kDebugMode) {
+      print('[FCMService] Manually marked uncategorized dialog as shown');
+    }
+  }
+
   // Centralized method that handles both permission request and FCM initialization
   Future<bool> requestPermissionAndInitialize() async {
     // Request permissions first
@@ -506,19 +528,37 @@ class FCMService {
 
       final userData = UserDataProvider.instance.userData;
       if (userData != null &&
-          userData['has_finished_openfinance_flow'] == true) {
+          userData['has_finished_openfinance_flow'] == true &&
+          !_hasShownUncategorizedDialog) {
         Future.delayed(const Duration(milliseconds: 500), () async {
           debugPrint(
-              '[FCMService] Opening UncategorizedFoundDialog after reload action');
+              '[FCMService] Checking uncategorized transactions after reload action');
           final count = await countTopUncategorizedTransactions();
-          final result = await UncategorizedFoundDialog.show(context!,
-              transactionCount: count);
-          if (result == true) {
-            Navigator.of(context!).push(
-              MaterialPageRoute(
-                builder: (context) => const UncategorizedClassificationPage(),
-              ),
-            );
+
+          // Only show if there are uncategorized transactions and dialog hasn't been shown
+          if (count > 0 &&
+              !_hasShownUncategorizedDialog &&
+              context != null &&
+              context.mounted) {
+            // Mark as shown to prevent showing again this session
+            _hasShownUncategorizedDialog = true;
+
+            debugPrint(
+                '[FCMService] Opening UncategorizedFoundDialog after reload action (count: $count)');
+            final result = await UncategorizedFoundDialog.show(context!,
+                transactionCount: count);
+            if (result == true) {
+              showDialog(
+                context: context!,
+                barrierDismissible: true,
+                barrierColor: Colors.transparent,
+                builder: (context) =>
+                    const UncategorizedClassificationOverlay(),
+              );
+            }
+          } else {
+            debugPrint(
+                '[FCMService] Skipping uncategorized dialog: count=$count, alreadyShown=$_hasShownUncategorizedDialog');
           }
         });
       }

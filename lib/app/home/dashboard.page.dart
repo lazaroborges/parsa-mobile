@@ -55,8 +55,6 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
-import 'package:parsa/app/accounts/uncategorized_classification_page.dart';
-import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 
@@ -66,6 +64,8 @@ import 'package:parsa/core/models/category/category.dart';
 
 import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
 import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
+
+import 'package:flutter/foundation.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -884,64 +884,47 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         final displayList = top10.take(10).toList();
                         final totalTransactions = displayList.fold<int>(0,
                             (sum, g) => sum + (g['totalTransactions'] as int));
+
+                        // Only show the button in debug mode
+                        if (!kDebugMode || totalTransactions == 0) {
+                          return const SizedBox.shrink();
+                        }
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             FilledButton.icon(
-                              icon: const Icon(Icons.help_outline),
+                              icon: const Icon(Icons.swipe),
                               label: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text(
-                                      'Classificar transações não categorizadas'),
-                                  if (totalTransactions > 0) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        '$totalTransactions',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary,
-                                          fontWeight: FontWeight.bold,
+                                  Text.rich(
+                                    TextSpan(
+                                      text: 'Classificar ',
+                                      children: [
+                                        TextSpan(
+                                          text: '$totalTransactions',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w600),
                                         ),
-                                      ),
+                                        const TextSpan(
+                                            text:
+                                                ' transações não categorizadas'),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ],
                               ),
-                              onPressed: totalTransactions == 0
-                                  ? null
-                                  : () async {
-                                      await UncategorizedFoundDialog
-                                          .showAndHandle(context,
-                                              top10Groups: displayList);
-                                    },
-                            ),
-                            const SizedBox(height: 8),
-                            FilledButton.icon(
-                              icon: const Icon(Icons.swipe),
-                              label:
-                                  const Text('Classificar com Swipe (Overlay)'),
-                              onPressed: totalTransactions == 0
-                                  ? null
-                                  : () async {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        barrierColor: Colors.transparent,
-                                        builder: (context) =>
-                                            const UncategorizedClassificationOverlay(),
-                                      );
-                                    },
+                              onPressed: () async {
+                                // Show overlay directly without dialog since this is manual
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  barrierColor: Colors.transparent,
+                                  builder: (context) =>
+                                      const UncategorizedClassificationOverlay(),
+                                );
+                              },
                             ),
                           ],
                         );

@@ -6,7 +6,6 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
-import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
@@ -25,6 +24,9 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
 import 'package:parsa/app/accounts/bank_callback_dialog.dart';
+import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
+import 'package:parsa/core/utils/uncategorized_utils.dart';
+import 'package:parsa/app/accounts/account_connection_modal.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -84,6 +86,8 @@ class TabsPageState extends State<TabsPage>
       _requestNotificationPermission();
       _setupDeepLinking();
       BackgroundAuthService.instance.initialize(context);
+      // Reset FCM uncategorized dialog session flag for new app session
+      FCMService.instance.resetUncategorizedDialogSession();
       _isInitialized = true;
     }
   }
