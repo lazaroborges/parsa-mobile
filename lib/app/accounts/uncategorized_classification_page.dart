@@ -73,7 +73,7 @@ class _UncategorizedClassificationPageState
                   right: true,
                 ),
                 onSwipe: (prev, curr, direction) async {
-                  await AppSoundPlayer.playSwipeSound();
+                  // await AppSoundPlayer.playSwipeSound();
                   if (direction == CardSwiperDirection.right) {
                     final group = groups[prev];
                     final selectedCategory = await showCategoryPickerModal(
@@ -107,7 +107,7 @@ class _UncategorizedClassificationPageState
                           changes: changes,
                           applyToFuture: true,
                         );
-                        await AppSoundPlayer.playSuccessSound();
+                        // await AppSoundPlayer.playSuccessSound();
                       } catch (e) {
                         print('Failed to update cousin rules: $e');
                       }

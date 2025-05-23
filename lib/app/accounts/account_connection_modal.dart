@@ -129,7 +129,7 @@ class AccountConnectionModal extends StatelessWidget {
                                 // Close the modal first
                                 Navigator.pop(context);
 
-                                await AppSoundPlayer.playErrorSound();
+                                // await AppSoundPlayer.playErrorSound();
 
                                 // Show the error message in a SnackBar
                                 ScaffoldMessenger.of(context).showSnackBar(

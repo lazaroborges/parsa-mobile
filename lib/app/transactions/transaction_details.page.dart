@@ -95,7 +95,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
-          await AppSoundPlayer.playSuccessSound();
+          // await AppSoundPlayer.playSuccessSound();
           setState(() {}); // Refresh the UI
         }).catchError((error) {
           ScaffoldMessenger.of(context).showSnackBar(

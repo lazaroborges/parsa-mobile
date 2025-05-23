@@ -142,7 +142,7 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                               applyToFuture: _applyToFuture,
                             );
                             // Play success sound after successful recategorization
-                            await AppSoundPlayer.playSuccessSound();
+                            // await AppSoundPlayer.playSuccessSound();
                             Navigator.pop(context, true);
                           } catch (e) {
                             print('Failed to update cousin rules: $e');
