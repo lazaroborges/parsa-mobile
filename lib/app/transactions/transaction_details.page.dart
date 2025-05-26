@@ -34,6 +34,8 @@ import 'package:parsa/app/transactions/form/dialogs/transaction_notes_modal.dart
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_title_modal.dart';
 import 'package:parsa/core/presentation/audio/app_sound_player.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/main.dart' show firebaseAnalytics;
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
@@ -91,7 +93,16 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             categoryID: drift.Value(selectedCategory.id),
           ),
         )
-            .then((value) async {
+            .then((value) {
+          // Track category edit behavior
+          firebaseAnalytics?.logEvent(
+            name: 'transaction_field_edited',
+            parameters: {
+              'field_type': 'category',
+              'transaction_type': transaction.type.toString(),
+            },
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -119,6 +130,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
           ),
         )
             .then((value) {
+          // Track notes edit behavior
+          firebaseAnalytics?.logEvent(
+            name: 'transaction_field_edited',
+            parameters: {
+              'field_type': 'notes',
+              'transaction_type': transaction.type.toString(),
+            },
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -148,6 +168,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
           selectedTags.cast<Tag>(),
         )
             .then((value) {
+          // Track tags edit behavior
+          firebaseAnalytics?.logEvent(
+            name: 'transaction_field_edited',
+            parameters: {
+              'field_type': 'tags',
+              'transaction_type': transaction.type.toString(),
+            },
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -174,6 +203,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
           ),
         )
             .then((value) {
+          // Track title edit behavior
+          firebaseAnalytics?.logEvent(
+            name: 'transaction_field_edited',
+            parameters: {
+              'field_type': 'title',
+              'transaction_type': transaction.type.toString(),
+            },
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -627,6 +665,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     ),
                   )
                       .then((value) {
+                    // Track status edit behavior
+                    firebaseAnalytics?.logEvent(
+                      name: 'transaction_field_edited',
+                      parameters: {
+                        'field_type': 'status',
+                        'transaction_type': transaction.type.toString(),
+                      },
+                    );
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(t.transaction.edit_success)),
                     );
@@ -742,6 +789,18 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                               ),
                                             )
                                                 .then((value) {
+                                              // Track status edit behavior
+                                              firebaseAnalytics?.logEvent(
+                                                name:
+                                                    'transaction_field_edited',
+                                                parameters: {
+                                                  'field_type': 'status',
+                                                  'transaction_type':
+                                                      transaction.type
+                                                          .toString(),
+                                                },
+                                              );
+
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 SnackBar(

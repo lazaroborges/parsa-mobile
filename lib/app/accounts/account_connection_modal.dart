@@ -5,6 +5,7 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'pluggy_connector.dart';
 import 'account_form.dart';
 import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 class AccountConnectionModal extends StatelessWidget {
@@ -114,6 +115,16 @@ class AccountConnectionModal extends StatelessWidget {
                             description:
                                 'O Parsa sincroniza os dados da sua conta e categoriza as transações.',
                             onTap: () async {
+                              await FirebaseAnalytics.instance.logEvent(
+                                name: 'automatic_account_connection_clicked',
+                                parameters: {
+                                  'connection_type': 'automatic',
+                                  'screen_name': 'account_connection_modal',
+                                  'timestamp':
+                                      DateTime.now().millisecondsSinceEpoch,
+                                },
+                              );
+
                               // Check Pluggy availability
                               String? errorMessage =
                                   await checkItemAvailability(context);
@@ -147,6 +158,11 @@ class AccountConnectionModal extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => PremiumWidget(),
+                                      settings: RouteSettings(
+                                        arguments: {
+                                          'source': 'account_connection_modal',
+                                        },
+                                      ),
                                     ),
                                   );
                                 }

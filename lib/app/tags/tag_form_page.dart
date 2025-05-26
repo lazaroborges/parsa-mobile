@@ -14,6 +14,8 @@ import 'package:parsa/core/utils/constants.dart';
 import 'package:parsa/core/utils/text_field_utils.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/main.dart' show firebaseAnalytics;
 
 class TagFormPage extends StatefulWidget {
   const TagFormPage({super.key, this.tag});
@@ -77,6 +79,14 @@ class _TagFormPageState extends State<TagFormPage> {
       }
 
       await TagService.instance.insertTag(tagToEdit).then((value) {
+        // Track new tag creation
+        firebaseAnalytics?.logEvent(
+          name: 'tag_created',
+          parameters: {
+            'creation_source': 'tag_form',
+          },
+        );
+
         Navigator.pop(context);
 
         messager.showSnackBar(SnackBar(content: Text(t.tags.create_success)));

@@ -171,7 +171,13 @@ class _IntakeFormState extends State<IntakeForm> with TickerProviderStateMixin {
       // Navigate to subscription page
       await Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => PremiumWidget()),
+        MaterialPageRoute(builder: (context) => PremiumWidget(),
+        settings: RouteSettings(
+          arguments: {
+            'source': 'intake_form',
+          },
+        ),
+        ),
       );
     }
   }

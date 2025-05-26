@@ -21,6 +21,8 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/status_filter
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/utils/text_field_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/main.dart' show firebaseAnalytics;
 
 import '../../../models/transaction/transaction_type.enum.dart';
 import '../../app_colors.dart';
@@ -53,6 +55,8 @@ class FilterSheetModal extends StatefulWidget {
 
 class _FilterSheetModalState extends State<FilterSheetModal> {
   late TransactionFilters filtersToReturn;
+  late TransactionFilters originalFilters;
+  bool hasTrackedCustomization = false;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -65,6 +69,33 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
       maxDate: widget.preselectedFilter.maxDate ?? DateTime.now().toLocal(),
       // minDate will use the value from preselectedFilter or remain null
     );
+    
+    // Store original filters for comparison
+    originalFilters = filtersToReturn;
+  }
+
+  void _trackFilterCustomizationIfNeeded() {
+    if (!hasTrackedCustomization && _hasFiltersChanged()) {
+      firebaseAnalytics?.logEvent(
+        name: 'transaction_filters_customized',
+        parameters: {
+          'customization_source': 'filter_sheet',
+        },
+      );
+      hasTrackedCustomization = true;
+    }
+  }
+
+  bool _hasFiltersChanged() {
+    return filtersToReturn.accountsIDs != originalFilters.accountsIDs ||
+           filtersToReturn.tagsIDs != originalFilters.tagsIDs ||
+           filtersToReturn.categories != originalFilters.categories ||
+           filtersToReturn.minDate != originalFilters.minDate ||
+           filtersToReturn.maxDate != originalFilters.maxDate ||
+           filtersToReturn.minValue != originalFilters.minValue ||
+           filtersToReturn.maxValue != originalFilters.maxValue ||
+           filtersToReturn.transactionTypes != originalFilters.transactionTypes ||
+           filtersToReturn.status != originalFilters.status;
   }
 
   bool isTagSelected(String? tagId) {
@@ -99,6 +130,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                     .toList(),
           );
 
+          _trackFilterCustomizationIfNeeded();
           setState(() {});
         });
   }
@@ -182,6 +214,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                       : selection.map((e) => e.id).toList(),
                             );
 
+                            _trackFilterCustomizationIfNeeded();
                             setState(() {});
                           }),
                         );
@@ -236,6 +269,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                       : selection.map((e) => e?.id).toList(),
                             );
 
+                            _trackFilterCustomizationIfNeeded();
                             setState(() {});
                           }),
                         );
@@ -286,6 +320,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                         : selection.map((e) => e.id),
                               );
 
+                              _trackFilterCustomizationIfNeeded();
                               setState(() {});
                             });
                           },
@@ -317,6 +352,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                   minDate: value.toLocal(),
                                 );
                               });
+                              _trackFilterCustomizationIfNeeded();
                             },
                           ),
                         ),
@@ -346,6 +382,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                       value.day, 23, 59, 59, 999),
                                 );
                               });
+                              _trackFilterCustomizationIfNeeded();
                             },
                           ),
                         ),
@@ -407,7 +444,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                 filtersToReturn = filtersToReturn.copyWith(
                                   minValue: double.tryParse(value),
                                 );
-
+                                _trackFilterCustomizationIfNeeded();
                                 setState(() {});
                               },
                             )),
@@ -454,7 +491,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                                 filtersToReturn = filtersToReturn.copyWith(
                                   maxValue: double.tryParse(value),
                                 );
-
+                                _trackFilterCustomizationIfNeeded();
                                 setState(() {});
                               },
                             )),
@@ -535,6 +572,7 @@ class _FilterSheetModalState extends State<FilterSheetModal> {
                         filtersToReturn =
                             filtersToReturn.copyWith(status: newListToAssign);
                       });
+                      _trackFilterCustomizationIfNeeded();
                     },
                   ),
                 ],

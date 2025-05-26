@@ -27,6 +27,8 @@ import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/main.dart' show firebaseAnalytics;
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -253,6 +255,18 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
+    // Track destination click in Firebase Analytics
+    firebaseAnalytics?.logEvent(
+      name: 'navigation_destination_click',
+      parameters: {
+        'destination_id': destination.id.toString(),
+        'destination_label': destination.label,
+        'navigation_type':
+            'bottom_navigation', // or 'sidebar' depending on context
+      },
+    );
+
+    navigationSidebarKey.currentState?.setSelectedDestination(destination);
     // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {
