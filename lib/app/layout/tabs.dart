@@ -48,8 +48,6 @@ class TabsPageState extends State<TabsPage>
   // Initialization flag
   bool _isInitialized = false;
   bool isLoadingTags = true;
-  // Flag to ensure BankCallbackDialog is only shown once per session
-  bool _hasCheckedBankCallback = false;
 
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
@@ -64,19 +62,7 @@ class TabsPageState extends State<TabsPage>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
-      // Show BankCallbackDialog if needed (only once per session)
-      if (!_hasCheckedBankCallback) {
-        _hasCheckedBankCallback = true;
-        final userData = UserDataProvider.instance.userData;
-        final hasFinished = userData?['has_finished_openfinance_flow'] == true;
-        print('hasFinished: $hasFinished');
-        if (!hasFinished) {
-          final canConnect = await checkItemAvailability(context) == null;
-          if (canConnect && context.mounted) {
-            await BankCallbackDialog.showAndHandle(context);
-          }
-        }
-      }
+      await _checkBankCallbackDialog();
     });
   }
 
@@ -107,6 +93,9 @@ class TabsPageState extends State<TabsPage>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
+
+        // Check if we should show bank callback dialog when app resumes
+        await _checkBankCallbackDialog();
       });
     }
   }
@@ -261,12 +250,10 @@ class TabsPageState extends State<TabsPage>
       parameters: {
         'destination_id': destination.id.toString(),
         'destination_label': destination.label,
-        'navigation_type':
-            'bottom_navigation', // or 'sidebar' depending on context
+        'navigation_type': 'bottom_navigation',
       },
     );
 
-    navigationSidebarKey.currentState?.setSelectedDestination(destination);
     // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {
@@ -387,6 +374,27 @@ class TabsPageState extends State<TabsPage>
         setState(() {
           selectedDestination = menuItems[index];
         });
+      }
+    }
+  }
+
+  Future<void> _checkBankCallbackDialog() async {
+    final userData = UserDataProvider.instance.userData;
+    final hasFinished = userData?['has_finished_openfinance_flow'] == true;
+    final hasReturnedFromBankConnection =
+        LinkHandlerService.hasReturnedFromBankConnection;
+
+    print('_checkBankCallbackDialog - hasFinished: $hasFinished');
+    print(
+        '_checkBankCallbackDialog - hasReturnedFromBankConnection: $hasReturnedFromBankConnection');
+
+    // Only show dialog if:
+    // 1. User hasn't finished the open finance flow (hasn't said "no") AND
+    // 2. App has returned from a bank connection (indicating at least one connection was made)
+    if (!hasFinished && hasReturnedFromBankConnection) {
+      final canConnect = await checkItemAvailability(context) == null;
+      if (canConnect && context.mounted) {
+        await BankCallbackDialog.showAndHandle(context);
       }
     }
   }

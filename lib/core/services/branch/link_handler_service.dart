@@ -22,6 +22,21 @@ class LinkHandlerService {
   StreamSubscription<Map>? _branchSubscription;
   bool _isProcessingDeepLink = false;
 
+  // Flag to track when app returns from bank connection
+  static bool _hasReturnedFromBankConnection = false;
+
+  /// Get whether the app has returned from a bank connection
+  static bool get hasReturnedFromBankConnection =>
+      _hasReturnedFromBankConnection;
+
+  /// Set the flag indicating the app has returned from a bank connection
+  static void setReturnedFromBankConnection() {
+    _hasReturnedFromBankConnection = true;
+    if (kDebugMode) {
+      print('[LinkHandlerService] Flag set: returned from bank connection');
+    }
+  }
+
   /// Initialize the link handler service and set up Branch SDK listeners
   Future<void> initialize() async {
     try {
@@ -58,6 +73,12 @@ class LinkHandlerService {
 
       if (pendingUri != null) {
         final uriStr = pendingUri.toString();
+
+        if (uriStr.contains('com.parsa.app')) {
+          setReturnedFromBankConnection();
+          print(
+              '[LinkHandlerService] (processPendingDeepLinks) Potential bank connection callback detected');
+        }
 
         // --- Branch Link ---
         if (uriStr.contains('app.link')) {
