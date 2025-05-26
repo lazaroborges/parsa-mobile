@@ -135,9 +135,6 @@ class _BankCallbackDialogWidget extends StatelessWidget {
                 foregroundColor: appColors.onPrimary,
                 padding:
                     const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
-                ),
               ),
               child: const Text(
                 'Sim, conectar',

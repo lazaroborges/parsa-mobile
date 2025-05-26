@@ -13,6 +13,7 @@ import 'package:parsa/main.dart';
 import 'package:parsa/app/accounts/bank_callback_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -22,18 +23,25 @@ class LinkHandlerService {
   StreamSubscription<Map>? _branchSubscription;
   bool _isProcessingDeepLink = false;
 
-  // Flag to track when app returns from bank connection
-  static bool _hasReturnedFromBankConnection = false;
+  /// Get whether the app has returned from a bank connection (persisted)
+  static Future<bool> get hasReturnedFromBankConnection async {
+    final prefs = SharedPreferencesAsync.instance;
+    return await prefs.getHasReturnedFromBankConnection();
+  }
 
-  /// Get whether the app has returned from a bank connection
-  static bool get hasReturnedFromBankConnection =>
-      _hasReturnedFromBankConnection;
+  /// Set the flag indicating the app has returned from a bank connection (persisted)
+  /// Once set to true, this flag will never go back to false
+  static Future<void> setReturnedFromBankConnection() async {
+    final prefs = SharedPreferencesAsync.instance;
 
-  /// Set the flag indicating the app has returned from a bank connection
-  static void setReturnedFromBankConnection() {
-    _hasReturnedFromBankConnection = true;
-    if (kDebugMode) {
-      print('[LinkHandlerService] Flag set: returned from bank connection');
+    // Only set if not already true (optimization)
+    final currentValue = await prefs.getHasReturnedFromBankConnection();
+    if (!currentValue) {
+      await prefs.setHasReturnedFromBankConnection(true);
+      if (kDebugMode) {
+        print(
+            '[LinkHandlerService] Flag set and persisted: returned from bank connection');
+      }
     }
   }
 

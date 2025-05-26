@@ -56,6 +56,14 @@ class _UncategorizedClassificationContent extends StatefulWidget {
 class _UncategorizedClassificationContentState
     extends State<_UncategorizedClassificationContent> {
   List<TransactionGroupByType>? _groups; // State variable for card data
+  final CardSwiperController _cardController = CardSwiperController();
+  final Set<int> _processedIndices = <int>{}; // Track processed cards
+
+  @override
+  void dispose() {
+    _cardController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,14 +90,28 @@ class _UncategorizedClassificationContentState
             ),
           );
         }
+        // Filter out processed groups
+        final availableGroups = groups
+            .asMap()
+            .entries
+            .where((entry) => !_processedIndices.contains(entry.key))
+            .map((entry) => entry.value)
+            .toList();
+
+        if (availableGroups.isEmpty) {
+          return const Center(
+              child: Text('Todas as transações foram categorizadas!'));
+        }
+
         return Center(
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 0.75,
             child: CardSwiper(
-              cardsCount: groups.length,
+              controller: _cardController,
+              cardsCount: availableGroups.length,
               cardBuilder: (context, index, percentX, percentY) {
-                final group = groups[index];
+                final group = availableGroups[index];
                 return _LabeledTransactionGroupCard(group: group);
               },
               numberOfCardsDisplayed: 3,
@@ -100,7 +122,10 @@ class _UncategorizedClassificationContentState
               onSwipe: (prev, curr, direction) async {
                 // await AppSoundPlayer.playSwipeSound();
                 if (direction == CardSwiperDirection.right) {
-                  final group = groups[prev];
+                  final group = availableGroups[prev];
+                  // Find the original index of this group in the full list
+                  final originalIndex = groups.indexOf(group);
+
                   final selectedCategory = await showCategoryPickerModal(
                     context,
                     modal: CategoryPicker(
@@ -110,34 +135,23 @@ class _UncategorizedClassificationContentState
                           : [CategoryType.E, CategoryType.B],
                     ),
                   );
+
                   if (selectedCategory != null) {
-                    await Future.wait(group.transactions.map((tx) =>
-                        TransactionService.instance.insertOrUpdateTransaction(
-                          tx.copyWith(
-                              categoryID: drift.Value(selectedCategory.id)),
-                          null,
-                          1,
-                        )));
-                    final triggeringId = group.transactions.first.id.toString();
-                    final cousinValue = group.cousin;
-                    final changes = {
-                      'categoryName': selectedCategory.name,
-                      'categoryId': selectedCategory.id,
-                    };
-                    try {
-                      await PostUserCousinRules.updateCousinRules(
-                        cousinValue: cousinValue,
-                        triggeringId: triggeringId,
-                        changes: changes,
-                        applyToFuture: true,
-                      );
-                      // await AppSoundPlayer.playSuccessSound();
-                    } catch (e) {
-                      print('Failed to update cousin rules: $e');
-                    }
+                    // Process categorization immediately after selection
+                    await _processCategorySelection(group, selectedCategory);
+                    // Mark this card as processed using the original index
+                    setState(() {
+                      _processedIndices.add(originalIndex);
+                    });
+                    // Return false to prevent automatic swipe completion
+                    // since we're handling the card removal through setState
+                    return false;
                   }
+
+                  // If no category selected or not confirmed, prevent swipe
+                  return false;
                 }
-                return true;
+                return true; // Allow left swipes (dismiss)
               },
               onEnd: () async {
                 print('[DEBUG] onEnd callback triggered');
@@ -204,6 +218,65 @@ class _UncategorizedClassificationContentState
     print(
         '[PERF] [OVERLAY] _getTop10Groups: TOTAL ${endTime.difference(startTime).inMilliseconds}ms (OPTIMIZED)');
     return result;
+  }
+
+  /// Processes the category selection by updating transactions and cousin rules
+  Future<void> _processCategorySelection(
+    TransactionGroupByType group,
+    Category selectedCategory,
+  ) async {
+    try {
+      // Update all transactions in the group
+      await Future.wait(group.transactions
+          .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
+                tx.copyWith(categoryID: drift.Value(selectedCategory.id)),
+                null,
+                1,
+              )));
+
+      // Update cousin rules for future automatic categorization
+      final triggeringId = group.transactions.first.id.toString();
+      final cousinValue = group.cousin;
+      final changes = {
+        'categoryName': selectedCategory.name,
+        'categoryId': selectedCategory.id,
+      };
+
+      await PostUserCousinRules.updateCousinRules(
+        cousinValue: cousinValue,
+        triggeringId: triggeringId,
+        changes: changes,
+        applyToFuture: true,
+      );
+
+      // await AppSoundPlayer.playSuccessSound();
+
+      // Show success feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${group.count} transação(ões) categorizadas como "${selectedCategory.name}"',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Failed to process category selection: $e');
+
+      // Show error feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao categorizar transações'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 }
 

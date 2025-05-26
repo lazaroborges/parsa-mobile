@@ -24,10 +24,6 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
 import 'package:parsa/app/accounts/bank_callback_dialog.dart';
-import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
-import 'package:parsa/core/utils/uncategorized_utils.dart';
-import 'package:parsa/app/accounts/account_connection_modal.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 
 // This page is the entry point of the app once the user has complete onboarding
@@ -93,8 +89,6 @@ class TabsPageState extends State<TabsPage>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
-
-        // Check if we should show bank callback dialog when app resumes
         await _checkBankCallbackDialog();
       });
     }
@@ -382,7 +376,7 @@ class TabsPageState extends State<TabsPage>
     final userData = UserDataProvider.instance.userData;
     final hasFinished = userData?['has_finished_openfinance_flow'] == true;
     final hasReturnedFromBankConnection =
-        LinkHandlerService.hasReturnedFromBankConnection;
+        await LinkHandlerService.hasReturnedFromBankConnection;
 
     print('_checkBankCallbackDialog - hasFinished: $hasFinished');
     print(

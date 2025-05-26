@@ -14,6 +14,8 @@ class SharedPreferencesAsync {
   static const String keyIntakeCompleted = 'intakeCompleted';
   static const String keyStartOfWeek = 'startOfWeek';
   static const String keyStartOfMonth = 'startOfMonth';
+  static const String keyHasReturnedFromBankConnection =
+      'has_returned_from_bank_connection';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -177,5 +179,21 @@ class SharedPreferencesAsync {
   Future<int> getStartOfMonth() async {
     final prefs = await _getPrefs();
     return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
+  }
+
+  /// Set bank connection return flag (once set to true, never goes back to false)
+  Future<bool> setHasReturnedFromBankConnection(bool value) async {
+    final prefs = await _getPrefs();
+    // Only allow setting to true, never back to false
+    if (value == true) {
+      return prefs.setBool(keyHasReturnedFromBankConnection, value);
+    }
+    return true; // Return true if trying to set to false (no-op)
+  }
+
+  /// Get bank connection return flag
+  Future<bool> getHasReturnedFromBankConnection() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyHasReturnedFromBankConnection) ?? false;
   }
 }
