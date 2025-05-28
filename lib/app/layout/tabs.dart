@@ -378,9 +378,9 @@ class TabsPageState extends State<TabsPage>
     final hasReturnedFromBankConnection =
         await LinkHandlerService.hasReturnedFromBankConnection;
 
-    print('_checkBankCallbackDialog - hasFinished: $hasFinished');
+    print('[TabsPage] _checkBankCallbackDialog - hasFinished: $hasFinished');
     print(
-        '_checkBankCallbackDialog - hasReturnedFromBankConnection: $hasReturnedFromBankConnection');
+        '[TabsPage] _checkBankCallbackDialog - hasReturnedFromBankConnection: $hasReturnedFromBankConnection');
 
     // Only show dialog if:
     // 1. User hasn't finished the open finance flow (hasn't said "no") AND

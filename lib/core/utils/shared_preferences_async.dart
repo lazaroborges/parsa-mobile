@@ -196,4 +196,10 @@ class SharedPreferencesAsync {
     final prefs = await _getPrefs();
     return prefs.getBool(keyHasReturnedFromBankConnection) ?? false;
   }
+
+  /// Reset bank connection return flag to false (used when switching accounts)
+  Future<bool> resetHasReturnedFromBankConnection() async {
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyHasReturnedFromBankConnection, false);
+  }
 }

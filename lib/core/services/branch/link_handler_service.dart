@@ -45,6 +45,16 @@ class LinkHandlerService {
     }
   }
 
+  /// Reset the bank connection flag to false (used when switching accounts)
+  static Future<void> resetReturnedFromBankConnection() async {
+    final prefs = SharedPreferencesAsync.instance;
+    await prefs.resetHasReturnedFromBankConnection();
+    if (kDebugMode) {
+      print(
+          '[LinkHandlerService] Flag reset: hasReturnedFromBankConnection set to false');
+    }
+  }
+
   /// Initialize the link handler service and set up Branch SDK listeners
   Future<void> initialize() async {
     try {

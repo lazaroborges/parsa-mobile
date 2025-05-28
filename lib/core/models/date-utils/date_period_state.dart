@@ -7,10 +7,6 @@ import 'package:parsa/core/models/date-utils/periodicity.dart';
 
 part 'date_period_state.g.dart';
 
-/// Calculates the actual start date for a period.
-/// If useWorkingDays is true, it finds the Nth (startDay) working day of the month.
-/// If useWorkingDays is false, it uses the literal startDay, clamping to the end of the month if invalid.
-/// Returns a DateTime with time set to 00:00:00 (DateOnly).
 DateTime _calculatePeriodStart(int year, int month, int startDay) {
   if (startDay <= 0) {
     startDay = 1;

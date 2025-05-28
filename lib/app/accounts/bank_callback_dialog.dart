@@ -3,6 +3,7 @@ import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 /// A modal dialog that asks the user if they want to connect another bank account
 /// after returning from a bank connection flow.
@@ -160,6 +161,10 @@ class _BankCallbackDialogWidget extends StatelessWidget {
                     ),
                   );
                 }
+
+                // Reset the hasReturnedFromBankConnection flag so the dialog won't show again
+                await LinkHandlerService.resetReturnedFromBankConnection();
+
                 Navigator.of(context).pop(false);
               },
               // Don't connect another account button
