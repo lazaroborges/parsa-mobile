@@ -3,11 +3,10 @@ import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
-import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 /// A modal dialog that asks the user if they want to connect another bank account
 /// after returning from a bank connection flow.
-class BankCallbackDialog {
+class BankConnectionDialog {
   /// Shows the dialog asking if the user wants to connect another bank account.
   ///
   /// Returns true if the user wants to connect another account, false otherwise.
@@ -16,7 +15,7 @@ class BankCallbackDialog {
     // Show the dialog with a safety check
     if (!context.mounted) {
       if (kDebugMode) {
-        print('🏦 BankCallbackDialog: Context not mounted, skipping dialog');
+        print('🏦 BankConnectionDialog: Context not mounted, skipping dialog');
       }
       return null;
     }
@@ -24,7 +23,7 @@ class BankCallbackDialog {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => _BankCallbackDialogWidget(
+      builder: (dialogContext) => _BankConnectionDialogWidget(
           showUncategorizedOption: showUncategorizedOption),
     );
   }
@@ -48,10 +47,10 @@ class BankCallbackDialog {
   }
 }
 
-class _BankCallbackDialogWidget extends StatelessWidget {
+class _BankConnectionDialogWidget extends StatelessWidget {
   final bool showUncategorizedOption;
 
-  const _BankCallbackDialogWidget({
+  const _BankConnectionDialogWidget({
     Key? key,
     this.showUncategorizedOption = true,
   }) : super(key: key);
@@ -100,7 +99,7 @@ class _BankCallbackDialogWidget extends StatelessWidget {
             const SizedBox(height: 16),
             // Title
             Text(
-              'Conexão Concluída',
+              'Conexão em andamento',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -111,7 +110,7 @@ class _BankCallbackDialogWidget extends StatelessWidget {
             const SizedBox(height: 16),
             // Body
             Text(
-              'Sua conta bancária\nfoi conectada com sucesso!',
+              'Sua conta bancária está\n em processo de conexão!',
               style: TextStyle(
                 fontSize: 16,
                 color: appColors.onSurface,
@@ -161,9 +160,6 @@ class _BankCallbackDialogWidget extends StatelessWidget {
                     ),
                   );
                 }
-
-                // Reset the hasReturnedFromBankConnection flag so the dialog won't show again
-                await LinkHandlerService.resetReturnedFromBankConnection();
 
                 Navigator.of(context).pop(false);
               },

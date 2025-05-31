@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/onboarding/uncategorized/uncategorized_classification_overlay.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/core/utils/uncategorized_utils.dart';
 
 class UncategorizedFoundDialog {
   /// Shows a dialog informing the user about uncategorized transactions.
@@ -20,15 +19,8 @@ class UncategorizedFoundDialog {
   /// Shows the dialog and handles the user's choice, including navigation
   /// to the reclassification overlay if the user chooses to reclassify now.
   static Future<void> showAndHandle(BuildContext context,
-      {List<Map<String, dynamic>>? top10Groups}) async {
-    int count;
-    if (top10Groups != null) {
-      count = top10Groups.fold<int>(
-          0, (sum, g) => sum + (g['totalTransactions'] as int));
-    } else {
-      count = await countTopUncategorizedTransactions();
-    }
-    final result = await show(context, transactionCount: count);
+      {required int transactionCount}) async {
+    final result = await show(context, transactionCount: transactionCount);
 
     if (result == true && context.mounted) {
       // User wants to reclassify now, show the overlay

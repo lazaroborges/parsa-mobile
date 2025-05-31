@@ -56,14 +56,9 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
 import 'package:parsa/core/utils/uncategorized_utils.dart';
-import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 
-import 'package:parsa/core/database/services/category/category_service.dart';
-
-import 'package:parsa/core/models/category/category.dart';
-
-import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
-import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
+import 'package:parsa/app/onboarding/uncategorized/uncategorized_classification_overlay.dart';
 
 import 'package:flutter/foundation.dart';
 

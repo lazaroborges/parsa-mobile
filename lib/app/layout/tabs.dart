@@ -23,8 +23,11 @@ import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/app/accounts/bank_callback_dialog.dart';
+import 'package:parsa/app/onboarding/bank_callback_dialog.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
+import 'package:parsa/core/api/post_methods/post_user_settings.dart';
+import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
+import 'package:parsa/core/utils/uncategorized_utils.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -58,7 +61,8 @@ class TabsPageState extends State<TabsPage>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
-      await _checkBankCallbackDialog();
+      await _checkConnectionDialog();
+      await _checkUncategorizedDialog();
     });
   }
 
@@ -372,24 +376,37 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  Future<void> _checkBankCallbackDialog() async {
+  Future<void> _checkConnectionDialog() async {
     final userData = UserDataProvider.instance.userData;
     final hasFinished = userData?['has_finished_openfinance_flow'] == true;
-    final hasReturnedFromBankConnection =
-        await LinkHandlerService.hasReturnedFromBankConnection;
 
-    print('[TabsPage] _checkBankCallbackDialog - hasFinished: $hasFinished');
-    print(
-        '[TabsPage] _checkBankCallbackDialog - hasReturnedFromBankConnection: $hasReturnedFromBankConnection');
-
-    // Only show dialog if:
-    // 1. User hasn't finished the open finance flow (hasn't said "no") AND
-    // 2. App has returned from a bank connection (indicating at least one connection was made)
-    if (!hasFinished && hasReturnedFromBankConnection) {
-      final canConnect = await checkItemAvailability(context) == null;
-      if (canConnect && context.mounted) {
-        await BankCallbackDialog.showAndHandle(context);
+    if (!hasFinished) {
+      final checkCode = await checkItemAvailability(context);
+      if (checkCode == '4' || checkCode == '100') {
+        try {
+          await PostUserSettings.finishOpenFinanceFlow();
+        } catch (e) {
+          print('Error setting has finished openfinance flow: $e');
+        }
       }
+      if (checkCode == null && context.mounted) {
+        await BankConnectionDialog.showAndHandle(context);
+      }
+    }
+  }
+
+  Future<void> _checkUncategorizedDialog() async {
+    final userData = UserDataProvider.instance.userData;
+    final hasTriggered =
+        userData?['has_triggered_uncategorized_dialog'] == true;
+    final hasFinished = userData?['has_finished_openfinance_flow'] == true;
+    final hasProgress = userData?['has_progress'] == true;
+
+    if (!hasTriggered && hasFinished && hasProgress) {
+      // await PostUserSettings.triggerUncategorizedDialog();
+      final count = await countTopUncategorizedTransactions();
+      await UncategorizedFoundDialog.showAndHandle(context,
+          transactionCount: count);
     }
   }
 }

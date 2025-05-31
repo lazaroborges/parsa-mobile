@@ -19,8 +19,8 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:parsa/app/accounts/uncategorized_found_dialog.dart';
-import 'package:parsa/app/accounts/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
+import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 
@@ -545,17 +545,8 @@ class FCMService {
 
             debugPrint(
                 '[FCMService] Opening UncategorizedFoundDialog after reload action (count: $count)');
-            final result = await UncategorizedFoundDialog.show(context!,
+            await UncategorizedFoundDialog.showAndHandle(context!,
                 transactionCount: count);
-            if (result == true) {
-              showDialog(
-                context: context!,
-                barrierDismissible: true,
-                barrierColor: Colors.transparent,
-                builder: (context) =>
-                    const UncategorizedClassificationOverlay(),
-              );
-            }
           } else {
             debugPrint(
                 '[FCMService] Skipping uncategorized dialog: count=$count, alreadyShown=$_hasShownUncategorizedDialog');

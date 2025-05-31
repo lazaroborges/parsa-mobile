@@ -10,10 +10,6 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
-import 'package:parsa/app/accounts/bank_callback_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/core/utils/shared_preferences_async.dart';
 
 /// A service to handle deep links from Branch SDK and direct app links
 class LinkHandlerService {
@@ -22,38 +18,6 @@ class LinkHandlerService {
 
   StreamSubscription<Map>? _branchSubscription;
   bool _isProcessingDeepLink = false;
-
-  /// Get whether the app has returned from a bank connection (persisted)
-  static Future<bool> get hasReturnedFromBankConnection async {
-    final prefs = SharedPreferencesAsync.instance;
-    return await prefs.getHasReturnedFromBankConnection();
-  }
-
-  /// Set the flag indicating the app has returned from a bank connection (persisted)
-  /// Once set to true, this flag will never go back to false
-  static Future<void> setReturnedFromBankConnection() async {
-    final prefs = SharedPreferencesAsync.instance;
-
-    // Only set if not already true (optimization)
-    final currentValue = await prefs.getHasReturnedFromBankConnection();
-    if (!currentValue) {
-      await prefs.setHasReturnedFromBankConnection(true);
-      if (kDebugMode) {
-        print(
-            '[LinkHandlerService] Flag set and persisted: returned from bank connection');
-      }
-    }
-  }
-
-  /// Reset the bank connection flag to false (used when switching accounts)
-  static Future<void> resetReturnedFromBankConnection() async {
-    final prefs = SharedPreferencesAsync.instance;
-    await prefs.resetHasReturnedFromBankConnection();
-    if (kDebugMode) {
-      print(
-          '[LinkHandlerService] Flag reset: hasReturnedFromBankConnection set to false');
-    }
-  }
 
   /// Initialize the link handler service and set up Branch SDK listeners
   Future<void> initialize() async {
@@ -91,12 +55,6 @@ class LinkHandlerService {
 
       if (pendingUri != null) {
         final uriStr = pendingUri.toString();
-
-        if (uriStr.contains('com.parsa.app')) {
-          setReturnedFromBankConnection();
-          print(
-              '[LinkHandlerService] (processPendingDeepLinks) Potential bank connection callback detected');
-        }
 
         // --- Branch Link ---
         if (uriStr.contains('app.link')) {
@@ -154,8 +112,6 @@ class LinkHandlerService {
         // Extract deeplink path if available
         if (data.containsKey('\$deeplink_path')) {
           path = data['\$deeplink_path'] as String?;
-        }
-        if (data.containsKey('\$deeplink_path')) {
           debugPrint(
               '[LinkHandlerService] Branch data contains deeplink_path: ${data['\$deeplink_path']}');
         }

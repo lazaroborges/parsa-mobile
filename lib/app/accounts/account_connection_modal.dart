@@ -6,7 +6,7 @@ import 'pluggy_connector.dart';
 import 'account_form.dart';
 import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:parsa/core/presentation/audio/app_sound_player.dart';
+// import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 class AccountConnectionModal extends StatelessWidget {
   const AccountConnectionModal({Key? key}) : super(key: key);

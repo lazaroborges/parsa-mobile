@@ -17,13 +17,15 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
 
-Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int? cousinValue, String? item}) async {
+Future<void> fetchUserTransactions(String? accountId,
+    {String? nextPageUrl, int? cousinValue, String? item}) async {
   String url;
 
   if (nextPageUrl != null) {
     print("Fetching next page using URL: $nextPageUrl");
     Uri nextUri = Uri.parse(nextPageUrl);
-    url = '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
+    url =
+        '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
   } else if (item != null) {
     print("Fetching transactions for item: $item");
     url = '$apiEndpoint/api/transactions/?item=$item';
@@ -38,10 +40,9 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
   }
 
   print('--------Requesting URL: $url');
-  
+
   final auth0Provider = Auth0Provider.instance;
   final credentials = await auth0Provider.credentials;
-
 
   final response = await http.get(
     Uri.parse(url),
@@ -56,7 +57,7 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
     // Extract the results field and encode it back to JSON string
     String resultsJson = json.encode(jsonResponse['results']);
     unawaited(syncTransactions(resultsJson));
-    
+
     print('Count: ${jsonResponse['count']}, Next: ${jsonResponse['next']}');
     int objectCount = jsonResponse['results'].length;
     print('Number of transactions synced: $objectCount');
@@ -72,7 +73,8 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
 Future<void> syncTransactions(String apiResponse) async {
   try {
     // Step 1: Parse the API response
-    List<ApiTransaction> apiTransactions = fetchAndParseTransactions(apiResponse);
+    List<ApiTransaction> apiTransactions =
+        fetchAndParseTransactions(apiResponse);
     if (apiTransactions.isEmpty) {
       print('No transactions to sync.');
       return;
@@ -105,8 +107,6 @@ Future<void> syncTransactions(String apiResponse) async {
 List<ApiTransaction> fetchAndParseTransactions(String responseBody) {
   try {
     final List<dynamic> parsed = json.decode(responseBody);
-
-
 
     return parsed.map((json) => ApiTransaction.fromJson(json)).toList();
   } catch (e) {
@@ -303,8 +303,8 @@ Future<void> insertTransactionsIntoDB(
         }
       }
     });
-   // print(
-     //   'Batch insert or update successful for ${transactions.length} transactions.');
+    // print(
+    //   'Batch insert or update successful for ${transactions.length} transactions.');
     db.markTablesUpdated([db.transactions, db.transactionTags]);
   } catch (e) {
     print('Failed to batch insert or update transactions: $e');

@@ -180,26 +180,4 @@ class SharedPreferencesAsync {
     final prefs = await _getPrefs();
     return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
   }
-
-  /// Set bank connection return flag (once set to true, never goes back to false)
-  Future<bool> setHasReturnedFromBankConnection(bool value) async {
-    final prefs = await _getPrefs();
-    // Only allow setting to true, never back to false
-    if (value == true) {
-      return prefs.setBool(keyHasReturnedFromBankConnection, value);
-    }
-    return true; // Return true if trying to set to false (no-op)
-  }
-
-  /// Get bank connection return flag
-  Future<bool> getHasReturnedFromBankConnection() async {
-    final prefs = await _getPrefs();
-    return prefs.getBool(keyHasReturnedFromBankConnection) ?? false;
-  }
-
-  /// Reset bank connection return flag to false (used when switching accounts)
-  Future<bool> resetHasReturnedFromBankConnection() async {
-    final prefs = await _getPrefs();
-    return prefs.setBool(keyHasReturnedFromBankConnection, false);
-  }
 }
