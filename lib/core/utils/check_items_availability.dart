@@ -41,15 +41,15 @@ Future<String?> checkItemAvailability(BuildContext context) async {
     final bool hasInProgress = data['has_in_progress_items'] as bool;
     final String? code = data['code'] as String?;
 
+    if (code == '4' && hasInProgress == true) {
+      return t.account.connection_errors.item_connection_in_progress;
+    }
+
     switch (code) {
       case '0':
         return t.account.connection_errors.not_subscribed;
       case '4':
-        if (hasInProgress) {
-          return t.account.connection_errors.item_connection_in_progress;
-        } else {
-          return t.account.connection_errors.limit_reached;
-        }
+        return t.account.connection_errors.limit_reached;
       case '100':
         return t.account.connection_errors.daily_limit_reached;
       default:

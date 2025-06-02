@@ -28,6 +28,7 @@ import 'package:parsa/main.dart' show firebaseAnalytics;
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
+import 'package:parsa/i18n/translations.g.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -35,6 +36,15 @@ class TabsPage extends StatefulWidget {
 
   @override
   State<TabsPage> createState() => TabsPageState();
+
+  // Static method to handle FCM reload completion
+  static Future<void> handleFCMReloadComplete(BuildContext context) async {
+    // Find the TabsPageState in the widget tree
+    final tabsPageState = context.findAncestorStateOfType<TabsPageState>();
+    if (tabsPageState != null) {
+      await tabsPageState.handleFCMReloadComplete();
+    }
+  }
 }
 
 class TabsPageState extends State<TabsPage>
@@ -61,8 +71,8 @@ class TabsPageState extends State<TabsPage>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
+      // Check connection dialog BEFORE data loading
       await _checkConnectionDialog();
-      await _checkUncategorizedDialog();
     });
   }
 
@@ -74,8 +84,6 @@ class TabsPageState extends State<TabsPage>
       _requestNotificationPermission();
       _setupDeepLinking();
       BackgroundAuthService.instance.initialize(context);
-      // Reset FCM uncategorized dialog session flag for new app session
-      FCMService.instance.resetUncategorizedDialogSession();
       _isInitialized = true;
     }
   }
@@ -93,8 +101,64 @@ class TabsPageState extends State<TabsPage>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
-        await _checkBankCallbackDialog();
+        await _initializeData();
       });
+    }
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      // First fetch critical user info
+      await _fetchUserInfoServer();
+
+      // Then fetch all other data (accounts, transactions, tags) in parallel
+      await Future.wait([
+        refreshData(showLoading: true),
+        _fetchUserTags(),
+      ], eagerError: true);
+
+      // After data loading, check uncategorized dialog
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _checkUncategorizedDialog();
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during initialization: $e');
+      }
+    }
+  }
+
+  Future<void> refreshData({bool showLoading = true}) async {
+    if (!mounted) return;
+
+    if (showLoading) {
+      setState(() {
+        isLoading = true;
+        isLoadingTransactions = true;
+      });
+    }
+
+    try {
+      // Refresh accounts, transactions in parallel
+      await Future.wait([
+        _fetchUserAccounts(),
+        fetchUserTransactions(null),
+      ]);
+
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      print('--Error refreshing data: $e');
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
     }
   }
 
@@ -141,26 +205,8 @@ class TabsPageState extends State<TabsPage>
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error handling notification permissions: $e');
-      }
-    }
-  }
-
-  Future<void> _initializeData() async {
-    try {
-      // First fetch critical user info
-      await _fetchUserInfoServer();
-
-      // Then fetch accounts and tags in parallel
-      await Future.wait([
-        _fetchUserAccounts(),
-        _fetchUserTags(),
-      ], eagerError: true);
-    } catch (e) {
-      if (kDebugMode) {
         print('Error during initialization: $e');
       }
-      // Handle initialization error appropriately
     }
   }
 
@@ -178,40 +224,6 @@ class TabsPageState extends State<TabsPage>
       setState(() {
         isLoading = false;
       });
-    }
-  }
-
-  Future<void> refreshData({bool showLoading = true}) async {
-    if (!mounted) return;
-
-    if (showLoading) {
-      setState(() {
-        isLoading = true;
-        isLoadingTransactions = true;
-      });
-    }
-
-    try {
-      // Refresh both accounts and transactions in parallel
-      await Future.wait([
-        _fetchUserAccounts(),
-        fetchUserTransactions(null),
-      ]);
-
-      if (mounted && showLoading) {
-        setState(() {
-          isLoading = false;
-          isLoadingTransactions = false;
-        });
-      }
-    } catch (e) {
-      print('--Error refreshing data: $e');
-      if (mounted && showLoading) {
-        setState(() {
-          isLoading = false;
-          isLoadingTransactions = false;
-        });
-      }
     }
   }
 
@@ -379,17 +391,25 @@ class TabsPageState extends State<TabsPage>
   Future<void> _checkConnectionDialog() async {
     final userData = UserDataProvider.instance.userData;
     final hasFinished = userData?['has_finished_openfinance_flow'] == true;
+    final t = Translations.of(context);
 
+    // Show connection dialog only if user hasn't finished open finance flow
     if (!hasFinished) {
-      final checkCode = await checkItemAvailability(context);
-      if (checkCode == '4' || checkCode == '100') {
+      final response = await checkItemAvailability(context);
+
+      if (response == t.account.connection_errors.limit_reached ||
+          response == t.account.connection_errors.daily_limit_reached) {
         try {
           await PostUserSettings.finishOpenFinanceFlow();
+          // Update local user data after successful API call
+          UserDataProvider.instance.updateUserData({
+            'has_finished_openfinance_flow': true,
+          });
         } catch (e) {
           print('Error setting has finished openfinance flow: $e');
         }
       }
-      if (checkCode == null && context.mounted) {
+      if (response == null && context.mounted) {
         await BankConnectionDialog.showAndHandle(context);
       }
     }
@@ -397,17 +417,51 @@ class TabsPageState extends State<TabsPage>
 
   Future<void> _checkUncategorizedDialog() async {
     final userData = UserDataProvider.instance.userData;
-    final hasTriggered =
-        userData?['has_triggered_uncategorized_dialog'] == true;
+    final hasTriggered = userData?['trigger_swipe_cards_flow'] == true;
     final hasFinished = userData?['has_finished_openfinance_flow'] == true;
-    final hasProgress = userData?['has_progress'] == true;
+    final t = Translations.of(context);
 
-    if (!hasTriggered && hasFinished && hasProgress) {
-      // await PostUserSettings.triggerUncategorizedDialog();
+    // Only proceed if user has finished open finance flow and hasn't been triggered yet
+    if (hasFinished && !hasTriggered) {
+      // Check if there are items in progress
+      final response = await checkItemAvailability(context);
+      print('checkCode: $response');
+
+      // If items are in progress, we'll wait for the FCM "reload" signal
+      // The FCM service will handle showing the uncategorized dialog after reload
+      if (response == t.account.connection_errors.item_connection_in_progress) {
+        if (kDebugMode) {
+          print('Items in progress detected. Waiting for FCM reload signal...');
+        }
+        return;
+      }
+
+      // If no items in progress, check for uncategorized transactions
       final count = await countTopUncategorizedTransactions();
-      await UncategorizedFoundDialog.showAndHandle(context,
-          transactionCount: count);
+      if (count > 0) {
+        // Trigger the dialog and mark as triggered
+        try {
+          if (context.mounted) {
+            await UncategorizedFoundDialog.showAndHandle(context,
+                transactionCount: count);
+          }
+        } catch (e) {
+          print('Error triggering swipe cards flow: $e');
+        }
+      }
     }
+  }
+
+  Future<void> handleFCMReloadComplete() async {
+    if (kDebugMode) {
+      print('Handling FCM reload complete, checking uncategorized dialog...');
+    }
+
+    // First refresh data to get the latest transactions
+    await refreshData(showLoading: false);
+
+    // Then check if we should show the uncategorized dialog
+    await _checkUncategorizedDialog();
   }
 }
 

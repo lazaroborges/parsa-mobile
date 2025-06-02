@@ -161,44 +161,39 @@ class _UncategorizedClassificationContentState
 
                 // First close the overlay
                 navigator.pop();
-                print('[DEBUG] Overlay closed');
 
                 // Wait to ensure overlay is fully closed
                 await Future.delayed(const Duration(milliseconds: 500));
 
-                try {
-                  print('[DEBUG] Showing loading dialog');
-                  // Show loading dialog with spinning logo (don't await it)
-                  showDialog(
-                    context: navigator.context,
-                    barrierDismissible: false,
-                    useRootNavigator: false,
-                    builder: (dialogContext) => const _SummaryLoadingDialog(),
-                  );
+                // try {
+                // print('[DEBUG] Showing loading dialog');
+                // // Show loading dialog with spinning logo (don't await it)
+                // showDialog(
+                //   context: navigator.context,
+                //   barrierDismissible: false,
+                //   useRootNavigator: false,
+                //   builder: (dialogContext) => const _SummaryLoadingDialog(),
+                // );
 
-                  // Wait for "processing" time - 5 seconds
-                  await Future.delayed(const Duration(seconds: 5));
-                  print('[DEBUG] Loading period completed');
+                // // Wait for "processing" time - 5 seconds
+                // await Future.delayed(const Duration(seconds: 5));
 
-                  // Close loading dialog
-                  Navigator.of(navigator.context).pop();
-                  print('[DEBUG] Loading dialog closed');
+                // Close loading dialog
+                // Navigator.of(navigator.context).pop();
 
-                  // Small delay before showing next dialog
-                  await Future.delayed(const Duration(milliseconds: 300));
+                // // Small delay before showing next dialog
+                // await Future.delayed(const Duration(milliseconds: 300));
 
-                  print('[DEBUG] Showing summary dialog');
-                  // Show summary ready dialog
-                  showDialog(
-                    context: navigator.context,
-                    barrierDismissible: false,
-                    useRootNavigator: false,
-                    builder: (dialogContext) => const _SummaryReadyDialog(),
-                  );
-                  print('[DEBUG] Summary dialog shown successfully');
-                } catch (e) {
-                  print('[DEBUG] Error in dialog flow: $e');
-                }
+                // // Show summary ready dialog
+                // showDialog(
+                //   context: navigator.context,
+                //   barrierDismissible: false,
+                //   useRootNavigator: false,
+                //   builder: (dialogContext) => const _SummaryReadyDialog(),
+                // );
+                // } catch (e) {
+                //   print('[DEBUG] Error in dialog flow: $e');
+                // }
               },
             ),
           ),

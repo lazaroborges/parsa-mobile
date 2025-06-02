@@ -144,13 +144,13 @@ class _BankConnectionDialogWidget extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () async {
-                if (showUncategorizedOption) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Esperando carregamento da conta...'),
-                    ),
-                  );
-                }
+                // if (showUncategorizedOption) {
+                //   ScaffoldMessenger.of(context).showSnackBar(
+                //     const SnackBar(
+                //       content: Text('Esperando carregamento da conta...'),
+                //     ),
+                //   );
+                // }
                 // Call the API to set has_finished_openfinance_flow = true
                 final success = await PostUserSettings.finishOpenFinanceFlow();
                 if (!success) {
