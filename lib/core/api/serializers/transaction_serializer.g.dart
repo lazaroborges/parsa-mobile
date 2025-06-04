@@ -28,6 +28,7 @@ ApiTransaction _$ApiTransactionFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['lastUpdateDateParsa'] as String),
       cousin: (json['cousin'] as num?)?.toInt(),
+      dontAskAgain: json['dont_ask_again'] as bool?,
     );
 
 Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
@@ -48,5 +49,6 @@ Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
       'tags': instance.tags,
       'payment_method': instance.paymentMethod,
       'manipulated': instance.manipulated,
+      'dont_ask_again': instance.dontAskAgain,
       'lastUpdateDateParsa': instance.lastUpdateTime?.toIso8601String(),
     };

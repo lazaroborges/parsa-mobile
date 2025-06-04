@@ -17,6 +17,9 @@ import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:parsa/app/accounts/instruction_card.dart';
+import 'package:parsa/core/routes/route_utils.dart';
+import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
+import 'package:parsa/i18n/translations.g.dart';
 
 class UncategorizedClassificationOverlay extends StatefulWidget {
   const UncategorizedClassificationOverlay({Key? key}) : super(key: key);
@@ -286,10 +289,77 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
     return cleaned;
   }
 
+  Future<void> _updateCategory(BuildContext context) async {
+    final selectedCategory = await showCategoryPickerModal(
+      context,
+      modal: CategoryPicker(
+        selectedCategory: group.transactions.first.category,
+        categoryType: group.type == CategoryType.I
+            ? [CategoryType.B, CategoryType.I]
+            : [CategoryType.E, CategoryType.B],
+      ),
+    );
+    
+    if (selectedCategory != null) {
+      await Future.wait(group.transactions.map((tx) =>
+          TransactionService.instance.insertOrUpdateTransaction(
+            tx.copyWith(categoryID: drift.Value(selectedCategory.id)),
+            null,
+            1,
+          )));
+      
+      final triggeringId = group.transactions.first.id.toString();
+      final cousinValue = group.cousin;
+      final changes = {
+        'categoryName': selectedCategory.name,
+        'categoryId': selectedCategory.id,
+      };
+      
+      try {
+        await PostUserCousinRules.updateCousinRules(
+          cousinValue: cousinValue,
+          triggeringId: triggeringId,
+          changes: changes,
+          applyToFuture: true,
+        );
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Categoria atualizada: ${selectedCategory.name}')),
+        );
+      } catch (e) {
+        print('Failed to update cousin rules: $e');
+      }
+    }
+  }
+
+  Future<void> _updateStatus(BuildContext context) async {
+    final t = Translations.of(context);
+    final modalResult = await showTransactioStatusModal(
+      context,
+      initialStatus: group.transactions.first.status,
+    );
+    
+    if (modalResult != null && modalResult.result != null) {
+      await Future.wait(group.transactions.map((tx) =>
+          TransactionService.instance.insertOrUpdateTransaction(
+            tx.copyWith(status: drift.Value(modalResult.result)),
+            null,
+            1,
+          )));
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status atualizado: ${modalResult.result!.displayName(context)}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final appColors = AppColors.of(context);
     final isIncome = group.type == CategoryType.I;
     final amountColor = isIncome ? Colors.green : Colors.red;
+    
     // Get the first non-empty, non-generic title from the group's transactions
     String displayTitle = 'Não identificado';
     for (final tx in group.transactions) {
@@ -299,6 +369,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
         break;
       }
     }
+    
     // Format amount as currency string (no CurrencyDisplayer)
     String formatCurrency(double value) {
       return 'R\$ ' + value.abs().toStringAsFixed(2).replaceAll('.', ',');
@@ -376,6 +447,27 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
             CardWithHeader(
               title: 'Transações Similares',
               bodyPadding: EdgeInsets.zero,
+              onHeaderButtonClick: () {
+                RouteUtils.pushRoute(
+                  context,
+                  TransactionsPage(
+                    filters: TransactionFilters(
+                      cousinFilter: group.cousin,
+                      transactionTypes: [
+                        group.type == CategoryType.I
+                            ? TransactionType.I
+                            : TransactionType.E
+                      ],
+                      status: [
+                        TransactionStatus.pending,
+                        TransactionStatus.reconciled,
+                        TransactionStatus.unreconciled,
+                        TransactionStatus.voided,
+                      ],
+                    ),
+                  ),
+                );
+              },
               body: SizedBox(
                 height: 78.0 * 4, // Fixed height for 4 transactions
                 child: TransactionListComponent(
@@ -403,38 +495,58 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
-            // --- See All Button ---
-            Center(
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => TransactionsPage(
-                        filters: TransactionFilters(
-                          cousinFilter: group.cousin,
-                          transactionTypes: [
-                            group.type == CategoryType.I
-                                ? TransactionType.I
-                                : TransactionType.E
-                          ],
-                          status: [
-                            TransactionStatus.pending,
-                            TransactionStatus.reconciled,
-                            TransactionStatus.unreconciled,
-                            TransactionStatus.voided,
-                          ],
-                        ),
+            const SizedBox(height: 16),
+            // --- New Action Buttons Row ---
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _updateCategory(context),
+                    icon: const Icon(Icons.category_rounded, size: 18),
+                    label: Text(
+                      t.general.category,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: appColors.primary.withOpacity(0.1),
+                      foregroundColor: appColors.primary,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: appColors.primary.withOpacity(0.3)),
                       ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.list_alt),
-                label: const Text('Ver todas as transações'),
-              ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _updateStatus(context),
+                    icon: Icon(
+                      group.transactions.first.status?.icon ?? Icons.help_outline,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'Status',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: appColors.primaryContainer.withOpacity(0.5),
+                      foregroundColor: appColors.onPrimaryContainer,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: appColors.primaryContainer),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            // --- Instructions Box ---
+            const Spacer(),
+            // --- Instructions Box (now at bottom) ---
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(

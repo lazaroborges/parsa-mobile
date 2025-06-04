@@ -227,6 +227,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         currentValueInPreferredCurrency:
             apiTransaction.amount, // Adjust as needed
         tags: tagsInDB, // Add this line
+        dontAskAgain: apiTransaction.dontAskAgain ?? false,
       );
 
       localTransactions.add(transaction);
@@ -326,6 +327,7 @@ extension MoneyTransactionExtension on MoneyTransaction {
       lastUpdateTime: lastUpdateTime,
       notes: notes,
       cousin: cousin,
+      dontAskAgain: dontAskAgain,
     );
   }
 }

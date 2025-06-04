@@ -1698,6 +1698,14 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _dontAskAgainMeta =
+      const VerificationMeta('dontAskAgain');
+  late final GeneratedColumn<bool> dontAskAgain = GeneratedColumn<bool>(
+      'dontAskAgain', aliasedName, true,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumnWithTypeConverter<TransactionType, String> type =
       GeneratedColumn<String>('type', aliasedName, false,
@@ -1810,6 +1818,7 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
         manipulated,
         paymentMethod,
         cousin,
+        dontAskAgain,
         type,
         status,
         categoryID,
@@ -1892,6 +1901,12 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
     if (data.containsKey('cousin')) {
       context.handle(_cousinMeta,
           cousin.isAcceptableOrUnknown(data['cousin']!, _cousinMeta));
+    }
+    if (data.containsKey('dontAskAgain')) {
+      context.handle(
+          _dontAskAgainMeta,
+          dontAskAgain.isAcceptableOrUnknown(
+              data['dontAskAgain']!, _dontAskAgainMeta));
     }
     context.handle(_typeMeta, const VerificationResult.success());
     context.handle(_statusMeta, const VerificationResult.success());
@@ -1983,6 +1998,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           .read(DriftSqlType.string, data['${effectivePrefix}payment_method']),
       cousin: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}cousin']),
+      dontAskAgain: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}dontAskAgain']),
       type: Transactions.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
       status: Transactions.$converterstatusn.fromSql(attachedDatabase
@@ -2066,6 +2083,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
   final bool? manipulated;
   final String? paymentMethod;
   final int? cousin;
+  final bool? dontAskAgain;
 
   /// Whether the transacton is an income, an expense or a transfer
   final TransactionType type;
@@ -2109,6 +2127,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       this.manipulated,
       this.paymentMethod,
       this.cousin,
+      this.dontAskAgain,
       required this.type,
       this.status,
       this.categoryID,
@@ -2147,6 +2166,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     }
     if (!nullToAbsent || cousin != null) {
       map['cousin'] = Variable<int>(cousin);
+    }
+    if (!nullToAbsent || dontAskAgain != null) {
+      map['dontAskAgain'] = Variable<bool>(dontAskAgain);
     }
     {
       map['type'] = Variable<String>(Transactions.$convertertype.toSql(type));
@@ -2212,6 +2234,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           : Value(paymentMethod),
       cousin:
           cousin == null && nullToAbsent ? const Value.absent() : Value(cousin),
+      dontAskAgain: dontAskAgain == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dontAskAgain),
       type: Value(type),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
@@ -2264,6 +2289,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       manipulated: serializer.fromJson<bool?>(json['manipulated']),
       paymentMethod: serializer.fromJson<String?>(json['payment_method']),
       cousin: serializer.fromJson<int?>(json['cousin']),
+      dontAskAgain: serializer.fromJson<bool?>(json['dontAskAgain']),
       type: Transactions.$convertertype
           .fromJson(serializer.fromJson<String>(json['type'])),
       status: Transactions.$converterstatusn
@@ -2299,6 +2325,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       'manipulated': serializer.toJson<bool?>(manipulated),
       'payment_method': serializer.toJson<String?>(paymentMethod),
       'cousin': serializer.toJson<int?>(cousin),
+      'dontAskAgain': serializer.toJson<bool?>(dontAskAgain),
       'type':
           serializer.toJson<String>(Transactions.$convertertype.toJson(type)),
       'status': serializer
@@ -2330,6 +2357,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           Value<bool?> manipulated = const Value.absent(),
           Value<String?> paymentMethod = const Value.absent(),
           Value<int?> cousin = const Value.absent(),
+          Value<bool?> dontAskAgain = const Value.absent(),
           TransactionType? type,
           Value<TransactionStatus?> status = const Value.absent(),
           Value<String?> categoryID = const Value.absent(),
@@ -2357,6 +2385,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         paymentMethod:
             paymentMethod.present ? paymentMethod.value : this.paymentMethod,
         cousin: cousin.present ? cousin.value : this.cousin,
+        dontAskAgain:
+            dontAskAgain.present ? dontAskAgain.value : this.dontAskAgain,
         type: type ?? this.type,
         status: status.present ? status.value : this.status,
         categoryID: categoryID.present ? categoryID.value : this.categoryID,
@@ -2399,6 +2429,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           ? data.paymentMethod.value
           : this.paymentMethod,
       cousin: data.cousin.present ? data.cousin.value : this.cousin,
+      dontAskAgain: data.dontAskAgain.present
+          ? data.dontAskAgain.value
+          : this.dontAskAgain,
       type: data.type.present ? data.type.value : this.type,
       status: data.status.present ? data.status.value : this.status,
       categoryID:
@@ -2444,6 +2477,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           ..write('manipulated: $manipulated, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('cousin: $cousin, ')
+          ..write('dontAskAgain: $dontAskAgain, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -2474,6 +2508,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         manipulated,
         paymentMethod,
         cousin,
+        dontAskAgain,
         type,
         status,
         categoryID,
@@ -2503,6 +2538,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           other.manipulated == this.manipulated &&
           other.paymentMethod == this.paymentMethod &&
           other.cousin == this.cousin &&
+          other.dontAskAgain == this.dontAskAgain &&
           other.type == this.type &&
           other.status == this.status &&
           other.categoryID == this.categoryID &&
@@ -2530,6 +2566,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   final Value<bool?> manipulated;
   final Value<String?> paymentMethod;
   final Value<int?> cousin;
+  final Value<bool?> dontAskAgain;
   final Value<TransactionType> type;
   final Value<TransactionStatus?> status;
   final Value<String?> categoryID;
@@ -2556,6 +2593,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.manipulated = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.cousin = const Value.absent(),
+    this.dontAskAgain = const Value.absent(),
     this.type = const Value.absent(),
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2583,6 +2621,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.manipulated = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.cousin = const Value.absent(),
+    this.dontAskAgain = const Value.absent(),
     required TransactionType type,
     this.status = const Value.absent(),
     this.categoryID = const Value.absent(),
@@ -2614,6 +2653,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     Expression<bool>? manipulated,
     Expression<String>? paymentMethod,
     Expression<int>? cousin,
+    Expression<bool>? dontAskAgain,
     Expression<String>? type,
     Expression<String>? status,
     Expression<String>? categoryID,
@@ -2641,6 +2681,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       if (manipulated != null) 'manipulated': manipulated,
       if (paymentMethod != null) 'payment_method': paymentMethod,
       if (cousin != null) 'cousin': cousin,
+      if (dontAskAgain != null) 'dontAskAgain': dontAskAgain,
       if (type != null) 'type': type,
       if (status != null) 'status': status,
       if (categoryID != null) 'categoryID': categoryID,
@@ -2671,6 +2712,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       Value<bool?>? manipulated,
       Value<String?>? paymentMethod,
       Value<int?>? cousin,
+      Value<bool?>? dontAskAgain,
       Value<TransactionType>? type,
       Value<TransactionStatus?>? status,
       Value<String?>? categoryID,
@@ -2697,6 +2739,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       manipulated: manipulated ?? this.manipulated,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       cousin: cousin ?? this.cousin,
+      dontAskAgain: dontAskAgain ?? this.dontAskAgain,
       type: type ?? this.type,
       status: status ?? this.status,
       categoryID: categoryID ?? this.categoryID,
@@ -2750,6 +2793,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     }
     if (cousin.present) {
       map['cousin'] = Variable<int>(cousin.value);
+    }
+    if (dontAskAgain.present) {
+      map['dontAskAgain'] = Variable<bool>(dontAskAgain.value);
     }
     if (type.present) {
       map['type'] =
@@ -2813,6 +2859,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
           ..write('manipulated: $manipulated, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('cousin: $cousin, ')
+          ..write('dontAskAgain: $dontAskAgain, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('categoryID: $categoryID, ')
@@ -5256,6 +5303,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           remainingTransactions: row.readNullable<int>('remainingTransactions'),
           lastUpdateTime: row.readNullable<DateTime>('lastUpdateTime'),
           cousin: row.readNullable<int>('cousin'),
+          dontAskAgain: row.readNullable<bool>('dontAskAgain'),
           paymentMethod: row.readNullable<String>('payment_method'),
         ));
   }
@@ -6375,6 +6423,7 @@ typedef $TransactionsCreateCompanionBuilder = TransactionsCompanion Function({
   Value<bool?> manipulated,
   Value<String?> paymentMethod,
   Value<int?> cousin,
+  Value<bool?> dontAskAgain,
   required TransactionType type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -6402,6 +6451,7 @@ typedef $TransactionsUpdateCompanionBuilder = TransactionsCompanion Function({
   Value<bool?> manipulated,
   Value<String?> paymentMethod,
   Value<int?> cousin,
+  Value<bool?> dontAskAgain,
   Value<TransactionType> type,
   Value<TransactionStatus?> status,
   Value<String?> categoryID,
@@ -6446,6 +6496,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<bool?> manipulated = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
             Value<int?> cousin = const Value.absent(),
+            Value<bool?> dontAskAgain = const Value.absent(),
             Value<TransactionType> type = const Value.absent(),
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -6473,6 +6524,7 @@ class $TransactionsTableManager extends RootTableManager<
             manipulated: manipulated,
             paymentMethod: paymentMethod,
             cousin: cousin,
+            dontAskAgain: dontAskAgain,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -6500,6 +6552,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<bool?> manipulated = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
             Value<int?> cousin = const Value.absent(),
+            Value<bool?> dontAskAgain = const Value.absent(),
             required TransactionType type,
             Value<TransactionStatus?> status = const Value.absent(),
             Value<String?> categoryID = const Value.absent(),
@@ -6527,6 +6580,7 @@ class $TransactionsTableManager extends RootTableManager<
             manipulated: manipulated,
             paymentMethod: paymentMethod,
             cousin: cousin,
+            dontAskAgain: dontAskAgain,
             type: type,
             status: status,
             categoryID: categoryID,
@@ -6595,6 +6649,11 @@ class $TransactionsFilterComposer
 
   ColumnFilters<int> get cousin => $state.composableBuilder(
       column: $state.table.cousin,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get dontAskAgain => $state.composableBuilder(
+      column: $state.table.dontAskAgain,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6759,6 +6818,11 @@ class $TransactionsOrderingComposer
 
   ColumnOrderings<int> get cousin => $state.composableBuilder(
       column: $state.table.cousin,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get dontAskAgain => $state.composableBuilder(
+      column: $state.table.dontAskAgain,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
