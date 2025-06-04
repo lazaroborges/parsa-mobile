@@ -266,7 +266,7 @@ class TabsPageState extends State<TabsPage>
       },
     );
 
-    navigationSidebarKey.currentState?.setSelectedDestination(destination);
+    //navigationSidebarKey.currentState?.setSelectedDestination(destination);
     // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {

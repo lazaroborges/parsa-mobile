@@ -16,6 +16,7 @@ import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/open_external_url.dart';
+import 'package:parsa/app/accounts/instruction_card.dart';
 
 class UncategorizedClassificationOverlay extends StatefulWidget {
   const UncategorizedClassificationOverlay({Key? key}) : super(key: key);
@@ -87,9 +88,14 @@ class _UncategorizedClassificationContentState
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 0.75,
             child: CardSwiper(
-              cardsCount: groups.length,
+              cardsCount: groups.length + 1, // +1 for instruction card
               cardBuilder: (context, index, percentX, percentY) {
-                final group = groups[index];
+                // First card is instruction card
+                if (index == 0) {
+                  return const InstructionCard();
+                }
+                // Subsequent cards are transaction groups (adjust index)
+                final group = groups[index - 1];
                 return _LabeledTransactionGroupCard(group: group);
               },
               numberOfCardsDisplayed: 3,
@@ -98,9 +104,14 @@ class _UncategorizedClassificationContentState
                 right: true,
               ),
               onSwipe: (prev, curr, direction) async {
+                // Skip processing for instruction card (index 0)
+                if (prev == 0) {
+                  return true;
+                }
+                
                 // await AppSoundPlayer.playSwipeSound();
                 if (direction == CardSwiperDirection.right) {
-                  final group = groups[prev];
+                  final group = groups[prev - 1]; // Adjust index for groups
                   final selectedCategory = await showCategoryPickerModal(
                     context,
                     modal: CategoryPicker(
@@ -363,7 +374,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
             const SizedBox(height: 12),
             // --- CardWithHeader: Transaction List ---
             CardWithHeader(
-              title: 'Transações deste grupo',
+              title: 'Transações Similares',
               bodyPadding: EdgeInsets.zero,
               body: SizedBox(
                 height: 78.0 * 4, // Fixed height for 4 transactions

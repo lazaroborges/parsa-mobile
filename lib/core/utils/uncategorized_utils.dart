@@ -61,12 +61,14 @@ Future<List<MoneyTransaction>> getUncategorizedTransactions() async {
 /// Filters a list of transactions, returning only those that are uncategorized.
 /// A transaction is uncategorized if its category name is in the uncategorized set
 /// and its status is not 'notconsidered'.
+/// Filters a list of transactions, returning only those that are uncategorized.
+/// A transaction is uncategorized if its category name is in the uncategorized set
+/// and its status is not 'notconsidered'.
 List<MoneyTransaction> filterUncategorizedTransactions(
     List<MoneyTransaction> allTransactions) {
+  // TEMPORARY: Return all transactions (ignore category filter)
   final filtered = allTransactions
       .where((tx) =>
-          tx.category?.name != null &&
-          UNCATEGORIZED_CATEGORY_NAMES.contains(tx.category!.name) &&
           tx.status != TransactionStatus.notconsidered)
       .toList();
   return filtered;
@@ -150,7 +152,7 @@ Future<List<TransactionGroupByType>>
 
   // Sort by total value and take top 10
   allGroups.sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
-  final result = allGroups.take(10).toList();
+  final result = allGroups.take(50).toList();
 
   final endTime = DateTime.now();
   print(
