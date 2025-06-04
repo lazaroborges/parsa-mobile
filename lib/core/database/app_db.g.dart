@@ -1704,8 +1704,7 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       'dontAskAgain', aliasedName, true,
       type: DriftSqlType.bool,
       requiredDuringInsert: false,
-      $customConstraints: 'DEFAULT 0',
-      defaultValue: const CustomExpression('0'));
+      $customConstraints: '');
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumnWithTypeConverter<TransactionType, String> type =
       GeneratedColumn<String>('type', aliasedName, false,
