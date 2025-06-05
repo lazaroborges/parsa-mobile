@@ -19,7 +19,7 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
+import 'package:parsa/app/accounts/uncategorized/uncategorized_found_dialog.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 
@@ -525,14 +525,7 @@ class FCMService {
             action: SnackBarAction(
               label: 'Ver',
               onPressed: () {
-                // First pop to the root route
-                Navigator.of(context).popUntil((route) => route.isFirst);
-
-                // If using Tabs, ensure the correct tab is selected
-                if (tabsPageKey.currentState != null) {
-                  // Assuming 0 is the dashboard tab index - adjust if needed
-                  tabsPageKey.currentState!.navigateToTab(0);
-                }
+                tabsPageKey.currentState!.navigateToTab(0);
               },
             ),
           ),

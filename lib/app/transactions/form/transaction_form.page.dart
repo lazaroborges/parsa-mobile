@@ -225,6 +225,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         intervalPeriod: recurrentRule.intervalPeriod,
         endDate: recurrentRule.ruleRecurrentLimit?.endDate,
         isOpenFinance: widget.transactionToEdit?.isOpenFinance ?? false,
+        dontAskAgain: false,
         remainingTransactions:
             recurrentRule.ruleRecurrentLimit?.remainingIterations,
         valueInDestiny: transactionType.isTransfer &&

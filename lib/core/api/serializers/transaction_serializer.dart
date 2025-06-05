@@ -62,6 +62,9 @@ class ApiTransaction {
 
   final bool? manipulated;
 
+  @JsonKey(name: 'dont_ask_again')
+  final bool? dontAskAgain;
+
   @JsonKey(name: 'lastUpdateDateParsa')
   final DateTime? lastUpdateTime;
 
@@ -83,6 +86,7 @@ class ApiTransaction {
     this.manipulated,
     this.lastUpdateTime,
     this.cousin,
+    this.dontAskAgain,
   });
 
   /// Factory constructor for creating a new `ApiTransaction` instance from JSON.

@@ -23,10 +23,10 @@ import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/app/onboarding/bank_callback_dialog.dart';
+import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
-import 'package:parsa/app/onboarding/uncategorized/uncategorized_found_dialog.dart';
+import 'package:parsa/app/accounts/uncategorized/uncategorized_found_dialog.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
@@ -71,7 +71,6 @@ class TabsPageState extends State<TabsPage>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
-      // Check connection dialog BEFORE data loading
       await _checkConnectionDialog();
     });
   }
@@ -417,7 +416,7 @@ class TabsPageState extends State<TabsPage>
 
   Future<void> _checkUncategorizedDialog() async {
     final userData = UserDataProvider.instance.userData;
-    final hasTriggered = userData?['trigger_swipe_cards_flow'] == true;
+    final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
     final hasFinished = userData?['has_finished_openfinance_flow'] == true;
     final t = Translations.of(context);
 

@@ -121,17 +121,10 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
   for (final apiTransaction in apiTransactions) {
     try {
       // Decode UTF-8 for fields that might contain special characters
-      final transactionCategory =
-          utf8.decode(apiTransaction.transactionCategory.runes.toList());
-      final description = apiTransaction.description != null
-          ? utf8.decode(apiTransaction.description!.runes.toList())
-          : 'Outros';
-      final paymentMethod = apiTransaction.paymentMethod != null
-          ? utf8.decode(apiTransaction.paymentMethod!.runes.toList())
-          : null;
-      final notes = apiTransaction.notes != null
-          ? utf8.decode(apiTransaction.notes!.runes.toList())
-          : null;
+      final transactionCategory = apiTransaction.transactionCategory;
+      final description = apiTransaction.description ?? 'Outros';
+      final paymentMethod = apiTransaction.paymentMethod;
+      final notes = apiTransaction.notes;
 
       // Fetch currency, default to 'BRL' if not provided
       final currencyCode = apiTransaction.currency ?? 'BRL';
@@ -234,6 +227,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         currentValueInPreferredCurrency:
             apiTransaction.amount, // Adjust as needed
         tags: tagsInDB, // Add this line
+        dontAskAgain: apiTransaction.dontAskAgain ?? false,
       );
 
       localTransactions.add(transaction);
@@ -333,6 +327,7 @@ extension MoneyTransactionExtension on MoneyTransaction {
       lastUpdateTime: lastUpdateTime,
       notes: notes,
       cousin: cousin,
+      dontAskAgain: dontAskAgain,
     );
   }
 }

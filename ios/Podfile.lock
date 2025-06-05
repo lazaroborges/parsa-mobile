@@ -18,7 +18,7 @@ PODS:
     - FlutterMacOS
     - JWTDecode (= 3.2.0)
     - SimpleKeychain (= 1.2.0)
-  - BranchSDK (3.9.1)
+  - BranchSDK (3.12.1)
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):
@@ -107,7 +107,7 @@ PODS:
     - FirebaseCoreInternal (~> 11.0)
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/Logger (~> 8.0)
-  - FirebaseCoreInternal (11.13.0):
+  - FirebaseCoreInternal (11.14.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
   - FirebaseInAppMessaging (11.0.0-beta):
     - FirebaseABTesting (~> 11.0)
@@ -134,8 +134,8 @@ PODS:
   - flutter_appauth (0.0.1):
     - AppAuth (= 1.7.5)
     - Flutter
-  - flutter_branch_sdk (8.4.1):
-    - BranchSDK (~> 3.9.0)
+  - flutter_branch_sdk (8.5.0):
+    - BranchSDK (~> 3.12.0)
     - Flutter
   - flutter_keyboard_visibility (0.0.1):
     - Flutter
@@ -239,6 +239,8 @@ PODS:
     - sqlite3/common
   - sqlite3/fts5 (3.49.2):
     - sqlite3/common
+  - sqlite3/math (3.49.2):
+    - sqlite3/common
   - sqlite3/perf-threadsafe (3.49.2):
     - sqlite3/common
   - sqlite3/rtree (3.49.2):
@@ -246,9 +248,10 @@ PODS:
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
     - FlutterMacOS
-    - sqlite3 (~> 3.49.0)
+    - sqlite3 (~> 3.49.2)
     - sqlite3/dbstatvtab
     - sqlite3/fts5
+    - sqlite3/math
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
   - SwiftyGif (5.4.5)
@@ -374,10 +377,13 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  app_links: e7a6750a915a9e161c58d91bc610e8cd1d4d0ad0
+  app_links: 76b66b60cc809390ca1ad69bfd66b998d2387ac7
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
-  audio_session: 19e9480dbdd4e5f6c4543826b2e8b0e4ab6145fe
+  audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
   Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
+  auth0_flutter: b6cdd112051b908efb24dae3286a14643a2c6f70
+  BranchSDK: 7135af6602a105fa6be3ad6c606a7f78b0131b5d
+  device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   auth0_flutter: 05a2d504520b90b615413addd7a0988da3c92b68
   BranchSDK: a12f9aa63d7ba562fdff5509d4aed081f1098ec0
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
@@ -392,7 +398,7 @@ SPEC CHECKSUMS:
   FirebaseABTesting: aef1719704fade00b200827e7973f352efc4caee
   FirebaseAnalytics: 27eb78b97880ea4a004839b9bac0b58880f5a92a
   FirebaseCore: 3cf438f431f18c12cdf2aaf64434648b63f7e383
-  FirebaseCoreInternal: 29d7b3af4aaf0b8f3ed20b568c13df399b06f68c
+  FirebaseCoreInternal: 6a3b668197644aa858fc4127578637c6767ba123
   FirebaseInAppMessaging: 5e7e71b9b6d790c01c6a404acba09010eff9cb0a
   FirebaseInstallations: 6ef4a1c7eb2a61ee1f74727d7f6ce2e72acf1414
   FirebaseMessaging: d2d1d9c62c46dd2db49a952f7deb5b16ad2c9742
@@ -427,6 +433,7 @@ SPEC CHECKSUMS:
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
   webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
 
+PODFILE CHECKSUM: 10d725d36c9ea0131b01f5c8b31db949df6b2a11
 PODFILE CHECKSUM: 10d725d36c9ea0131b01f5c8b31db949df6b2a11
 
 COCOAPODS: 1.16.2

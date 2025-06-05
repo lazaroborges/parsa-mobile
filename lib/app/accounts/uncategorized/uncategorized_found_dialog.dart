@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/onboarding/uncategorized/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/accounts/uncategorized/uncategorized_classification_overlay.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
@@ -121,7 +121,7 @@ class _UncategorizedFoundDialogWidget extends StatelessWidget {
               onPressed: () async {
                 await PostUserSettings.triggerSwipeCardsFlow();
                 UserDataProvider.instance.updateUserData({
-                  'trigger_swipe_cards_flow': true,
+                  'trigger_swipe_cards_flow': false,
                 });
                 Navigator.of(context).pop(true);
               },

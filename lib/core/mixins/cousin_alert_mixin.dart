@@ -74,6 +74,17 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                   CardWithHeader(
                     title: 'Transações Similares',
                     bodyPadding: const EdgeInsets.all(8),
+                    onHeaderTap: () {
+                      Navigator.pop(context);
+                      RouteUtils.pushRoute(
+                        context,
+                        TransactionsPage(
+                          filters: TransactionFilters(
+                            cousinFilter: cousinValue,
+                          ),
+                        ),
+                      );
+                    },
                     body: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.4,
@@ -118,19 +129,29 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          RouteUtils.pushRoute(
-                            context,
-                            TransactionsPage(
-                              filters: TransactionFilters(
-                                cousinFilter: cousinValue,
-                              ),
-                            ),
-                          );
+                      OutlinedButton(
+                        onPressed: () async {
+                          try {
+                            await PostUserCousinRules.updateCousinRules(
+                              cousinValue: cousinValue,
+                              triggeringId: triggeringId,
+                              changes: {},
+                              applyToFuture: false,
+                              dontAskAgain: true,
+                            );
+                            Navigator.pop(context, false);
+                          } catch (e) {
+                            print('Failed to update cousin rules (don\'t ask again): $e');
+                            Navigator.pop(context, false);
+                          }
                         },
-                        child: const Text('Revisar'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.onSurface,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        child: const Text('Nunca Perguntar'),
                       ),
                       FilledButton(
                         onPressed: () async {
