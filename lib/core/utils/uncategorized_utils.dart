@@ -61,9 +61,6 @@ Future<List<MoneyTransaction>> getUncategorizedTransactions() async {
 /// Filters a list of transactions, returning only those that are uncategorized.
 /// A transaction is uncategorized if its category name is in the uncategorized set
 /// and its status is not 'notconsidered'.
-/// Filters a list of transactions, returning only those that are uncategorized.
-/// A transaction is uncategorized if its category name is in the uncategorized set
-/// and its status is not 'notconsidered'.
 List<MoneyTransaction> filterUncategorizedTransactions(
     List<MoneyTransaction> allTransactions) {
   // TEMPORARY: Return all transactions (ignore category filter)

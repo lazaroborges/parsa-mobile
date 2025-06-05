@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parsa/main.dart';
 import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/utils/uncategorized_utils.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
@@ -6,16 +7,13 @@ import 'package:drift/drift.dart' as drift;
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/app/categories/selectors/category_picker.dart';
 import 'package:parsa/core/api/post_methods/post_user_cousin_rules.dart';
-import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
-import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:parsa/app/accounts/uncategorized/instruction_card.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
@@ -36,7 +34,10 @@ class _UncategorizedClassificationOverlayState
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
+      onTap: () {
+        Navigator.of(context).pop();
+        tabsPageKey.currentState?.navigateToStatsTab(0);
+      },
       child: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -68,6 +69,7 @@ class _UncategorizedClassificationContentState
   final CardSwiperController _cardController = CardSwiperController();
   final Set<int> _processedIndices = <int>{};
   bool _hasShownInstructionCardBefore = false;
+  bool _isProgrammaticSwipe = false;
 
   @override
   void initState() {
@@ -135,39 +137,14 @@ class _UncategorizedClassificationContentState
               child: Text('Nenhuma transação não categorizada.'));
         }
 
-        final availableGroupsIndices = groups
-            .asMap()
-            .entries
-            .where((entry) => !_processedIndices.contains(entry.key))
-            .map((entry) => entry.key)
-            .toList();
+        final int totalCards =
+            groups.length + (shouldShowInstructionCardThisBuild ? 1 : 0);
 
-        if (availableGroupsIndices.isEmpty &&
-            !shouldShowInstructionCardThisBuild) {
+        final bool allProcessed = _processedIndices.length == groups.length;
+
+        if (allProcessed && !shouldShowInstructionCardThisBuild) {
           return const Center(
               child: Text('Todas as transações foram categorizadas!'));
-        }
-
-        final int cardsCount = availableGroupsIndices.length +
-            (shouldShowInstructionCardThisBuild ? 1 : 0);
-
-        if (cardsCount == 0) {
-          return const Center(
-              child: Text('Todas as transações foram categorizadas!'));
-        }
-
-        if (groups.length == 1 && !shouldShowInstructionCardThisBuild) {
-          final group = groups.first;
-          if (_processedIndices.contains(0)) {
-            return const Center(
-                child: Text('Todas as transações foram categorizadas!'));
-          }
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: _LabeledTransactionGroupCard(group: group),
-            ),
-          );
         }
 
         return Center(
@@ -175,19 +152,39 @@ class _UncategorizedClassificationContentState
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 0.75,
             child: CardSwiper(
-              cardsCount: cardsCount,
+              controller: _cardController,
+              cardsCount: totalCards,
               cardBuilder: (context, index, percentX, percentY) {
                 if (shouldShowInstructionCardThisBuild) {
                   if (index == 0) {
                     return const InstructionCard();
                   }
-                  final groupIndex = availableGroupsIndices[index - 1];
+
+                  final groupIndex = index - 1;
+                  if (_processedIndices.contains(groupIndex)) {
+                    return Container(); // Placeholder for processed card
+                  }
+                  final group = groups[groupIndex];
                   return _LabeledTransactionGroupCard(
-                      group: groups[groupIndex]);
+                    group: group,
+                    onCategoryPressed: () =>
+                        _handleCategorizeButtonPressed(group, groupIndex),
+                    onStatusPressed: () =>
+                        _handleStatusButtonPressed(group, groupIndex),
+                  );
                 } else {
-                  final groupIndex = availableGroupsIndices[index];
+                  final groupIndex = index;
+                  if (_processedIndices.contains(groupIndex)) {
+                    return Container(); // Placeholder for processed card
+                  }
+                  final group = groups[groupIndex];
                   return _LabeledTransactionGroupCard(
-                      group: groups[groupIndex]);
+                    group: group,
+                    onCategoryPressed: () =>
+                        _handleCategorizeButtonPressed(group, groupIndex),
+                    onStatusPressed: () =>
+                        _handleStatusButtonPressed(group, groupIndex),
+                  );
                 }
               },
               numberOfCardsDisplayed: 3,
@@ -199,35 +196,27 @@ class _UncategorizedClassificationContentState
                   direction) async {
                 final bool instructionCardWasPresentThisBuild =
                     shouldShowInstructionCardThisBuild;
-                int actualGroupIndex = -1;
 
                 if (instructionCardWasPresentThisBuild &&
                     prevCardSwiperIndex == 0) {
-                  // Only save the preference if not in debug override mode
                   if (!(kDebugMode && _debugAlwaysShowInstructionCard)) {
                     await SharedPreferencesAsync.instance
                         .setHasShownInstructionsCard(true);
                   }
-
-                  if (mounted) {
-                    setState(() {
-                      // This will make the card disappear for the current session.
-                      // On next load, `_loadInstructionCardPreference` will reset it in debug mode.
-                      _hasShownInstructionCardBefore = true;
-                    });
-                  }
                   return true;
-                } else {
-                  if (instructionCardWasPresentThisBuild) {
-                    actualGroupIndex =
-                        availableGroupsIndices[prevCardSwiperIndex - 1];
-                  } else {
-                    actualGroupIndex =
-                        availableGroupsIndices[prevCardSwiperIndex];
-                  }
                 }
 
-                if (actualGroupIndex == -1) return true;
+                final int actualGroupIndex = instructionCardWasPresentThisBuild
+                    ? prevCardSwiperIndex - 1
+                    : prevCardSwiperIndex;
+
+                if (_isProgrammaticSwipe) {
+                  _isProgrammaticSwipe = false;
+                  setState(() {
+                    _processedIndices.add(actualGroupIndex);
+                  });
+                  return true;
+                }
 
                 if (direction == CardSwiperDirection.right) {
                   final group = groups[actualGroupIndex];
@@ -243,27 +232,23 @@ class _UncategorizedClassificationContentState
 
                   if (selectedCategory != null) {
                     await _processCategorySelection(group, selectedCategory);
-                    if (mounted) {
-                      setState(() {
-                        _processedIndices.add(actualGroupIndex);
-                      });
-                    }
-                    return false;
+                    setState(() {
+                      _processedIndices.add(actualGroupIndex);
+                    });
+                    return true;
                   }
-                  return false;
+                  return false; // Cancel swipe if no category is selected
                 }
 
-                if (mounted) {
-                  setState(() {
-                    _processedIndices.add(actualGroupIndex);
-                  });
-                }
+                // For left swipes (dismiss)
+                setState(() {
+                  _processedIndices.add(actualGroupIndex);
+                });
                 return true;
               },
-              onEnd: () async {
-                final navigator = Navigator.of(context, rootNavigator: true);
-                navigator.pop();
-                await Future.delayed(const Duration(milliseconds: 500));
+              onEnd: () {
+                Navigator.of(context).pop();
+                tabsPageKey.currentState?.navigateToStatsTab(0);
               },
             ),
           ),
@@ -280,6 +265,46 @@ class _UncategorizedClassificationContentState
     print(
         '[PERF] [OVERLAY] _getTop10Groups: TOTAL ${endTime.difference(startTime).inMilliseconds}ms (OPTIMIZED)');
     return result;
+  }
+
+  Future<void> _handleCategorizeButtonPressed(
+      TransactionGroupByType group, int index) async {
+    final selectedCategory = await showCategoryPickerModal(
+      context,
+      modal: CategoryPicker(
+        selectedCategory: group.transactions.first.category,
+        categoryType: group.type == CategoryType.I
+            ? [CategoryType.B, CategoryType.I]
+            : [CategoryType.E, CategoryType.B],
+      ),
+    );
+
+    if (selectedCategory != null) {
+      await _processCategorySelection(group, selectedCategory);
+      _isProgrammaticSwipe = true;
+      _cardController.swipe(CardSwiperDirection.right);
+    }
+  }
+
+  Future<void> _handleStatusButtonPressed(
+      TransactionGroupByType group, int index) async {
+    final t = Translations.of(context);
+    final modalResult = await showTransactioStatusModal(
+      context,
+      initialStatus: group.transactions.first.status,
+    );
+
+    if (modalResult != null && modalResult.result != null) {
+      await Future.wait(group.transactions
+          .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
+                tx.copyWith(status: drift.Value(modalResult.result)),
+                null,
+                1,
+              )));
+
+      _isProgrammaticSwipe = true;
+      _cardController.swipe(CardSwiperDirection.right);
+    }
   }
 
   Future<void> _processCategorySelection(
@@ -329,8 +354,15 @@ class _UncategorizedClassificationContentState
 /// Card with a label for income/expense type and group summary
 class _LabeledTransactionGroupCard extends StatelessWidget {
   final TransactionGroupByType group;
-  const _LabeledTransactionGroupCard({Key? key, required this.group})
-      : super(key: key);
+  final VoidCallback onCategoryPressed;
+  final VoidCallback onStatusPressed;
+
+  const _LabeledTransactionGroupCard({
+    Key? key,
+    required this.group,
+    required this.onCategoryPressed,
+    required this.onStatusPressed,
+  }) : super(key: key);
 
   // Helper to clean up the title (copied from overlay for consistency)
   String cleanTitle(String? title) {
@@ -394,73 +426,6 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
     return cleaned;
   }
 
-  Future<void> _updateCategory(BuildContext context) async {
-    final selectedCategory = await showCategoryPickerModal(
-      context,
-      modal: CategoryPicker(
-        selectedCategory: group.transactions.first.category,
-        categoryType: group.type == CategoryType.I
-            ? [CategoryType.B, CategoryType.I]
-            : [CategoryType.E, CategoryType.B],
-      ),
-    );
-
-    if (selectedCategory != null) {
-      await Future.wait(group.transactions
-          .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
-                tx.copyWith(categoryID: drift.Value(selectedCategory.id)),
-                null,
-                1,
-              )));
-
-      final triggeringId = group.transactions.first.id.toString();
-      final cousinValue = group.cousin;
-      final changes = {
-        'categoryName': selectedCategory.name,
-        'categoryId': selectedCategory.id,
-      };
-
-      try {
-        await PostUserCousinRules.updateCousinRules(
-          cousinValue: cousinValue,
-          triggeringId: triggeringId,
-          changes: changes,
-          applyToFuture: true,
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Categoria atualizada: ${selectedCategory.name}')),
-        );
-      } catch (e) {
-        print('Failed to update cousin rules: $e');
-      }
-    }
-  }
-
-  Future<void> _updateStatus(BuildContext context) async {
-    final t = Translations.of(context);
-    final modalResult = await showTransactioStatusModal(
-      context,
-      initialStatus: group.transactions.first.status,
-    );
-
-    if (modalResult != null && modalResult.result != null) {
-      await Future.wait(group.transactions
-          .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
-                tx.copyWith(status: drift.Value(modalResult.result)),
-                null,
-                1,
-              )));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Status atualizado: ${modalResult.result!.displayName(context)}')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -488,7 +453,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -577,7 +542,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 );
               },
               body: SizedBox(
-                height: 78.0 * 4, // Fixed height for 4 transactions
+                height: 75.0 * 4, // Fixed height for 4 transactions
                 child: TransactionListComponent(
                   heroTagBuilder: (tr) => 'class-page__tr-icon-${tr.id}',
                   filters: TransactionFilters(
@@ -609,7 +574,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _updateCategory(context),
+                    onPressed: onCategoryPressed,
                     icon: const Icon(Icons.category_rounded, size: 18),
                     label: Text(
                       t.general.category,
@@ -631,7 +596,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _updateStatus(context),
+                    onPressed: onStatusPressed,
                     icon: Icon(
                       group.transactions.first.status?.icon ??
                           Icons.help_outline,
