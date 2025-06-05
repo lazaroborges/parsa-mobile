@@ -20,6 +20,8 @@ import 'package:parsa/app/accounts/uncategorized/instruction_card.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 class UncategorizedClassificationOverlay extends StatefulWidget {
   const UncategorizedClassificationOverlay({Key? key}) : super(key: key);
@@ -59,9 +61,39 @@ class _UncategorizedClassificationContent extends StatefulWidget {
 
 class _UncategorizedClassificationContentState
     extends State<_UncategorizedClassificationContent> {
-  List<TransactionGroupByType>? _groups; // State variable for card data
+  // DEV-MODE: Set to `false` to test the normal behavior (card shown only once)
+  static const bool _debugAlwaysShowInstructionCard = true;
+
+  List<TransactionGroupByType>? _groups;
   final CardSwiperController _cardController = CardSwiperController();
-  final Set<int> _processedIndices = <int>{}; // Track processed cards
+  final Set<int> _processedIndices = <int>{};
+  bool _hasShownInstructionCardBefore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInstructionCardPreference();
+  }
+
+  Future<void> _loadInstructionCardPreference() async {
+    // If in debug mode and the flag is set, always show the card
+    if (kDebugMode && _debugAlwaysShowInstructionCard) {
+      if (mounted) {
+        setState(() {
+          _hasShownInstructionCardBefore = false;
+        });
+      }
+      return;
+    }
+
+    final hasShown =
+        await SharedPreferencesAsync.instance.getHasShownInstructionsCard();
+    if (mounted) {
+      setState(() {
+        _hasShownInstructionCardBefore = hasShown;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -77,16 +109,59 @@ class _UncategorizedClassificationContentState
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        // Only assign once, so CardSwiper can mutate it
-        _groups ??= List.from(snapshot.data!);
 
+        _groups ??= List.from(snapshot.data!);
         final groups = _groups!;
+
+        if (groups.isEmpty && _hasShownInstructionCardBefore) {
+          return const Center(
+              child: Text('Nenhuma transação não categorizada.'));
+        }
+
+        final bool shouldShowInstructionCardThisBuild =
+            !_hasShownInstructionCardBefore;
+
+        if (groups.isEmpty && shouldShowInstructionCardThisBuild) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: const InstructionCard(),
+            ),
+          );
+        }
+
         if (groups.isEmpty) {
           return const Center(
               child: Text('Nenhuma transação não categorizada.'));
         }
-        if (groups.length == 1) {
+
+        final availableGroupsIndices = groups
+            .asMap()
+            .entries
+            .where((entry) => !_processedIndices.contains(entry.key))
+            .map((entry) => entry.key)
+            .toList();
+
+        if (availableGroupsIndices.isEmpty &&
+            !shouldShowInstructionCardThisBuild) {
+          return const Center(
+              child: Text('Todas as transações foram categorizadas!'));
+        }
+
+        final int cardsCount = availableGroupsIndices.length +
+            (shouldShowInstructionCardThisBuild ? 1 : 0);
+
+        if (cardsCount == 0) {
+          return const Center(
+              child: Text('Todas as transações foram categorizadas!'));
+        }
+
+        if (groups.length == 1 && !shouldShowInstructionCardThisBuild) {
           final group = groups.first;
+          if (_processedIndices.contains(0)) {
+            return const Center(
+                child: Text('Todas as transações foram categorizadas!'));
+          }
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -94,48 +169,68 @@ class _UncategorizedClassificationContentState
             ),
           );
         }
-        // Filter out processed groups
-        final availableGroups = groups
-            .asMap()
-            .entries
-            .where((entry) => !_processedIndices.contains(entry.key))
-            .map((entry) => entry.value)
-            .toList();
-
-        if (availableGroups.isEmpty) {
-          return const Center(
-              child: Text('Todas as transações foram categorizadas!'));
-        }
 
         return Center(
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 0.75,
             child: CardSwiper(
-              cardsCount: groups.length + 1, // +1 for instruction card
+              cardsCount: cardsCount,
               cardBuilder: (context, index, percentX, percentY) {
-                // First card is instruction card
-                if (index == 0) {
-                  return const InstructionCard();
+                if (shouldShowInstructionCardThisBuild) {
+                  if (index == 0) {
+                    return const InstructionCard();
+                  }
+                  final groupIndex = availableGroupsIndices[index - 1];
+                  return _LabeledTransactionGroupCard(
+                      group: groups[groupIndex]);
+                } else {
+                  final groupIndex = availableGroupsIndices[index];
+                  return _LabeledTransactionGroupCard(
+                      group: groups[groupIndex]);
                 }
-                // Subsequent cards are transaction groups (adjust index)
-                final group = groups[index - 1];
-                return _LabeledTransactionGroupCard(group: group);
               },
               numberOfCardsDisplayed: 3,
               allowedSwipeDirection: AllowedSwipeDirection.only(
                 left: true,
                 right: true,
               ),
-              onSwipe: (prev, curr, direction) async {
-                // Skip processing for instruction card (index 0)
-                if (prev == 0) {
+              onSwipe: (prevCardSwiperIndex, currentCardSwiperIndex,
+                  direction) async {
+                final bool instructionCardWasPresentThisBuild =
+                    shouldShowInstructionCardThisBuild;
+                int actualGroupIndex = -1;
+
+                if (instructionCardWasPresentThisBuild &&
+                    prevCardSwiperIndex == 0) {
+                  // Only save the preference if not in debug override mode
+                  if (!(kDebugMode && _debugAlwaysShowInstructionCard)) {
+                    await SharedPreferencesAsync.instance
+                        .setHasShownInstructionsCard(true);
+                  }
+
+                  if (mounted) {
+                    setState(() {
+                      // This will make the card disappear for the current session.
+                      // On next load, `_loadInstructionCardPreference` will reset it in debug mode.
+                      _hasShownInstructionCardBefore = true;
+                    });
+                  }
                   return true;
+                } else {
+                  if (instructionCardWasPresentThisBuild) {
+                    actualGroupIndex =
+                        availableGroupsIndices[prevCardSwiperIndex - 1];
+                  } else {
+                    actualGroupIndex =
+                        availableGroupsIndices[prevCardSwiperIndex];
+                  }
                 }
 
-                // await AppSoundPlayer.playSwipeSound();
+                if (actualGroupIndex == -1) return true;
+
                 if (direction == CardSwiperDirection.right) {
-                  final group = groups[prev - 1]; // Adjust index for groups
+                  final group = groups[actualGroupIndex];
                   final selectedCategory = await showCategoryPickerModal(
                     context,
                     modal: CategoryPicker(
@@ -147,63 +242,28 @@ class _UncategorizedClassificationContentState
                   );
 
                   if (selectedCategory != null) {
-                    // Process categorization immediately after selection
                     await _processCategorySelection(group, selectedCategory);
-                    // Mark this card as processed using the original index
-                    setState(() {
-                      _processedIndices.add(prev - 1);
-                    });
-                    // Return false to prevent automatic swipe completion
-                    // since we're handling the card removal through setState
+                    if (mounted) {
+                      setState(() {
+                        _processedIndices.add(actualGroupIndex);
+                      });
+                    }
                     return false;
                   }
-
-                  // If no category selected or not confirmed, prevent swipe
                   return false;
                 }
-                return true; // Allow left swipes (dismiss)
+
+                if (mounted) {
+                  setState(() {
+                    _processedIndices.add(actualGroupIndex);
+                  });
+                }
+                return true;
               },
               onEnd: () async {
-                print('[DEBUG] onEnd callback triggered');
-
-                // Store the current navigator for later use
                 final navigator = Navigator.of(context, rootNavigator: true);
-
-                // First close the overlay
                 navigator.pop();
-
-                // Wait to ensure overlay is fully closed
                 await Future.delayed(const Duration(milliseconds: 500));
-
-                // try {
-                // print('[DEBUG] Showing loading dialog');
-                // // Show loading dialog with spinning logo (don't await it)
-                // showDialog(
-                //   context: navigator.context,
-                //   barrierDismissible: false,
-                //   useRootNavigator: false,
-                //   builder: (dialogContext) => const _SummaryLoadingDialog(),
-                // );
-
-                // // Wait for "processing" time - 5 seconds
-                // await Future.delayed(const Duration(seconds: 5));
-
-                // Close loading dialog
-                // Navigator.of(navigator.context).pop();
-
-                // // Small delay before showing next dialog
-                // await Future.delayed(const Duration(milliseconds: 300));
-
-                // // Show summary ready dialog
-                // showDialog(
-                //   context: navigator.context,
-                //   barrierDismissible: false,
-                //   useRootNavigator: false,
-                //   builder: (dialogContext) => const _SummaryReadyDialog(),
-                // );
-                // } catch (e) {
-                //   print('[DEBUG] Error in dialog flow: $e');
-                // }
               },
             ),
           ),
@@ -215,17 +275,13 @@ class _UncategorizedClassificationContentState
   Future<List<TransactionGroupByType>> _getTop10Groups() async {
     print('[PERF] [OVERLAY] _getTop10Groups: START');
     final startTime = DateTime.now();
-
-    // Use the optimized method that fetches everything in one pass
     final result = await getTop10UncategorizedGroupsOptimized();
-
     final endTime = DateTime.now();
     print(
         '[PERF] [OVERLAY] _getTop10Groups: TOTAL ${endTime.difference(startTime).inMilliseconds}ms (OPTIMIZED)');
     return result;
   }
 
-  /// Processes the category selection by updating transactions and cousin rules
   Future<void> _processCategorySelection(
     TransactionGroupByType group,
     Category selectedCategory,
@@ -253,21 +309,6 @@ class _UncategorizedClassificationContentState
         changes: changes,
         applyToFuture: true,
       );
-
-      // await AppSoundPlayer.playSuccessSound();
-
-      // Show success feedback
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${group.count} transação(ões) categorizadas como "${selectedCategory.name}"',
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
     } catch (e) {
       print('Failed to process category selection: $e');
 
@@ -749,130 +790,130 @@ class _SummaryLoadingDialogState extends State<_SummaryLoadingDialog>
 }
 
 /// Summary ready dialog with download and web options
-class _SummaryReadyDialog extends StatelessWidget {
-  const _SummaryReadyDialog({Key? key}) : super(key: key);
+// class _SummaryReadyDialog extends StatelessWidget {
+//   const _SummaryReadyDialog({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    final appColors = AppColors.of(context);
+//   @override
+//   Widget build(BuildContext context) {
+//     final appColors = AppColors.of(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      elevation: 0,
-      backgroundColor: const Color(0xFFF8F9FE),
-      child: Stack(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Success icon
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.check_circle,
-                    size: 48,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Relatório Pronto!',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: appColors.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Seu relatório foi gerado com sucesso',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: appColors.onSurface.withOpacity(0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                // Download button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: Implement download functionality
-                      Navigator.of(context, rootNavigator: true).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Download iniciado...'),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.download),
-                    label: const Text('Baixar Relatório'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: appColors.primary,
-                      foregroundColor: appColors.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Open on web button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Replace with actual web URL
-                      openExternalURL(
-                          context, 'https://app.parsa-ai.com.br/relatorios');
-                      Navigator.of(context, rootNavigator: true).pop();
-                    },
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('Abrir na Web'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: appColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: BorderSide(color: appColors.primary),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Close button positioned at top right
-          Positioned(
-            top: 8,
-            right: 8,
-            child: IconButton(
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-              },
-              icon: Icon(
-                Icons.close,
-                color: appColors.onSurface.withOpacity(0.7),
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: appColors.surface.withOpacity(0.8),
-                shape: const CircleBorder(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//     return Dialog(
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(20),
+//       ),
+//       elevation: 0,
+//       backgroundColor: const Color(0xFFF8F9FE),
+//       child: Stack(
+//         children: [
+//           Container(
+//             padding: const EdgeInsets.all(24),
+//             child: Column(
+//               mainAxisSize: MainAxisSize.min,
+//               children: [
+//                 // Success icon
+//                 Container(
+//                   padding: const EdgeInsets.all(16),
+//                   decoration: BoxDecoration(
+//                     color: Colors.green.withOpacity(0.1),
+//                     shape: BoxShape.circle,
+//                   ),
+//                   child: Icon(
+//                     Icons.check_circle,
+//                     size: 48,
+//                     color: Colors.green,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 24),
+//                 Text(
+//                   'Relatório Pronto!',
+//                   style: TextStyle(
+//                     fontSize: 24,
+//                     fontWeight: FontWeight.bold,
+//                     color: appColors.onSurface,
+//                   ),
+//                   textAlign: TextAlign.center,
+//                 ),
+//                 const SizedBox(height: 8),
+//                 Text(
+//                   'Seu relatório foi gerado com sucesso',
+//                   style: TextStyle(
+//                     fontSize: 14,
+//                     color: appColors.onSurface.withOpacity(0.7),
+//                   ),
+//                   textAlign: TextAlign.center,
+//                 ),
+//                 const SizedBox(height: 32),
+//                 // Download button
+//                 SizedBox(
+//                   width: double.infinity,
+//                   child: ElevatedButton.icon(
+//                     onPressed: () {
+//                       // TODO: Implement download functionality
+//                       Navigator.of(context, rootNavigator: true).pop();
+//                       ScaffoldMessenger.of(context).showSnackBar(
+//                         const SnackBar(
+//                           content: Text('Download iniciado...'),
+//                         ),
+//                       );
+//                     },
+//                     icon: const Icon(Icons.download),
+//                     label: const Text('Baixar Relatório'),
+//                     style: ElevatedButton.styleFrom(
+//                       backgroundColor: appColors.primary,
+//                       foregroundColor: appColors.onPrimary,
+//                       padding: const EdgeInsets.symmetric(vertical: 16),
+//                       shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(12),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 const SizedBox(height: 12),
+//                 // Open on web button
+//                 SizedBox(
+//                   width: double.infinity,
+//                   child: OutlinedButton.icon(
+//                     onPressed: () {
+//                       // TODO: Replace with actual web URL
+//                       openExternalURL(
+//                           context, 'https://app.parsa-ai.com.br/relatorios');
+//                       Navigator.of(context, rootNavigator: true).pop();
+//                     },
+//                     icon: const Icon(Icons.open_in_new),
+//                     label: const Text('Abrir na Web'),
+//                     style: OutlinedButton.styleFrom(
+//                       foregroundColor: appColors.primary,
+//                       padding: const EdgeInsets.symmetric(vertical: 16),
+//                       shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(12),
+//                       ),
+//                       side: BorderSide(color: appColors.primary),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//           // Close button positioned at top right
+//           Positioned(
+//             top: 8,
+//             right: 8,
+//             child: IconButton(
+//               onPressed: () {
+//                 Navigator.of(context, rootNavigator: true).pop();
+//               },
+//               icon: Icon(
+//                 Icons.close,
+//                 color: appColors.onSurface.withOpacity(0.7),
+//               ),
+//               style: IconButton.styleFrom(
+//                 backgroundColor: appColors.surface.withOpacity(0.8),
+//                 shape: const CircleBorder(),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

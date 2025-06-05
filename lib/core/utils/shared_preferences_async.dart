@@ -14,8 +14,7 @@ class SharedPreferencesAsync {
   static const String keyIntakeCompleted = 'intakeCompleted';
   static const String keyStartOfWeek = 'startOfWeek';
   static const String keyStartOfMonth = 'startOfMonth';
-  static const String keyHasReturnedFromBankConnection =
-      'has_returned_from_bank_connection';
+  static const String keyHasShownInstructionsCard = 'hasShownInstructionsCard';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -179,5 +178,17 @@ class SharedPreferencesAsync {
   Future<int> getStartOfMonth() async {
     final prefs = await _getPrefs();
     return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
+  }
+
+  /// Set has shown instructions card preference
+  Future<bool> setHasShownInstructionsCard(bool value) async {
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyHasShownInstructionsCard, value);
+  }
+
+  /// Get has shown instructions card preference
+  Future<bool> getHasShownInstructionsCard() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyHasShownInstructionsCard) ?? false;
   }
 }

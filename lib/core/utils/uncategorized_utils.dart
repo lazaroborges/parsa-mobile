@@ -68,8 +68,7 @@ List<MoneyTransaction> filterUncategorizedTransactions(
     List<MoneyTransaction> allTransactions) {
   // TEMPORARY: Return all transactions (ignore category filter)
   final filtered = allTransactions
-      .where((tx) =>
-          tx.status != TransactionStatus.notconsidered)
+      .where((tx) => tx.status != TransactionStatus.notconsidered)
       .toList();
   return filtered;
 }
@@ -134,14 +133,14 @@ Future<List<TransactionGroupByType>>
     final incomeTxs = txs.where((tx) => (tx.value ?? 0) > 0).toList();
     final expenseTxs = txs.where((tx) => (tx.value ?? 0) < 0).toList();
 
-    if (incomeTxs.isNotEmpty) {
+    if (incomeTxs.length > 1) {
       allGroups.add(TransactionGroupByType(
         cousin: cousin,
         type: CategoryType.I,
         transactions: incomeTxs,
       ));
     }
-    if (expenseTxs.isNotEmpty) {
+    if (expenseTxs.length > 1) {
       allGroups.add(TransactionGroupByType(
         cousin: cousin,
         type: CategoryType.E,

@@ -22,6 +22,10 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
 
   Future<bool?> _handleCousinFound(int cousins, String triggeringId,
       int cousinValue, bool positiveInflow, TransactionChanges changes) async {
+    if (cousins <= 1) {
+      return null;
+    }
+
     // Build changes description
     final List<String> changesList = [];
     if (changes.description != null) changesList.add('Descrição');
@@ -141,12 +145,14 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                             );
                             Navigator.pop(context, false);
                           } catch (e) {
-                            print('Failed to update cousin rules (don\'t ask again): $e');
+                            print(
+                                'Failed to update cousin rules (don\'t ask again): $e');
                             Navigator.pop(context, false);
                           }
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.onSurface,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onSurface,
                           side: BorderSide(
                             color: Theme.of(context).colorScheme.outline,
                           ),
