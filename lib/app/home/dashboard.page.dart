@@ -59,6 +59,7 @@ import 'package:parsa/core/utils/uncategorized_utils.dart';
 
 import 'package:parsa/app/accounts/uncategorized/uncategorized_found_dialog.dart';
 import 'package:parsa/app/accounts/uncategorized/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -918,6 +919,17 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                   barrierColor: Colors.transparent,
                                   builder: (context) =>
                                       const UncategorizedClassificationOverlay(),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.list_alt),
+                              label: const Text('Ver detalhes'),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const FilteredSwipeCardReviewModal(),
                                 );
                               },
                             ),

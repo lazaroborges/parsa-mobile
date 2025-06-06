@@ -63,7 +63,7 @@ class UINumberFormatter {
   List<TextSpan> getTextSpanList(BuildContext context) {
     final String decimalSep =
         numberFormatSymbols[Intl.defaultLocale?.replaceAll('-', '_') ?? 'en']
-            ?.DECIMAL_SEP;
+            ?.DECIMAL_SEP ?? '.';
 
     final valueFontSize = (integerStyle.fontSize ??
             DefaultTextStyle.of(context).style.fontSize) ??
