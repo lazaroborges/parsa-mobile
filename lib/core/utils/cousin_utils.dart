@@ -33,13 +33,13 @@ const Map<String, String> NA_CATEGORIES = {
 };
 
 // Set of uncategorized category display names
-final Set<String> UNCATEGORIZED_CATEGORY_NAMES = NA_CATEGORIES.values.toSet();
+final Set<String> COUSIN_CATEGORY_NAMES = NA_CATEGORIES.values.toSet();
 
-/// Fetches all transactions and returns only those considered 'uncategorized'.
-/// A transaction is uncategorized if its category name is in the uncategorized set
+/// Fetches all transactions and returns only those considered 'cousin'.
+/// A transaction is cousin if its category name is in the cousin set
 /// and its status is not 'notconsidered'.
-Future<List<MoneyTransaction>> getUncategorizedTransactions() async {
-  print('[PERF] getUncategorizedTransactions: START');
+Future<List<MoneyTransaction>> getCousinTransactions() async {
+  print('[PERF] getCousinTransactions: START');
   final startTime = DateTime.now();
 
   final allTransactions =
@@ -48,20 +48,20 @@ Future<List<MoneyTransaction>> getUncategorizedTransactions() async {
   print(
       '[PERF] Fetched all transactions: ${fetchTime.difference(startTime).inMilliseconds}ms (${allTransactions.length} transactions)');
 
-  final uncats = filterUncategorizedTransactions(allTransactions);
+  final cousins = filterCousinTransactions(allTransactions);
   final filterTime = DateTime.now();
   print(
-      '[PERF] Filtered uncategorized: ${filterTime.difference(fetchTime).inMilliseconds}ms (${uncats.length} uncategorized)');
+      '[PERF] Filtered cousin: ${filterTime.difference(fetchTime).inMilliseconds}ms (${cousins.length} cousin)');
   print(
-      '[PERF] getUncategorizedTransactions: TOTAL ${filterTime.difference(startTime).inMilliseconds}ms');
+      '[PERF] getCousinTransactions: TOTAL ${filterTime.difference(startTime).inMilliseconds}ms');
 
-  return uncats;
+  return cousins;
 }
 
-/// Filters a list of transactions, returning only those that are uncategorized.
-/// A transaction is uncategorized if its category name is in the uncategorized set
+/// Filters a list of transactions, returning only those that are cousin.
+/// A transaction is cousin if its category name is in the cousin set
 /// and its status is not 'notconsidered'.
-List<MoneyTransaction> filterUncategorizedTransactions(
+List<MoneyTransaction> filterCousinTransactions(
     List<MoneyTransaction> allTransactions) {
   // TEMPORARY: Return all transactions (ignore category filter)
   final filtered = allTransactions
@@ -100,70 +100,76 @@ class TransactionGroupByType {
   int get count => transactions.length;
 }
 
-/// OPTIMIZED: Gets the top 10 uncategorized groups efficiently in a single pass
-/// This avoids the N+1 query problem by fetching all data once and grouping it
-Future<List<TransactionGroupByType>>
-    getTop10UncategorizedGroupsOptimized() async {
-  print('[PERF] getTop10UncategorizedGroupsOptimized: START');
-  final startTime = DateTime.now();
+class CousinGroupResult {
+  final List<TransactionGroupByType> groups;
+  final int totalTransactions;
+  final int totalGroups;
+  CousinGroupResult(
+      {required this.groups,
+      required this.totalTransactions,
+      required this.totalGroups});
+}
 
-  // Fetch all uncategorized transactions once
-  final uncats = await getUncategorizedTransactions();
-  final fetchTime = DateTime.now();
-  print(
-      '[PERF] OPTIMIZED: Fetched uncategorized transactions: ${fetchTime.difference(startTime).inMilliseconds}ms (${uncats.length} transactions)');
-
-  // Filter out transactions with status notconsidered and group by cousin
-  final filtered = uncats
-      .where((tx) =>
-          tx.status != TransactionStatus.notconsidered && tx.cousin != null)
-      .toList();
+Future<CousinGroupResult> getCousinGroupsForPeriod(
+    DateTime start, DateTime end) async {
+  final allTransactions =
+      await TransactionService.instance.getTransactions().first;
+  // Filter by considered status and date range
+  final filtered = allTransactions.where((tx) {
+    return tx.status != TransactionStatus.notconsidered &&
+        tx.cousin != null &&
+        tx.date != null &&
+        !tx.date!.isBefore(start) &&
+        !tx.date!.isAfter(end);
+  }).toList();
 
   final Map<int, List<MoneyTransaction>> byCousin = {};
   for (var tx in filtered) {
     byCousin.putIfAbsent(tx.cousin!, () => []).add(tx);
   }
 
-  // Create all groups (income and expense separately)
   List<TransactionGroupByType> allGroups = [];
   byCousin.forEach((cousin, txs) {
-    final incomeTxs = txs.where((tx) => (tx.value ?? 0) > 0).toList();
-    final expenseTxs = txs.where((tx) => (tx.value ?? 0) < 0).toList();
-
-    if (incomeTxs.length > 1) {
-      allGroups.add(TransactionGroupByType(
-        cousin: cousin,
-        type: CategoryType.I,
-        transactions: incomeTxs,
-      ));
-    }
-    if (expenseTxs.length > 1) {
-      allGroups.add(TransactionGroupByType(
-        cousin: cousin,
-        type: CategoryType.E,
-        transactions: expenseTxs,
-      ));
+    if (txs.length > 1) {
+      final incomeTxs = txs.where((tx) => (tx.value ?? 0) > 0).toList();
+      final expenseTxs = txs.where((tx) => (tx.value ?? 0) < 0).toList();
+      if (incomeTxs.length > 1) {
+        allGroups.add(TransactionGroupByType(
+          cousin: cousin,
+          type: CategoryType.I,
+          transactions: incomeTxs,
+        ));
+      }
+      if (expenseTxs.length > 1) {
+        allGroups.add(TransactionGroupByType(
+          cousin: cousin,
+          type: CategoryType.E,
+          transactions: expenseTxs,
+        ));
+      }
     }
   });
 
-  // Sort by total value and take top 10
-  allGroups.sort((a, b) => b.totalValue.abs().compareTo(a.totalValue.abs()));
-  final result = allGroups.take(50).toList();
-
-  final endTime = DateTime.now();
-  print(
-      '[PERF] OPTIMIZED: Total time: ${endTime.difference(startTime).inMilliseconds}ms (${result.length} groups)');
-
-  return result;
+  // Only count transactions in valid groups
+  final validTransactionIds =
+      allGroups.expand((g) => g.transactions.map((tx) => tx.id)).toSet();
+  final totalTransactions =
+      filtered.where((tx) => validTransactionIds.contains(tx.id)).length;
+  final totalGroups = allGroups.length;
+  return CousinGroupResult(
+      groups: allGroups,
+      totalTransactions: totalTransactions,
+      totalGroups: totalGroups);
 }
 
 /// OPTIMIZED: Gets summaries efficiently using the optimized approach
-Future<List<Map<String, dynamic>>> getUncategorizedGroupSummaries() async {
-  print('[PERF] getUncategorizedGroupSummaries (OPTIMIZED): START');
+Future<List<Map<String, dynamic>>> getCousinGroupSummaries(
+    DateTime start, DateTime end) async {
+  print('[PERF] getCousinGroupSummaries (OPTIMIZED): START');
   final startTime = DateTime.now();
 
-  final groups = await getTop10UncategorizedGroupsOptimized();
-  final result = groups
+  final groups = await getCousinGroupsForPeriod(start, end);
+  final result = groups.groups
       .map((g) => {
             'cousin_id': g.cousin,
             'type': g.type == CategoryType.I ? 'income' : 'expense',
@@ -174,20 +180,20 @@ Future<List<Map<String, dynamic>>> getUncategorizedGroupSummaries() async {
 
   final endTime = DateTime.now();
   print(
-      '[PERF] getUncategorizedGroupSummaries (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms');
+      '[PERF] getCousinGroupSummaries (OPTIMIZED): [32m${endTime.difference(startTime).inMilliseconds}ms[0m');
   return result;
 }
 
-/// Returns the count of transactions in the top uncategorized groups (optimized)
-Future<int> countTopUncategorizedTransactions({int limit = 10}) async {
-  print('[PERF] countTopUncategorizedTransactions (OPTIMIZED): START');
+/// Returns the count of transactions in the top cousin groups (optimized)
+Future<int> countTopCousinTransactions(DateTime start, DateTime end) async {
+  print('[PERF] countTopCousinTransactions (OPTIMIZED): START');
   final startTime = DateTime.now();
 
-  final groups = await getTop10UncategorizedGroupsOptimized();
-  final count = groups.fold<int>(0, (sum, g) => sum + g.count);
+  final groups = await getCousinGroupsForPeriod(start, end);
+  final count = groups.groups.fold<int>(0, (sum, g) => sum + g.count);
 
   final endTime = DateTime.now();
   print(
-      '[PERF] countTopUncategorizedTransactions (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms (count: $count)');
+      '[PERF] countTopCousinTransactions (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms (count: $count)');
   return count;
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/accounts/uncategorized/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
 
-class UncategorizedFoundDialog {
+class CousinFoundDialog {
   /// Shows a dialog informing the user about uncategorized transactions.
   /// [transactionCount] is the total number of uncategorized transactions.
   /// Returns true if the user wants to reclassify now, false if they choose later.
@@ -14,7 +15,7 @@ class UncategorizedFoundDialog {
       context: context,
       barrierDismissible: true,
       builder: (context) =>
-          _UncategorizedFoundDialogWidget(transactionCount: transactionCount),
+          _CousinFoundDialogWidget(transactionCount: transactionCount),
     );
   }
 
@@ -26,20 +27,27 @@ class UncategorizedFoundDialog {
 
     if (result == true && context.mounted) {
       // User wants to reclassify now, show the overlay
+      // Default to current month
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+      final cousinResult =
+          await getCousinGroupsForPeriod(startOfMonth, endOfMonth);
       showDialog(
         context: context,
         barrierDismissible: true,
         barrierColor: Colors.transparent,
-        builder: (context) => const UncategorizedClassificationOverlay(),
+        builder: (context) =>
+            CousinClassificationOverlay(groups: cousinResult.groups),
       );
     }
   }
 }
 
-class _UncategorizedFoundDialogWidget extends StatelessWidget {
+class _CousinFoundDialogWidget extends StatelessWidget {
   final int transactionCount;
 
-  const _UncategorizedFoundDialogWidget({
+  const _CousinFoundDialogWidget({
     Key? key,
     required this.transactionCount,
   }) : super(key: key);

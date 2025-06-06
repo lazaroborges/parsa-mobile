@@ -19,8 +19,8 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:parsa/app/accounts/uncategorized/uncategorized_found_dialog.dart';
-import 'package:parsa/core/utils/uncategorized_utils.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 
 enum NotificationCategory {
