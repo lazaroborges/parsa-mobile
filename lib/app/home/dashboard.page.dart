@@ -862,72 +862,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Builder(
-                  builder: (context) {
-                    return FutureBuilder<List<Map<String, dynamic>>>(
-                      future: getUncategorizedGroupSummaries(),
-                      builder: (context, snapshot) {
-                        final groups = snapshot.data ?? [];
-                        // Sort by TotalAmount descending and take top 10
-                        final top10 = List<Map<String, dynamic>>.from(groups)
-                          ..sort((a, b) => (b['TotalAmount'] as num)
-                              .compareTo(a['TotalAmount'] as num));
-                        final displayList = top10.take(10).toList();
-                        final totalTransactions = displayList.fold<int>(0,
-                            (sum, g) => sum + (g['totalTransactions'] as int));
-
-                        // Only show the button in debug mode
-                        if (!kDebugMode || totalTransactions == 0) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            FilledButton.icon(
-                              icon: const Icon(Icons.swipe),
-                              label: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      text: 'Classificar ',
-                                      children: [
-                                        TextSpan(
-                                          text: '$totalTransactions',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        const TextSpan(
-                                            text:
-                                                ' transações não categorizadas'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              onPressed: () async {
-                                // Show overlay directly without dialog since this is manual
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: true,
-                                  barrierColor: Colors.transparent,
-                                  builder: (context) =>
-                                      const UncategorizedClassificationOverlay(),
-                                );
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              Padding(
-                padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: CardWithHeader(
                   title: t.home.last_transactions,
@@ -960,7 +894,44 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 ),
               ),
 
-              // Add padding/spacing here
+              // Uncategorized Classification Button
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Builder(
+                  builder: (context) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        FilledButton.icon(
+                          icon: const Icon(Icons.swipe),
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text.rich(
+                                TextSpan(
+                                  text:
+                                      'Classificar transações não categorizadas',
+                                ),
+                              ),
+                            ],
+                          ),
+                          onPressed: () async {
+                            // Show overlay directly without dialog since this is manual
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierColor: Colors.transparent,
+                              builder: (context) =>
+                                  const UncategorizedClassificationOverlay(),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
 
               // ------------- STATS GENERAL CARDS --------------
 
