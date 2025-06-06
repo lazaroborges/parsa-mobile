@@ -26,8 +26,8 @@ import 'package:parsa/core/utils/check_items_availability.dart';
 import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
-import 'package:parsa/app/accounts/uncategorized/uncategorized_found_dialog.dart';
-import 'package:parsa/core/utils/uncategorized_utils.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
@@ -439,12 +439,12 @@ class TabsPageState extends State<TabsPage>
       }
 
       // If no items in progress, check for uncategorized transactions
-      final count = await countTopUncategorizedTransactions();
+      final count = await countTopCousinTransactions();
       if (count > 0) {
         // Trigger the dialog and mark as triggered
         try {
           if (context.mounted) {
-            await UncategorizedFoundDialog.showAndHandle(context,
+            await CousinFoundDialog.showAndHandle(context,
                 transactionCount: count);
           }
         } catch (e) {

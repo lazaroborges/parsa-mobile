@@ -55,10 +55,11 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
-import 'package:parsa/core/utils/uncategorized_utils.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
 
-import 'package:parsa/app/accounts/uncategorized/uncategorized_found_dialog.dart';
-import 'package:parsa/app/accounts/uncategorized/uncategorized_classification_overlay.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
+import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -327,6 +328,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         body: Center(child: CircularProgressIndicator()),
       );
     }
+
+    final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
@@ -894,44 +897,55 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 ),
               ),
 
-              // Uncategorized Classification Button
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Builder(
-                  builder: (context) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        FilledButton.icon(
-                          icon: const Icon(Icons.swipe),
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text.rich(
-                                TextSpan(
-                                  text:
-                                      'Classificar transações não categorizadas',
+              // ------------- TRIGGER SWIPE CARD --------------
+              ...(hasTriggered
+                  ? [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Builder(
+                          builder: (context) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                FilledButton.icon(
+                                  icon: const Icon(Icons.swipe),
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          text:
+                                              'Classificar transações não categorizadas',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onPressed: isLoadingTransactions
+                                      ? null
+                                      : () async {
+                                          showDialog(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            barrierColor: Colors.transparent,
+                                            builder: (context) =>
+                                                const CousinClassificationOverlay(),
+                                          );
+                                        },
+                                  style: isLoadingTransactions
+                                      ? FilledButton.styleFrom(
+                                          backgroundColor: Colors.grey[300],
+                                          foregroundColor: Colors.grey[600],
+                                        )
+                                      : null,
                                 ),
-                              ),
-                            ],
-                          ),
-                          onPressed: () async {
-                            // Show overlay directly without dialog since this is manual
-                            showDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              barrierColor: Colors.transparent,
-                              builder: (context) =>
-                                  const UncategorizedClassificationOverlay(),
+                              ],
                             );
                           },
                         ),
-                      ],
-                    );
-                  },
-                ),
-              ),
+                      ),
+                    ]
+                  : []),
 
               // ------------- STATS GENERAL CARDS --------------
 
