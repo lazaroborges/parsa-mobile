@@ -929,7 +929,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                             barrierDismissible: true,
                                             barrierColor: Colors.transparent,
                                             builder: (context) =>
-                                                const CousinClassificationOverlay(),
+                                                const FilteredSwipeCardReviewModal(),
                                           );
                                         },
                                   style: isLoadingTransactions

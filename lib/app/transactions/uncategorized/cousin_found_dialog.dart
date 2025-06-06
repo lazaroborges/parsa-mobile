@@ -3,6 +3,7 @@ import 'package:parsa/app/transactions/uncategorized/cousin_classification_overl
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
 
 class CousinFoundDialog {
   /// Shows a dialog informing the user about uncategorized transactions.
@@ -26,11 +27,18 @@ class CousinFoundDialog {
 
     if (result == true && context.mounted) {
       // User wants to reclassify now, show the overlay
+      // Default to current month
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+      final cousinResult =
+          await getCousinGroupsForPeriod(startOfMonth, endOfMonth);
       showDialog(
         context: context,
         barrierDismissible: true,
         barrierColor: Colors.transparent,
-        builder: (context) => const CousinClassificationOverlay(),
+        builder: (context) =>
+            CousinClassificationOverlay(groups: cousinResult.groups),
       );
     }
   }

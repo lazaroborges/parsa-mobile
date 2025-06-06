@@ -23,7 +23,18 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 
 class CousinClassificationOverlay extends StatefulWidget {
-  const CousinClassificationOverlay({Key? key}) : super(key: key);
+  final List<TransactionGroupByType> groups;
+  final int? totalTransactions;
+  final int? totalGroups;
+  final String? periodLabel;
+
+  const CousinClassificationOverlay({
+    Key? key,
+    required this.groups,
+    this.totalTransactions,
+    this.totalGroups,
+    this.periodLabel,
+  }) : super(key: key);
 
   @override
   State<CousinClassificationOverlay> createState() =>
@@ -32,41 +43,9 @@ class CousinClassificationOverlay extends StatefulWidget {
 
 class _CousinClassificationOverlayState
     extends State<CousinClassificationOverlay> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pop();
-        tabsPageKey.currentState?.navigateToStatsTab(0);
-      },
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        color: const Color(0xB20F1728), // Dimmed background
-        child: Center(
-          child: GestureDetector(
-            onTap:
-                () {}, // Prevent tap events from propagating to the background
-            child: _CousinClassificationContent(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CousinClassificationContent extends StatefulWidget {
-  @override
-  State<_CousinClassificationContent> createState() =>
-      _CousinClassificationContentState();
-}
-
-class _CousinClassificationContentState
-    extends State<_CousinClassificationContent> {
   // DEV-MODE: Set to `false` to test the normal behavior (card shown only once)
-  static const bool _debugAlwaysShowInstructionCard = true;
+  static const bool _debugAlwaysShowInstructionCard = false;
 
-  List<TransactionGroupByType>? _groups;
   final CardSwiperController _cardController = CardSwiperController();
   final Set<int> _processedIndices = <int>{};
   bool _hasShownInstructionCardBefore = false;
@@ -107,175 +86,242 @@ class _CousinClassificationContentState
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<TransactionGroupByType>>(
-      future: getTop10CousinGroupsOptimized(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final groups = widget.groups;
+    final totalTransactions = widget.totalTransactions;
+    final totalGroups = widget.totalGroups;
 
-        _groups ??= List.from(snapshot.data!);
-        final groups = _groups!;
+    if (groups.isEmpty && _hasShownInstructionCardBefore) {
+      return const Center(child: Text('Nenhuma transação não categorizada.'));
+    }
 
-        if (groups.isEmpty && _hasShownInstructionCardBefore) {
-          return const Center(
-              child: Text('Nenhuma transação não categorizada.'));
-        }
+    final bool shouldShowInstructionCardThisBuild =
+        !_hasShownInstructionCardBefore;
 
-        final bool shouldShowInstructionCardThisBuild =
-            !_hasShownInstructionCardBefore;
+    if (groups.isEmpty && shouldShowInstructionCardThisBuild) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: const InstructionCard(),
+        ),
+      );
+    }
 
-        if (groups.isEmpty && shouldShowInstructionCardThisBuild) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: const InstructionCard(),
-            ),
-          );
-        }
+    if (groups.isEmpty) {
+      return const Center(child: Text('Nenhuma transação não categorizada.'));
+    }
 
-        if (groups.isEmpty) {
-          return const Center(
-              child: Text('Nenhuma transação não categorizada.'));
-        }
+    final int totalCards =
+        groups.length + (shouldShowInstructionCardThisBuild ? 1 : 0);
 
-        final int totalCards =
-            groups.length + (shouldShowInstructionCardThisBuild ? 1 : 0);
+    final bool allProcessed = _processedIndices.length == groups.length;
 
-        final bool allProcessed = _processedIndices.length == groups.length;
+    if (allProcessed && !shouldShowInstructionCardThisBuild) {
+      return const Center(
+          child: Text('Todas as transações foram categorizadas!'));
+    }
 
-        if (allProcessed && !shouldShowInstructionCardThisBuild) {
-          return const Center(
-              child: Text('Todas as transações foram categorizadas!'));
-        }
-
-        return Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.75,
-            child: CardSwiper(
-              controller: _cardController,
-              cardsCount: totalCards,
-              cardBuilder: (context, index, percentX, percentY) {
-                if (shouldShowInstructionCardThisBuild) {
-                  if (index == 0) {
-                    return const InstructionCard();
-                  }
-
-                  final groupIndex = index - 1;
-                  if (_processedIndices.contains(groupIndex)) {
-                    return Container(); // Placeholder for processed card
-                  }
-                  final group = groups[groupIndex];
-                  return _LabeledTransactionGroupCard(
-                    group: group,
-                    onCategoryPressed: () =>
-                        _handleCategorizeButtonPressed(group, groupIndex),
-                    onStatusPressed: () =>
-                        _handleStatusButtonPressed(group, groupIndex),
-                  );
-                } else {
-                  final groupIndex = index;
-                  if (_processedIndices.contains(groupIndex)) {
-                    return Container(); // Placeholder for processed card
-                  }
-                  final group = groups[groupIndex];
-                  return _LabeledTransactionGroupCard(
-                    group: group,
-                    onCategoryPressed: () =>
-                        _handleCategorizeButtonPressed(group, groupIndex),
-                    onStatusPressed: () =>
-                        _handleStatusButtonPressed(group, groupIndex),
-                  );
-                }
-              },
-              numberOfCardsDisplayed: 3,
-              allowedSwipeDirection: AllowedSwipeDirection.only(
-                left: true,
-                right: true,
-              ),
-              onSwipe: (prevCardSwiperIndex, currentCardSwiperIndex,
-                  direction) async {
-                final bool instructionCardWasPresentThisBuild =
-                    shouldShowInstructionCardThisBuild;
-
-                if (instructionCardWasPresentThisBuild &&
-                    prevCardSwiperIndex == 0) {
-                  if (!(kDebugMode && _debugAlwaysShowInstructionCard)) {
-                    await SharedPreferencesAsync.instance
-                        .setFirstTriggerSwipeCards(true);
-                  }
-                  return true;
-                }
-
-                final int actualGroupIndex = instructionCardWasPresentThisBuild
-                    ? prevCardSwiperIndex - 1
-                    : prevCardSwiperIndex;
-
-                if (_isProgrammaticSwipe) {
-                  _isProgrammaticSwipe = false;
+    // If there is exactly one group, show the same swipe card UI and actions
+    if (groups.length == 1) {
+      final group = groups.first;
+      return Center(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: CardSwiper(
+            controller: _cardController,
+            cardsCount: 1,
+            numberOfCardsDisplayed: 1,
+            cardBuilder: (context, index, percentX, percentY) {
+              return _LabeledTransactionGroupCard(
+                group: group,
+                onCategoryPressed: () =>
+                    _handleCategorizeButtonPressed(group, 0),
+                onStatusPressed: () => _handleStatusButtonPressed(group, 0),
+              );
+            },
+            allowedSwipeDirection:
+                AllowedSwipeDirection.only(left: true, right: true),
+            onSwipe: (prev, curr, dir) async {
+              if (_isProgrammaticSwipe) {
+                _isProgrammaticSwipe = false;
+                setState(() {
+                  _processedIndices.add(0);
+                });
+                return true;
+              }
+              if (dir == CardSwiperDirection.right) {
+                if (_skipNextSwipeModal) {
+                  _skipNextSwipeModal = false;
                   setState(() {
-                    _processedIndices.add(actualGroupIndex);
+                    _processedIndices.add(0);
                   });
                   return true;
                 }
-
-                if (direction == CardSwiperDirection.right) {
-                  if (_skipNextSwipeModal) {
-                    _skipNextSwipeModal = false;
+                final selectedCategory = await showCategoryPickerModal(
+                  context,
+                  modal: CategoryPicker(
+                    selectedCategory: group.transactions.first.category,
+                    categoryType: group.type == CategoryType.I
+                        ? [CategoryType.B, CategoryType.I]
+                        : [CategoryType.E, CategoryType.B],
+                  ),
+                );
+                if (selectedCategory == null) {
+                  return false;
+                }
+                setState(() {
+                  _processedIndices.add(0);
+                });
+                unawaited(_processCategorySelection(group, selectedCategory)
+                    .catchError((e) {
+                  if (mounted) {
                     setState(() {
-                      _processedIndices.add(actualGroupIndex);
+                      _processedIndices.remove(0);
                     });
-                    return true;
                   }
-                  final group = groups[actualGroupIndex];
-                  final selectedCategory = await showCategoryPickerModal(
-                    context,
-                    modal: CategoryPicker(
-                      selectedCategory: group.transactions.first.category,
-                      categoryType: group.type == CategoryType.I
-                          ? [CategoryType.B, CategoryType.I]
-                          : [CategoryType.E, CategoryType.B],
-                    ),
-                  );
+                }));
+                return true;
+              }
+              setState(() {
+                _processedIndices.add(0);
+              });
+              return true;
+            },
+            onEnd: () => Navigator.of(context).pop(),
+          ),
+        ),
+      );
+    }
 
-                  if (selectedCategory == null) {
-                    return false; // User cancelled, so cancel the swipe
-                  }
+    return Center(
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.75,
+        child: CardSwiper(
+          controller: _cardController,
+          cardsCount: totalCards,
+          cardBuilder: (context, index, percentX, percentY) {
+            if (shouldShowInstructionCardThisBuild) {
+              if (index == 0) {
+                return const InstructionCard();
+              }
 
-                  // Optimistically update state to remove the card from view
-                  setState(() {
-                    _processedIndices.add(actualGroupIndex);
-                  });
+              final groupIndex = index - 1;
+              if (_processedIndices.contains(groupIndex)) {
+                return Container(); // Placeholder for processed card
+              }
+              final group = groups[groupIndex];
+              return _LabeledTransactionGroupCard(
+                group: group,
+                onCategoryPressed: () =>
+                    _handleCategorizeButtonPressed(group, groupIndex),
+                onStatusPressed: () =>
+                    _handleStatusButtonPressed(group, groupIndex),
+              );
+            } else {
+              final groupIndex = index;
+              if (_processedIndices.contains(groupIndex)) {
+                return Container(); // Placeholder for processed card
+              }
+              final group = groups[groupIndex];
+              return _LabeledTransactionGroupCard(
+                group: group,
+                onCategoryPressed: () =>
+                    _handleCategorizeButtonPressed(group, groupIndex),
+                onStatusPressed: () =>
+                    _handleStatusButtonPressed(group, groupIndex),
+              );
+            }
+          },
+          numberOfCardsDisplayed: 3,
+          allowedSwipeDirection: AllowedSwipeDirection.only(
+            left: true,
+            right: true,
+          ),
+          onSwipe:
+              (prevCardSwiperIndex, currentCardSwiperIndex, direction) async {
+            final bool instructionCardWasPresentThisBuild =
+                shouldShowInstructionCardThisBuild;
 
-                  // Process in background, without a disruptive rollback on manual swipe
-                  unawaited(_processCategorySelection(group, selectedCategory)
-                      .catchError((e) {
-                    if (mounted) {
-                      // On failure, silently re-enable the card in the deck
-                      setState(() {
-                        _processedIndices.remove(actualGroupIndex);
-                      });
-                    }
-                  }));
+            if (instructionCardWasPresentThisBuild &&
+                prevCardSwiperIndex == 0) {
+              if (!(kDebugMode && _debugAlwaysShowInstructionCard)) {
+                await SharedPreferencesAsync.instance
+                    .setFirstTriggerSwipeCards(true);
+              }
+              return true;
+            }
 
-                  return true;
-                }
+            final int actualGroupIndex = instructionCardWasPresentThisBuild
+                ? prevCardSwiperIndex - 1
+                : prevCardSwiperIndex;
 
-                // For left swipes (dismiss)
+            if (_isProgrammaticSwipe) {
+              _isProgrammaticSwipe = false;
+              setState(() {
+                _processedIndices.add(actualGroupIndex);
+              });
+              return true;
+            }
+
+            if (direction == CardSwiperDirection.right) {
+              if (_skipNextSwipeModal) {
+                _skipNextSwipeModal = false;
                 setState(() {
                   _processedIndices.add(actualGroupIndex);
                 });
                 return true;
-              },
-              onEnd: () {
-                Navigator.of(context).pop();
-                tabsPageKey.currentState?.navigateToStatsTab(0);
-              },
-            ),
-          ),
-        );
-      },
+              }
+              final group = groups[actualGroupIndex];
+              final selectedCategory = await showCategoryPickerModal(
+                context,
+                modal: CategoryPicker(
+                  selectedCategory: group.transactions.first.category,
+                  categoryType: group.type == CategoryType.I
+                      ? [CategoryType.B, CategoryType.I]
+                      : [CategoryType.E, CategoryType.B],
+                ),
+              );
+
+              if (selectedCategory == null) {
+                return false; // User cancelled, so cancel the swipe
+              }
+
+              // Optimistically update state to remove the card from view
+              setState(() {
+                _processedIndices.add(actualGroupIndex);
+              });
+
+              // Process in background, without a disruptive rollback on manual swipe
+              unawaited(_processCategorySelection(group, selectedCategory)
+                  .catchError((e) {
+                if (mounted) {
+                  // On failure, silently re-enable the card in the deck
+                  setState(() {
+                    _processedIndices.remove(actualGroupIndex);
+                  });
+                }
+              }));
+
+              return true;
+            }
+
+            // For left swipes (dismiss)
+            setState(() {
+              _processedIndices.add(actualGroupIndex);
+            });
+            return true;
+          },
+          onEnd: () {
+            if (shouldShowInstructionCardThisBuild) {
+              Navigator.of(context).pop();
+              tabsPageKey.currentState?.navigateToStatsTab(0);
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ),
     );
   }
 
@@ -599,7 +645,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                   accountNameMaxLength: 10,
                   showGroupDivider: false,
                   showDate: true,
-                  prevPage: const CousinClassificationOverlay(),
+                  prevPage: CousinClassificationOverlay(groups: const []),
                   onEmptyList: const Text('Nenhuma transação encontrada'),
                 ),
               ),
