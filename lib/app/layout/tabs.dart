@@ -107,14 +107,12 @@ class TabsPageState extends State<TabsPage>
 
   Future<void> _initializeData() async {
     try {
+      print('[TABS] Initializing data...');
       // First fetch critical user info
       await _fetchUserInfoServer();
 
       // Then fetch all other data (accounts, transactions, tags) in parallel
-      await Future.wait([
-        refreshData(showLoading: true),
-        _fetchUserTags(),
-      ], eagerError: true);
+      await Future.wait([refreshData(showLoading: true)]);
 
       // After data loading, check uncategorized dialog
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -128,6 +126,7 @@ class TabsPageState extends State<TabsPage>
   }
 
   Future<void> refreshData({bool showLoading = true}) async {
+    print('[TABS] Refreshing data...');
     if (!mounted) return;
 
     if (showLoading) {
@@ -138,11 +137,16 @@ class TabsPageState extends State<TabsPage>
     }
 
     try {
+      // First fetch critical user info
+      await _fetchUserInfoServer();
+
       // Refresh accounts, transactions in parallel
-      await Future.wait([
-        _fetchUserAccounts(),
-        fetchUserTransactions(null),
-      ]);
+      await Future.wait([_fetchUserAccounts(), _fetchUserTags()]);
+
+      // Then fetch transactions
+      await fetchUserTransactions(null);
+
+      print('[TABS] Data refresh complete.');
 
       if (mounted && showLoading) {
         setState(() {

@@ -171,9 +171,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // First, sync preferences with backend - this should happen early
       await _syncPreferencesWithBackend();
 
-      // Then initialize date range service with updated preferences
-      await _initializeDateRangeService();
-
       // Ensure we check the announcement first
       if (mounted) {
         await FeatureAnnouncementModal.showIfNeeded(context);

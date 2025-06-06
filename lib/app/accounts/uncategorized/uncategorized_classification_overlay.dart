@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/models/category/category.dart';
@@ -70,6 +71,7 @@ class _UncategorizedClassificationContentState
   final Set<int> _processedIndices = <int>{};
   bool _hasShownInstructionCardBefore = false;
   bool _isProgrammaticSwipe = false;
+  bool _skipNextSwipeModal = false;
 
   @override
   void initState() {
@@ -106,7 +108,7 @@ class _UncategorizedClassificationContentState
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<TransactionGroupByType>>(
-      future: _getTop10Groups(),
+      future: getTop10UncategorizedGroupsOptimized(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -219,6 +221,13 @@ class _UncategorizedClassificationContentState
                 }
 
                 if (direction == CardSwiperDirection.right) {
+                  if (_skipNextSwipeModal) {
+                    _skipNextSwipeModal = false;
+                    setState(() {
+                      _processedIndices.add(actualGroupIndex);
+                    });
+                    return true;
+                  }
                   final group = groups[actualGroupIndex];
                   final selectedCategory = await showCategoryPickerModal(
                     context,
@@ -230,14 +239,27 @@ class _UncategorizedClassificationContentState
                     ),
                   );
 
-                  if (selectedCategory != null) {
-                    await _processCategorySelection(group, selectedCategory);
-                    setState(() {
-                      _processedIndices.add(actualGroupIndex);
-                    });
-                    return true;
+                  if (selectedCategory == null) {
+                    return false; // User cancelled, so cancel the swipe
                   }
-                  return false; // Cancel swipe if no category is selected
+
+                  // Optimistically update state to remove the card from view
+                  setState(() {
+                    _processedIndices.add(actualGroupIndex);
+                  });
+
+                  // Process in background, without a disruptive rollback on manual swipe
+                  unawaited(_processCategorySelection(group, selectedCategory)
+                      .catchError((e) {
+                    if (mounted) {
+                      // On failure, silently re-enable the card in the deck
+                      setState(() {
+                        _processedIndices.remove(actualGroupIndex);
+                      });
+                    }
+                  }));
+
+                  return true;
                 }
 
                 // For left swipes (dismiss)
@@ -257,16 +279,6 @@ class _UncategorizedClassificationContentState
     );
   }
 
-  Future<List<TransactionGroupByType>> _getTop10Groups() async {
-    print('[PERF] [OVERLAY] _getTop10Groups: START');
-    final startTime = DateTime.now();
-    final result = await getTop10UncategorizedGroupsOptimized();
-    final endTime = DateTime.now();
-    print(
-        '[PERF] [OVERLAY] _getTop10Groups: TOTAL ${endTime.difference(startTime).inMilliseconds}ms (OPTIMIZED)');
-    return result;
-  }
-
   Future<void> _handleCategorizeButtonPressed(
       TransactionGroupByType group, int index) async {
     final selectedCategory = await showCategoryPickerModal(
@@ -280,9 +292,23 @@ class _UncategorizedClassificationContentState
     );
 
     if (selectedCategory != null) {
-      await _processCategorySelection(group, selectedCategory);
-      _isProgrammaticSwipe = true;
+      _skipNextSwipeModal = true;
       _cardController.swipe(CardSwiperDirection.right);
+      setState(() {
+        _processedIndices.add(index);
+      });
+
+      // Process in the background with unawaited
+      unawaited(
+          _processCategorySelection(group, selectedCategory).catchError((e) {
+        // On failure, undo the swipe and revert the state
+        if (mounted) {
+          _cardController.undo();
+          setState(() {
+            _processedIndices.remove(index);
+          });
+        }
+      }));
     }
   }
 
@@ -295,15 +321,25 @@ class _UncategorizedClassificationContentState
     );
 
     if (modalResult != null && modalResult.result != null) {
-      await Future.wait(group.transactions
+      _skipNextSwipeModal = true;
+      _cardController.swipe(CardSwiperDirection.right);
+      setState(() {
+        _processedIndices.add(index);
+      });
+
+      unawaited(Future.wait(group.transactions
           .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
                 tx.copyWith(status: drift.Value(modalResult.result)),
                 null,
                 1,
-              )));
-
-      _isProgrammaticSwipe = true;
-      _cardController.swipe(CardSwiperDirection.right);
+              ))).catchError((e) {
+        if (mounted) {
+          _cardController.undo();
+          setState(() {
+            _processedIndices.remove(index);
+          });
+        }
+      }));
     }
   }
 
