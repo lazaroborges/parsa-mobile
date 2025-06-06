@@ -100,7 +100,6 @@ class TabsPageState extends State<TabsPage>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
-        await _initializeData();
       });
     }
   }
