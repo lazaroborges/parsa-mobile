@@ -10,20 +10,19 @@ class CousinFoundDialog {
   /// [transactionCount] is the total number of uncategorized transactions.
   /// Returns true if the user wants to reclassify now, false if they choose later.
   static Future<bool?> show(BuildContext context,
-      {required int transactionCount}) async {
+      {required int cousinCount}) async {
     return showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (context) =>
-          _CousinFoundDialogWidget(transactionCount: transactionCount),
+      builder: (context) => _CousinFoundDialogWidget(cousinCount: cousinCount),
     );
   }
 
   /// Shows the dialog and handles the user's choice, including navigation
   /// to the reclassification overlay if the user chooses to reclassify now.
   static Future<void> showAndHandle(BuildContext context,
-      {required int transactionCount}) async {
-    final result = await show(context, transactionCount: transactionCount);
+      {required int cousinCount}) async {
+    final result = await show(context, cousinCount: cousinCount);
 
     if (result == true && context.mounted) {
       // User wants to reclassify now, show the overlay
@@ -45,11 +44,11 @@ class CousinFoundDialog {
 }
 
 class _CousinFoundDialogWidget extends StatelessWidget {
-  final int transactionCount;
+  final int cousinCount;
 
   const _CousinFoundDialogWidget({
     Key? key,
-    required this.transactionCount,
+    required this.cousinCount,
   }) : super(key: key);
 
   @override
@@ -107,7 +106,7 @@ class _CousinFoundDialogWidget extends StatelessWidget {
             const SizedBox(height: 16),
             // Body
             Text(
-              'Encontramos $transactionCount transações não classificadas.',
+              'Encontramos $cousinCount transações não classificadas.',
               style: TextStyle(
                 fontSize: 16,
                 color: appColors.onSurface,

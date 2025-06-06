@@ -115,7 +115,7 @@ class TabsPageState extends State<TabsPage>
 
       // After data loading, check uncategorized dialog
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await _checkUncategorizedDialog();
+        await _checkCousinFoundDialog();
       });
     } catch (e) {
       if (kDebugMode) {
@@ -417,7 +417,7 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  Future<void> _checkUncategorizedDialog() async {
+  Future<void> _checkCousinFoundDialog() async {
     final userData = UserDataProvider.instance.userData;
     final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
     final hasFinished = userData?['has_finished_openfinance_flow'] == true;
@@ -442,13 +442,14 @@ class TabsPageState extends State<TabsPage>
       final now = DateTime.now();
       final startOfYear = DateTime(now.year, 1, 1);
       final endOfYear = DateTime(now.year, 12, 31, 23, 59, 59);
-      final count = await countTopCousinTransactions(startOfYear, endOfYear);
+      final cousinResult =
+          await getCousinGroupsForPeriod(startOfYear, endOfYear);
+      final count = cousinResult.totalGroups;
       if (count > 0) {
         // Trigger the dialog and mark as triggered
         try {
           if (context.mounted) {
-            await CousinFoundDialog.showAndHandle(context,
-                transactionCount: count);
+            await CousinFoundDialog.showAndHandle(context, cousinCount: count);
           }
         } catch (e) {
           print('Error triggering swipe cards flow: $e');
@@ -466,7 +467,7 @@ class TabsPageState extends State<TabsPage>
     await refreshData(showLoading: false);
 
     // Then check if we should show the uncategorized dialog
-    await _checkUncategorizedDialog();
+    await _checkCousinFoundDialog();
   }
 }
 
