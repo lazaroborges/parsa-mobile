@@ -63,6 +63,8 @@ import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.
 
 import 'package:flutter/foundation.dart';
 
+import 'package:parsa/app/accounts/bank_connection_dialog.dart';
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -792,26 +794,52 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 ),
               ),
               
-              // DEBUG: Cousin Found Dialog Button
+              // DEBUG: Debug buttons section
               if (kDebugMode) ...[
+                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.bug_report),
-                      label: const Text('DEBUG: Trigger Cousin Found Dialog'),
-                      onPressed: () {
-                        CousinFoundDialog.showAndHandle(
-                          context,
-                          cousinCount: 15, // Mock count for testing
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                        side: const BorderSide(color: Colors.orange),
+                  child: Column(
+                    children: [
+                      // Cousin Found Dialog Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.bug_report),
+                          label: const Text('DEBUG: Trigger Cousin Found Dialog'),
+                          onPressed: () async {
+                            // Set firstTriggerSwipeCards to false for testing
+                            await app_prefs.SharedPreferencesAsync.instance
+                                .setFirstTriggerSwipeCards(false);
+                            
+                            CousinFoundDialog.showAndHandle(
+                              context,
+                              cousinCount: 15, // Mock count for testing
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.orange,
+                            side: const BorderSide(color: Colors.orange),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      // Bank Connection Dialog Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.account_balance),
+                          label: const Text('DEBUG: Open Bank Connection Dialog'),
+                          onPressed: () {
+                            BankConnectionDialog.showAndHandle(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.blue,
+                            side: const BorderSide(color: Colors.blue),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

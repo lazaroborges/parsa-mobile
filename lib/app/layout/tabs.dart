@@ -393,7 +393,6 @@ class TabsPageState extends State<TabsPage>
     final userData = UserDataProvider.instance.userData;
     final hasFinished = userData?['has_finished_openfinance_flow'];
     final hasItemsAvailable = userData?['has_items_available'];
-    final t = Translations.of(context);
 
     // Show connection dialog only if user hasn't finished open finance flow
     if (!hasFinished && hasItemsAvailable) {

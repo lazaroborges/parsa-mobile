@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/app/accounts/account_connection_modal.dart';
+
+import 'package:parsa/app/accounts/pluggy_connector.dart'; 
 import 'package:flutter/foundation.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 
@@ -22,7 +23,7 @@ class BankConnectionDialog {
 
     return showDialog<bool>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (dialogContext) => _BankConnectionDialogWidget(
           showUncategorizedOption: showUncategorizedOption),
     );
@@ -34,13 +35,12 @@ class BankConnectionDialog {
     final result = await show(context);
 
     if (result == true && context.mounted) {
-      // User wants to connect another account, show the modal with full screen
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => const AccountConnectionModal(),
+      // User wants to connect another account, go directly to PluggyConnectorPage
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PluggyConnectorPage(),
+        ),
       );
     }
     // If result is false, the PDF message was already shown in the dialog
@@ -58,118 +58,235 @@ class _BankConnectionDialogWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      elevation: 0,
-      backgroundColor: const Color(0xFFF8F9FE),
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context, false); // Close the modal when tapping outside
+      },
       child: Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        padding: const EdgeInsets.all(32),
+        decoration: const BoxDecoration(
+          color: Color(0xB20F1728), // Semi-transparent background
+        ),
+        child: Stack(
           children: [
-            Stack(
-              children: [
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.account_balance,
-                      size: 40,
-                      color: appColors.primary,
+            // Center the modal content
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: GestureDetector(
+                onTap: () {}, // Prevents tap events from propagating to the background
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(
+                    top: 20,
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: ShapeDecoration(
+                    color: appColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    shadows: const [
+                      BoxShadow(
+                        color: Color(0x07101828),
+                        blurRadius: 8,
+                        offset: Offset(0, 8),
+                        spreadRadius: -4,
+                      ),
+                      BoxShadow(
+                        color: Color(0x14101828),
+                        blurRadius: 24,
+                        offset: Offset(0, 20),
+                        spreadRadius: -4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header with 'X' button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SizedBox(width: 48), // Placeholder for alignment
+                          Text(
+                            'Conexão em andamento',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: appColors.onSurface,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              Navigator.pop(context, false);
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: ShapeDecoration(
+                          color: appColors.primary.withOpacity(0.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.account_balance,
+                          size: 32,
+                          color: appColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Body text
+                      Text(
+                        'Sua conta bancária está sendo sincronizada.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: appColors.onSurface,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Você deseja conectar outra conta enquanto isso?',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: appColors.onSurface,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Options
+                      Column(
+                        children: [
+                          _buildOptionTile(
+                            context: context,
+                            icon: Icons.add_circle_outline,
+                            title: 'Sim, conectar',
+                            description: 'Conectar outra conta bancária agora.',
+                            onTap: () => Navigator.of(context).pop(true),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildOptionTile(
+                            context: context,
+                            icon: Icons.check_circle_outline,
+                            title: 'Não conectar',
+                            description: 'Finalizar processo de conexão.',
+                            onTap: () async {
+                              // Call the API to set has_finished_openfinance_flow = true
+                              final success = await PostUserSettings.finishOpenFinanceFlow();
+                              if (!success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Erro ao finalizar fluxo Open Finance.'),
+                                  ),
+                                );
+                              }
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                // Positioned(
-                //   right: 0,
-                //   top: 0,
-                //   child: GestureDetector(
-                //     onTap: () => Navigator.of(context).pop(false),
-                //     child: Icon(
-                //       Icons.close,
-                //       size: 24,
-                //       color: appColors.primary,
-                //     ),
-                //   ),
-                // ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Title
-            Text(
-              'Conexão em andamento',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: appColors.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            // Body
-            Text(
-              'Sua conta bancária está\n em processo de conexão!',
-              style: TextStyle(
-                fontSize: 16,
-                color: appColors.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Deseja conectar outra conta?',
-              style: TextStyle(
-                fontSize: 16,
-                color: appColors.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            // Connect another account button
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: appColors.primary,
-                foregroundColor: appColors.onPrimary,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-              ),
-              child: const Text(
-                'Sim, conectar',
-                style: TextStyle(fontSize: 16),
               ),
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () async {
-                // if (showUncategorizedOption) {
-                //   ScaffoldMessenger.of(context).showSnackBar(
-                //     const SnackBar(
-                //       content: Text('Esperando carregamento da conta...'),
-                //     ),
-                //   );
-                // }
-                // Call the API to set has_finished_openfinance_flow = true
-                final success = await PostUserSettings.finishOpenFinanceFlow();
-                if (!success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Erro ao finalizar fluxo Open Finance.'),
-                    ),
-                  );
-                }
+          ],
+        ),
+      ),
+    );
+  }
 
-                Navigator.of(context).pop(false);
-              },
-              // Don't connect another account button
-              child: Text(
-                'Não conectar',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: appColors.primary,
+  Widget _buildOptionTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              width: 1,
+              color: Colors.blue.shade200,
+            ),
+          ),
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Option Icon
+            Container(
+              width: 20,
+              height: 20,
+              decoration: ShapeDecoration(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
+              ),
+              child: Icon(
+                icon,
+                color: appColors.primary,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Option Text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: appColors.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF344053),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
