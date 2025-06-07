@@ -969,7 +969,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                       Text.rich(
                                         TextSpan(
                                           text:
-                                              'Classificar transações não categorizadas',
+                                              'Rever suas transações agrupadas',
                                         ),
                                       ),
                                     ],

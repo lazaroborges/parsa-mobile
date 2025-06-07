@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
 import 'package:intl/intl.dart';
@@ -114,157 +115,259 @@ class _FilteredSwipeCardReviewModalState
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context); // Close the modal when tapping outside
+      },
       child: Container(
-        constraints: const BoxConstraints(
-          maxWidth: 400,
-          maxHeight: 600,
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        padding: const EdgeInsets.all(32),
+        decoration: const BoxDecoration(
+          color: Color(0xB20F1728), // Semi-transparent background
         ),
-        padding: const EdgeInsets.all(24),
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header with close button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Classificar Transações',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
+        child: Stack(
+          children: [
+            // Center the modal content
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: GestureDetector(
+                onTap: () {}, // Prevents tap events from propagating to the background
+                child: Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(
+                    maxHeight: 600,
                   ),
-                  const SizedBox(height: 32),
-                  // Main content area with buttons
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _PeriodButton(
-                          text: 'esta semana',
-                          transactionCount:
-                              _results['thisWeek']?.totalTransactions ?? 0,
-                          businessCount: _results['thisWeek']?.totalGroups ?? 0,
-                          onPressed: _results['thisWeek'] == null ||
-                                  _results['thisWeek']!.groups.isEmpty
-                              ? null
-                              : () => _openOverlay(
-                                  _results['thisWeek']!, 'Esta semana'),
-                        ),
-                        const SizedBox(height: 16),
-                        _PeriodButton(
-                          text: 'semana passada',
-                          transactionCount:
-                              _results['lastWeek']?.totalTransactions ?? 0,
-                          businessCount: _results['lastWeek']?.totalGroups ?? 0,
-                          onPressed: _results['lastWeek'] == null ||
-                                  _results['lastWeek']!.groups.isEmpty
-                              ? null
-                              : () => _openOverlay(
-                                  _results['lastWeek']!, 'Semana passada'),
-                        ),
-                        const SizedBox(height: 16),
-                        _PeriodButton(
-                          text: 'este mês',
-                          transactionCount:
-                              _results['thisMonth']?.totalTransactions ?? 0,
-                          businessCount:
-                              _results['thisMonth']?.totalGroups ?? 0,
-                          onPressed: _results['thisMonth'] == null ||
-                                  _results['thisMonth']!.groups.isEmpty
-                              ? null
-                              : () => _openOverlay(
-                                  _results['thisMonth']!, 'Este mês'),
-                        ),
-                        const SizedBox(height: 16),
-                        _PeriodButton(
-                          text: 'mês passado',
-                          transactionCount:
-                              _results['lastMonth']?.totalTransactions ?? 0,
-                          businessCount:
-                              _results['lastMonth']?.totalGroups ?? 0,
-                          onPressed: _results['lastMonth'] == null ||
-                                  _results['lastMonth']!.groups.isEmpty
-                              ? null
-                              : () => _openOverlay(
-                                  _results['lastMonth']!, 'Mês passado'),
-                        ),
-                      ],
+                  padding: const EdgeInsets.only(
+                    top: 20,
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: ShapeDecoration(
+                    color: appColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Footer with cancel button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancelar'),
+                    shadows: const [
+                      BoxShadow(
+                        color: Color(0x07101828),
+                        blurRadius: 8,
+                        offset: Offset(0, 8),
+                        spreadRadius: -4,
+                      ),
+                      BoxShadow(
+                        color: Color(0x14101828),
+                        blurRadius: 24,
+                        offset: Offset(0, 20),
+                        spreadRadius: -4,
                       ),
                     ],
                   ),
-                ],
+                  child: _loading
+                      ? const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Header with 'X' button
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const SizedBox(width: 48), // Placeholder for alignment
+                                Text(
+                                  'Rever Transações',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: appColors.onSurface,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            
+                            // Icon
+
+                            const SizedBox(height: 16),
+                            
+                            // Body text
+                            Text(
+                              'Escolha o período para revisar suas transações',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: appColors.onSurface,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            
+                            // Period options
+                            Column(
+                              children: [
+                                _buildPeriodTile(
+                                  context: context,
+                                  icon: Icons.today,
+                                  title: 'Esta semana',
+                                  transactionCount: _results['thisWeek']?.totalTransactions ?? 0,
+                                  businessCount: _results['thisWeek']?.totalGroups ?? 0,
+                                  onTap: _results['thisWeek'] == null ||
+                                          _results['thisWeek']!.groups.isEmpty
+                                      ? null
+                                      : () => _openOverlay(_results['thisWeek']!, 'Esta semana'),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildPeriodTile(
+                                  context: context,
+                                  icon: Icons.history,
+                                  title: 'Semana passada',
+                                  transactionCount: _results['lastWeek']?.totalTransactions ?? 0,
+                                  businessCount: _results['lastWeek']?.totalGroups ?? 0,
+                                  onTap: _results['lastWeek'] == null ||
+                                          _results['lastWeek']!.groups.isEmpty
+                                      ? null
+                                      : () => _openOverlay(_results['lastWeek']!, 'Semana passada'),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildPeriodTile(
+                                  context: context,
+                                  icon: Icons.calendar_month,
+                                  title: 'Este mês',
+                                  transactionCount: _results['thisMonth']?.totalTransactions ?? 0,
+                                  businessCount: _results['thisMonth']?.totalGroups ?? 0,
+                                  onTap: _results['thisMonth'] == null ||
+                                          _results['thisMonth']!.groups.isEmpty
+                                      ? null
+                                      : () => _openOverlay(_results['thisMonth']!, 'Este mês'),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildPeriodTile(
+                                  context: context,
+                                  icon: Icons.calendar_today,
+                                  title: 'Mês passado',
+                                  transactionCount: _results['lastMonth']?.totalTransactions ?? 0,
+                                  businessCount: _results['lastMonth']?.totalGroups ?? 0,
+                                  onTap: _results['lastMonth'] == null ||
+                                          _results['lastMonth']!.groups.isEmpty
+                                      ? null
+                                      : () => _openOverlay(_results['lastMonth']!, 'Mês passado'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                ),
               ),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-class _PeriodButton extends StatelessWidget {
-  final String text;
-  final int transactionCount;
-  final int businessCount;
-  final VoidCallback? onPressed;
+  Widget _buildPeriodTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required int transactionCount,
+    required int businessCount,
+    required VoidCallback? onTap,
+  }) {
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+    final isEnabled = onTap != null && transactionCount > 0;
 
-  const _PeriodButton({
-    required this.text,
-    required this.transactionCount,
-    required this.businessCount,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
+    return GestureDetector(
+      onTap: isEnabled ? onTap : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: ShapeDecoration(
+          color: isEnabled ? Colors.white : Colors.grey.shade50,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              width: 1,
+              color: isEnabled ? Colors.blue.shade200 : Colors.grey.shade300,
+            ),
           ),
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
-            width: 1.5,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shadows: isEnabled
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Text(
-              text,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+            // Option Icon
+            Container(
+              width: 20,
+              height: 20,
+              decoration: ShapeDecoration(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: isEnabled ? appColors.primary : Colors.grey.shade400,
+                size: 16,
+              ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              '$transactionCount transações de $businessCount pessoas e negócios',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.7),
+            const SizedBox(width: 16),
+            // Option Text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: isEnabled ? appColors.onSurface : Colors.grey.shade500,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    transactionCount > 0
+                        ? '$transactionCount transações de $businessCount pessoas e negócios'
+                        : 'Nenhuma transação encontrada',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: isEnabled 
+                          ? const Color(0xFF344053) 
+                          : Colors.grey.shade400,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            if (isEnabled)
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: appColors.primary,
+              ),
           ],
         ),
       ),
