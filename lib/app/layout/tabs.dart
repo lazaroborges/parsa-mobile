@@ -113,10 +113,10 @@ class TabsPageState extends State<TabsPage>
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
 
-      // After data loading, check uncategorized dialog
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await _checkCousinFoundDialog();
-      });
+      // // After data loading, check uncategorized dialog
+      // WidgetsBinding.instance.addPostFrameCallback((_) async {
+      //   await _checkCousinFoundDialog();
+      // });
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -453,7 +453,7 @@ class TabsPageState extends State<TabsPage>
     await refreshData(showLoading: false);
 
     // Then check if we should show the uncategorized dialog
-    await _checkCousinFoundDialog();
+    //await _checkCousinFoundDialog();
   }
 }
 

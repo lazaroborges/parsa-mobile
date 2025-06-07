@@ -10,12 +10,16 @@ import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
+import 'package:parsa/main.dart' show navigatorKey; // Import the global navigator key
 
 Future<void> fetchUserTransactions(String? accountId,
     {String? nextPageUrl, int? cousinValue, String? item}) async {
@@ -65,8 +69,39 @@ Future<void> fetchUserTransactions(String? accountId,
     if (jsonResponse['next'] != null) {
       unawaited(fetchUserTransactions(null, nextPageUrl: jsonResponse['next']));
     } else {
-      print('🎉 All transactions fetched! No more pages.');
       await updateLastSyncTimestamp(DateTime.now());
+      // Access UserDataProvider data
+      final userDataProvider = UserDataProvider.instance;
+      final userData = userDataProvider.userData;
+      
+      // You can now use the userData
+      if (userData != null) {
+        // Example: Access specific fields
+        print('=================== User data: $userData');
+        final hasFinished = userData['has_finished_openfinance_flow'];
+        final trigger = userData['trigger_swipe_cards_flow'];
+
+        if (hasFinished && trigger) {
+          // Use the global navigator key to get context
+          final context = navigatorKey.currentContext;
+          if (context != null && context.mounted) {
+            // Get cousin count for the current year
+            final now = DateTime.now();
+            final startOfYear = DateTime(now.year, 1, 1);
+            final endOfYear = DateTime(now.year, 12, 31, 23, 59, 59);
+            final cousinResult = await getCousinGroupsForPeriod(startOfYear, endOfYear);
+            final count = cousinResult.totalGroups;
+            
+            if (count > 0) {
+              await CousinFoundDialog.showAndHandle(context, cousinCount: count);
+            }
+          }
+        }
+        
+        // Or access specific keys like: userData['someKey']
+      }
+      
+      
     }
   } else {
     throw Exception('Failed to load user transactions');
