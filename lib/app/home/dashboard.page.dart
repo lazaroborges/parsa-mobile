@@ -791,6 +791,31 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ),
+              
+              // DEBUG: Cousin Found Dialog Button
+              if (kDebugMode) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.bug_report),
+                      label: const Text('DEBUG: Trigger Cousin Found Dialog'),
+                      onPressed: () {
+                        CousinFoundDialog.showAndHandle(
+                          context,
+                          cousinCount: 15, // Mock count for testing
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        side: const BorderSide(color: Colors.orange),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

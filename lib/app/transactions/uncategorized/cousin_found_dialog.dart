@@ -54,108 +54,214 @@ class _CousinFoundDialogWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      elevation: 0,
-      backgroundColor: const Color(0xFFF8F9FE),
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context, false); // Close the modal when tapping outside
+      },
       child: Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        padding: const EdgeInsets.all(32),
+        decoration: const BoxDecoration(
+          color: Color(0xB20F1728), // Semi-transparent background
+        ),
+        child: Stack(
           children: [
-            Stack(
-              children: [
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.archive,
-                      size: 40,
-                      color: appColors.primary,
+            // Center the modal content
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: GestureDetector(
+                onTap: () {}, // Prevents tap events from propagating to the background
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(
+                    top: 20,
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: ShapeDecoration(
+                    color: appColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    shadows: const [
+                      BoxShadow(
+                        color: Color(0x07101828),
+                        blurRadius: 8,
+                        offset: Offset(0, 8),
+                        spreadRadius: -4,
+                      ),
+                      BoxShadow(
+                        color: Color(0x14101828),
+                        blurRadius: 24,
+                        offset: Offset(0, 20),
+                        spreadRadius: -4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header with 'X' button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SizedBox(width: 48), // Placeholder for alignment
+                          Text(
+                            'Revisar Transações',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: appColors.onSurface,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              Navigator.pop(context, false);
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Body text
+                      Text(
+                        'Terminamos de sincronizar suas contas e encontramos transações de $cousinCount pessoas e negócios diferentes.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: appColors.onSurface,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Vamos revisar as transações?',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: appColors.onSurface,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Options
+                      Column(
+                        children: [
+                          _buildOptionTile(
+                            context: context,
+                            icon: Icons.check_circle,
+                            title: 'Sim!',
+                            description: 'Revisar minhas transações agora.',
+                            onTap: () async {
+                              await PostUserSettings.triggerSwipeCardsFlow();
+                              UserDataProvider.instance.updateUserData({
+                                'trigger_swipe_cards_flow': false,
+                              });
+                              Navigator.of(context).pop(true);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _buildOptionTile(
+                            context: context,
+                            icon: Icons.schedule,
+                            title: 'Mais tarde',
+                            description: 'Revisar as transações em outro momento.',
+                            onTap: () => Navigator.of(context).pop(false),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(false),
-                    child: Icon(
-                      Icons.close,
-                      size: 24,
-                      color: appColors.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Title
-            Text(
-              'Revisão Transações',
-              style: TextStyle(
-                fontSize: 24,
-                color: appColors.onSurface,
-                fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            // Body
-            Text(
-              'Terminamos de sincronizar suas contas.Encontramos transações de  $cousinCount pessoas e negócios diferentes.',
-              style: TextStyle(
-                fontSize: 16,
-                color: appColors.onSurface,
-              ),
-              textAlign: TextAlign.center,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              width: 1,
+              color: Colors.blue.shade200,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Vamos revisar as transações?',
-              style: TextStyle(
-                fontSize: 16,
-                color: appColors.onSurface,
-              ),
-              textAlign: TextAlign.center,
+          ),
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(height: 16),
-            // Reclassify button
-            ElevatedButton(
-              onPressed: () async {
-                await PostUserSettings.triggerSwipeCardsFlow();
-                UserDataProvider.instance.updateUserData({
-                  'trigger_swipe_cards_flow': false,
-                });
-                Navigator.of(context).pop(true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: appColors.primary,
-                foregroundColor: appColors.onPrimary,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Option Icon
+            Container(
+              width: 20,
+              height: 20,
+              decoration: ShapeDecoration(
+                color: const Color.fromARGB(255, 255, 255, 255),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                'Sim, reclassificar',
-                style: TextStyle(fontSize: 16),
+              child: Icon(
+                icon,
+                color: appColors.primary,
               ),
             ),
-            const SizedBox(height: 8),
-            // Later button
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                'Mais tarde',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: appColors.primary,
-                ),
+            const SizedBox(width: 16),
+            // Option Text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: appColors.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF344053),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
