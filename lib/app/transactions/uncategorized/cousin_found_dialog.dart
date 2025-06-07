@@ -95,7 +95,7 @@ class _CousinFoundDialogWidget extends StatelessWidget {
             const SizedBox(height: 16),
             // Title
             Text(
-              'Reclassificar transações',
+              'Revisão Transações',
               style: TextStyle(
                 fontSize: 24,
                 color: appColors.onSurface,
@@ -106,7 +106,7 @@ class _CousinFoundDialogWidget extends StatelessWidget {
             const SizedBox(height: 16),
             // Body
             Text(
-              'Encontramos $cousinCount transações não classificadas.',
+              'Terminamos de sincronizar suas contas.Encontramos transações de  $cousinCount pessoas e negócios diferentes.',
               style: TextStyle(
                 fontSize: 16,
                 color: appColors.onSurface,
@@ -115,7 +115,7 @@ class _CousinFoundDialogWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Deseja reclassificar?',
+              'Vamos revisar as transações?',
               style: TextStyle(
                 fontSize: 16,
                 color: appColors.onSurface,
