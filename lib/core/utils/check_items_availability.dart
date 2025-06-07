@@ -45,6 +45,7 @@ Future<String?> checkItemAvailability(BuildContext context) async {
       return t.account.connection_errors.item_connection_in_progress;
     }
 
+// The return variables are meant to be used only to be displyed in the UI, not for conditional check and control flow. 
     switch (code) {
       case '0':
         return t.account.connection_errors.not_subscribed;

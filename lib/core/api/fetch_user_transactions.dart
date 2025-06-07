@@ -19,7 +19,7 @@ import 'package:parsa/main.dart';
 
 Future<void> fetchUserTransactions(String? accountId,
     {String? nextPageUrl, int? cousinValue, String? item}) async {
-  String url;
+    String url;
 
   if (nextPageUrl != null) {
     print("Fetching next page using URL: $nextPageUrl");
@@ -64,6 +64,9 @@ Future<void> fetchUserTransactions(String? accountId,
 
     if (jsonResponse['next'] != null) {
       unawaited(fetchUserTransactions(null, nextPageUrl: jsonResponse['next']));
+    } else {
+      print('🎉 All transactions fetched! No more pages.');
+      await updateLastSyncTimestamp(DateTime.now());
     }
   } else {
     throw Exception('Failed to load user transactions');

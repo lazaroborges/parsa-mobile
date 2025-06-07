@@ -142,8 +142,7 @@ class TabsPageState extends State<TabsPage>
       // Refresh accounts, transactions in parallel
       await Future.wait([_fetchUserAccounts(), _fetchUserTags()]);
 
-      // Then fetch transactions
-      await fetchUserTransactions(null);
+
 
       print('[TABS] Data refresh complete.');
 
@@ -392,30 +391,17 @@ class TabsPageState extends State<TabsPage>
 
   Future<void> _checkConnectionDialog() async {
     final userData = UserDataProvider.instance.userData;
-    final hasFinished = userData?['has_finished_openfinance_flow'] == true;
+    final hasFinished = userData?['has_finished_openfinance_flow'];
+    final hasItemsAvailable = userData?['has_items_available'];
     final t = Translations.of(context);
 
     // Show connection dialog only if user hasn't finished open finance flow
-    if (!hasFinished) {
-      final response = await checkItemAvailability(context);
-
-      if (response == t.account.connection_errors.limit_reached ||
-          response == t.account.connection_errors.daily_limit_reached ||
-          response == t.account.connection_errors.item_connection_in_progress) {
-        try {
-          await PostUserSettings.finishOpenFinanceFlow();
-          UserDataProvider.instance.updateUserData({
-            'has_finished_openfinance_flow': true,
-          });
-        } catch (e) {
-          print('Error setting has finished openfinance flow: $e');
-        }
-      }
-      if (response == null && context.mounted) {
-        await BankConnectionDialog.showAndHandle(context);
-      }
+    if (!hasFinished && hasItemsAvailable) {
+      await BankConnectionDialog.showAndHandle(context);      
     }
   }
+
+  //await BankConnectionDialog.showAndHandle(context); 
 
   Future<void> _checkCousinFoundDialog() async {
     final userData = UserDataProvider.instance.userData;
@@ -424,7 +410,7 @@ class TabsPageState extends State<TabsPage>
     final t = Translations.of(context);
 
     // Only proceed if user has finished open finance flow and hasn't been triggered yet
-    if (hasFinished && !hasTriggered) {
+    if (hasFinished && hasTriggered) {
       // Check if there are items in progress
       final response = await checkItemAvailability(context);
       print('checkCode: $response');
