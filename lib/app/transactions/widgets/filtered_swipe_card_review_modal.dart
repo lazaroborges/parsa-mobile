@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
 import 'package:intl/intl.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart';
+import 'package:parsa/core/models/date-utils/date_period_state.dart';
 
 class FilteredSwipeCardReviewModal extends StatefulWidget {
   const FilteredSwipeCardReviewModal({super.key});
@@ -15,31 +17,75 @@ class _FilteredSwipeCardReviewModalState
     extends State<FilteredSwipeCardReviewModal> {
   bool _loading = false;
   Map<String, CousinGroupResult?> _results = {};
+  int? _startOfWeek;
+  int? _startOfMonth;
 
   @override
   void initState() {
     super.initState();
-    _fetchAllCounts();
+    _loadPreferencesAndFetchCounts();
+  }
+
+  Future<void> _loadPreferencesAndFetchCounts() async {
+    final startOfWeek = await SharedPreferencesAsync.instance.getStartOfWeek();
+    final startOfMonth =
+        await SharedPreferencesAsync.instance.getStartOfMonth();
+    setState(() {
+      _startOfWeek = startOfWeek;
+      _startOfMonth = startOfMonth;
+    });
+    await _fetchAllCounts();
   }
 
   Future<void> _fetchAllCounts() async {
     setState(() => _loading = true);
     final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    final startOfLastWeek = startOfWeek.subtract(const Duration(days: 7));
-    final endOfLastWeek = startOfWeek.subtract(
+    final int weekStart = _startOfWeek ?? DateTime.sunday; // fallback to Sunday
+
+    // Find the start of this week
+    final int daysSinceWeekStart = (now.weekday - weekStart + 7) % 7;
+    final DateTime thisWeekStart = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: daysSinceWeekStart));
+
+    // Last week is 7 days before this week
+    final DateTime lastWeekStart =
+        thisWeekStart.subtract(const Duration(days: 7));
+    final DateTime lastWeekEnd = thisWeekStart.subtract(
         const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final startOfLastMonth = DateTime(now.year, now.month - 1, 1);
-    final endOfLastMonth = DateTime(now.year, now.month, 0, 23, 59, 59);
-    final endOfThisMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    final int monthStartDay = _startOfMonth ?? 1;
+
+    // Start of this month - if today is before monthStartDay, this month is previous month
+    final DateTime thisMonthStart = now.day < monthStartDay
+        ? DateTime(now.year, now.month - 1, monthStartDay)
+        : DateTime(now.year, now.month, monthStartDay);
+
+    // Last month is always one month before this month
+    final DateTime lastMonthStart = DateTime(
+        thisMonthStart.month == 1
+            ? thisMonthStart.year - 1
+            : thisMonthStart.year,
+        thisMonthStart.month == 1 ? 12 : thisMonthStart.month - 1,
+        monthStartDay);
+
+    // End of last month: day before thisMonthStart, at 23:59:59
+    final DateTime lastMonthEnd = thisMonthStart.subtract(
+        const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
+
+    print('thisWeekStart: $thisWeekStart');
+    print('lastWeekStart: $lastWeekStart');
+    print('lastWeekEnd: $lastWeekEnd');
+    print('thisMonthStart: $thisMonthStart');
+    print('lastMonthStart: $lastMonthStart');
+    print('lastMonthEnd: $lastMonthEnd');
 
     final results = await Future.wait([
-      getCousinGroupsForPeriod(startOfWeek, now), // this week
-      getCousinGroupsForPeriod(startOfLastWeek, endOfLastWeek), // last week
-      getCousinGroupsForPeriod(startOfMonth, endOfThisMonth), // this month
-      getCousinGroupsForPeriod(startOfLastMonth, endOfLastMonth), // last month
+      getCousinGroupsForPeriod(thisWeekStart, now), // this week
+      getCousinGroupsForPeriod(lastWeekStart, lastWeekEnd), // last week
+      getCousinGroupsForPeriod(thisMonthStart, now), // this month
+      getCousinGroupsForPeriod(lastMonthStart, lastMonthEnd), // last month
     ]);
+
     setState(() {
       _results = {
         'thisWeek': results[0],

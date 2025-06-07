@@ -233,8 +233,8 @@ class _CousinClassificationOverlayState
               );
             }
           },
-          numberOfCardsDisplayed: 3,
-          allowedSwipeDirection: AllowedSwipeDirection.only(
+          numberOfCardsDisplayed: totalCards >= 3 ? 3 : totalCards,
+          allowedSwipeDirection: const AllowedSwipeDirection.only(
             left: true,
             right: true,
           ),

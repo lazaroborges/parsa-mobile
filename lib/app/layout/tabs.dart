@@ -400,10 +400,10 @@ class TabsPageState extends State<TabsPage>
       final response = await checkItemAvailability(context);
 
       if (response == t.account.connection_errors.limit_reached ||
-          response == t.account.connection_errors.daily_limit_reached) {
+          response == t.account.connection_errors.daily_limit_reached ||
+          response == t.account.connection_errors.item_connection_in_progress) {
         try {
           await PostUserSettings.finishOpenFinanceFlow();
-          // Update local user data after successful API call
           UserDataProvider.instance.updateUserData({
             'has_finished_openfinance_flow': true,
           });
