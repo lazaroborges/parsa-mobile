@@ -54,6 +54,8 @@
 	<string>O Parsa precisa acessar sua galeria de fotos para permitir que você selecione imagens para seu perfil ou para compartilhar dentro do aplicativo.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>O Parsa pode precisar acessar sua câmera para tirar fotos para completar seu perfil.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O Parsa pode precisar acessar o microfone para funcionalidades de terceiros integradas ao aplicativo, mas não coleta ou armazena dados de áudio.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>O Parsa enviará notificações sobre suas finanças e atualizações importantes.</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
