@@ -1,8 +1,10 @@
 ## clean the caches 
 
+cd ios
 rm -rf ~/Library/Developer/Xcode/DerivedData
 pod deintegrate
 pod cache clean --all
+cd ..
 
 cd android
 ./gradlew clean

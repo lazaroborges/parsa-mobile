@@ -413,20 +413,12 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                               if (userData != null &&
                                                   userData['first_name'] !=
                                                       null) {
-                                                final firstName = utf8.decode(
-                                                    userData['first_name']
-                                                        .toString()
-                                                        .runes
-                                                        .toList());
+                                                final firstName = userData['first_name'].toString();
 
                                                 return Row(
                                                   children: [
                                                     Text(
-                                                      utf8.decode(
-                                                          userData['first_name']
-                                                              .toString()
-                                                              .runes
-                                                              .toList()),
+                                                      firstName,
                                                       style: Theme.of(context)
                                                           .textTheme
                                                           .titleSmall!
