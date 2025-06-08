@@ -10,20 +10,26 @@ import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
+import 'package:parsa/main.dart' show navigatorKey; // Import the global navigator key
 
-Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int? cousinValue, String? item}) async {
-  String url;
+Future<void> fetchUserTransactions(String? accountId,
+    {String? nextPageUrl, int? cousinValue, String? item}) async {
+    String url;
 
   if (nextPageUrl != null) {
     print("Fetching next page using URL: $nextPageUrl");
     Uri nextUri = Uri.parse(nextPageUrl);
-    url = '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
+    url =
+        '$apiEndpoint${nextUri.path}${nextUri.query.isEmpty ? '' : '?${nextUri.query}'}';
   } else if (item != null) {
     print("Fetching transactions for item: $item");
     url = '$apiEndpoint/api/transactions/?item=$item';
@@ -38,10 +44,9 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
   }
 
   print('--------Requesting URL: $url');
-  
+
   final auth0Provider = Auth0Provider.instance;
   final credentials = await auth0Provider.credentials;
-
 
   final response = await http.get(
     Uri.parse(url),
@@ -56,13 +61,47 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
     // Extract the results field and encode it back to JSON string
     String resultsJson = json.encode(jsonResponse['results']);
     unawaited(syncTransactions(resultsJson));
-    
+
     print('Count: ${jsonResponse['count']}, Next: ${jsonResponse['next']}');
     int objectCount = jsonResponse['results'].length;
     print('Number of transactions synced: $objectCount');
 
     if (jsonResponse['next'] != null) {
       unawaited(fetchUserTransactions(null, nextPageUrl: jsonResponse['next']));
+    } else {
+      await updateLastSyncTimestamp(DateTime.now());
+      // Access UserDataProvider data
+      final userDataProvider = UserDataProvider.instance;
+      final userData = userDataProvider.userData;
+      
+      // You can now use the userData
+      if (userData != null) {
+        // Example: Access specific fields
+        print('=================== User data: $userData');
+        final hasFinished = userData['has_finished_openfinance_flow'];
+        final trigger = userData['trigger_swipe_cards_flow'];
+
+        if (hasFinished && trigger) {
+          // Use the global navigator key to get context
+          final context = navigatorKey.currentContext;
+          if (context != null && context.mounted) {
+            // Get cousin count for the current year
+            final now = DateTime.now();
+            final startOfYear = DateTime(now.year, 1, 1);
+            final endOfYear = DateTime(now.year, 12, 31, 23, 59, 59);
+            final cousinResult = await getCousinGroupsForPeriod(startOfYear, endOfYear);
+            final count = cousinResult.totalGroups;
+            
+            if (count > 0) {
+              await CousinFoundDialog.showAndHandle(context, cousinCount: count);
+            }
+          }
+        }
+        
+        // Or access specific keys like: userData['someKey']
+      }
+      
+      
     }
   } else {
     throw Exception('Failed to load user transactions');
@@ -72,7 +111,8 @@ Future<void> fetchUserTransactions(String? accountId, {String? nextPageUrl, int?
 Future<void> syncTransactions(String apiResponse) async {
   try {
     // Step 1: Parse the API response
-    List<ApiTransaction> apiTransactions = fetchAndParseTransactions(apiResponse);
+    List<ApiTransaction> apiTransactions =
+        fetchAndParseTransactions(apiResponse);
     if (apiTransactions.isEmpty) {
       print('No transactions to sync.');
       return;
@@ -106,8 +146,6 @@ List<ApiTransaction> fetchAndParseTransactions(String responseBody) {
   try {
     final List<dynamic> parsed = json.decode(responseBody);
 
-
-
     return parsed.map((json) => ApiTransaction.fromJson(json)).toList();
   } catch (e) {
     throw Exception('Error parsing transactions: $e');
@@ -121,17 +159,10 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
   for (final apiTransaction in apiTransactions) {
     try {
       // Decode UTF-8 for fields that might contain special characters
-      final transactionCategory =
-          utf8.decode(apiTransaction.transactionCategory.runes.toList());
-      final description = apiTransaction.description != null
-          ? utf8.decode(apiTransaction.description!.runes.toList())
-          : 'Outros';
-      final paymentMethod = apiTransaction.paymentMethod != null
-          ? utf8.decode(apiTransaction.paymentMethod!.runes.toList())
-          : null;
-      final notes = apiTransaction.notes != null
-          ? utf8.decode(apiTransaction.notes!.runes.toList())
-          : null;
+      final transactionCategory = apiTransaction.transactionCategory;
+      final description = apiTransaction.description ?? 'Outros';
+      final paymentMethod = apiTransaction.paymentMethod;
+      final notes = apiTransaction.notes;
 
       // Fetch currency, default to 'BRL' if not provided
       final currencyCode = apiTransaction.currency ?? 'BRL';
@@ -234,6 +265,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         currentValueInPreferredCurrency:
             apiTransaction.amount, // Adjust as needed
         tags: tagsInDB, // Add this line
+        dontAskAgain: apiTransaction.dontAskAgain ?? false,
       );
 
       localTransactions.add(transaction);
@@ -303,8 +335,8 @@ Future<void> insertTransactionsIntoDB(
         }
       }
     });
-   // print(
-     //   'Batch insert or update successful for ${transactions.length} transactions.');
+    // print(
+    //   'Batch insert or update successful for ${transactions.length} transactions.');
     db.markTablesUpdated([db.transactions, db.transactionTags]);
   } catch (e) {
     print('Failed to batch insert or update transactions: $e');
@@ -333,6 +365,7 @@ extension MoneyTransactionExtension on MoneyTransaction {
       lastUpdateTime: lastUpdateTime,
       notes: notes,
       cousin: cousin,
+      dontAskAgain: dontAskAgain,
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
-import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
@@ -15,15 +14,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:parsa/core/services/branch/link_handler_service.dart';
 import 'package:parsa/core/providers/link_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/background_auth_service.dart';
 import 'package:parsa/app/stats/stats.page.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/utils/check_items_availability.dart';
+import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
+import 'package:parsa/core/api/post_methods/post_user_settings.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
+import 'package:parsa/i18n/translations.g.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -31,6 +36,15 @@ class TabsPage extends StatefulWidget {
 
   @override
   State<TabsPage> createState() => TabsPageState();
+
+  // Static method to handle FCM reload completion
+  static Future<void> handleFCMReloadComplete(BuildContext context) async {
+    // Find the TabsPageState in the widget tree
+    final tabsPageState = context.findAncestorStateOfType<TabsPageState>();
+    if (tabsPageState != null) {
+      await tabsPageState.handleFCMReloadComplete();
+    }
+  }
 }
 
 class TabsPageState extends State<TabsPage>
@@ -44,21 +58,20 @@ class TabsPageState extends State<TabsPage>
   bool _isInitialized = false;
   bool isLoadingTags = true;
 
-  // Create a static global key for access from outside
-  static final GlobalKey<TabsPageState> globalKey = GlobalKey<TabsPageState>();
-
   // Field to store the desired initial index for StatsPage
   int _statsInitialIndex = 0;
-  // Field to store the key for StatsPage to force rebuild
   Key _statsPageKey = UniqueKey();
+
+  TransactionFilters? _transactionFilters;
+  Key _transactionsPageKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Defer navigation until after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
+      await _checkConnectionDialog();
     });
   }
 
@@ -77,9 +90,7 @@ class TabsPageState extends State<TabsPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Dispose of background authentication service
     BackgroundAuthService.instance.dispose();
-    // Reset notification preferences session flag for next app start
     NotificationPreferencesService.instance.resetSessionFlag();
     super.dispose();
   }
@@ -90,6 +101,65 @@ class TabsPageState extends State<TabsPage>
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
       });
+    }
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      print('[TABS] Initializing data...');
+      // First fetch critical user info
+      await _fetchUserInfoServer();
+
+      // Then fetch all other data (accounts, transactions, tags) in parallel
+      await Future.wait([refreshData(showLoading: true)]);
+
+      // // After data loading, check uncategorized dialog
+      // WidgetsBinding.instance.addPostFrameCallback((_) async {
+      //   await _checkCousinFoundDialog();
+      // });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during initialization: $e');
+      }
+    }
+  }
+
+  Future<void> refreshData({bool showLoading = true}) async {
+    print('[TABS] Refreshing data...');
+    if (!mounted) return;
+
+    if (showLoading) {
+      setState(() {
+        isLoading = true;
+        isLoadingTransactions = true;
+      });
+    }
+
+    try {
+      // First fetch critical user info
+      await _fetchUserInfoServer();
+
+      // Refresh accounts, transactions in parallel
+      await Future.wait([_fetchUserAccounts(), _fetchUserTags()]);
+
+
+
+      print('[TABS] Data refresh complete.');
+
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      print('--Error refreshing data: $e');
+      if (mounted && showLoading) {
+        setState(() {
+          isLoading = false;
+          isLoadingTransactions = false;
+        });
+      }
     }
   }
 
@@ -136,26 +206,8 @@ class TabsPageState extends State<TabsPage>
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error handling notification permissions: $e');
-      }
-    }
-  }
-
-  Future<void> _initializeData() async {
-    try {
-      // First fetch critical user info
-      await _fetchUserInfoServer();
-
-      // Then fetch accounts and tags in parallel
-      await Future.wait([
-        _fetchUserAccounts(),
-        _fetchUserTags(),
-      ], eagerError: true);
-    } catch (e) {
-      if (kDebugMode) {
         print('Error during initialization: $e');
       }
-      // Handle initialization error appropriately
     }
   }
 
@@ -173,42 +225,6 @@ class TabsPageState extends State<TabsPage>
       setState(() {
         isLoading = false;
       });
-    }
-  }
-
-  // Public method to refresh both transactions and accounts from anywhere in the app
-  // This can be called when a notification with action=reload is received
-  Future<void> refreshData({bool showLoading = true}) async {
-    if (!mounted) return;
-
-    if (showLoading) {
-      setState(() {
-        isLoading = true;
-        isLoadingTransactions = true;
-      });
-    }
-
-    try {
-      // Refresh both accounts and transactions in parallel
-      await Future.wait([
-        _fetchUserAccounts(),
-        fetchUserTransactions(null),
-      ]);
-
-      if (mounted && showLoading) {
-        setState(() {
-          isLoading = false;
-          isLoadingTransactions = false;
-        });
-      }
-    } catch (e) {
-      print('--Error refreshing data: $e');
-      if (mounted && showLoading) {
-        setState(() {
-          isLoading = false;
-          isLoadingTransactions = false;
-        });
-      }
     }
   }
 
@@ -245,11 +261,11 @@ class TabsPageState extends State<TabsPage>
       parameters: {
         'destination_id': destination.id.toString(),
         'destination_label': destination.label,
-        'navigation_type': 'bottom_navigation', // or 'sidebar' depending on context
+        'navigation_type': 'bottom_navigation',
       },
     );
 
-    navigationSidebarKey.currentState?.setSelectedDestination(destination);
+    // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {
       selectedDestination = destination;
@@ -259,10 +275,23 @@ class TabsPageState extends State<TabsPage>
   }
 
   /// Call this to navigate to the Stats tab and set the initial subtab
-  void navigateToStatsTabWithIndex(int index) {
+  void navigateToStatsTab(int index) {
     _statsInitialIndex = index;
-    _statsPageKey = UniqueKey(); // Force StatsPage to rebuild
-    navigateToTab(2); // Assuming Stats is tab index 2 in your setup
+    _statsPageKey = UniqueKey();
+    navigateToTab(2);
+  }
+
+  void navigateToTransactionsTab(TransactionFilters filters) {
+    debugPrint('[TabsPage] Setting filters for Transactions tab: ' +
+        filters.toString());
+    final menuItems = getDestinations(context,
+        shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+    setState(() {
+      _transactionFilters = filters;
+      _transactionsPageKey = UniqueKey();
+      selectedDestination = menuItems[1];
+    });
+    debugPrint('[TabsPage] Navigated to Transactions tab');
   }
 
   @override
@@ -305,6 +334,16 @@ class TabsPageState extends State<TabsPage>
                 dateRangeService: const DatePeriodState(),
               );
             }
+            // If this is the Transactions tab, inject filters and key
+            if (entry.value.destination.runtimeType.toString() ==
+                'TransactionsPage') {
+              debugPrint('[TabsPage] Building TransactionsPage with filters: ' +
+                  (_transactionFilters?.toString() ?? 'null'));
+              return TransactionsPage(
+                key: _transactionsPageKey,
+                filters: _transactionFilters,
+              );
+            }
             return entry.value.destination;
           }).toList(),
         );
@@ -312,7 +351,6 @@ class TabsPageState extends State<TabsPage>
     );
   }
 
-  // Set up deep linking with authentication check
   void _setupDeepLinking() {
     // Initialize the deep link handler
     _initializeDeepLinkHandler();
@@ -330,36 +368,11 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  // Process any pending links with authentication check
+  // Schedule processing of any pending deep links
   void _schedulePendingLinkProcessing() {
-    // Slightly delay to ensure app is fully loaded
-    Future.delayed(Duration(milliseconds: 500), () {
-      if (!mounted) return;
-
-      // Check for pending URI in provider
-      final linkProvider = Provider.of<LinkProvider>(context, listen: false);
-      final pendingUri = linkProvider.pendingUri;
-
-      if (pendingUri != null) {
-        // Check authentication before processing
-        final auth0Provider =
-            Provider.of<Auth0Provider>(context, listen: false);
-
-        if (auth0Provider.credentials != null) {
-          // User is authenticated, process the link
-          LinkHandlerService.instance.processPendingDeepLinks(onComplete: () {
-            // Clear the pending URI after successful processing
-            Future.delayed(Duration(milliseconds: 300), () {
-              if (mounted) {
-                LinkHandlerService.instance.clearPendingUri();
-              }
-            });
-          });
-        } else {
-          print(
-              'Auth credentials not available, deep link will be processed after login');
-        }
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await LinkHandlerService.instance.processPendingDeepLinks();
+      LinkProvider.instance.clearPendingUri();
     });
   }
 
@@ -374,6 +387,72 @@ class TabsPageState extends State<TabsPage>
         });
       }
     }
+  }
+
+  Future<void> _checkConnectionDialog() async {
+    final userData = UserDataProvider.instance.userData;
+    final hasFinished = userData?['has_finished_openfinance_flow'];
+    final hasItemsAvailable = userData?['has_items_available'];
+
+    // Show connection dialog only if user hasn't finished open finance flow
+    if (!hasFinished && hasItemsAvailable) {
+      await BankConnectionDialog.showAndHandle(context);      
+    }
+  }
+
+  //await BankConnectionDialog.showAndHandle(context); 
+
+  Future<void> _checkCousinFoundDialog() async {
+    final userData = UserDataProvider.instance.userData;
+    final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
+    final hasFinished = userData?['has_finished_openfinance_flow'] == true;
+    final t = Translations.of(context);
+
+    // Only proceed if user has finished open finance flow and hasn't been triggered yet
+    if (hasFinished && hasTriggered) {
+      // Check if there are items in progress
+      final response = await checkItemAvailability(context);
+      print('checkCode: $response');
+
+      // If items are in progress, we'll wait for the FCM "reload" signal
+      // The FCM service will handle showing the uncategorized dialog after reload
+      if (response == t.account.connection_errors.item_connection_in_progress) {
+        if (kDebugMode) {
+          print('Items in progress detected. Waiting for FCM reload signal...');
+        }
+        return;
+      }
+
+      // If no items in progress, check for uncategorized transactions
+      final now = DateTime.now();
+      final startOfYear = DateTime(now.year, 1, 1);
+      final endOfYear = DateTime(now.year, 12, 31, 23, 59, 59);
+      final cousinResult =
+          await getCousinGroupsForPeriod(startOfYear, endOfYear);
+      final count = cousinResult.totalGroups;
+      if (count > 0) {
+        // Trigger the dialog and mark as triggered
+        try {
+          if (context.mounted) {
+            await CousinFoundDialog.showAndHandle(context, cousinCount: count);
+          }
+        } catch (e) {
+          print('Error triggering swipe cards flow: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> handleFCMReloadComplete() async {
+    if (kDebugMode) {
+      print('Handling FCM reload complete, checking uncategorized dialog...');
+    }
+
+    // First refresh data to get the latest transactions
+    await refreshData(showLoading: false);
+
+    // Then check if we should show the uncategorized dialog
+    //await _checkCousinFoundDialog();
   }
 }
 

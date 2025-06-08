@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
-import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/database/app_db.dart';
 
 class PendingNavigation {

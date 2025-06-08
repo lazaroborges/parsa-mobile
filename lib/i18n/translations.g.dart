@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 616
+/// Strings: 618
 ///
-/// Built on 2025-05-05 at 21:35 UTC
+/// Built on 2025-06-05 at 14:42 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -354,7 +354,7 @@ class _TranslationsTransactionPt {
 	String get synch_manual => 'Manualmente';
 	String get yes => 'Sim';
 	String get no => 'Não';
-	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
+	String get delete_openfinance_error => 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 	String get last_update => 'Última atualização';
 	String get payment_method => 'Forma de pagamento';
 	String get create => 'Nova transação';
@@ -1128,6 +1128,7 @@ class _TranslationsAccountConnectionErrorsPt {
 	String get not_subscribed => 'Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.';
 	String get limit_reached => 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 	String get daily_limit_reached => 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
+	String get item_connection_in_progress => 'Uma conta está em processo de conexão. Por favor, aguarde um momento e tente novamente.';
 	String get default_message => 'Não foi possível conectar no momento. Tente novamente mais tarde.';
 }
 
@@ -1185,6 +1186,7 @@ class _TranslationsBudgetsFormPt {
 	String get create => 'Adicionar orçamento';
 	String get edit => 'Editar orçamento';
 	String get negative_warn => 'Os orçamentos não podem ter um valor negativo';
+	String get null_warn => 'O valor inserido é inválido.';
 }
 
 // Path: budgets.details
@@ -1849,7 +1851,7 @@ extension on Translations {
 			case 'transaction.synch_manual': return 'Manualmente';
 			case 'transaction.yes': return 'Sim';
 			case 'transaction.no': return 'Não';
-			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso voc�� queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
+			case 'transaction.delete_openfinance_error': return 'Não é possível deletar transações do Open Finance. Caso você queira desconsiderar uma transação, use a opção \'Desconsiderada\' dentro do card da transação.';
 			case 'transaction.last_update': return 'Última atualização';
 			case 'transaction.payment_method': return 'Forma de pagamento';
 			case 'transaction.create': return 'Nova transação';
@@ -2053,6 +2055,7 @@ extension on Translations {
 			case 'account.connection_errors.not_subscribed': return 'Você ainda não é assinante do plano Premium. Por favor, assine o plano Premium para conectar suas contas com o Open Finance.';
 			case 'account.connection_errors.limit_reached': return 'Você atingiu o limite de 3 contas conectadas. Tente desconectar uma conta para adicionar outra.';
 			case 'account.connection_errors.daily_limit_reached': return 'O sistema atingiu o limite de conexões diárias. Por favor, tente novamente amanhã.';
+			case 'account.connection_errors.item_connection_in_progress': return 'Uma conta está em processo de conexão. Por favor, aguarde um momento e tente novamente.';
 			case 'account.connection_errors.default_message': return 'Não foi possível conectar no momento. Tente novamente mais tarde.';
 			case 'currencies.currency_converter': return 'Conversor de moedas';
 			case 'currencies.currency': return 'Moeda';
@@ -2145,6 +2148,7 @@ extension on Translations {
 			case 'budgets.form.create': return 'Adicionar orçamento';
 			case 'budgets.form.edit': return 'Editar orçamento';
 			case 'budgets.form.negative_warn': return 'Os orçamentos não podem ter um valor negativo';
+			case 'budgets.form.null_warn': return 'O valor inserido é inválido.';
 			case 'budgets.details.title': return 'Detalhes do orçamento';
 			case 'budgets.details.statistics': return 'Insights';
 			case 'budgets.details.budget_value': return 'Orçado';

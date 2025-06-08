@@ -8,28 +8,45 @@ import 'package:provider/provider.dart';
 
 Future<String?> checkItemAvailability(BuildContext context) async {
   final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-  final credentials = await auth0Provider.credentials;
-
+  final credentials = auth0Provider.credentials;
   final t = Translations.of(context);
 
-  final response = await http.get(
-    Uri.parse('$apiEndpoint/api/check-item-availability/'),
-    headers: {
-      'Authorization': 'Bearer ${credentials?.accessToken}',
-      'Content-Type': 'application/json',
-    },
-  );
+  final String? accessToken = credentials?.accessToken;
 
-  print(response.body);
+  final http.Response response;
+  try {
+    response = await http.get(
+      Uri.parse('$apiEndpoint/api/check-item-availability/'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+  } catch (e) {
+    print('Network error during checkItemAvailability: $e');
+    return t.account.connection_errors.default_message;
+  }
+
+  print(
+      'Response from checkItemAvailability: ${response.statusCode}, Body: ${response.body}');
+
+  final data = json.decode(response.body);
 
   if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    if (data['available'] == true) {
-      return null; // No error message, Pluggy is available
+    final bool isAvailable = data['available'] as bool;
+    if (isAvailable) {
+      return null;
     }
   } else if (response.statusCode == 403) {
-    final data = json.decode(response.body);
-    switch (data['code']) {
+    final bool hasInProgress = data['has_in_progress_items'] as bool;
+    final String? code = data['code'] as String?;
+
+    if (code == '4' && hasInProgress == true) {
+      return t.account.connection_errors.item_connection_in_progress;
+    }
+
+// The return variables are meant to be used only to be displyed in the UI, not for conditional check and control flow. 
+    switch (code) {
       case '0':
         return t.account.connection_errors.not_subscribed;
       case '4':
@@ -41,6 +58,5 @@ Future<String?> checkItemAvailability(BuildContext context) async {
     }
   }
 
-  return 'Erro ao verificar disponibilidade. Tente novamente mais tarde.';
+  return t.account.connection_errors.default_message;
 }
-

@@ -39,6 +39,8 @@ import 'package:parsa/core/services/branch/branch_config.dart';
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:parsa/core/services/branch/link_handler_service.dart';
+import 'package:parsa/core/presentation/audio/audio.dart';
 
 String apiEndpoint = '';
 
@@ -55,6 +57,9 @@ void main() async {
   await dotenv.load(fileName: '.env');
   await AppVersionProvider.instance.initialize();
 
+  // Initialize sound settings
+  await SoundSettings.initialize();
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -63,8 +68,8 @@ void main() async {
 
     // Initialize and configure Firebase Analytics only in release mode
     // if (kReleaseMode) {
-      firebaseAnalytics = FirebaseAnalytics.instance;
-      await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
+    firebaseAnalytics = FirebaseAnalytics.instance;
+    await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
     //   print("Firebase Analytics initialized and enabled");
     // } else {
     //   print("Firebase Analytics skipped in debug mode");
@@ -93,7 +98,7 @@ void main() async {
   );
 
   // Initialize Branch but don't process links yet
-  // await BranchConfig.initialize();
+  await BranchConfig.initialize();
 
   final app = MultiProvider(
     providers: [
@@ -126,7 +131,7 @@ final GlobalKey<TabsPageState> tabsPageKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Sidebar key not used anymore
-final GlobalKey<NavigationSidebarState> navigationSidebarKey = GlobalKey();
+// final GlobalKey<NavigationSidebarState> navigationSidebarKey = GlobalKey();
 
 class MonekinAppEntryPoint extends StatefulWidget {
   const MonekinAppEntryPoint({
@@ -393,7 +398,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     ],
                   ),
                   if (widget.introSeen)
-                    NavigationSidebar(key: navigationSidebarKey)
+                    // NavigationSidebar(key: navigationSidebarKey)
+                    const SizedBox.shrink()
                 ],
               );
 
@@ -448,6 +454,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     MaterialPageRoute(
                         builder: (context) => TabsPage(key: tabsPageKey)),
                   );
+                  // After navigation, process pending deep links
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    await LinkHandlerService.instance.processPendingDeepLinks();
+                  });
                 } else {
                   print(
                       "Questionnaire not filled or user data null, checking intake form.");
@@ -476,6 +486,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
           context,
           MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
         );
+        // After navigation, process pending deep links
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await LinkHandlerService.instance.processPendingDeepLinks();
+        });
       } else {
         // If intake is not completed, show IntakeForm
         Navigator.pushReplacement(
@@ -486,48 +500,3 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     });
   }
 }
-
-// // Simplified initialization for Firebase core and background message handler
-// Future<void> initializeFirebaseCore() async {
-//   try {
-//     // Initialize Firebase Messaging
-//     final messaging = FirebaseMessaging.instance;
-
-//     // Get and print the FCM token
-//     final fcmToken = await messaging.getToken();
-//     print('FCM Token: $fcmToken');
-
-//     // Listen for token refreshes
-//     messaging.onTokenRefresh.listen((newToken) {
-//       print('FCM Token refreshed: $newToken');
-//     });
-
-//     // iOS-specific setup (this is critical for iOS)
-//     if (Platform.isIOS) {
-//       await messaging.setForegroundNotificationPresentationOptions(
-//         alert: true,
-//         badge: true,
-//         sound: true,
-//       );
-
-//       // Request iOS notification permissions
-//       final settings = await messaging.requestPermission(
-//         alert: true,
-//         badge: true,
-//         sound: true,
-//         provisional: false,
-//       );
-
-//       print(
-//           'iOS Notification permission status: ${settings.authorizationStatus}');
-
-//       // Register with APNs - critical for iOS
-//       final apnsToken = await messaging.getAPNSToken();
-//       print('APNs Token: $apnsToken');
-//     }
-
-//     print("Firebase Messaging initialized successfully");
-//   } catch (e) {
-//     print("Error initializing Firebase Messaging: $e");
-//   }
-// }

@@ -1,20 +1,7 @@
-import 'dart:io';
-
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:parsa/app/settings/export.page.dart';
-import 'package:parsa/app/settings/import_csv.dart';
-import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/backup/backup_database_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
-import 'package:parsa/core/extensions/numbers.extensions.dart';
-import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
-import 'package:parsa/core/routes/destinations.dart';
-import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/main.dart';
 
 import 'widgets/settings_list_separator.dart';
 

@@ -43,10 +43,12 @@ class BiometricsService {
         // Find the BiometricsCheckScreen widget and call its callback
         final biometricsWidget =
             context.findAncestorWidgetOfExactType<BiometricsCheckScreen>();
-        if (biometricsWidget?.onBiometricsVerified != null) {
-          biometricsWidget!.onBiometricsVerified!();
+        // Defensive: Only call the callback if both the widget and callback are non-null
+        if (biometricsWidget != null &&
+            biometricsWidget.onBiometricsVerified != null) {
+          biometricsWidget.onBiometricsVerified!();
         } else {
-          // Fallback to direct navigation if callback is not available
+          // Fallback to direct navigation if callback or widget is not available
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => TabsPage()),

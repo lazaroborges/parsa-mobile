@@ -11,8 +11,6 @@ import 'package:parsa/app/tags/tags_selector.modal.dart';
 import 'package:parsa/app/transactions/form/transaction_form.page.dart';
 import 'package:parsa/app/transactions/label_value_info_table.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
-import 'package:parsa/core/database/services/currency/currency_service.dart';
-import 'package:parsa/core/database/services/exchange-rate/exchange_rate_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/extensions/string.extension.dart';
@@ -28,7 +26,6 @@ import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_di
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/core/services/view-actions/transaction_view_actions_service.dart';
-import 'package:parsa/core/utils/constants.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
@@ -36,6 +33,7 @@ import 'package:parsa/app/categories/selectors/category_picker.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_notes_modal.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_title_modal.dart';
+import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 
@@ -104,10 +102,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
+          // await AppSoundPlayer.playSuccessSound();
           setState(() {}); // Refresh the UI
         }).catchError((error) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -139,7 +138,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -177,7 +176,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -212,7 +211,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -674,7 +673,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                         'transaction_type': transaction.type.toString(),
                       },
                     );
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(t.transaction.edit_success)),
                     );
@@ -726,14 +725,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     context: context,
                     onAmountTap: () {
                       Navigator.push(
-                        context, 
+                        context,
                         MaterialPageRoute(
                           builder: (context) => TransactionFormPage(
                             transactionToEdit: transaction,
                             mode: transaction.type,
                           ),
                         ),
-                      ).then((_) => setState(() {})); // Refresh the UI when returning
+                      ).then((_) =>
+                          setState(() {})); // Refresh the UI when returning
                     },
                   ),
                 ),
@@ -747,7 +747,6 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-
                             CardWithHeader(
                               title: t.transaction.title,
                               body: LabelValueInfoTable(
@@ -768,14 +767,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                               ? FontStyle.italic
                                               : null,
                                         ),
-
                                       ),
                                     ),
                                     label: t.transaction.form.title,
-                                    
                                   ),
                                   LabelValueInfoItem(
-                                  
                                     isEditable: true,
                                     value: GestureDetector(
                                       onTap: () {
@@ -783,30 +779,41 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                           context,
                                           initialStatus: transaction.status,
                                         ).then((modalRes) {
-                                          if (modalRes != null && modalRes.result != null) {
+                                          if (modalRes != null &&
+                                              modalRes.result != null) {
                                             TransactionService.instance
                                                 .insertOrUpdateTransaction(
                                               transaction.copyWith(
-                                                status: drift.Value(modalRes.result),
+                                                status: drift.Value(
+                                                    modalRes.result),
                                               ),
                                             )
                                                 .then((value) {
                                               // Track status edit behavior
                                               firebaseAnalytics?.logEvent(
-                                                name: 'transaction_field_edited',
+                                                name:
+                                                    'transaction_field_edited',
                                                 parameters: {
                                                   'field_type': 'status',
-                                                  'transaction_type': transaction.type.toString(),
+                                                  'transaction_type':
+                                                      transaction.type
+                                                          .toString(),
                                                 },
                                               );
-                                              
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(t.transaction.edit_success)),
+
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(t.transaction
+                                                        .edit_success)),
                                               );
                                               setState(() {}); // Refresh the UI
                                             }).catchError((error) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(error.toString())),
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content:
+                                                        Text(error.toString())),
                                               );
                                             });
                                           }
@@ -816,15 +823,21 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            transaction.status?.icon ?? Icons.do_not_disturb_on_rounded,
+                                            transaction.status?.icon ??
+                                                Icons.do_not_disturb_on_rounded,
                                             size: 20,
-                                            color: transaction.status?.color ?? Colors.grey,
+                                            color: transaction.status?.color ??
+                                                Colors.grey,
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            transaction.status?.displayName(context) ?? t.transaction.status.none,
+                                            transaction.status
+                                                    ?.displayName(context) ??
+                                                t.transaction.status.none,
                                             style: TextStyle(
-                                              color: transaction.status?.color ?? Colors.grey,
+                                              color:
+                                                  transaction.status?.color ??
+                                                      Colors.grey,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -832,10 +845,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                     ),
                                     label: t.transaction.status.insights,
-                                    
                                   ),
                                   LabelValueInfoItem(
-
                                     value: buildInfoTileWithIconAndColor(
                                       icon: transaction.account.icon,
                                       color: transaction.account
@@ -843,7 +854,6 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                           .lighten(0.5),
                                       data: transaction.account.name,
                                       isAccount: true,
-                                      
                                       iconId: transaction.account.iconId,
                                     ),
                                     label: transaction.isTransfer
@@ -852,10 +862,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                   ),
                                   if (transaction.isIncomeOrExpense)
                                     LabelValueInfoItem(
-                               isEditable: true,
-
+                                      isEditable: true,
                                       value: GestureDetector(
-                                        
                                         onTap: () => updateCategory(
                                             context, transaction),
                                         child: buildInfoTileWithIconAndColor(
@@ -869,7 +877,6 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         ),
                                       ),
                                       label: t.general.category,
-                                      
                                     ),
                                   if (transaction.isTransfer)
                                     LabelValueInfoItem(
@@ -880,7 +887,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                           data: transaction
                                               .receivingAccount!.name,
                                           isAccount: false,
-                                          iconId: transaction.receivingAccount!.iconId,
+                                          iconId: transaction
+                                              .receivingAccount!.iconId,
                                         ),
                                         label: t.transfer.form.to),
                                   LabelValueInfoItem(
@@ -896,23 +904,30 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                         .datetime, // Assuming you have a combined label
                                   ),
                                   LabelValueInfoItem(
-                                                                        isEditable: true,
-
+                                    isEditable: true,
                                     value: GestureDetector(
                                       onTap: () =>
                                           updateNotes(context, transaction),
                                       child: Text(
-                                        transaction.notes?.isEmpty == true ? t.transaction.form.description_info : transaction.notes!,
+                                        transaction.notes?.isEmpty == true
+                                            ? t.transaction.form
+                                                .description_info
+                                            : transaction.notes!,
                                         style: TextStyle(
-                                          color: transaction.notes?.isEmpty == true ? Colors.grey : null,
-                                          fontStyle: transaction.notes?.isEmpty == true ? FontStyle.italic : null,
-                                          
-                                          decorationStyle: TextDecorationStyle.dotted,
+                                          color:
+                                              transaction.notes?.isEmpty == true
+                                                  ? Colors.grey
+                                                  : null,
+                                          fontStyle:
+                                              transaction.notes?.isEmpty == true
+                                                  ? FontStyle.italic
+                                                  : null,
+                                          decorationStyle:
+                                              TextDecorationStyle.dotted,
                                         ),
                                       ),
                                     ),
                                     label: t.transaction.form.description,
-                                    
                                   ),
                                   if (transaction.paymentMethod != null)
                                     LabelValueInfoItem(
@@ -953,7 +968,6 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             const SizedBox(height: 16),
                             CardWithHeader(
                               title: t.tags.display(n: 2),
-                              
                               bodyPadding: const EdgeInsets.all(12),
                               body: GestureDetector(
                                 onTap: () => updateTags(context, transaction),
@@ -989,7 +1003,12 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                                 color: tag.colorData),
                                           );
                                         })
-                                      : [Text(t.tags.no_tags, style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic))],
+                                      : [
+                                          Text(t.tags.no_tags,
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontStyle: FontStyle.italic))
+                                        ],
                                 ),
                               ),
                             ),
@@ -1027,9 +1046,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                     cousinFilter: transaction.cousin,
                                   ),
                                   prevPage: widget.prevPage,
-
                                   limit: 5,
-                                  heroTagBuilder: (tr) => 'related-${tr.id}-${transaction.cousin}-${Random().nextInt(1000000)}',
+                                  heroTagBuilder: (tr) =>
+                                      'related-${tr.id}-${transaction.cousin}-${Random().nextInt(1000000)}',
                                   onEmptyList: Center(
                                     child: Text("Don't display this"),
                                   ),
@@ -1107,6 +1126,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     );
   }
 }
+
 class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
   _TransactionDetailHeader({
     required this.transaction,
@@ -1148,17 +1168,18 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 100),
                     style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                      fontSize: 34 - shrinkPercent * 16,
-                      fontWeight: FontWeight.w600,
-                      color: transaction.status == TransactionStatus.voided
-                          ? Colors.grey.shade400
-                          : transaction.type == TransactionType.T
-                              ? null
-                              : transaction.type.color(context),
-                      decoration: transaction.status == TransactionStatus.voided
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
+                          fontSize: 34 - shrinkPercent * 16,
+                          fontWeight: FontWeight.w600,
+                          color: transaction.status == TransactionStatus.voided
+                              ? Colors.grey.shade400
+                              : transaction.type == TransactionType.T
+                                  ? null
+                                  : transaction.type.color(context),
+                          decoration:
+                              transaction.status == TransactionStatus.voided
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                        ),
                     child: CurrencyDisplayer(
                       amountToConvert: transaction.value,
                       currency: transaction.account.currency,
@@ -1179,7 +1200,8 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
                 if (transaction.recurrentInfo.isNoRecurrent)
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (Widget child, Animation<double> animation) {
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
                       return SizeTransition(
                         sizeFactor: animation,
                         child: ScaleTransition(
@@ -1259,13 +1281,15 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
     final iconSize = 42.0; // Maximum icon size
 
     final totalWidth = MediaQuery.of(context).size.width;
-    final availableWidth = totalWidth - horizontalPadding - betweenSpacing - iconSize;
+    final availableWidth =
+        totalWidth - horizontalPadding - betweenSpacing - iconSize;
 
     final amountFontSize = 34.0;
-    final amountTextStyle = Theme.of(context).textTheme.headlineMedium!.copyWith(
-          fontSize: amountFontSize,
-          fontWeight: FontWeight.w600,
-        );
+    final amountTextStyle =
+        Theme.of(context).textTheme.headlineMedium!.copyWith(
+              fontSize: amountFontSize,
+              fontWeight: FontWeight.w600,
+            );
     final amountText = CurrencyDisplayer(
       amountToConvert: transaction.value,
       currency: transaction.account.currency,

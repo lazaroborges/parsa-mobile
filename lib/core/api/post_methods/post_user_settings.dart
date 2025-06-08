@@ -214,4 +214,68 @@ class PostUserSettings {
       };
     }
   }
+
+  static Future<bool> finishOpenFinanceFlow() async {
+    try {
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+
+      if (credentials == null) {
+        print('User not authenticated, cannot finish open finance flow.');
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/users/finish-openfinance-flow/'),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization': 'Bearer ${credentials.accessToken}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Successfully set has_finished_openfinance_flow.');
+        return true;
+      } else {
+        print(
+            'Failed to set has_finished_openfinance_flow: ${response.statusCode} ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error finishing open finance flow: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> triggerSwipeCardsFlow() async {
+    try {
+      final auth0Provider = Auth0Provider.instance;
+      final credentials = await auth0Provider.credentials;
+
+      if (credentials == null) {
+        print('User not authenticated, cannot trigger swipe cards flow.');
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/users/trigger-swipe-cards-flow/'),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization': 'Bearer ${credentials.accessToken}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Successfully triggered swipe cards flow.');
+        return true;
+      } else {
+        print(
+            'Failed to trigger swipe cards flow: ${response.statusCode} ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error triggering swipe cards flow: $e');
+      return false;
+    }
+  }
 }

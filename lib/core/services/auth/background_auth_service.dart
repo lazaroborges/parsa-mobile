@@ -13,7 +13,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
-import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 
@@ -29,7 +28,7 @@ class BackgroundAuthService with WidgetsBindingObserver {
   // Fields
   DateTime? _backgroundTime;
   BuildContext? _context;
-  final _backgroundThreshold = const Duration(minutes: 2);
+  final _backgroundThreshold = const Duration(seconds: 200);
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _isInitialized = false;
 

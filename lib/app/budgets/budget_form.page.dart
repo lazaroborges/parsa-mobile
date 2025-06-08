@@ -64,10 +64,14 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
   submitForm() {
     final t = Translations.of(context);
 
+    if (valueToNumber == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(t.budgets.form.null_warn)));
+      return;
+    }
     if (valueToNumber! < 0) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(t.budgets.form.negative_warn)));
-
       return;
     }
 

@@ -12,6 +12,7 @@ class PostUserCousinRules {
     required String triggeringId,
     required Map<String, dynamic> changes,
     required bool applyToFuture,
+    bool dontAskAgain = false,
   }) async {
     try {
       // Get auth token using Provider
@@ -33,6 +34,7 @@ class PostUserCousinRules {
           'triggering_id': triggeringId,
           'changes': changes,
           'create_rule': applyToFuture,
+          'dont_ask_again': dontAskAgain,
         }, toEncodable: (object) {
           if (object is String) {
             return utf8.decode(utf8.encode(object));

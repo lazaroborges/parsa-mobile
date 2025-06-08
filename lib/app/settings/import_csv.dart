@@ -264,6 +264,7 @@ class _ImportCSVPageState extends State<ImportCSVPage> {
           isHidden: false,
           isOpenFinance: false,
           categoryID: categoryID,
+          dontAskAgain: false,
           notes: notesColumn == null || row[notesColumn!].toString().isEmpty
               ? null
               : row[notesColumn!].toString(),

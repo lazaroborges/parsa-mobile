@@ -89,7 +89,8 @@ class AppDB extends _$AppDB {
             .first;
 
         if (storedAppVersion == null || storedAppVersion != currentAppVersion) {
-          print('App version changed or missing. Recreating the database schema...');
+          print(
+              'App version changed or missing. Recreating the database schema...');
 
           // Disable foreign keys before dropping tables
           await customStatement('PRAGMA foreign_keys = OFF');
@@ -139,8 +140,8 @@ class AppDB extends _$AppDB {
 
           // Existing migration logic
           final dbVersion = int.parse((await AppDataService.instance
-                  .getAppDataItem(AppDataKey.dbVersion)
-                  .first)!);
+              .getAppDataItem(AppDataKey.dbVersion)
+              .first)!);
 
           if (dbVersion < schemaVersion) {
             await migrateDB(dbVersion, schemaVersion);

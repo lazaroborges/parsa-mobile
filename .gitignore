@@ -20,6 +20,7 @@ parsa-financial-parser-br-2-950fca6428a1.json
 # Firebase
 google-services.json
 ios/Runner/GoogleService-Info.plist 
+ios/Podfile.lock
 
 # IntelliJ related
 *.iml

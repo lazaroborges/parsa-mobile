@@ -77,10 +77,8 @@ Future<List<Account>> convertApiAccountsToLocal(
         .first) as CurrencyInDB;
 
     // Decode UTF-8 for both name and description
-    final name = utf8.decode(apiAccount.name.runes.toList());
-    final description = apiAccount.description != null
-        ? utf8.decode(apiAccount.description!.runes.toList())
-        : null;
+    final name = apiAccount.name;
+    final description = apiAccount.description;
 
     Account account = Account(
       id: apiAccount.accountId,

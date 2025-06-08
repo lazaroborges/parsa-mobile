@@ -7,6 +7,7 @@ import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/api/post_methods/post_user_cousin_rules.dart';
+import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
   @override
@@ -21,6 +22,10 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
 
   Future<bool?> _handleCousinFound(int cousins, String triggeringId,
       int cousinValue, bool positiveInflow, TransactionChanges changes) async {
+    if (cousins <= 1) {
+      return null;
+    }
+
     // Build changes description
     final List<String> changesList = [];
     if (changes.description != null) changesList.add('Descrição');
@@ -73,6 +78,17 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                   CardWithHeader(
                     title: 'Transações Similares',
                     bodyPadding: const EdgeInsets.all(8),
+                    onHeaderTap: () {
+                      Navigator.pop(context);
+                      RouteUtils.pushRoute(
+                        context,
+                        TransactionsPage(
+                          filters: TransactionFilters(
+                            cousinFilter: cousinValue,
+                          ),
+                        ),
+                      );
+                    },
                     body: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.4,
@@ -117,19 +133,31 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          RouteUtils.pushRoute(
-                            context,
-                            TransactionsPage(
-                              filters: TransactionFilters(
-                                cousinFilter: cousinValue,
-                              ),
-                            ),
-                          );
+                      OutlinedButton(
+                        onPressed: () async {
+                          try {
+                            await PostUserCousinRules.updateCousinRules(
+                              cousinValue: cousinValue,
+                              triggeringId: triggeringId,
+                              changes: {},
+                              applyToFuture: false,
+                              dontAskAgain: true,
+                            );
+                            Navigator.pop(context, false);
+                          } catch (e) {
+                            print(
+                                'Failed to update cousin rules (don\'t ask again): $e');
+                            Navigator.pop(context, false);
+                          }
                         },
-                        child: const Text('Revisar'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onSurface,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        child: const Text('Nunca Perguntar'),
                       ),
                       FilledButton(
                         onPressed: () async {
@@ -140,6 +168,8 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                               changes: changes.toJson(),
                               applyToFuture: _applyToFuture,
                             );
+                            // Play success sound after successful recategorization
+                            // await AppSoundPlayer.playSuccessSound();
                             Navigator.pop(context, true);
                           } catch (e) {
                             print('Failed to update cousin rules: $e');

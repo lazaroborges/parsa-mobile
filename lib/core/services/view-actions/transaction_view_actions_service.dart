@@ -133,6 +133,7 @@ class TransactionViewActionService {
           status: transaction.status,
           valueInDestiny: transaction.valueInDestiny,
           isOpenFinance: transaction.isOpenFinance,
+          dontAskAgain: transaction.dontAskAgain,
         ),
       )
           .then((value) {

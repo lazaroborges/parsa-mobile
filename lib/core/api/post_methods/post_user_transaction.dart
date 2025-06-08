@@ -60,7 +60,6 @@ class PostUserTransactionService {
               body: json.encode(transactionJson),
             );
 
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       } else {
@@ -91,7 +90,6 @@ class PostUserTransactionService {
         },
         body: json.encode(body), // Include the body in the request
       );
-
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         return true;

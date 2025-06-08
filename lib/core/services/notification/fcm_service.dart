@@ -18,6 +18,10 @@ import 'package:parsa/core/routes/pending_navigation.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/routes/navigation_delegate.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 
 enum NotificationCategory {
   budgets,
@@ -130,6 +134,11 @@ class FCMService {
           print('User tapped on notification: ${message.messageId}');
           print('Message data: ${message.data}');
         }
+        // Post notification opened event using notification_id from payload
+        final notificationId = message.data['notification_id'];
+        if (notificationId is String && notificationId.isNotEmpty) {
+          postOpenNotification(notificationId);
+        }
 
         // Handle reload action
         if (message.data.containsKey('action') &&
@@ -140,7 +149,8 @@ class FCMService {
             // Fix the key name to match item_id
             final String? itemId = message.data['item_id'];
             // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-            _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
+            _handleReloadAction(context,
+                isBackgroundOrTerminated: true, itemId: itemId);
 
             // Navigate to dashboard using a more reliable approach
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -156,26 +166,71 @@ class FCMService {
 
         // Handle standard route navigation
         if (message.data.containsKey('route')) {
+          if (kDebugMode) print('Found route in message data');
           final route = message.data['route'] as String;
           String? id;
+          Map<String, String>? queryParams;
+
+          // Parse queryParams if present
+          if (message.data.containsKey('queryParams')) {
+            if (kDebugMode) print('Found queryParams in message data');
+            try {
+              final qpRaw = message.data['queryParams'];
+              if (qpRaw is String && qpRaw.isNotEmpty) {
+                if (kDebugMode) print('QueryParams is a non-empty string');
+                final decoded = jsonDecode(qpRaw);
+                if (decoded is Map) {
+                  queryParams = decoded
+                      .map((k, v) => MapEntry(k.toString(), v.toString()));
+                }
+              } else if (qpRaw is Map) {
+                if (kDebugMode) print('QueryParams is a Map');
+                queryParams =
+                    qpRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
+              }
+            } catch (e) {
+              if (kDebugMode) print('Failed to parse queryParams: $e');
+            }
+          }
+
+          // If this is a tab route, navigate directly
+          if (route == 'transactions' || route.startsWith('stats')) {
+            if (kDebugMode) print('Navigating to tab route: $route');
+            NavigationDelegate.instance.navigateToAppRoute(
+              route,
+              id: id,
+              queryParams: queryParams,
+            );
+            return;
+          }
+
+          // Otherwise, use pendingNavigation for non-tab/detail navigation
           Future<dynamic>? dataFuture;
           // If route contains a slash and an id, split it
-          if (route.contains('/') && !route.startsWith('stats')) {
+          if (route.contains('/')) {
+            if (kDebugMode) print('Route contains slash, splitting: $route');
             final parts = route.split('/');
             if (parts.length == 2) {
+              if (kDebugMode)
+                print('Route has 2 parts, processing detail navigation');
               id = parts[1];
               switch (parts[0]) {
                 case 'accounts':
+                  if (kDebugMode) print('Fetching account data for id: $id');
                   dataFuture = AccountService.instance.getAccountById(id).first;
                   break;
                 case 'budgets':
+                  if (kDebugMode) print('Fetching budget data for id: $id');
                   dataFuture = BudgetService.instance.getBudgetById(id).first;
                   break;
                 case 'transactions':
+                  if (kDebugMode)
+                    print('Fetching transaction data for id: $id');
                   dataFuture =
                       TransactionService.instance.getTransactionById(id).first;
                   break;
                 case 'tags':
+                  if (kDebugMode) print('Fetching tag data for id: $id');
                   final context = navigatorKey.currentContext;
                   if (context != null) {
                     dataFuture = fetchAndFindTagById(context, id);
@@ -187,7 +242,9 @@ class FCMService {
               return;
             }
           }
-          // For stats subroutes (e.g., stats/cash-flow)
+          // For other routes, fallback to pendingNavigation
+          if (kDebugMode)
+            print('Using fallback pendingNavigation for route: $route');
           pendingNavigation = PendingNavigation(route: route);
         }
       });
@@ -199,6 +256,11 @@ class FCMService {
               'App was terminated and opened via notification: ${initialMessage.messageId}');
           print('Message data: ${initialMessage.data}');
         }
+        // Post notification opened event using notification_id from payload
+        final notificationId = initialMessage.data['notification_id'];
+        if (notificationId is String && notificationId.isNotEmpty) {
+          postOpenNotification(notificationId);
+        }
 
         if (initialMessage.data.containsKey('action') &&
             initialMessage.data['action'] == 'reload') {
@@ -209,7 +271,8 @@ class FCMService {
               // Fix the key name to match item_id
               final String? itemId = initialMessage.data['item_id'];
               // Pass true for isBackgroundOrTerminated to avoid showing the snackbar
-              _handleReloadAction(context, isBackgroundOrTerminated: true, itemId: itemId);
+              _handleReloadAction(context,
+                  isBackgroundOrTerminated: true, itemId: itemId);
 
               // Navigate to dashboard using a more reliable approach
               Navigator.of(context).popUntil((route) => route.isFirst);
@@ -225,37 +288,89 @@ class FCMService {
         }
 
         // Handle standard route navigation
-        final route = initialMessage.data['route'] as String;
-        String? id;
-        Future<dynamic>? dataFuture;
-        if (route.contains('/') && !route.startsWith('stats')) {
-          final parts = route.split('/');
-          if (parts.length == 2) {
-            id = parts[1];
-            switch (parts[0]) {
-              case 'accounts':
-                dataFuture = AccountService.instance.getAccountById(id).first;
-                break;
-              case 'budgets':
-                dataFuture = BudgetService.instance.getBudgetById(id).first;
-                break;
-              case 'transactions':
-                dataFuture =
-                    TransactionService.instance.getTransactionById(id).first;
-                break;
-              case 'tags':
-                final context = navigatorKey.currentContext;
-                if (context != null) {
-                  dataFuture = fetchAndFindTagById(context, id);
+        if (initialMessage.data.containsKey('route')) {
+          if (kDebugMode) print('Found route in initialMessage data');
+          final route = initialMessage.data['route'] as String;
+          String? id;
+          Map<String, String>? queryParams;
+
+          // Parse queryParams if present
+          if (initialMessage.data.containsKey('queryParams')) {
+            if (kDebugMode) print('Found queryParams in initialMessage data');
+            try {
+              final qpRaw = initialMessage.data['queryParams'];
+              if (qpRaw is String && qpRaw.isNotEmpty) {
+                if (kDebugMode) print('QueryParams is a non-empty string');
+                final decoded = jsonDecode(qpRaw);
+                if (decoded is Map) {
+                  queryParams = decoded
+                      .map((k, v) => MapEntry(k.toString(), v.toString()));
                 }
-                break;
+              } else if (qpRaw is Map) {
+                if (kDebugMode) print('QueryParams is a Map');
+                queryParams =
+                    qpRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
+              }
+            } catch (e) {
+              if (kDebugMode) print('Failed to parse queryParams: $e');
             }
-            pendingNavigation = PendingNavigation(
-                route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+          }
+
+          // If this is a tab route, navigate directly
+          if (route == 'transactions' || route.startsWith('stats')) {
+            if (kDebugMode)
+              print('Navigating to tab route from initialMessage: $route');
+            NavigationDelegate.instance.navigateToAppRoute(
+              route,
+              id: id,
+              queryParams: queryParams,
+            );
             return;
           }
+
+          // Otherwise, use pendingNavigation for non-tab/detail navigation
+          Future<dynamic>? dataFuture;
+          // If route contains a slash and an id, split it
+          if (route.contains('/')) {
+            if (kDebugMode) print('Route contains slash, splitting: $route');
+            final parts = route.split('/');
+            if (parts.length == 2) {
+              if (kDebugMode)
+                print('Route has 2 parts, processing detail navigation');
+              id = parts[1];
+              switch (parts[0]) {
+                case 'accounts':
+                  if (kDebugMode) print('Fetching account data for id: $id');
+                  dataFuture = AccountService.instance.getAccountById(id).first;
+                  break;
+                case 'budgets':
+                  if (kDebugMode) print('Fetching budget data for id: $id');
+                  dataFuture = BudgetService.instance.getBudgetById(id).first;
+                  break;
+                case 'transactions':
+                  if (kDebugMode)
+                    print('Fetching transaction data for id: $id');
+                  dataFuture =
+                      TransactionService.instance.getTransactionById(id).first;
+                  break;
+                case 'tags':
+                  if (kDebugMode) print('Fetching tag data for id: $id');
+                  final context = navigatorKey.currentContext;
+                  if (context != null) {
+                    dataFuture = fetchAndFindTagById(context, id);
+                  }
+                  break;
+              }
+              pendingNavigation = PendingNavigation(
+                  route: '${parts[0]}/id', id: id, dataFuture: dataFuture);
+              return;
+            }
+          }
+          // For other routes, fallback to pendingNavigation
+          if (kDebugMode)
+            print('Using fallback pendingNavigation for route: $route');
+          pendingNavigation = PendingNavigation(route: route);
         }
-        pendingNavigation = PendingNavigation(route: route);
       }
 
       // Make sure FCM token is registered with the backend
@@ -345,7 +460,8 @@ class FCMService {
   Future<void> _handleReloadAction(BuildContext? context,
       {bool isBackgroundOrTerminated = false, String? itemId}) async {
     if (kDebugMode) {
-      print("Handling reload action${itemId != null ? ' for itemId: $itemId' : ''}");
+      print(
+          "Handling reload action${itemId != null ? ' for itemId: $itemId' : ''}");
     }
 
     try {
@@ -377,13 +493,28 @@ class FCMService {
           print("TabsPage not found, refreshing directly");
         }
 
-        print("--------------------    Fetching transactions for item: $itemId");
+        print(
+            "--------------------    Fetching transactions for item: $itemId");
 
         // First fetch accounts, then transactions from ItemId
         await Future.wait([
           fetchUserAccounts(),
         ]);
         await fetchUserTransactions(null, item: itemId);
+      }
+
+      final userData = UserDataProvider.instance.userData;
+      if (userData != null &&
+          userData['has_finished_openfinance_flow'] == true) {
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          debugPrint(
+              '[FCMService] Handling reload completion - calling TabsPage method');
+
+          // Use the TabsPage static method instead of direct dialog handling
+          if (context != null && context.mounted) {
+            await TabsPage.handleFCMReloadComplete(context);
+          }
+        });
       }
 
       // Show snackbar ONLY if context is available AND this is a foreground scenario
@@ -394,14 +525,7 @@ class FCMService {
             action: SnackBarAction(
               label: 'Ver',
               onPressed: () {
-                // First pop to the root route
-                Navigator.of(context).popUntil((route) => route.isFirst);
-
-                // If using Tabs, ensure the correct tab is selected
-                if (tabsPageKey.currentState != null) {
-                  // Assuming 0 is the dashboard tab index - adjust if needed
-                  tabsPageKey.currentState!.navigateToTab(0);
-                }
+                tabsPageKey.currentState!.navigateToTab(0);
               },
             ),
           ),
@@ -415,7 +539,7 @@ class FCMService {
       // Show error snackbar ONLY if context is available AND this is a foreground scenario
       if (context != null && context.mounted && !isBackgroundOrTerminated) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: const Text("Erro ao atualizar dados"),
             backgroundColor: Colors.red,
           ),
@@ -607,5 +731,36 @@ class FCMService {
     }
 
     return result;
+  }
+
+  /// Post to backend when a notification is opened (background/terminated)
+  Future<void> postOpenNotification(String notificationId) async {
+    if (notificationId.isEmpty) return;
+    try {
+      final accessToken = await _getAccessToken();
+      if (accessToken == null) {
+        if (kDebugMode) {
+          print('No access token available for posting open notification');
+        }
+        return;
+      }
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/messaging/open/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken,
+        },
+        body: jsonEncode({'notification_id': notificationId}),
+      );
+      if (kDebugMode) {
+        print(
+            'Notification open POST status: \x1B[36m${response.statusCode}\x1B[0m');
+        print('Notification open POST response: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error posting open notification: $e');
+      }
+    }
   }
 }

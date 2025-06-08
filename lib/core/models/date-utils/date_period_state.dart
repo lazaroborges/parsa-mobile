@@ -7,10 +7,6 @@ import 'package:parsa/core/models/date-utils/periodicity.dart';
 
 part 'date_period_state.g.dart';
 
-/// Calculates the actual start date for a period.
-/// If useWorkingDays is true, it finds the Nth (startDay) working day of the month.
-/// If useWorkingDays is false, it uses the literal startDay, clamping to the end of the month if invalid.
-/// Returns a DateTime with time set to 00:00:00 (DateOnly).
 DateTime _calculatePeriodStart(int year, int month, int startDay) {
   if (startDay <= 0) {
     startDay = 1;
@@ -61,7 +57,7 @@ class DatePeriodState {
     return getDates(periodModifier: periodModifier + 1);
   }
 
-  /// Given the current period status, return the dates of the next period
+  /// Given the current period status, return the dates of the previous period
   (DateTime? fromDate, DateTime? toDate) getPrevDates() {
     return getDates(periodModifier: periodModifier - 1);
   }
@@ -97,11 +93,11 @@ class DatePeriodState {
           final targetYear = currentYear;
 
           final startDate = _calculatePeriodStart(
-              targetYear, targetBaseMonth, this.startOfMonthDay);
+              targetYear, targetBaseMonth, startOfMonthDay);
 
           final nextPeriodBaseMonth = targetBaseMonth + 1;
           final nextPeriodStartDate = _calculatePeriodStart(
-              targetYear, nextPeriodBaseMonth, this.startOfMonthDay);
+              targetYear, nextPeriodBaseMonth, startOfMonthDay);
 
           final endDateInclusive =
               nextPeriodStartDate.subtract(const Duration(days: 1));
@@ -113,7 +109,7 @@ class DatePeriodState {
           // Calculate days to subtract to get to the start of the *current* week based on preference
           // `startOfWeek` is 1-7 (Mon-Sun), `now.weekday` is also 1-7
           final daysSinceStartOfWeek =
-              (now.weekday - this.startOfWeek + DateTime.daysPerWeek) %
+              (now.weekday - startOfWeek + DateTime.daysPerWeek) %
                   DateTime.daysPerWeek;
 
           // Start date of the *current* week (already DateOnly because 'now' is)

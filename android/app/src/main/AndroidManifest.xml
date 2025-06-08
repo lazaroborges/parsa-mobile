@@ -46,7 +46,6 @@
             <!-- Branch URI Scheme -->
 			<intent-filter>
 				<!-- If utilizing $deeplink_path please explicitly declare your hosts, or utilize a wildcard(*) -->
-				<!-- REPLACE `android:scheme` with your Android URI scheme -->
 				<data android:scheme="com.parsa.app" android:host="open" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -58,8 +57,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="ymhog.app.link" />
-				<data android:scheme="https" android:host="ymhog-alternate.app.link" />
+				<data android:scheme="https" android:host="parsa-ai.app.link" />
+				<data android:scheme="https" android:host="parsa-ai-alternate.app.link" />
 			</intent-filter>
 
             <!-- Branch App Links - Test App -->
@@ -67,8 +66,8 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="ymhog.app-test.link" />
-				<data android:scheme="https" android:host="ymhog-alternate.app-test.link" />
+				<data android:scheme="https" android:host="parsa-ai.app-test.link" />
+				<data android:scheme="https" android:host="parsa-ai-alternate.app-test.link" />
 			</intent-filter>
 
         </activity>

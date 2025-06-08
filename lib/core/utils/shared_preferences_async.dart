@@ -14,6 +14,7 @@ class SharedPreferencesAsync {
   static const String keyIntakeCompleted = 'intakeCompleted';
   static const String keyStartOfWeek = 'startOfWeek';
   static const String keyStartOfMonth = 'startOfMonth';
+  static const String keyFirstTriggerSwipeCards = 'firstTriggerSwipeCards';
 
   /// Get the shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
@@ -177,5 +178,17 @@ class SharedPreferencesAsync {
   Future<int> getStartOfMonth() async {
     final prefs = await _getPrefs();
     return prefs.getInt(keyStartOfMonth) ?? 1; // Default to 1st day of month
+  }
+
+  /// Set first trigger swipe cards preference
+  Future<bool> setFirstTriggerSwipeCards(bool value) async {
+    final prefs = await _getPrefs();
+    return prefs.setBool(keyFirstTriggerSwipeCards, value);
+  }
+
+  /// Get first trigger swipe cards preference
+  Future<bool> getFirstTriggerSwipeCards() async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(keyFirstTriggerSwipeCards) ?? false;
   }
 }

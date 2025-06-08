@@ -6,6 +6,7 @@ import 'pluggy_connector.dart';
 import 'account_form.dart';
 import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+// import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
 class AccountConnectionModal extends StatelessWidget {
   const AccountConnectionModal({Key? key}) : super(key: key);
@@ -114,15 +115,15 @@ class AccountConnectionModal extends StatelessWidget {
                             description:
                                 'O Parsa sincroniza os dados da sua conta e categoriza as transações.',
                             onTap: () async {
-
-                                await FirebaseAnalytics.instance.logEvent(
-                                  name: 'automatic_account_connection_clicked',
-                                  parameters: {
-                                    'connection_type': 'automatic',
-                                    'screen_name': 'account_connection_modal',
-                                    'timestamp': DateTime.now().millisecondsSinceEpoch,
-                                  },
-                                );
+                              await FirebaseAnalytics.instance.logEvent(
+                                name: 'automatic_account_connection_clicked',
+                                parameters: {
+                                  'connection_type': 'automatic',
+                                  'screen_name': 'account_connection_modal',
+                                  'timestamp':
+                                      DateTime.now().millisecondsSinceEpoch,
+                                },
+                              );
 
                               // Check Pluggy availability
                               String? errorMessage =
@@ -138,6 +139,8 @@ class AccountConnectionModal extends StatelessWidget {
                               } else {
                                 // Close the modal first
                                 Navigator.pop(context);
+
+                                // await AppSoundPlayer.playErrorSound();
 
                                 // Show the error message in a SnackBar
                                 ScaffoldMessenger.of(context).showSnackBar(

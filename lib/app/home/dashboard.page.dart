@@ -5,15 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/account_form.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
-import 'package:parsa/app/home/widgets/home_drawer.dart';
 import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
-import 'package:parsa/app/notifications/notifications_page.dart';
-import 'package:parsa/app/stats/stats.page.dart';
-import 'package:parsa/app/stats/widgets/finance_health/finance_health_main_info.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/tags/tag_list.page.dart';
-import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -24,23 +19,18 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/dates/date_period_modal.dart';
-import 'package:parsa/core/models/date-utils/date_period.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/presentation/widgets/tappable.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/presentation/widgets/trending_value.dart';
 import 'package:parsa/core/presentation/widgets/user_avatar.dart';
-import 'package:parsa/core/routes/destinations.dart';
 import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/services/finance_health_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/transactions/widgets/transaction_list.dart'; // Import the TransactionListComponent
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import '../../core/presentation/app_colors.dart';
-
-import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 
@@ -64,6 +54,16 @@ import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/main.dart'; // Import main to access routeObserver
 
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
+
+import 'package:parsa/core/utils/cousin_utils.dart';
+
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
+import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
+
+import 'package:flutter/foundation.dart';
+
+import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -174,9 +174,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // First, sync preferences with backend - this should happen early
       await _syncPreferencesWithBackend();
 
-      // Then initialize date range service with updated preferences
-      await _initializeDateRangeService();
-
       // Ensure we check the announcement first
       if (mounted) {
         await FeatureAnnouncementModal.showIfNeeded(context);
@@ -219,9 +216,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
     if (mounted && needsUpdate) {
       setState(() {
-        dateRangeService = DatePeriodState(
-          datePeriod: dateRangeService.datePeriod,
-          periodModifier: dateRangeService.periodModifier,
+        dateRangeService = dateRangeService.copyWith(
           startOfMonthDay: startDay,
           startOfWeek: startWeek,
         );
@@ -335,6 +330,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         body: Center(child: CircularProgressIndicator()),
       );
     }
+
+    final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
@@ -788,6 +785,57 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ),
+              
+              // DEBUG: Debug buttons section
+              if (kDebugMode) ...[
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Column(
+                    children: [
+                      // Cousin Found Dialog Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.bug_report),
+                          label: const Text('DEBUG: Trigger Cousin Found Dialog'),
+                          onPressed: () async {
+                            // Set firstTriggerSwipeCards to false for testing
+                            await app_prefs.SharedPreferencesAsync.instance
+                                .setFirstTriggerSwipeCards(false);
+                            
+                            CousinFoundDialog.showAndHandle(
+                              context,
+                              cousinCount: 15, // Mock count for testing
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.orange,
+                            side: const BorderSide(color: Colors.orange),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Bank Connection Dialog Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.account_balance),
+                          label: const Text('DEBUG: Open Bank Connection Dialog'),
+                          onPressed: () {
+                            BankConnectionDialog.showAndHandle(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.blue,
+                            side: const BorderSide(color: Colors.blue),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -894,7 +942,55 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 ),
               ),
 
-              // Add padding/spacing here
+              // ------------- TRIGGER SWIPE CARD --------------
+              ...(hasTriggered
+                  ? [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Builder(
+                          builder: (context) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                FilledButton.icon(
+                                  icon: const Icon(Icons.swipe),
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          text:
+                                              'Rever suas transações agrupadas',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onPressed: isLoadingTransactions
+                                      ? null
+                                      : () async {
+                                          showDialog(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            barrierColor: Colors.transparent,
+                                            builder: (context) =>
+                                                const FilteredSwipeCardReviewModal(),
+                                          );
+                                        },
+                                  style: isLoadingTransactions
+                                      ? FilledButton.styleFrom(
+                                          backgroundColor: Colors.grey[300],
+                                          foregroundColor: Colors.grey[600],
+                                        )
+                                      : null,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ]
+                  : []),
 
               // ------------- STATS GENERAL CARDS --------------
 
@@ -919,8 +1015,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               body: ChartByCategories(
                                   datePeriodState: dateRangeService),
                               onHeaderButtonClick: () {
-                                tabsPageKey.currentState
-                                    ?.navigateToStatsTabWithIndex(0);
+                                tabsPageKey.currentState?.navigateToStatsTab(0);
                               }),
 
                           const SizedBox(height: 12),
@@ -933,8 +1028,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               endDate: dateRangeService.endDate,
                             ),
                             onHeaderButtonClick: () {
-                              tabsPageKey.currentState
-                                  ?.navigateToStatsTabWithIndex(2);
+                              tabsPageKey.currentState?.navigateToStatsTab(2);
                             },
                           ),
                           const SizedBox(height: 12),

@@ -159,4 +159,22 @@ class TransactionFilters {
                 positiveValuesOnly! ? '(t.value > 0)' : '(t.value < 0)'),
         ]);
   }
+
+  factory TransactionFilters.fromMap(Map<String, dynamic> map) {
+    return TransactionFilters(
+      minDate:
+          map['minDate'] != null ? DateTime.tryParse(map['minDate']) : null,
+      maxDate:
+          map['maxDate'] != null ? DateTime.tryParse(map['maxDate']) : null,
+      searchValue: map['search'],
+      accountsIDs: map['accounts'] != null
+          ? (map['accounts'] as String).split(',')
+          : null,
+      categories: map['categories'] != null
+          ? (map['categories'] as String).split(',')
+          : null,
+      tagsIDs: map['tags'] != null ? (map['tags'] as String).split(',') : null,
+      // Add more fields as needed, e.g., minValue, maxValue, etc.
+    );
+  }
 }

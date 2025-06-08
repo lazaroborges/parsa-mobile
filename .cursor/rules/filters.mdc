@@ -1,0 +1,87 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Filters and Modals: Transactions & Stats
+
+## Overview
+
+This rule documents the structure and logic for filtering transactions and stats, including the use of modals, period filters, and user preferences. It covers the following files:
+- [period_type.dart](mdc:lib/core/models/date-utils/period_type.dart)
+- [periodicity.dart](mdc:lib/core/models/date-utils/periodicity.dart)
+- [date_period.dart](mdc:lib/core/models/date-utils/date_period.dart)
+- [date_period_state.dart](mdc:lib/core/models/date-utils/date_period_state.dart)
+- [transaction_filters.dart](mdc:lib/core/presentation/widgets/transaction_filter/transaction_filters.dart)
+- [date_period_modal.dart](mdc:lib/core/presentation/widgets/dates/date_period_modal.dart)
+- [filter_sheet_modal.dart](mdc:lib/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart)
+- [preferences_settings.page.dart](mdc:lib/app/settings/preferences_settings.page.dart)
+
+---
+
+## 1. Transaction Filters
+
+- Defined in [transaction_filters.dart](mdc:lib/core/presentation/widgets/transaction_filter/transaction_filters.dart)
+- The `TransactionFilters` class encapsulates all possible filters for transactions:
+  - `minDate`, `maxDate`: Date range for filtering.
+  - `categories`, `accountsIDs`, `tagsIDs`: Filter by category, account, or tag (IDs).
+  - `status`, `transactionTypes`, `isRecurrent`, `minValue`, `maxValue`, `searchValue`, etc.
+- The `fromMap` factory allows constructing filters from query parameters (e.g., for notification/deeplink navigation).
+- Used by both the Transactions and Stats pages to filter data.
+
+---
+
+## 2. Date Periods and Period Filters
+
+- **Period Types** ([period_type.dart](mdc:lib/core/models/date-utils/period_type.dart)):
+  - Enum: `allTime`, `cycle`, `lastDays`, `dateRange`.
+  - Used to describe the type of period filter (e.g., a fixed cycle, a custom range, or "all time").
+- **Periodicity** ([periodicity.dart](mdc:lib/core/models/date-utils/periodicity.dart)):
+  - Enum: `day`, `week`, `month`, `year`.
+  - Used within cycles to specify the granularity of the period.
+- **DatePeriod** ([date_period.dart](mdc:lib/core/models/date-utils/date_period.dart)):
+  - Data class representing a period filter, including type, periodicity, last N days, or a custom date range.
+- **DatePeriodState** ([date_period_state.dart](mdc:lib/core/models/date-utils/date_period_state.dart)):
+  - Wraps a `DatePeriod` and user preferences (start of week/month, working days).
+  - Provides methods to compute the actual start and end dates for the current period, previous/next periods, etc.
+  - Reflects user preferences, which are loaded from [preferences_settings.page.dart](mdc:lib/app/settings/preferences_settings.page.dart).
+
+---
+
+## 3. Modals for Filter Selection
+
+- **Date Period Modal** ([date_period_modal.dart](mdc:lib/core/presentation/widgets/dates/date_period_modal.dart)):
+  - UI for selecting a period filter (type, periodicity, custom range, etc.).
+  - Used in stats and transaction filter modals to let the user pick a date range or cycle.
+- **Filter Sheet Modal** ([filter_sheet_modal.dart](mdc:lib/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart)):
+  - UI for selecting all transaction filters (accounts, categories, tags, status, type, date range, value, etc.).
+  - Integrates the date period modal for date selection.
+  - Returns a `TransactionFilters` object.
+
+---
+
+## 4. User Preferences
+
+- **Preferences Settings Page** ([preferences_settings.page.dart](mdc:lib/app/settings/preferences_settings.page.dart)):
+  - Allows the user to set their preferred start of week, start of month, and whether to use working days.
+  - These preferences are used by `DatePeriodState` to compute period boundaries for filters.
+  - Preferences are persisted and used throughout the app for consistent period calculations.
+
+---
+
+## 5. Query Parameters and Deep Linking
+
+- When navigating via notifications or deep links, filters (including period filters) are passed as query parameters.
+- For stats, period filters should be encoded in the query parameters (e.g., `periodType`, `periodicity`, `lastDays`, `customStart`, `customEnd`).
+- On navigation, these parameters are parsed and used to construct a `DatePeriod` and/or `TransactionFilters`, which are then applied to the relevant page/tab.
+- Category names in query parameters are converted to IDs using the category service before applying filters.
+
+---
+
+## 6. Best Practices
+
+- Always use the `TransactionFilters` and `DatePeriod`/`DatePeriodState` classes for filter logic to ensure consistency.
+- When adding new filter types, update both the filter data classes and the modals.
+- When handling navigation with filters, ensure all necessary conversions (e.g., category name to ID) are performed before applying filters.
+
+---

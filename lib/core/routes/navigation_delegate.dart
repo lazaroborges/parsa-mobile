@@ -3,6 +3,8 @@ import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/main.dart';
 import 'package:flutter/widgets.dart';
+import 'package:parsa/core/database/services/category/category_service.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 
 class NavigationDelegate {
   static final NavigationDelegate _instance = NavigationDelegate._();
@@ -18,39 +20,69 @@ class NavigationDelegate {
     }
   }
 
+  Future<Map<String, String>> _convertCategoryNamesToIds(
+      Map<String, String> queryParams) async {
+    if (queryParams.containsKey('categories')) {
+      final names = queryParams['categories']!
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      List<String> ids = [];
+      for (final name in names) {
+        final cat =
+            await CategoryService.instance.getCategoryByName(name).first;
+        if (cat != null) ids.add(cat.id);
+      }
+      if (ids.isNotEmpty) {
+        final qp = Map<String, String>.from(queryParams);
+        qp['categories'] = ids.join(',');
+        return qp;
+      }
+    }
+    return queryParams;
+  }
+
   Future<void> navigateToAppRoute(String route,
-      {String? id, dynamic data}) async {
+      {String? id, dynamic data, Map<String, String>? queryParams}) async {
     try {
       switch (route) {
         case 'dashboard':
           _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(0));
           break;
         case 'transactions':
-          _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(1));
+          if (queryParams != null && queryParams.isNotEmpty) {
+            final qp = await _convertCategoryNamesToIds(queryParams);
+            _deferTabNavigation(() => tabsPageKey.currentState
+                ?.navigateToTransactionsTab(TransactionFilters.fromMap(qp)));
+          } else {
+            _deferTabNavigation(
+                () => tabsPageKey.currentState?.navigateToTab(1));
+          }
           break;
         case 'stats':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(0));
+              () => tabsPageKey.currentState?.navigateToStatsTab(0));
           break;
         case 'stats/category':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(0));
+              () => tabsPageKey.currentState?.navigateToStatsTab(0));
           break;
         case 'stats/subcategory':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(1));
+              () => tabsPageKey.currentState?.navigateToStatsTab(1));
           break;
         case 'stats/cash-flow':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(2));
+              () => tabsPageKey.currentState?.navigateToStatsTab(2));
           break;
         case 'stats/financial-health':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(3));
+              () => tabsPageKey.currentState?.navigateToStatsTab(3));
           break;
         case 'stats/balance-evolution':
           _deferTabNavigation(
-              () => tabsPageKey.currentState?.navigateToStatsTabWithIndex(4));
+              () => tabsPageKey.currentState?.navigateToStatsTab(4));
           break;
         case 'settings':
           _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(3));
@@ -101,7 +133,8 @@ class NavigationDelegate {
             final transaction = data ??
                 await TransactionService.instance.getTransactionById(id).first;
             if (transaction != null) {
-              navigatorKey.currentState?.pushNamed('/transactions/$id');
+              navigatorKey.currentState
+                  ?.pushReplacementNamed('/transactions/$id');
             } else {
               tabsPageKey.currentState?.navigateToTab(1);
             }

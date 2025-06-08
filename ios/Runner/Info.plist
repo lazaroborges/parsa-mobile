@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>FlutterDeepLinkEnabled</key>
-	<false/>
+	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
@@ -76,9 +76,9 @@
 	</array>
 	<key>branch_universal_link_domains</key>
 	<array>
-		<string>ymhog.app.link</string>
-		<string>ymhog-alternate.app.link</string>
-		<string>ymhog.test-app.link</string>
+		<string>parsa-ai.app.link</string>
+		<string>parsa-ai-alternate.app.link</string>
+		<string>parsa-ai.test-app.link</string>
 	</array>
 	<key>branch_key</key>
 	<dict>
