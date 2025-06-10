@@ -38,7 +38,7 @@ Future<String?> checkItemAvailability(BuildContext context) async {
       return null;
     }
   } else if (response.statusCode == 403) {
-    final bool hasInProgress = data['has_in_progress_items'] as bool;
+    final bool? hasInProgress = data['has_in_progress_items'] as bool?;
     final String? code = data['code'] as String?;
 
     if (code == '4' && hasInProgress == true) {
