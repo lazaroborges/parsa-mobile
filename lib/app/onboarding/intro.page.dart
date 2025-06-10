@@ -179,7 +179,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                     const EdgeInsets.symmetric(vertical: 12),
                               ),
                               onPressed: () async {
-                                AppSoundPlayer.playButtonClickSound();
 
                                 print('Login attempt started');
                                 try {
