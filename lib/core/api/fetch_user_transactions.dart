@@ -85,11 +85,11 @@ Future<void> fetchUserTransactions(String? accountId,
           // Use the global navigator key to get context
           final context = navigatorKey.currentContext;
           if (context != null && context.mounted) {
-            // Get cousin count for the current year
+            // Get cousin count for all past transactions
             final now = DateTime.now();
-            final startOfYear = DateTime(now.year, 1, 1);
-            final endOfYear = DateTime(now.year, 12, 31, 23, 59, 59);
-            final cousinResult = await getCousinGroupsForPeriod(startOfYear, endOfYear);
+            final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
+            final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+            final cousinResult = await getCousinGroupsForPeriod(startOfTime, endOfToday);
             final count = cousinResult.totalGroups;
             
             if (count > 0) {

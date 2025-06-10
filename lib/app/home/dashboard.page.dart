@@ -804,9 +804,16 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                             await app_prefs.SharedPreferencesAsync.instance
                                 .setFirstTriggerSwipeCards(false);
                             
-                            CousinFoundDialog.showAndHandle(
+                            // Get actual cousin count using all past transactions
+                            final now = DateTime.now();
+                            final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
+                            final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+                            final cousinResult = await getCousinGroupsForPeriod(startOfTime, endOfToday);
+                            final actualCount = cousinResult.totalGroups;
+                            
+                            await CousinFoundDialog.showAndHandle(
                               context,
-                              cousinCount: 15, // Mock count for testing
+                              cousinCount: actualCount, // Use actual count instead of mock
                             );
                           },
                           style: OutlinedButton.styleFrom(
@@ -943,7 +950,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
               ),
 
               // ------------- TRIGGER SWIPE CARD --------------
-              ...(hasTriggered
+              ...(true
                   ? [
                       Padding(
                         padding: const EdgeInsets.symmetric(

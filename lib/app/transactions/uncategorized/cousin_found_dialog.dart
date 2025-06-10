@@ -26,18 +26,25 @@ class CousinFoundDialog {
 
     if (result == true && context.mounted) {
       // User wants to reclassify now, show the overlay
-      // Default to current month
+      // Use entire year instead of just current month
       final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+      final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
+      final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+      print('-------- s3123124124 -------- Fetching cousin groups for period: $startOfTime to $endOfToday');
       final cousinResult =
-          await getCousinGroupsForPeriod(startOfMonth, endOfMonth);
+          await getCousinGroupsForPeriod(startOfTime, endOfToday);
+          
+      // Sort groups by total value in descending order
+      final sortedGroups = List<TransactionGroupByType>.from(cousinResult.groups)
+        ..sort((a, b) => b.totalValue.compareTo(a.totalValue));
+      
       showDialog(
         context: context,
         barrierDismissible: true,
         barrierColor: Colors.transparent,
         builder: (context) =>
-            CousinClassificationOverlay(groups: cousinResult.groups),
+            CousinClassificationOverlay(groups: sortedGroups),
       );
     }
   }

@@ -114,7 +114,7 @@ Future<CousinGroupResult> getCousinGroupsForPeriod(
     DateTime start, DateTime end) async {
   final allTransactions =
       await TransactionService.instance.getTransactions().first;
-  // Filter by considered status and date range
+  
   final filtered = allTransactions.where((tx) {
     return tx.status != TransactionStatus.notconsidered &&
         tx.cousin != null &&
@@ -149,6 +149,9 @@ Future<CousinGroupResult> getCousinGroupsForPeriod(
       }
     }
   });
+
+  // Sort groups by total value in descending order
+  allGroups.sort((a, b) => b.totalValue.compareTo(a.totalValue));
 
   // Only count transactions in valid groups
   final validTransactionIds =

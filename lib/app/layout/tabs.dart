@@ -425,10 +425,10 @@ class TabsPageState extends State<TabsPage>
 
       // If no items in progress, check for uncategorized transactions
       final now = DateTime.now();
-      final startOfYear = DateTime(now.year, 1, 1);
-      final endOfYear = DateTime(now.year, 12, 31, 23, 59, 59);
+      final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
+      final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final cousinResult =
-          await getCousinGroupsForPeriod(startOfYear, endOfYear);
+          await getCousinGroupsForPeriod(startOfTime, endOfToday);
       final count = cousinResult.totalGroups;
       if (count > 0) {
         // Trigger the dialog and mark as triggered
