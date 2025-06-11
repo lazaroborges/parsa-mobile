@@ -39,22 +39,9 @@ final Set<String> COUSIN_CATEGORY_NAMES = NA_CATEGORIES.values.toSet();
 /// A transaction is cousin if its category name is in the cousin set
 /// and its status is not 'notconsidered'.
 Future<List<MoneyTransaction>> getCousinTransactions() async {
-  print('[PERF] getCousinTransactions: START');
-  final startTime = DateTime.now();
-
   final allTransactions =
       await TransactionService.instance.getTransactions().first;
-  final fetchTime = DateTime.now();
-  print(
-      '[PERF] Fetched all transactions: ${fetchTime.difference(startTime).inMilliseconds}ms (${allTransactions.length} transactions)');
-
   final cousins = filterCousinTransactions(allTransactions);
-  final filterTime = DateTime.now();
-  print(
-      '[PERF] Filtered cousin: ${filterTime.difference(fetchTime).inMilliseconds}ms (${cousins.length} cousin)');
-  print(
-      '[PERF] getCousinTransactions: TOTAL ${filterTime.difference(startTime).inMilliseconds}ms');
-
   return cousins;
 }
 
@@ -112,9 +99,11 @@ class CousinGroupResult {
 
 Future<CousinGroupResult> getCousinGroupsForPeriod(
     DateTime start, DateTime end) async {
+  // Fetch all transactions only once
   final allTransactions =
       await TransactionService.instance.getTransactions().first;
-  
+
+  // Filter transactions in the period
   final filtered = allTransactions.where((tx) {
     return tx.status != TransactionStatus.notconsidered &&
         tx.cousin != null &&
@@ -129,26 +118,42 @@ Future<CousinGroupResult> getCousinGroupsForPeriod(
   }
 
   List<TransactionGroupByType> allGroups = [];
-  byCousin.forEach((cousin, txs) {
-    if (txs.length > 1) {
-      final incomeTxs = txs.where((tx) => (tx.value ?? 0) > 0).toList();
-      final expenseTxs = txs.where((tx) => (tx.value ?? 0) < 0).toList();
-      if (incomeTxs.length > 1) {
-        allGroups.add(TransactionGroupByType(
-          cousin: cousin,
-          type: CategoryType.I,
-          transactions: incomeTxs,
-        ));
-      }
-      if (expenseTxs.length > 1) {
-        allGroups.add(TransactionGroupByType(
-          cousin: cousin,
-          type: CategoryType.E,
-          transactions: expenseTxs,
-        ));
-      }
+  for (var entry in byCousin.entries) {
+    final cousin = entry.key;
+    final txs = entry.value;
+    // For each type (income/expense), check period and lifetime count
+    final incomeTxsPeriod = txs.where((tx) => (tx.value ?? 0) > 0).toList();
+    final expenseTxsPeriod = txs.where((tx) => (tx.value ?? 0) < 0).toList();
+
+    // Use allTransactions for lifetime check
+    final incomeTxsLifetime = allTransactions
+        .where((tx) =>
+            tx.cousin == cousin &&
+            tx.status != TransactionStatus.notconsidered &&
+            (tx.value ?? 0) > 0)
+        .toList();
+    final expenseTxsLifetime = allTransactions
+        .where((tx) =>
+            tx.cousin == cousin &&
+            tx.status != TransactionStatus.notconsidered &&
+            (tx.value ?? 0) < 0)
+        .toList();
+
+    if (incomeTxsLifetime.length > 1 && incomeTxsPeriod.isNotEmpty) {
+      allGroups.add(TransactionGroupByType(
+        cousin: cousin,
+        type: CategoryType.I,
+        transactions: incomeTxsPeriod,
+      ));
     }
-  });
+    if (expenseTxsLifetime.length > 1 && expenseTxsPeriod.isNotEmpty) {
+      allGroups.add(TransactionGroupByType(
+        cousin: cousin,
+        type: CategoryType.E,
+        transactions: expenseTxsPeriod,
+      ));
+    }
+  }
 
   // Sort groups by total value in descending order
   allGroups.sort((a, b) => b.totalValue.compareTo(a.totalValue));
@@ -185,18 +190,4 @@ Future<List<Map<String, dynamic>>> getCousinGroupSummaries(
   print(
       '[PERF] getCousinGroupSummaries (OPTIMIZED): [32m${endTime.difference(startTime).inMilliseconds}ms[0m');
   return result;
-}
-
-/// Returns the count of transactions in the top cousin groups (optimized)
-Future<int> countTopCousinTransactions(DateTime start, DateTime end) async {
-  print('[PERF] countTopCousinTransactions (OPTIMIZED): START');
-  final startTime = DateTime.now();
-
-  final groups = await getCousinGroupsForPeriod(start, end);
-  final count = groups.groups.fold<int>(0, (sum, g) => sum + g.count);
-
-  final endTime = DateTime.now();
-  print(
-      '[PERF] countTopCousinTransactions (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms (count: $count)');
-  return count;
 }

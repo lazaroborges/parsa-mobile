@@ -56,6 +56,7 @@ class _CousinClassificationOverlayState
   void initState() {
     super.initState();
     _loadInstructionCardPreference();
+    _maybeUpdateGroupsToLifetime();
   }
 
   Future<void> _loadInstructionCardPreference() async {
@@ -75,6 +76,36 @@ class _CousinClassificationOverlayState
       setState(() {
         _hasShownInstructionCardBefore = hasShown;
       });
+    }
+  }
+
+  void _maybeUpdateGroupsToLifetime() async {
+    // If opened from filtered_swipe_card_review_modal.dart, periodLabel is not null
+    if (widget.periodLabel != null) {
+      // For each group, fetch all transactions for that cousin/type (lifetime)
+      final updatedGroups = await Future.wait(widget.groups.map((group) async {
+        final allTransactions =
+            await TransactionService.instance.getTransactions().first;
+        final filtered = allTransactions
+            .where((tx) =>
+                tx.cousin == group.cousin &&
+                tx.status != TransactionStatus.notconsidered &&
+                ((group.type == CategoryType.I && (tx.value ?? 0) > 0) ||
+                    (group.type == CategoryType.E && (tx.value ?? 0) < 0)))
+            .toList();
+        return TransactionGroupByType(
+          cousin: group.cousin,
+          type: group.type,
+          transactions: filtered,
+        );
+      }).toList());
+      if (mounted) {
+        setState(() {
+          // Replace groups with lifetime groups
+          widget.groups.clear();
+          widget.groups.addAll(updatedGroups);
+        });
+      }
     }
   }
 

@@ -135,7 +135,8 @@ class _FilteredSwipeCardReviewModalState
             Align(
               alignment: Alignment.bottomCenter,
               child: GestureDetector(
-                onTap: () {}, // Prevents tap events from propagating to the background
+                onTap:
+                    () {}, // Prevents tap events from propagating to the background
                 child: Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(
@@ -180,7 +181,8 @@ class _FilteredSwipeCardReviewModalState
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const SizedBox(width: 48), // Placeholder for alignment
+                                const SizedBox(
+                                    width: 48), // Placeholder for alignment
                                 Text(
                                   'Rever Transações',
                                   style: theme.textTheme.titleLarge?.copyWith(
@@ -198,11 +200,11 @@ class _FilteredSwipeCardReviewModalState
                               ],
                             ),
                             const SizedBox(height: 8),
-                            
+
                             // Icon
 
                             const SizedBox(height: 16),
-                            
+
                             // Body text
                             Text(
                               'Escolha o período para revisar suas transações',
@@ -214,7 +216,7 @@ class _FilteredSwipeCardReviewModalState
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 24),
-                            
+
                             // Period options
                             Column(
                               children: [
@@ -222,48 +224,66 @@ class _FilteredSwipeCardReviewModalState
                                   context: context,
                                   icon: Icons.today,
                                   title: 'Esta semana',
-                                  transactionCount: _results['thisWeek']?.totalTransactions ?? 0,
-                                  businessCount: _results['thisWeek']?.totalGroups ?? 0,
+                                  transactionCount:
+                                      _results['thisWeek']?.totalTransactions ??
+                                          0,
+                                  businessCount:
+                                      _results['thisWeek']?.totalGroups ?? 0,
                                   onTap: _results['thisWeek'] == null ||
                                           _results['thisWeek']!.groups.isEmpty
                                       ? null
-                                      : () => _openOverlay(_results['thisWeek']!, 'Esta semana'),
+                                      : () => _openOverlay(
+                                          _results['thisWeek']!, 'Esta semana'),
                                 ),
                                 const SizedBox(height: 12),
                                 _buildPeriodTile(
                                   context: context,
                                   icon: Icons.history,
                                   title: 'Semana passada',
-                                  transactionCount: _results['lastWeek']?.totalTransactions ?? 0,
-                                  businessCount: _results['lastWeek']?.totalGroups ?? 0,
+                                  transactionCount:
+                                      _results['lastWeek']?.totalTransactions ??
+                                          0,
+                                  businessCount:
+                                      _results['lastWeek']?.totalGroups ?? 0,
                                   onTap: _results['lastWeek'] == null ||
                                           _results['lastWeek']!.groups.isEmpty
                                       ? null
-                                      : () => _openOverlay(_results['lastWeek']!, 'Semana passada'),
+                                      : () => _openOverlay(
+                                          _results['lastWeek']!,
+                                          'Semana passada'),
                                 ),
                                 const SizedBox(height: 12),
                                 _buildPeriodTile(
                                   context: context,
                                   icon: Icons.calendar_month,
                                   title: 'Este mês',
-                                  transactionCount: _results['thisMonth']?.totalTransactions ?? 0,
-                                  businessCount: _results['thisMonth']?.totalGroups ?? 0,
+                                  transactionCount: _results['thisMonth']
+                                          ?.totalTransactions ??
+                                      0,
+                                  businessCount:
+                                      _results['thisMonth']?.totalGroups ?? 0,
                                   onTap: _results['thisMonth'] == null ||
                                           _results['thisMonth']!.groups.isEmpty
                                       ? null
-                                      : () => _openOverlay(_results['thisMonth']!, 'Este mês'),
+                                      : () => _openOverlay(
+                                          _results['thisMonth']!, 'Este mês'),
                                 ),
                                 const SizedBox(height: 12),
                                 _buildPeriodTile(
                                   context: context,
                                   icon: Icons.calendar_today,
                                   title: 'Mês passado',
-                                  transactionCount: _results['lastMonth']?.totalTransactions ?? 0,
-                                  businessCount: _results['lastMonth']?.totalGroups ?? 0,
+                                  transactionCount: _results['lastMonth']
+                                          ?.totalTransactions ??
+                                      0,
+                                  businessCount:
+                                      _results['lastMonth']?.totalGroups ?? 0,
                                   onTap: _results['lastMonth'] == null ||
                                           _results['lastMonth']!.groups.isEmpty
                                       ? null
-                                      : () => _openOverlay(_results['lastMonth']!, 'Mês passado'),
+                                      : () => _openOverlay(
+                                          _results['lastMonth']!,
+                                          'Mês passado'),
                                 ),
                               ],
                             ),
@@ -341,7 +361,9 @@ class _FilteredSwipeCardReviewModalState
                   Text(
                     title,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: isEnabled ? appColors.onSurface : Colors.grey.shade500,
+                      color: isEnabled
+                          ? appColors.onSurface
+                          : Colors.grey.shade500,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -352,8 +374,8 @@ class _FilteredSwipeCardReviewModalState
                         ? '$transactionCount transações de $businessCount pessoas e negócios'
                         : 'Nenhuma transação encontrada',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: isEnabled 
-                          ? const Color(0xFF344053) 
+                      color: isEnabled
+                          ? const Color(0xFF344053)
                           : Colors.grey.shade400,
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
