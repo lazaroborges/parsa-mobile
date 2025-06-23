@@ -2,6 +2,8 @@ import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/category/category.dart';
+import 'package:parsa/core/database/app_db.dart';
+import 'package:drift/drift.dart';
 
 // Map of uncategorized pluggy category codes to display names
 const Map<String, String> NA_CATEGORIES = {
@@ -97,6 +99,81 @@ class CousinGroupResult {
       required this.totalGroups});
 }
 
+/// OPTIMIZED: Gets cousin group summaries efficiently using direct SQL queries
+/// This replaces the inefficient approach of fetching all transactions and filtering in memory
+Future<List<Map<String, dynamic>>> getCousinGroupSummaries(
+    DateTime start, DateTime end) async {
+  print('[PERF] getCousinGroupSummaries (OPTIMIZED): START');
+  final startTime = DateTime.now();
+
+  final db = AppDB.instance;
+
+  // Single optimized query that:
+  // 1. Filters transactions in the date range with cousin ID
+  // 2. Groups by cousin and income/expense type
+  // 3. Only includes cousins that have >1 transaction lifetime
+  // 4. Calculates sum and count directly in SQL
+  final result = await db.customSelect(
+    '''
+    WITH cousin_lifetime_counts AS (
+      SELECT 
+        cousin,
+        CASE WHEN value > 0 THEN 'income' ELSE 'expense' END as type,
+        COUNT(*) as lifetime_count
+      FROM transactions 
+      WHERE cousin IS NOT NULL 
+        AND status != 'notconsidered'
+      GROUP BY cousin, CASE WHEN value > 0 THEN 'income' ELSE 'expense' END
+    ),
+    period_data AS (
+      SELECT 
+        cousin,
+        CASE WHEN value > 0 THEN 'income' ELSE 'expense' END as type,
+        COUNT(*) as totalTransactions,
+        ABS(SUM(value)) as TotalAmount
+      FROM transactions 
+      WHERE cousin IS NOT NULL 
+        AND status != 'notconsidered'
+        AND date >= ? 
+        AND date <= ?
+      GROUP BY cousin, CASE WHEN value > 0 THEN 'income' ELSE 'expense' END
+    )
+    SELECT 
+      pd.cousin as cousin_id,
+      pd.type,
+      pd.TotalAmount,
+      pd.totalTransactions
+    FROM period_data pd
+    INNER JOIN cousin_lifetime_counts clc 
+      ON pd.cousin = clc.cousin 
+      AND pd.type = clc.type 
+      AND clc.lifetime_count > 1
+    ORDER BY pd.TotalAmount DESC
+    ''',
+    variables: [
+      Variable.withDateTime(start),
+      Variable.withDateTime(end),
+    ],
+    readsFrom: {db.transactions},
+  ).get();
+
+  final summaries = result.map((row) {
+    return {
+      'cousin_id': row.data['cousin_id'] as int,
+      'type': row.data['type'] as String,
+      'TotalAmount': (row.data['TotalAmount'] as num).toDouble(),
+      'totalTransactions': row.data['totalTransactions'] as int,
+    };
+  }).toList();
+
+  final endTime = DateTime.now();
+  print(
+      '[PERF] getCousinGroupSummaries (OPTIMIZED): ${endTime.difference(startTime).inMilliseconds}ms');
+  
+  return summaries;
+}
+
+// Keep the old function for backward compatibility but mark it as deprecated
 Future<CousinGroupResult> getCousinGroupsForPeriod(
     DateTime start, DateTime end) async {
   // Fetch all transactions only once
@@ -168,26 +245,4 @@ Future<CousinGroupResult> getCousinGroupsForPeriod(
       groups: allGroups,
       totalTransactions: totalTransactions,
       totalGroups: totalGroups);
-}
-
-/// OPTIMIZED: Gets summaries efficiently using the optimized approach
-Future<List<Map<String, dynamic>>> getCousinGroupSummaries(
-    DateTime start, DateTime end) async {
-  print('[PERF] getCousinGroupSummaries (OPTIMIZED): START');
-  final startTime = DateTime.now();
-
-  final groups = await getCousinGroupsForPeriod(start, end);
-  final result = groups.groups
-      .map((g) => {
-            'cousin_id': g.cousin,
-            'type': g.type == CategoryType.I ? 'income' : 'expense',
-            'TotalAmount': g.totalValue.abs(),
-            'totalTransactions': g.transactions.length,
-          })
-      .toList();
-
-  final endTime = DateTime.now();
-  print(
-      '[PERF] getCousinGroupSummaries (OPTIMIZED): [32m${endTime.difference(startTime).inMilliseconds}ms[0m');
-  return result;
 }
