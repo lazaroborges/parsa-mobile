@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
+import 'package:parsa/app/transactions/cousin/cousin_classification_overlay.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';

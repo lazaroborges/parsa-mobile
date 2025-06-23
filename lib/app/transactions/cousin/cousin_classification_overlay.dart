@@ -15,7 +15,7 @@ import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/app/transactions/uncategorized/instruction_card.dart';
+import 'package:parsa/app/transactions/cousin/instruction_card.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/i18n/translations.g.dart';
