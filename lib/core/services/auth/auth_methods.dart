@@ -55,9 +55,6 @@ class AuthMethods {
             'Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
       }
 
-      // Reset all review-related counters
-      await ReviewService.instance.resetAllCounters();
-
       // Clear database tables
       await AppDB.instance.transaction(() async {
         // Delete all data except user settings and app data
