@@ -11,6 +11,7 @@ import 'package:parsa/app/transactions/widgets/transaction_list.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/core/presentation/widgets/filter_row_indicator.dart';
@@ -224,7 +225,18 @@ class _TransactionsPageState extends State<TransactionsPage> {
             ],
             StreamBuilder(
               stream: TransactionService.instance.countTransactions(
-                predicate: filters.copyWith(searchValue: searchController.text),
+                predicate: filters.copyWith(
+                  searchValue: searchController.text,
+                  status: filters.status
+                          ?.where((s) => s != TransactionStatus.notconsidered)
+                          .toList() ??
+                      [
+                        TransactionStatus.pending,
+                        TransactionStatus.reconciled,
+                        TransactionStatus.unreconciled,
+                        TransactionStatus.voided
+                      ],
+                ),
               ),
               builder: (context, snapshot) {
                 final res = snapshot.data;
