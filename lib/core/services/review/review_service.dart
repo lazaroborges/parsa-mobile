@@ -86,10 +86,15 @@ class ReviewService {
   }
 
   /// Increments the counter for a specific user interaction type.
-  Future<void> incrementInteractionCount(ReviewInteractionType type) async {
+  Future<void> incrementInteractionCount(
+      ReviewInteractionType type, BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _interactionCountKeys[type];
     if (key == null) return;
+    final userData = context.read<UserDataProvider>().userData;
+    if (userData == null || userData['ask_feedback'] != true) {
+      return;
+    }
 
     int currentCount = prefs.getInt(key) ?? 0;
     currentCount++;
