@@ -104,8 +104,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             },
           );
 
-          ReviewService.instance
-              .incrementInteractionCount(ReviewInteractionType.transactionEdit);
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -142,6 +142,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
+
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -180,8 +183,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
-          ReviewService.instance
-              .incrementInteractionCount(ReviewInteractionType.transactionEdit);
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -217,6 +220,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
+
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -680,7 +686,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                       },
                     );
                     ReviewService.instance.incrementInteractionCount(
-                        ReviewInteractionType.transactionEdit);
+                        ReviewInteractionType.transactionEdit, context);
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(t.transaction.edit_success)),
@@ -811,7 +817,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                               ReviewService.instance
                                                   .incrementInteractionCount(
                                                       ReviewInteractionType
-                                                          .transactionEdit);
+                                                          .transactionEdit,
+                                                      context);
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 SnackBar(

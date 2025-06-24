@@ -409,8 +409,8 @@ class _CousinClassificationOverlayState
         'categoryId': selectedCategory.id,
       };
 
-      await ReviewService.instance
-          .incrementInteractionCount(ReviewInteractionType.cousinRuleCreation);
+      await ReviewService.instance.incrementInteractionCount(
+          ReviewInteractionType.cousinRuleCreation, context);
 
       await PostUserCousinRules.updateCousinRules(
         cousinValue: cousinValue,

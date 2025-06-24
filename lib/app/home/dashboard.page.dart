@@ -316,8 +316,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 investmentCategory.id
               ],
               status: [
-                TransactionStatus.notconsidered,
-                TransactionStatus.unreconciled,
+                TransactionStatus.pending,
+                TransactionStatus.voided,
               ]),
         );
 

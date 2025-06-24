@@ -112,8 +112,8 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
       });
     } else {
       BudgetService.instance.insertBudget(toPush).then((value) {
-        ReviewService.instance
-            .incrementInteractionCount(ReviewInteractionType.budgetCreation);
+        ReviewService.instance.incrementInteractionCount(
+            ReviewInteractionType.budgetCreation, context);
 
         // Track budget creation
         firebaseAnalytics?.logEvent(

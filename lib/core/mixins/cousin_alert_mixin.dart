@@ -173,7 +173,8 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                             // await AppSoundPlayer.playSuccessSound();
                             await ReviewService.instance
                                 .incrementInteractionCount(
-                                    ReviewInteractionType.cousinRuleCreation);
+                                    ReviewInteractionType.cousinRuleCreation,
+                                    context);
                             Navigator.pop(context, true);
                           } catch (e) {
                             print('Failed to update cousin rules: $e');
