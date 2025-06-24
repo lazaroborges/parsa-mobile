@@ -51,7 +51,6 @@ class _CousinClassificationOverlayState
   bool _hasShownInstructionCardBefore = false;
   bool _isProgrammaticSwipe = false;
   bool _skipNextSwipeModal = false;
-  int _rebuildCounter = 0;
 
   @override
   void initState() {
@@ -134,8 +133,6 @@ class _CousinClassificationOverlayState
             numberOfCardsDisplayed: 1,
             cardBuilder: (context, index, percentX, percentY) {
               return _LabeledTransactionGroupCard(
-                key: ValueKey(
-                    '${group.cousin}-${group.type.name}-$_rebuildCounter'),
                 group: group,
                 onCategoryPressed: () =>
                     _handleCategorizeButtonPressed(group, 0),
@@ -149,7 +146,6 @@ class _CousinClassificationOverlayState
                 _isProgrammaticSwipe = false;
                 setState(() {
                   _processedIndices.add(0);
-                  _rebuildCounter++;
                 });
                 return true;
               }
@@ -158,7 +154,6 @@ class _CousinClassificationOverlayState
                   _skipNextSwipeModal = false;
                   setState(() {
                     _processedIndices.add(0);
-                    _rebuildCounter++;
                   });
                   return true;
                 }
@@ -176,7 +171,6 @@ class _CousinClassificationOverlayState
                 }
                 setState(() {
                   _processedIndices.add(0);
-                  _rebuildCounter++;
                 });
                 unawaited(_processCategorySelection(group, selectedCategory)
                     .catchError((e) {
@@ -190,7 +184,6 @@ class _CousinClassificationOverlayState
               }
               setState(() {
                 _processedIndices.add(0);
-                _rebuildCounter++;
               });
               return true;
             },
@@ -219,8 +212,6 @@ class _CousinClassificationOverlayState
               }
               final group = groups[groupIndex];
               return _LabeledTransactionGroupCard(
-                key: ValueKey(
-                    '${group.cousin}-${group.type.name}-$_rebuildCounter'),
                 group: group,
                 onCategoryPressed: () =>
                     _handleCategorizeButtonPressed(group, groupIndex),
@@ -234,8 +225,6 @@ class _CousinClassificationOverlayState
               }
               final group = groups[groupIndex];
               return _LabeledTransactionGroupCard(
-                key: ValueKey(
-                    '${group.cousin}-${group.type.name}-$_rebuildCounter'),
                 group: group,
                 onCategoryPressed: () =>
                     _handleCategorizeButtonPressed(group, groupIndex),
@@ -271,7 +260,6 @@ class _CousinClassificationOverlayState
               _isProgrammaticSwipe = false;
               setState(() {
                 _processedIndices.add(actualGroupIndex);
-                _rebuildCounter++;
               });
               return true;
             }
@@ -281,7 +269,6 @@ class _CousinClassificationOverlayState
                 _skipNextSwipeModal = false;
                 setState(() {
                   _processedIndices.add(actualGroupIndex);
-                  _rebuildCounter++;
                 });
                 return true;
               }
@@ -303,7 +290,6 @@ class _CousinClassificationOverlayState
               // Optimistically update state to remove the card from view
               setState(() {
                 _processedIndices.add(actualGroupIndex);
-                _rebuildCounter++;
               });
 
               // Process in background, without a disruptive rollback on manual swipe
@@ -323,7 +309,6 @@ class _CousinClassificationOverlayState
             // For left swipes (dismiss)
             setState(() {
               _processedIndices.add(actualGroupIndex);
-              _rebuildCounter++;
             });
             return true;
           },
@@ -449,7 +434,7 @@ class _CousinClassificationOverlayState
 }
 
 /// Card with a label for income/expense type and group summary
-class _LabeledTransactionGroupCard extends StatefulWidget {
+class _LabeledTransactionGroupCard extends StatelessWidget {
   final TransactionGroupByType group;
   final VoidCallback onCategoryPressed;
   final VoidCallback onStatusPressed;
@@ -460,67 +445,6 @@ class _LabeledTransactionGroupCard extends StatefulWidget {
     required this.onCategoryPressed,
     required this.onStatusPressed,
   }) : super(key: key);
-
-  @override
-  State<_LabeledTransactionGroupCard> createState() =>
-      _LabeledTransactionGroupCardState();
-}
-
-class _LabeledTransactionGroupCardState
-    extends State<_LabeledTransactionGroupCard> {
-  int? _lifetimeCount;
-  double? _lifetimeTotalValue;
-  bool _isLoadingLifetimeStats = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchLifetimeStats();
-  }
-
-  Future<void> _fetchLifetimeStats() async {
-    // Fetch all transactions for the cousin and type (lifetime)
-    final allTransactions =
-        await TransactionService.instance.getTransactions().first;
-    final lifetimeTransactions = allTransactions
-        .where((tx) =>
-            tx.cousin == widget.group.cousin &&
-            tx.status != TransactionStatus.notconsidered &&
-            ((widget.group.type == CategoryType.I && (tx.value ?? 0) > 0) ||
-                (widget.group.type == CategoryType.E && (tx.value ?? 0) < 0)))
-        .toList();
-
-    // Calculate lifetime stats
-    final count = lifetimeTransactions.length;
-    double totalValue;
-    if (widget.group.type == CategoryType.I) {
-      totalValue = lifetimeTransactions.fold(
-          0.0, (sum, tx) => sum + ((tx.value ?? 0) > 0 ? tx.value! : 0));
-    } else {
-      totalValue = lifetimeTransactions.fold(
-          0.0, (sum, tx) => sum + ((tx.value ?? 0) < 0 ? -tx.value! : 0));
-    }
-
-    if (mounted) {
-      setState(() {
-        _lifetimeCount = count;
-        _lifetimeTotalValue = totalValue;
-        _isLoadingLifetimeStats = false;
-      });
-    }
-  }
-
-  Widget _buildSkeletonBox() {
-    return Container(
-      width: 50,
-      height: 16,
-      margin: const EdgeInsets.only(top: 2),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
 
   // Helper to clean up the title (copied from overlay for consistency)
   String cleanTitle(String? title) {
@@ -588,12 +512,12 @@ class _LabeledTransactionGroupCardState
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final appColors = AppColors.of(context);
-    final isIncome = widget.group.type == CategoryType.I;
+    final isIncome = group.type == CategoryType.I;
     final amountColor = isIncome ? Colors.green : Colors.red;
 
     // Get the first non-empty, non-generic title from the group's transactions
     String displayTitle = 'Não identificado';
-    for (final tx in widget.group.transactions) {
+    for (final tx in group.transactions) {
       final cleaned = cleanTitle(tx.title);
       if (cleaned != 'NA' && cleaned != 'Não identificado') {
         displayTitle = cleaned;
@@ -683,9 +607,9 @@ class _LabeledTransactionGroupCardState
                   context,
                   TransactionsPage(
                     filters: TransactionFilters(
-                      cousinFilter: widget.group.cousin,
+                      cousinFilter: group.cousin,
                       transactionTypes: [
-                        widget.group.type == CategoryType.I
+                        group.type == CategoryType.I
                             ? TransactionType.I
                             : TransactionType.E
                       ],
@@ -704,7 +628,7 @@ class _LabeledTransactionGroupCardState
                 child: TransactionListComponent(
                   heroTagBuilder: (tr) => 'class-page__tr-icon-${tr.id}',
                   filters: TransactionFilters(
-                    cousinFilter: widget.group.cousin,
+                    cousinFilter: group.cousin,
                     status: [
                       TransactionStatus.pending,
                       TransactionStatus.reconciled,
@@ -712,7 +636,7 @@ class _LabeledTransactionGroupCardState
                       TransactionStatus.voided,
                     ],
                     transactionTypes: [
-                      widget.group.type == CategoryType.I
+                      group.type == CategoryType.I
                           ? TransactionType.I
                           : TransactionType.E
                     ],
@@ -732,7 +656,7 @@ class _LabeledTransactionGroupCardState
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: widget.onCategoryPressed,
+                    onPressed: onCategoryPressed,
                     icon: const Icon(Icons.category_rounded, size: 18),
                     label: Text(
                       t.general.category,
@@ -754,9 +678,9 @@ class _LabeledTransactionGroupCardState
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: widget.onStatusPressed,
+                    onPressed: onStatusPressed,
                     icon: Icon(
-                      widget.group.transactions.first.status?.icon ??
+                      group.transactions.first.status?.icon ??
                           Icons.help_outline,
                       size: 18,
                     ),
@@ -779,31 +703,31 @@ class _LabeledTransactionGroupCardState
                 ),
               ],
             ),
-           // const Spacer(),
+            const Spacer(),
             // --- Instructions Box (now at bottom) ---
-            // Container(
-            //   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            //   decoration: BoxDecoration(
-            //     color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-            //     borderRadius: BorderRadius.circular(8),
-            //   ),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     children: [
-            //       Icon(Icons.swipe,
-            //           size: 18, color: Theme.of(context).colorScheme.primary),
-            //       const SizedBox(width: 8),
-            //       const Flexible(
-            //         child: Text(
-            //           'Deslize para direita para reclassificar\nDeslize para esquerda para descartar',
-            //           textAlign: TextAlign.center,
-            //           style:
-            //               TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.swipe,
+                      size: 18, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  const Flexible(
+                    child: Text(
+                      'Deslize para direita para reclassificar\nDeslize para esquerda para descartar',
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
