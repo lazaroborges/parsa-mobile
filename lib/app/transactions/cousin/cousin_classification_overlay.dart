@@ -779,31 +779,31 @@ class _LabeledTransactionGroupCardState
                 ),
               ],
             ),
-            const Spacer(),
+           // const Spacer(),
             // --- Instructions Box (now at bottom) ---
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.swipe,
-                      size: 18, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 8),
-                  const Flexible(
-                    child: Text(
-                      'Deslize para direita para reclassificar\nDeslize para esquerda para descartar',
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Container(
+            //   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            //   decoration: BoxDecoration(
+            //     color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+            //     borderRadius: BorderRadius.circular(8),
+            //   ),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       Icon(Icons.swipe,
+            //           size: 18, color: Theme.of(context).colorScheme.primary),
+            //       const SizedBox(width: 8),
+            //       const Flexible(
+            //         child: Text(
+            //           'Deslize para direita para reclassificar\nDeslize para esquerda para descartar',
+            //           textAlign: TextAlign.center,
+            //           style:
+            //               TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
           ],
         ),
       ),
