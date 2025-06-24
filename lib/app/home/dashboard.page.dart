@@ -304,32 +304,31 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 investmentCategory.id
               ],
               status: [
-                TransactionStatus.unreconciled,
                 TransactionStatus.reconciled,
               ]),
         );
 
         final disconsideredStream = AccountService.instance.getAccountsBalance(
           filters: TransactionFilters(
-            minDate: dateRangeService.startDate,
-            maxDate: dateRangeService.endDate,
-            categories: [investmentCategory.id],
-            status: [
-              TransactionStatus.pending,
-              TransactionStatus.voided,
-              TransactionStatus.notconsidered,
-            ],
-          ),
+              minDate: dateRangeService.startDate,
+              maxDate: dateRangeService.endDate,
+              categories: [
+                investmentCategory.id
+              ],
+              status: [
+                TransactionStatus.notconsidered,
+                TransactionStatus.unreconciled,
+              ]),
         );
 
         final investmentResults = await Future.wait(
             [consideredStream.first, disconsideredStream.first]);
+
         consideredInvestments = investmentResults[0];
         disconsideredInvestments = investmentResults[1];
+        print('consideredInvestments: $consideredInvestments');
+        print('disconsideredInvestments: $disconsideredInvestments');
       }
-
-      print('consideredInvestments: $consideredInvestments');
-      print('disconsideredInvestments: $disconsideredInvestments');
 
       final totalInvestments =
           consideredInvestments.abs() + disconsideredInvestments.abs();
