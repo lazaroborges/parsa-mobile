@@ -27,6 +27,7 @@ import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/widgets/modal_container.dart';
 // import 'package:parsa/core/presentation/widgets/monekin_popup_menu_button.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
+import 'package:parsa/core/services/review/review_service.dart';
 import 'package:parsa/core/utils/date_time_picker.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
@@ -240,6 +241,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       tags,
     )
         .then((value) {
+      ReviewService.instance.incrementInteractionCount();
+
       final db = AppDB.instance;
 
       Future.wait(
@@ -403,7 +406,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   }
 
   Future<Account?> showAccountSelector(Account? account) async {
-
     if (widget.transactionToEdit?.isOpenFinance == true) {
       return null;
     }

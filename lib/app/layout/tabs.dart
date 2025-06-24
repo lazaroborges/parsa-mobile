@@ -29,6 +29,7 @@ import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/services/review/review_service.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -100,6 +101,7 @@ class TabsPageState extends State<TabsPage>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
+        await ReviewService.instance.checkAndShowReviewDialog(context);
       });
     }
   }
@@ -141,8 +143,6 @@ class TabsPageState extends State<TabsPage>
 
       // Refresh accounts, transactions in parallel
       await Future.wait([_fetchUserAccounts(), _fetchUserTags()]);
-
-
 
       print('[TABS] Data refresh complete.');
 
@@ -396,11 +396,11 @@ class TabsPageState extends State<TabsPage>
 
     // Show connection dialog only if user hasn't finished open finance flow
     if (!hasFinished && hasItemsAvailable) {
-      await BankConnectionDialog.showAndHandle(context);      
+      await BankConnectionDialog.showAndHandle(context);
     }
   }
 
-  //await BankConnectionDialog.showAndHandle(context); 
+  //await BankConnectionDialog.showAndHandle(context);
 
   Future<void> _checkCousinFoundDialog() async {
     final userData = UserDataProvider.instance.userData;
@@ -425,7 +425,8 @@ class TabsPageState extends State<TabsPage>
 
       // If no items in progress, check for uncategorized transactions
       final now = DateTime.now();
-      final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
+      final startOfTime =
+          DateTime(1900, 1, 1); // Far enough back to catch all transactions
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final cousinResult =
           await getCousinGroupsForPeriod(startOfTime, endOfToday);

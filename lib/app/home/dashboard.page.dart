@@ -185,7 +185,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // Add small delay to ensure userData is loaded and UI is stable
       if (mounted) {
         await Future.delayed(const Duration(seconds: 2));
-        await _checkAndShowReviewDialog();
       }
     } catch (e) {
       print('Error in dashboard initialization: $e');
@@ -259,19 +258,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           isLoading = false;
           isLoadingTransactions = false;
         });
-      }
-    }
-  }
-
-  Future<void> _checkAndShowReviewDialog() async {
-    final userData = context.read<UserDataProvider>().userData;
-
-    if (userData != null && userData['ask_feedback'] == true) {
-      final InAppReview inAppReview = InAppReview.instance;
-
-      if (await inAppReview.isAvailable()) {
-        // Request review
-        await inAppReview.requestReview();
       }
     }
   }
@@ -413,7 +399,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                               if (userData != null &&
                                                   userData['first_name'] !=
                                                       null) {
-                                                final firstName = userData['first_name'].toString();
+                                                final firstName =
+                                                    userData['first_name']
+                                                        .toString();
 
                                                 return Row(
                                                   children: [
@@ -785,12 +773,12 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ),
-              
+
               // DEBUG: Debug buttons section
               if (kDebugMode) ...[
-                
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Column(
                     children: [
                       // Cousin Found Dialog Button
@@ -798,22 +786,27 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.bug_report),
-                          label: const Text('DEBUG: Trigger Cousin Found Dialog'),
+                          label:
+                              const Text('DEBUG: Trigger Cousin Found Dialog'),
                           onPressed: () async {
                             // Set firstTriggerSwipeCards to false for testing
                             await app_prefs.SharedPreferencesAsync.instance
                                 .setFirstTriggerSwipeCards(false);
-                            
+
                             // Get actual cousin count using all past transactions
                             final now = DateTime.now();
-                            final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
-                            final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
-                            final cousinResult = await getCousinGroupsForPeriod(startOfTime, endOfToday);
+                            final startOfTime = DateTime(1900, 1,
+                                1); // Far enough back to catch all transactions
+                            final endOfToday = DateTime(
+                                now.year, now.month, now.day, 23, 59, 59);
+                            final cousinResult = await getCousinGroupsForPeriod(
+                                startOfTime, endOfToday);
                             final actualCount = cousinResult.totalGroups;
-                            
+
                             await CousinFoundDialog.showAndHandle(
                               context,
-                              cousinCount: actualCount, // Use actual count instead of mock
+                              cousinCount:
+                                  actualCount, // Use actual count instead of mock
                             );
                           },
                           style: OutlinedButton.styleFrom(
@@ -828,7 +821,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.account_balance),
-                          label: const Text('DEBUG: Open Bank Connection Dialog'),
+                          label:
+                              const Text('DEBUG: Open Bank Connection Dialog'),
                           onPressed: () {
                             BankConnectionDialog.showAndHandle(context);
                           },
@@ -842,7 +836,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ],
-              
+
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
