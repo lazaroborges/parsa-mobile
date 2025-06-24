@@ -4,6 +4,7 @@ import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
+import 'package:parsa/core/services/review/review_service.dart';
 import 'package:parsa/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/app/onboarding/intro.page.dart';
@@ -53,6 +54,9 @@ class AuthMethods {
         print(
             'Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
       }
+
+      // Reset all review-related counters
+      await ReviewService.instance.resetAllCounters();
 
       // Clear database tables
       await AppDB.instance.transaction(() async {

@@ -69,6 +69,22 @@ class ReviewService {
         '[ReviewService] App paused. Session duration: ${sessionDuration.inSeconds}s. Total foreground time: ${currentDuration}s.');
   }
 
+  /// Resets all review-related counters and timers in SharedPreferences.
+  /// This should be called when a user logs out.
+  Future<void> resetAllCounters() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Reset all interaction counters
+    for (final key in _interactionCountKeys.values) {
+      await prefs.setInt(key, 0);
+    }
+
+    // Reset the foreground time counter
+    await prefs.setInt(_timeInForegroundKey, 0);
+
+    debugPrint('[ReviewService] All counters have been reset.');
+  }
+
   /// Increments the counter for a specific user interaction type.
   Future<void> incrementInteractionCount(ReviewInteractionType type) async {
     final prefs = await SharedPreferences.getInstance();
