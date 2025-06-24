@@ -241,7 +241,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       tags,
     )
         .then((value) {
-      ReviewService.instance.incrementInteractionCount();
+      ReviewService.instance
+          .incrementInteractionCount(ReviewInteractionType.transactionEdit);
 
       final db = AppDB.instance;
 
