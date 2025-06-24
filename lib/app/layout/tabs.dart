@@ -70,6 +70,7 @@ class TabsPageState extends State<TabsPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ReviewService.instance.appResumed();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _processPendingNav();
       await _checkConnectionDialog();
@@ -91,6 +92,7 @@ class TabsPageState extends State<TabsPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ReviewService.instance.appPaused();
     BackgroundAuthService.instance.dispose();
     NotificationPreferencesService.instance.resetSessionFlag();
     super.dispose();
@@ -99,10 +101,13 @@ class TabsPageState extends State<TabsPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      ReviewService.instance.appResumed();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
         await ReviewService.instance.checkAndShowReviewDialog(context);
       });
+    } else if (state == AppLifecycleState.paused) {
+      ReviewService.instance.appPaused();
     }
   }
 

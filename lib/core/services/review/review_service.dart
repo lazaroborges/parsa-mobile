@@ -32,11 +32,42 @@ class ReviewService {
     ReviewInteractionType.budgetCreation: 1,
   };
 
+  // New constants for foreground time tracking
+  static const String _timeInForegroundKey =
+      'review_foreground_time_in_seconds';
+  static const int _timeInForegroundThreshold = 200; // in seconds
+
   // Private constructor for singleton pattern.
   ReviewService._();
 
   // Singleton instance.
   static final ReviewService instance = ReviewService._();
+
+  // New field to track session start time
+  DateTime? _foregroundStartTime;
+
+  /// Starts the foreground session timer. Should be called when the app is resumed.
+  void appResumed() {
+    _foregroundStartTime = DateTime.now();
+    debugPrint('[ReviewService] App resumed, starting foreground timer.');
+  }
+
+  /// Pauses the foreground session timer and saves the elapsed time.
+  /// Should be called when the app is paused.
+  Future<void> appPaused() async {
+    if (_foregroundStartTime == null) return;
+
+    final sessionDuration = DateTime.now().difference(_foregroundStartTime!);
+    _foregroundStartTime = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    int currentDuration = prefs.getInt(_timeInForegroundKey) ?? 0;
+    currentDuration += sessionDuration.inSeconds;
+
+    await prefs.setInt(_timeInForegroundKey, currentDuration);
+    debugPrint(
+        '[ReviewService] App paused. Session duration: ${sessionDuration.inSeconds}s. Total foreground time: ${currentDuration}s.');
+  }
 
   /// Increments the counter for a specific user interaction type.
   Future<void> incrementInteractionCount(ReviewInteractionType type) async {
@@ -75,6 +106,16 @@ class ReviewService {
   /// threshold, it triggers the review prompt and resets that specific counter.
   Future<void> checkAndShowReviewDialog(BuildContext context) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // 1. Check if the cumulative foreground time has met the threshold.
+      final int foregroundTime = prefs.getInt(_timeInForegroundKey) ?? 0;
+      if (foregroundTime < _timeInForegroundThreshold) {
+        debugPrint(
+            '[ReviewService] Foreground time threshold not met: $foregroundTime / $_timeInForegroundThreshold seconds.');
+        return;
+      }
+
       final userData = context.read<UserDataProvider>().userData;
       if (userData == null || userData['ask_feedback'] != true) {
         return;
