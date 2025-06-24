@@ -815,7 +815,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                 now.year, now.month, now.day, 23, 59, 59);
                             final cousinResult = await getCousinGroupsForPeriod(
                                 startOfTime, endOfToday);
-                            final actualCount = cousinResult.totalGroups;
+                            final actualCount = cousinResult.length;
 
                             await CousinFoundDialog.showAndHandle(
                               context,

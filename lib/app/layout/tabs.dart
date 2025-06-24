@@ -428,7 +428,7 @@ class TabsPageState extends State<TabsPage>
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final cousinResult =
           await getCousinGroupsForPeriod(startOfTime, endOfToday);
-      final count = cousinResult.totalGroups;
+      final count = cousinResult.length;
       if (count > 0) {
         // Trigger the dialog and mark as triggered
         try {

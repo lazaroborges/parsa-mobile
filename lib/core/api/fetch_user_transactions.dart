@@ -94,7 +94,7 @@ Future<void> fetchUserTransactions(String? accountId,
                 DateTime(now.year, now.month, now.day, 23, 59, 59);
             final cousinResult =
                 await getCousinGroupsForPeriod(startOfTime, endOfToday);
-            final count = cousinResult.totalGroups;
+            final count = cousinResult.length;
 
             if (count > 0) {
               await CousinFoundDialog.showAndHandle(context,

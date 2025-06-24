@@ -17,7 +17,7 @@ class FilteredSwipeCardReviewModal extends StatefulWidget {
 class _FilteredSwipeCardReviewModalState
     extends State<FilteredSwipeCardReviewModal> {
   bool _loading = false;
-  Map<String, CousinGroupResult?> _results = {};
+  Map<String, List<TransactionGroupByType>> _results = {};
   int? _startOfWeek;
   int? _startOfMonth;
 
@@ -98,16 +98,21 @@ class _FilteredSwipeCardReviewModalState
     });
   }
 
-  void _openOverlay(CousinGroupResult result, String label) {
+  void _openOverlay(List<TransactionGroupByType> groups, String label) {
     Navigator.of(context).pop();
+
+    final totalTransactions =
+        groups.fold(0, (sum, item) => sum + item.countInPeriod);
+    final totalGroups = groups.map((g) => g.cousin).toSet().length;
+
     showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
       builder: (context) => CousinClassificationOverlay(
-        groups: result.groups,
-        totalTransactions: result.totalTransactions,
-        totalGroups: result.totalGroups,
+        groups: groups,
+        totalTransactions: totalTransactions,
+        totalGroups: totalGroups,
         periodLabel: label,
       ),
     );
@@ -224,13 +229,8 @@ class _FilteredSwipeCardReviewModalState
                                   context: context,
                                   icon: Icons.today,
                                   title: 'Esta semana',
-                                  transactionCount:
-                                      _results['thisWeek']?.totalTransactions ??
-                                          0,
-                                  businessCount:
-                                      _results['thisWeek']?.totalGroups ?? 0,
-                                  onTap: _results['thisWeek'] == null ||
-                                          _results['thisWeek']!.groups.isEmpty
+                                  groups: _results['thisWeek'] ?? [],
+                                  onTap: (_results['thisWeek'] ?? []).isEmpty
                                       ? null
                                       : () => _openOverlay(
                                           _results['thisWeek']!, 'Esta semana'),
@@ -240,13 +240,8 @@ class _FilteredSwipeCardReviewModalState
                                   context: context,
                                   icon: Icons.history,
                                   title: 'Semana passada',
-                                  transactionCount:
-                                      _results['lastWeek']?.totalTransactions ??
-                                          0,
-                                  businessCount:
-                                      _results['lastWeek']?.totalGroups ?? 0,
-                                  onTap: _results['lastWeek'] == null ||
-                                          _results['lastWeek']!.groups.isEmpty
+                                  groups: _results['lastWeek'] ?? [],
+                                  onTap: (_results['lastWeek'] ?? []).isEmpty
                                       ? null
                                       : () => _openOverlay(
                                           _results['lastWeek']!,
@@ -257,13 +252,8 @@ class _FilteredSwipeCardReviewModalState
                                   context: context,
                                   icon: Icons.calendar_month,
                                   title: 'Este mês',
-                                  transactionCount: _results['thisMonth']
-                                          ?.totalTransactions ??
-                                      0,
-                                  businessCount:
-                                      _results['thisMonth']?.totalGroups ?? 0,
-                                  onTap: _results['thisMonth'] == null ||
-                                          _results['thisMonth']!.groups.isEmpty
+                                  groups: _results['thisMonth'] ?? [],
+                                  onTap: (_results['thisMonth'] ?? []).isEmpty
                                       ? null
                                       : () => _openOverlay(
                                           _results['thisMonth']!, 'Este mês'),
@@ -273,13 +263,8 @@ class _FilteredSwipeCardReviewModalState
                                   context: context,
                                   icon: Icons.calendar_today,
                                   title: 'Mês passado',
-                                  transactionCount: _results['lastMonth']
-                                          ?.totalTransactions ??
-                                      0,
-                                  businessCount:
-                                      _results['lastMonth']?.totalGroups ?? 0,
-                                  onTap: _results['lastMonth'] == null ||
-                                          _results['lastMonth']!.groups.isEmpty
+                                  groups: _results['lastMonth'] ?? [],
+                                  onTap: (_results['lastMonth'] ?? []).isEmpty
                                       ? null
                                       : () => _openOverlay(
                                           _results['lastMonth']!,
@@ -302,12 +287,16 @@ class _FilteredSwipeCardReviewModalState
     required BuildContext context,
     required IconData icon,
     required String title,
-    required int transactionCount,
-    required int businessCount,
+    required List<TransactionGroupByType> groups,
     required VoidCallback? onTap,
   }) {
     final appColors = AppColors.of(context);
     final theme = Theme.of(context);
+
+    final transactionCount =
+        groups.fold(0, (sum, item) => sum + item.countInPeriod);
+    final businessCount = groups.map((s) => s.cousin).toSet().length;
+
     final isEnabled = onTap != null && transactionCount > 0;
 
     return GestureDetector(

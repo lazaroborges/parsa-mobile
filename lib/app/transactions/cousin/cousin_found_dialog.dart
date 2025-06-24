@@ -32,22 +32,20 @@ class CousinFoundDialog {
           DateTime(1900, 1, 1); // Far enough back to catch all transactions
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-      print(
-          '-------- s3123124124 -------- Fetching cousin groups for period: $startOfTime to $endOfToday');
-      final cousinResult =
+      final cousinGroups =
           await getCousinGroupsForPeriod(startOfTime, endOfToday);
 
-      // Sort groups by total value in descending order
-      final sortedGroups =
-          List<TransactionGroupByType>.from(cousinResult.groups)
-            ..sort((a, b) => b.totalValue.compareTo(a.totalValue));
-
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierColor: Colors.transparent,
-        builder: (context) => CousinClassificationOverlay(groups: sortedGroups),
-      );
+      // The `getCousinGroupsForPeriod` function already returns the groups
+      // sorted by lifetime value, so no need for extra sorting here.
+      if (context.mounted && cousinGroups.isNotEmpty) {
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          barrierColor: Colors.transparent,
+          builder: (context) =>
+              CousinClassificationOverlay(groups: cousinGroups),
+        );
+      }
     }
   }
 }
