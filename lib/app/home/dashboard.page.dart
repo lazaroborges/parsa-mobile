@@ -338,11 +338,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           consideredInvestments.abs() + notConsideredInvestment.abs();
       final pureExpenses = totalExpenses.abs() - consideredInvestments.abs();
 
-      print('consideredInvestments: $consideredInvestments');
-      print('notConsideredInvestment: $notConsideredInvestment');
-      print('income: $income');
-      print('totalInvestments: $totalInvestments');
-      print('pureExpenses: $pureExpenses');
+      // print('consideredInvestments: $consideredInvestments');
+      // print('notConsideredInvestment: $notConsideredInvestment');
+      // print('income: $income');
+      // print('totalInvestments: $totalInvestments');
+      // print('pureExpenses: $pureExpenses');
 
       if (mounted) {
         setState(() {

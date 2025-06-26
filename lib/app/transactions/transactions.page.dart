@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_string_interpolations, prefer_single_quotes
 
 import 'package:collection/collection.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:parsa/app/layout/tabs.dart';
@@ -24,6 +25,13 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+
+enum SortMode { date, valueAsc, valueDesc }
+
+TransactionQueryOrderBy amountAscOrderBy =
+    (t, a, ac, ra, rac, c, sc) => OrderBy([OrderingTerm.asc(t.value)]);
+TransactionQueryOrderBy amountDescOrderBy =
+    (t, a, ac, ra, rac, c, sc) => OrderBy([OrderingTerm.desc(t.value)]);
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({
@@ -50,6 +58,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
   final searchController = TextEditingController();
 
   List<MoneyTransaction> selectedTransactions = [];
+
+  SortMode _sortMode = SortMode.date;
 
   @override
   void initState() {
@@ -88,6 +98,46 @@ class _TransactionsPageState extends State<TransactionsPage> {
     super.dispose();
   }
 
+  void _toggleSortOrder() {
+    setState(() {
+      switch (_sortMode) {
+        case SortMode.date:
+          _sortMode = SortMode.valueDesc;
+          break;
+        case SortMode.valueDesc:
+          _sortMode = SortMode.valueAsc;
+          break;
+        case SortMode.valueAsc:
+          _sortMode = SortMode.date;
+          break;
+      }
+    });
+  }
+
+  TransactionQueryOrderBy? _getOrderBy() {
+    switch (_sortMode) {
+      case SortMode.valueAsc:
+        return amountAscOrderBy;
+      case SortMode.valueDesc:
+        return amountDescOrderBy;
+      case SortMode.date:
+      default:
+        return null;
+    }
+  }
+
+  Widget _buildSortIcon() {
+    switch (_sortMode) {
+      case SortMode.valueDesc:
+        return const Icon(Icons.arrow_downward);
+      case SortMode.valueAsc:
+        return const Icon(Icons.arrow_upward);
+      case SortMode.date:
+      default:
+        return const Icon(Icons.sort);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -116,135 +166,140 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
         Navigator.pop(context);
       },
-      child: Scaffold(
-        appBar: selectedTransactions.isNotEmpty
-            ? selectedTransactionsAppbar()
-            : AppBar(
-                leading: searchActive
-                    ? IconButton(
-                        onPressed: () {
-                          setState(() {
-                            searchActive = false;
-                            searchController.text = "";
-                          });
-                        },
-                        icon: const Icon(Icons.close))
-                    : null,
-                title: searchActive
-                    ? TextField(
-                        controller: searchController,
-                        focusNode: searchFocusNode,
-                        decoration: InputDecoration(
-                          hintText: t.transaction.list.searcher_placeholder,
-                          border: const UnderlineInputBorder(),
-                        ),
-                        onChanged: (text) {
-                          setState(() {});
-                        },
-                      )
-                    : Text(t.transaction.display(n: 10)),
-                actions: [
-                  if (filters.hasFilter || searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: Icon(
-                        isAllFilteredSelected
-                            ? Icons.select_all
-                            : Icons.deselect,
-                        color: isAllFilteredSelected
-                            ? AppColors.of(context).primary
-                            : null,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          isAllFilteredSelected = !isAllFilteredSelected;
-                          if (isAllFilteredSelected) {
-                            TransactionService.instance
-                                .getTransactions(
-                                  filters: filters.copyWith(
-                                    searchValue: searchController.text,
-                                  ),
-                                )
-                                .first
-                                .then((transactions) {
+      child: StreamBuilder(
+        stream: TransactionService.instance.countTransactions(
+          predicate: filters.copyWith(
+            searchValue: searchController.text,
+            status: filters.status
+                    ?.where((s) => s != TransactionStatus.notconsidered)
+                    .toList() ??
+                [
+                  TransactionStatus.pending,
+                  TransactionStatus.reconciled,
+                  TransactionStatus.unreconciled,
+                  TransactionStatus.voided
+                ],
+          ),
+        ),
+        builder: (context, snapshot) {
+          final transactionCount = snapshot.data?.numberOfRes ?? 0;
+          const smallerTextStyle =
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w300);
+
+          return Scaffold(
+            appBar: selectedTransactions.isNotEmpty
+                ? selectedTransactionsAppbar()
+                : AppBar(
+                    leading: searchActive
+                        ? IconButton(
+                            onPressed: () {
                               setState(() {
-                                selectedTransactions = transactions;
+                                searchActive = false;
+                                searchController.text = "";
                               });
+                            },
+                            icon: const Icon(Icons.close))
+                        : null,
+                    title: searchActive
+                        ? TextField(
+                            controller: searchController,
+                            focusNode: searchFocusNode,
+                            decoration: InputDecoration(
+                              hintText: t.transaction.list.searcher_placeholder,
+                              border: const UnderlineInputBorder(),
+                            ),
+                            onChanged: (text) {
+                              setState(() {});
+                            },
+                          )
+                        : Text(t.transaction.display(n: 10)),
+                    actions: [
+                      if (transactionCount < 300)
+                        IconButton(
+                          icon: _buildSortIcon(),
+                          onPressed: _toggleSortOrder,
+                        ),
+                      if (filters.hasFilter || searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(
+                            isAllFilteredSelected
+                                ? Icons.select_all
+                                : Icons.deselect,
+                            color: isAllFilteredSelected
+                                ? AppColors.of(context).primary
+                                : null,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isAllFilteredSelected = !isAllFilteredSelected;
+                              if (isAllFilteredSelected) {
+                                TransactionService.instance
+                                    .getTransactions(
+                                      filters: filters.copyWith(
+                                        searchValue: searchController.text,
+                                      ),
+                                    )
+                                    .first
+                                    .then((transactions) {
+                                  setState(() {
+                                    selectedTransactions = transactions;
+                                  });
+                                });
+                              } else {
+                                selectedTransactions = [];
+                              }
                             });
-                          } else {
-                            selectedTransactions = [];
+                          },
+                        ),
+                      if (!searchActive)
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () {
+                            setState(() {
+                              searchActive = true;
+                            });
+
+                            searchFocusNode.requestFocus();
+                          },
+                        ),
+                      IconButton(
+                        onPressed: () async {
+                          final modalRes = await openFilterSheetModal(
+                            context,
+                            FilterSheetModal(preselectedFilter: filters),
+                          );
+
+                          if (modalRes != null) {
+                            setState(() {
+                              filters = modalRes;
+                            });
                           }
-                        });
-                      },
-                    ),
-                  if (!searchActive)
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        setState(() {
-                          searchActive = true;
-                        });
-
-                        searchFocusNode.requestFocus();
-                      },
-                    ),
-                  IconButton(
-                    onPressed: () async {
-                      final modalRes = await openFilterSheetModal(
-                        context,
-                        FilterSheetModal(preselectedFilter: filters),
-                      );
-
-                      if (modalRes != null) {
-                        setState(() {
-                          filters = modalRes;
-                        });
-                      }
+                        },
+                        icon: const Icon(Icons.filter_alt_outlined),
+                      ),
+                    ],
+                  ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => RouteUtils.pushRoute(
+                context,
+                const TransactionFormPage(),
+              ),
+              child: const Icon(Icons.add_rounded),
+            ),
+            body: Column(
+              children: [
+                if (filters.hasFilter) ...[
+                  FilterRowIndicator(
+                    filters:
+                        filters.copyWith(searchValue: searchController.text),
+                    onChange: (newFilters) {
+                      setState(() {
+                        filters = newFilters;
+                      });
                     },
-                    icon: const Icon(Icons.filter_alt_outlined),
                   ),
                 ],
-              ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => RouteUtils.pushRoute(
-            context,
-            const TransactionFormPage(),
-          ),
-          child: const Icon(Icons.add_rounded),
-        ),
-        body: Column(
-          children: [
-            if (filters.hasFilter) ...[
-              FilterRowIndicator(
-                filters: filters.copyWith(searchValue: searchController.text),
-                onChange: (newFilters) {
-                  setState(() {
-                    filters = newFilters;
-                  });
-                },
-              ),
-            ],
-            StreamBuilder(
-              stream: TransactionService.instance.countTransactions(
-                predicate: filters.copyWith(
-                  searchValue: searchController.text,
-                  status: filters.status
-                          ?.where((s) => s != TransactionStatus.notconsidered)
-                          .toList() ??
-                      [
-                        TransactionStatus.pending,
-                        TransactionStatus.reconciled,
-                        TransactionStatus.unreconciled,
-                        TransactionStatus.voided
-                      ],
-                ),
-              ),
-              builder: (context, snapshot) {
-                final res = snapshot.data;
-
-                const smallerTextStyle =
-                    TextStyle(fontSize: 14, fontWeight: FontWeight.w300);
-
-                return Card(
+                Card(
                   elevation: 2,
                   margin: const EdgeInsets.all(8),
                   shape: RoundedRectangleBorder(
@@ -260,7 +315,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              if (res != null) ...[
+                              if (snapshot.hasData) ...[
                                 Text.rich(
                                   TextSpan(
                                       text: selectedTransactions.isNotEmpty
@@ -269,14 +324,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                       children: [
                                         TextSpan(
                                             text:
-                                                '${selectedTransactions.isNotEmpty ? ' / ' : ''}${res.numberOfRes} ',
+                                                '${selectedTransactions.isNotEmpty ? ' / ' : ''}${snapshot.data!.numberOfRes} ',
                                             style:
                                                 selectedTransactions.isNotEmpty
                                                     ? smallerTextStyle
                                                     : null),
                                         TextSpan(
                                           text: t.transaction
-                                              .display(n: res.numberOfRes)
+                                              .display(
+                                                  n: snapshot.data!.numberOfRes)
                                               .toLowerCase(),
                                         ),
                                       ]),
@@ -295,7 +351,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                       const Text("/ ", style: smallerTextStyle)
                                     ],
                                     CurrencyDisplayer(
-                                      amountToConvert: res.valueSum,
+                                      amountToConvert: snapshot.data!.valueSum,
                                       showDecimals:
                                           selectedTransactions.isEmpty,
                                       integerStyle: selectedTransactions.isEmpty
@@ -305,7 +361,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   ],
                                 )
                               ],
-                              if (res == null) ...[
+                              if (!snapshot.hasData) ...[
                                 const Skeleton(width: 38, height: 18),
                                 const Skeleton(width: 28, height: 18),
                               ]
@@ -315,36 +371,41 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-            Expanded(
-              child: TransactionListComponent(
-                heroTagBuilder: (tr) => 'transactions-page__tr-icon-${tr.id}',
-                filters: filters.copyWith(searchValue: searchController.text),
-                prevPage: const TabsPage(),
-                selectedTransactions: selectedTransactions,
-                onLongPress: (tr) {
-                  if (selectedTransactions.isNotEmpty) {
-                    return;
-                  }
-
-                  setState(() {
-                    selectedTransactions = [tr];
-                  });
-                },
-                onTap: selectedTransactions.isEmpty ? null : toggleTransaction,
-                onEmptyList: NoResults(
-                  title: filters.hasFilter ? null : t.general.empty_warn,
-                  description: filters.hasFilter
-                      ? t.transaction.list.searcher_no_results
-                      : t.transaction.list.empty,
-                  noSearchResultsVariation: filters.hasFilter,
                 ),
-              ),
+                Expanded(
+                  child: TransactionListComponent(
+                    heroTagBuilder: (tr) =>
+                        'transactions-page__tr-icon-${tr.id}',
+                    filters:
+                        filters.copyWith(searchValue: searchController.text),
+                    orderBy: _getOrderBy(),
+                    showGroupDivider: _sortMode == SortMode.date,
+                    prevPage: const TabsPage(),
+                    selectedTransactions: selectedTransactions,
+                    onLongPress: (tr) {
+                      if (selectedTransactions.isNotEmpty) {
+                        return;
+                      }
+
+                      setState(() {
+                        selectedTransactions = [tr];
+                      });
+                    },
+                    onTap:
+                        selectedTransactions.isEmpty ? null : toggleTransaction,
+                    onEmptyList: NoResults(
+                      title: filters.hasFilter ? null : t.general.empty_warn,
+                      description: filters.hasFilter
+                          ? t.transaction.list.searcher_no_results
+                          : t.transaction.list.empty,
+                      noSearchResultsVariation: filters.hasFilter,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
