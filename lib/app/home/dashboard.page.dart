@@ -23,6 +23,7 @@ import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/models/account/account.dart';
@@ -250,7 +251,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           isLoading = false;
           isLoadingTransactions = false;
         });
-        _updateProgressBarData();
+        await _updateProgressBarData();
       }
     }
   }
@@ -293,47 +294,53 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       final investmentCategory = results[2] as Category?;
 
       double consideredInvestments = 0.0;
-      double disconsideredInvestments = 0.0;
+      double notConsideredInvestment = 0.0;
 
       if (investmentCategory != null) {
-        final consideredStream = AccountService.instance.getAccountsBalance(
-          filters: TransactionFilters(
-              minDate: dateRangeService.startDate,
-              maxDate: dateRangeService.endDate,
-              categories: [
-                investmentCategory.id
-              ],
-              status: [
-                TransactionStatus.reconciled,
-              ]),
-        );
+        // Considered: what counts for stats.
+        final consideredStatus =
+            TransactionStatus.getStatusThatCountsForStats(null);
 
-        final disconsideredStream = AccountService.instance.getAccountsBalance(
-          filters: TransactionFilters(
-              minDate: dateRangeService.startDate,
-              maxDate: dateRangeService.endDate,
-              categories: [
-                investmentCategory.id
-              ],
-              status: [
-                TransactionStatus.pending,
-                TransactionStatus.voided,
-              ]),
-        );
+        // Disconsidered: what DOES NOT count for stats.
+        final notConsideredStatus = [
+          TransactionStatus.pending,
+          TransactionStatus.voided,
+          TransactionStatus.notconsidered,
+        ];
+
+        // We use TransactionService directly to avoid the filtering in getAccountsBalance
+        final consideredStream = TransactionService.instance
+            .countTransactions(
+                predicate: TransactionFilters(
+                    minDate: dateRangeService.startDate,
+                    maxDate: dateRangeService.endDate,
+                    categories: [investmentCategory.id],
+                    status: consideredStatus))
+            .map((event) => event.valueSum);
+
+        final notConsideredStream = TransactionService.instance
+            .countTransactions(
+                predicate: TransactionFilters(
+                    minDate: dateRangeService.startDate,
+                    maxDate: dateRangeService.endDate,
+                    categories: [investmentCategory.id],
+                    status: notConsideredStatus))
+            .map((event) => event.valueSum);
 
         final investmentResults = await Future.wait(
-            [consideredStream.first, disconsideredStream.first]);
+            [consideredStream.first, notConsideredStream.first]);
 
         consideredInvestments = investmentResults[0];
-        disconsideredInvestments = investmentResults[1];
-        print('consideredInvestments: $consideredInvestments');
-        print('disconsideredInvestments: $disconsideredInvestments');
+        notConsideredInvestment = investmentResults[1];
       }
 
       final totalInvestments =
-          consideredInvestments.abs() + disconsideredInvestments.abs();
+          consideredInvestments.abs() + notConsideredInvestment.abs();
       final pureExpenses = totalExpenses.abs() - consideredInvestments.abs();
 
+      print('consideredInvestments: $consideredInvestments');
+      print('notConsideredInvestment: $notConsideredInvestment');
+      print('income: $income');
       print('totalInvestments: $totalInvestments');
       print('pureExpenses: $pureExpenses');
 
@@ -400,16 +407,12 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
     final t = Translations.of(context);
 
     final accountService = AccountService.instance;
-    final hideDrawerAndFloatingButton =
-        BreakPoint.of(context).isLargerOrEqualTo(BreakpointID.md);
 
     if (!_isDateRangeInitialized) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
-    final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
@@ -1504,53 +1507,41 @@ class AnimatedExpenseProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        '[ANIMATION_DEBUG] Rendering AnimatedExpenseProgressBar. Key: ${this.key}');
-    final totalSpent = pureExpenses + totalInvestments;
-    final spentPercentage = income > 0 ? (totalSpent / income) : 0.0;
-    final investmentPercentage = income > 0 ? (totalInvestments / income) : 0.0;
+    // Use a Tween from 0.0 to 1.0 to act as a multiplier for the animation progress.
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 1500),
+      curve: Curves.easeInOut,
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      builder: (context, animationValue, child) {
+        // The animated values are the final values multiplied by the animation progress (0.0 to 1.0)
+        final animatedPureExpenses = pureExpenses * animationValue;
+        final animatedTotalInvestments = totalInvestments * animationValue;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-      width: double.infinity,
-      child: TweenAnimationBuilder<double>(
-        duration: const Duration(milliseconds: 1500),
-        curve: Curves.easeInOut,
-        tween: Tween<double>(
-          begin: 0,
-          end: spentPercentage > 1 ? 1 : spentPercentage,
-        ),
-        builder: (context, animatedPercentage, child) {
-          final animatedTotalSpent = animatedPercentage * income;
+        // The values to pass to the progress bar widget
+        final animatedValues = [
+          ProgressBarValue(amount: animatedPureExpenses, color: Colors.red),
+          ProgressBarValue(
+              amount: animatedTotalInvestments, color: Colors.blue),
+        ];
 
-          final animatedPureExpenses = totalSpent > 0
-              ? animatedTotalSpent * (pureExpenses / totalSpent)
-              : 0.0;
+        // Calculate percentages for the text labels based on the animated values
+        final animatedSpentPercentage =
+            income > 0 ? animatedPureExpenses / income : 0.0;
+        final animatedInvestmentPercentage =
+            income > 0 ? animatedTotalInvestments / income : 0.0;
 
-          final animatedTotalInvestments = totalSpent > 0
-              ? animatedTotalSpent * (totalInvestments / totalSpent)
-              : 0.0;
-
-          final animatedInvestmentPercentage = spentPercentage > 0 &&
-                  investmentPercentage > 0
-              ? animatedPercentage * (investmentPercentage / spentPercentage)
-              : 0.0;
-
-          final animatedValues = [
-            ProgressBarValue(amount: animatedPureExpenses, color: Colors.red),
-            ProgressBarValue(
-                amount: animatedTotalInvestments, color: Colors.blue),
-          ];
-
-          return Column(
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+          width: double.infinity,
+          child: Column(
             children: [
               MultiValueProgressBar(
-                total: income,
+                total: income, // The bar's total is the income
                 values: animatedValues,
               ),
               const SizedBox(height: 2),
               Text(
-                '${(animatedPercentage * 100).toStringAsFixed(1)}% da renda gasta.',
+                '${(animatedSpentPercentage * 100).toStringAsFixed(1)}% da renda gasta.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 2),
@@ -1559,9 +1550,9 @@ class AnimatedExpenseProgressBar extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
