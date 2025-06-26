@@ -176,11 +176,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
       // Then fetch data
       await _refreshData();
-
-      // Add small delay to ensure userData is loaded and UI is stable
-      if (mounted) {
-        await Future.delayed(const Duration(seconds: 2));
-      }
     } catch (e) {
       print('Error in dashboard initialization: $e');
 
@@ -242,6 +237,15 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         fetchUserTransactions(null),
         fetchUserBudgets(context),
       ]);
+
+      // HACK: Short delay to allow database writes to settle before reading.
+      // This is to address a race condition on initial login where the progress
+      // bar data is queried before transaction processing is complete.
+      await Future.delayed(const Duration(milliseconds: 2000));
+
+      if (mounted) {
+        await _updateProgressBarData();
+      }
     } catch (e) {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
@@ -251,7 +255,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           isLoading = false;
           isLoadingTransactions = false;
         });
-        await _updateProgressBarData();
       }
     }
   }
@@ -337,12 +340,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       final totalInvestments =
           consideredInvestments.abs() + notConsideredInvestment.abs();
       final pureExpenses = totalExpenses.abs() - consideredInvestments.abs();
-
-      // print('consideredInvestments: $consideredInvestments');
-      // print('notConsideredInvestment: $notConsideredInvestment');
-      // print('income: $income');
-      // print('totalInvestments: $totalInvestments');
-      // print('pureExpenses: $pureExpenses');
 
       if (mounted) {
         setState(() {
@@ -1507,6 +1504,9 @@ class AnimatedExpenseProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("--- AnimatedExpenseProgressBar BUILD ---");
+    print(
+        "income: $income, pureExpenses: $pureExpenses, totalInvestments: $totalInvestments");
     // Use a Tween from 0.0 to 1.0 to act as a multiplier for the animation progress.
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 1500),
