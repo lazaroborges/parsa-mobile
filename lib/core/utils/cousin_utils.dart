@@ -59,9 +59,11 @@ class CousinGroupSummary {
 /// Fetches and processes cousin groups for a given period using an efficient, single SQL query for aggregation.
 Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
     DateTime start, DateTime end) async {
-  print('[PERF] getCousinGroupsForPeriod (Optimized): START');
-  final startTime = DateTime.now();
   final db = AppDB.instance;
+
+  // Adjust for the 3-hour timezone difference in the DB
+  final dbQueryStart = start.add(const Duration(hours: 3));
+  final dbQueryEnd = end.add(const Duration(hours: 3));
 
   // 1. Get aggregated summaries with a single, powerful SQL query.
   const summaryQuery = """
@@ -77,9 +79,12 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
     HAVING transactionsInPeriod > 0 AND transactionsInTotal > 1
   """;
 
-  final summaryResult = await db.customSelect(summaryQuery,
-      variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
-      readsFrom: {db.transactions}).get();
+  final summaryResult = await db.customSelect(summaryQuery, variables: [
+    Variable.withDateTime(dbQueryStart),
+    Variable.withDateTime(dbQueryEnd)
+  ], readsFrom: {
+    db.transactions
+  }).get();
 
   final summaries = summaryResult.map((row) {
     return CousinGroupSummary(
@@ -92,8 +97,6 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
   }).toList();
 
   if (summaries.isEmpty) {
-    print(
-        '[PERF] getCousinGroupsForPeriod (Optimized): END. No groups found. Took ${DateTime.now().difference(startTime).inMilliseconds}ms.');
     return [];
   }
 
@@ -126,11 +129,8 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
     );
   }).toList();
 
-  // Sort groups by total lifetime value for relevance.
   groups.sort((a, b) => b.lifetimeTotalAmount.compareTo(a.lifetimeTotalAmount));
 
-  print(
-      '[PERF] getCousinGroupsForPeriod (Optimized): END. Took ${DateTime.now().difference(startTime).inMilliseconds}ms for ${groups.length} groups.');
   return groups;
 }
 

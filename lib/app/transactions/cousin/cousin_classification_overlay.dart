@@ -87,8 +87,6 @@ class _CousinClassificationOverlayState
   @override
   Widget build(BuildContext context) {
     final groups = widget.groups;
-    final totalTransactions = widget.totalTransactions;
-    final totalGroups = widget.totalGroups;
 
     if (groups.isEmpty && _hasShownInstructionCardBefore) {
       return const Center(child: Text('Nenhuma transação não categorizada.'));
@@ -360,7 +358,6 @@ class _CousinClassificationOverlayState
 
   Future<void> _handleStatusButtonPressed(
       TransactionGroupByType group, int index) async {
-    final t = Translations.of(context);
     final modalResult = await showTransactioStatusModal(
       context,
       initialStatus: group.transactions.first.status,
