@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
 import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
-import 'package:parsa/app/budgets/components/budget_list_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/accounts_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/budgets_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/by_categories_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/by_tags_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/cash_flow_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/credit_cards_card.dart';
+import 'package:parsa/app/home/widgets/dashboard_cards/last_transactions_card.dart';
 import 'package:parsa/app/home/widgets/multi_value_progress_bar.dart';
-import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
-import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
-import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
-import 'package:parsa/app/tags/tag_list.page.dart';
 import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
 import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
@@ -28,6 +30,7 @@ import 'package:parsa/core/database/services/user-setting/private_mode_service.d
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/category/category.dart';
+import 'package:parsa/core/models/dashboard/dashboard_card_config.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
@@ -44,6 +47,7 @@ import 'package:parsa/core/presentation/widgets/trending_value.dart';
 import 'package:parsa/core/presentation/widgets/user_avatar.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/routes/route_utils.dart';
+import 'package:parsa/core/services/dashboard_cards_service.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 import 'package:parsa/i18n/translations.g.dart';
@@ -51,8 +55,6 @@ import 'package:parsa/main.dart'; // Import main to access routeObserver
 import 'package:provider/provider.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
-import '../accounts/account_form.dart';
-import '../transactions/widgets/transaction_list.dart';
 import 'widgets/income_or_expense_card.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -73,6 +75,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
   double _progressBarIncome = 0.0;
   double _progressBarPureExpenses = 0.0;
   double _progressBarTotalInvestments = 0.0;
+  late Future<List<DashboardCardConfig>> _cardsConfigFuture;
 
   @override
   void initState() {
@@ -80,6 +83,13 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
     _loadBalanceType();
     _initializePrivateMode();
     _initializeDashboard();
+    _loadCardsConfig();
+  }
+
+  void _loadCardsConfig() {
+    setState(() {
+      _cardsConfigFuture = DashboardCardsService.instance.getCardsConfig();
+    });
   }
 
   @override
@@ -102,6 +112,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
   /// Called when the top route has been popped off, and the current route shows up.
   @override
   void didPopNext() {
+    _loadCardsConfig();
     _syncPreferencesWithBackend().then((_) {
       _initializeDateRangeService();
     });
@@ -400,10 +411,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    final userData = context.watch<UserDataProvider>().userData;
     final t = Translations.of(context);
-
-    final accountService = AccountService.instance;
 
     if (!_isDateRangeInitialized) {
       return const Scaffold(
@@ -423,7 +431,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor),
                 child: Card(
-                  margin: const EdgeInsets.only(bottom: 12),
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(16),
@@ -431,7 +438,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -448,11 +455,18 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                   children: [
                                     if (BreakPoint.of(context)
                                         .isSmallerThan(BreakpointID.md)) ...[
-                                      if (userData != null &&
-                                          userData['avatar_url'] != null)
+                                      if (context
+                                                  .watch<UserDataProvider>()
+                                                  .userData !=
+                                              null &&
+                                          context
+                                                  .watch<UserDataProvider>()
+                                                  .userData!['avatar_url'] !=
+                                              null)
                                         CircleAvatar(
-                                          backgroundImage: NetworkImage(
-                                              userData['avatar_url']),
+                                          backgroundImage: NetworkImage(context
+                                              .watch<UserDataProvider>()
+                                              .userData!['avatar_url']),
                                           radius: 18,
                                         )
                                       else
@@ -483,6 +497,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                 .getSetting(
                                                     SettingKey.userName),
                                             builder: (context, snapshot) {
+                                              final userData = context
+                                                  .watch<UserDataProvider>()
+                                                  .userData;
                                               final isSubscriber = userData !=
                                                       null &&
                                                   userData['is_subscriber'] ==
@@ -750,7 +767,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 totalBalanceIndicator(
-                                    context, accounts, accountService),
+                                    context, accounts, AccountService.instance),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -775,7 +792,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         ),
                         const SizedBox(height: 16),
                         if (true) ...[
-                          const SizedBox(height: 16),
                           if (_isProgressBarLoading)
                             const LinearProgressIndicator()
                           else
@@ -853,307 +869,102 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ],
-
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: StreamBuilder<List<Account>>(
-                  stream: AccountService.instance.getAccounts(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const CircularProgressIndicator();
-                    }
-
-                    final accounts = snapshot.data!
-                        .where((account) => !account.removed)
-                        .toList();
-
-                    return AccountListCard(
-                      accounts: accounts,
-                      onAccountTap: (account) => RouteUtils.pushRoute(
-                        context,
-                        AccountDetailsPage(
-                          account: account,
-                          accountIconHeroTag: null,
-                        ),
-                      ),
-                      onAddAccountTap: () {
-                        RouteUtils.pushRoute(
-                            context, const AccountConnectionModal());
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              // Credit Cards Section
-              StreamBuilder<List<Account>>(
-                stream: AccountService.instance.getAccounts(
-                  predicate: (a, c) => a.type.equals('credit'),
-                ),
+              FutureBuilder<List<DashboardCardConfig>>(
+                future: _cardsConfigFuture,
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const SizedBox.shrink();
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      !snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
                   }
 
-                  final creditCards = snapshot.data!
-                      .where((account) => !account.removed)
-                      .toList();
-
-                  if (creditCards.isEmpty) {
-                    return const SizedBox.shrink();
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
                   }
-// TODO Bring Back Credit CardHeader
-                  // return Padding(
-                  //   padding:
-                  //       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  //   child: CreditCardListCard(
-                  //     creditCards: creditCards,
-                  //     onCardTap: (card) => RouteUtils.pushRoute(
-                  //       context,
-                  //       AccountDetailsPage(
-                  //         account: card,
-                  //         accountIconHeroTag: null,
-                  //       ),
-                  //     ),
-                  //     onAddCardTap: () {
-                  //       RouteUtils.pushRoute(
-                  //           context, const AccountConnectionModal());
-                  //     },
-                  //   ),
-                  // );
-                  return const SizedBox.shrink();
+
+                  final cardsConfig = snapshot.data!;
+
+                  final cardWidgets =
+                      cardsConfig.where((card) => card.enabled).map((card) {
+                    return _buildCardWidget(card.key);
+                  }).toList();
+
+                  return ResponsiveRowColumn(
+                    direction:
+                        BreakPoint.of(context).isLargerThan(BreakpointID.md)
+                            ? Axis.horizontal
+                            : Axis.vertical,
+                    rowCrossAxisAlignment: CrossAxisAlignment.start,
+                    columnSpacing: 8,
+                    rowSpacing: 8,
+                    children: cardWidgets
+                        .map((e) => ResponsiveRowColumnItem(
+                              rowFit: FlexFit.tight,
+                              child: e,
+                            ))
+                        .toList(),
+                  );
                 },
-              ),
-
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: CardWithHeader(
-                  title: t.home.last_transactions,
-                  onHeaderButtonClick: () {
-                    tabsPageKey.currentState?.navigateToTab(1);
-                  },
-                  body: DashboardTransactionList(
-                    child: TransactionListComponent(
-                      heroTagBuilder: (tr) =>
-                          'dashboard-page__tr-icon-${tr.id}',
-                      filters: TransactionFilters(
-                        status: TransactionStatus.notIn({
-                          TransactionStatus.pending,
-                          TransactionStatus.voided,
-                          TransactionStatus.notconsidered
-                        }),
-                      ),
-                      limit: 5,
-                      showGroupDivider: false,
-                      prevPage: const DashboardPage(),
-                      onEmptyList: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          t.transaction.list.empty,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ------------- TRIGGER SWIPE CARD --------------
-              ...(true
-                  ? [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Builder(
-                          builder: (context) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                FilledButton.icon(
-                                  icon: const Icon(Icons.swipe),
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text.rich(
-                                        TextSpan(
-                                          text:
-                                              'Rever suas transações agrupadas',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  onPressed: isLoadingTransactions
-                                      ? null
-                                      : () async {
-                                          showDialog(
-                                            context: context,
-                                            barrierDismissible: true,
-                                            barrierColor: Colors.transparent,
-                                            builder: (context) =>
-                                                const FilteredSwipeCardReviewModal(),
-                                          );
-                                        },
-                                  style: isLoadingTransactions
-                                      ? FilledButton.styleFrom(
-                                          backgroundColor: Colors.grey[300],
-                                          foregroundColor: Colors.grey[600],
-                                        )
-                                      : null,
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    ]
-                  : []),
-
-              // ------------- STATS GENERAL CARDS --------------
-
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: ResponsiveRowColumn.withSymetricSpacing(
-                  direction:
-                      BreakPoint.of(context).isLargerThan(BreakpointID.md)
-                          ? Axis.horizontal
-                          : Axis.vertical,
-                  rowCrossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
-                  children: [
-                    ResponsiveRowColumnItem(
-                      rowFit: FlexFit.tight,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CardWithHeader(
-                              title: t.stats.by_categories,
-                              body: ChartByCategories(
-                                  datePeriodState: dateRangeService),
-                              onHeaderButtonClick: () {
-                                tabsPageKey.currentState?.navigateToStatsTab(0);
-                              }),
-                          const SizedBox(height: 12),
-                          CardWithHeader(
-                            title: t.stats.cash_flow,
-                            bodyPadding: EdgeInsets.zero,
-                            body: IncomeExpenseComparason(
-                              startDate: dateRangeService.startDate,
-                              endDate: dateRangeService.endDate,
-                            ),
-                            onHeaderButtonClick: () {
-                              tabsPageKey.currentState?.navigateToStatsTab(2);
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          CardWithHeader(
-                            title: t.stats.by_tags,
-                            body: TagStats(
-                              filters: TransactionFilters(
-                                minDate: dateRangeService.startDate,
-                                maxDate: dateRangeService.endDate,
-                              ),
-                            ),
-                            onHeaderButtonClick: () => RouteUtils.pushRoute(
-                              context,
-                              const TagListPage(),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          StreamBuilder(
-                            stream: BudgetService.instance.getBudgets(),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return const LinearProgressIndicator();
-                              }
-                              final budgets = snapshot.data!;
-                              return BudgetListCard(
-                                budgets: budgets,
-                                limit: 3,
-                              );
-                            },
-                          ),
-
-                          // const SizedBox(height: 16),
-
-                          // CardWithHeader(
-                          //   title: t.financial_health.display,
-                          //   onHeaderButtonClick: () => RouteUtils.pushRoute(
-                          //       context,
-                          //       StatsPage(
-                          //           dateRangeService: dateRangeService,
-                          //           initialIndex: 2)),
-                          //   bodyPadding: const EdgeInsets.all(16),
-                          //   body: StreamBuilder(
-                          //     stream: FinanceHealthService().getHealthyValue(
-                          //       filters: TransactionFilters(
-                          //         minDate: dateRangeService.startDate,
-                          //         maxDate: dateRangeService.endDate,
-                          //       ),
-                          //     ),
-                          //     builder: (context, snapshot) {
-                          //       if (!snapshot.hasData) {
-                          //         return const LinearProgressIndicator();
-                          //       }
-
-                          //       final financeHealthData = snapshot.data!;
-
-                          //       return FinanceHealthMainInfo(
-                          //           financeHealthData: financeHealthData);
-                          //     },
-                          //   ),
-                          // ),
-                          const SizedBox(height: 16), //This might be an issue.
-                        ],
-                      ),
-                    ),
-                    // ResponsiveRowColumnItem(
-                    //   rowFit: FlexFit.tight,
-                    //   child: Column(
-                    //     mainAxisSize: MainAxisSize.min,
-                    //     children: [
-                    //       CardWithHeader(
-                    //           title: t.stats.balance_evolution,
-                    //           body: FundEvolutionLineChart(
-                    //             dateRange: dateRangeService,
-                    //           ),
-                    //           onHeaderButtonClick: () {
-                    //             RouteUtils.pushRoute(
-                    //               context,
-                    //               StatsPage(
-                    //                   dateRangeService: dateRangeService,
-                    //                   initialIndex: 2),
-                    //             );
-                    //           }),
-                    //       const SizedBox(height: 16),
-                    //       CardWithHeader(
-                    //           title: t.stats.cash_flow,
-                    //           body: Padding(
-                    //             padding: const EdgeInsets.only(
-                    //                 top: 16, left: 16, right: 16),
-                    //             child: BalanceChartSmall(
-                    //                 dateRangeService: dateRangeService),
-                    //           ),
-                    //           onHeaderButtonClick: () {
-                    //             RouteUtils.pushRoute(
-                    //               context,
-                    //               StatsPage(
-                    //                   dateRangeService: dateRangeService,
-                    //                   initialIndex: 3),
-                    //             );
-                    //           }),
-                    //     ],
-                    //   ),
-                    // )
-                  ],
-                ),
               ),
             ]),
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
+  }
+
+  Widget _buildCardWidget(DashboardCardKey key) {
+    switch (key) {
+      case DashboardCardKey.accounts:
+        return const AccountsCard();
+      case DashboardCardKey.creditCards:
+        return const CreditCardsCard();
+      case DashboardCardKey.lastTransactions:
+        return Column(
+          children: [
+            const LastTransactionsCard(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.swipe),
+                  label: const Text(
+                    'Rever suas transações agrupadas',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onPressed: isLoadingTransactions
+                      ? null
+                      : () async {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            barrierColor: Colors.transparent,
+                            builder: (context) =>
+                                const FilteredSwipeCardReviewModal(),
+                          );
+                        },
+                  style: isLoadingTransactions
+                      ? FilledButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.grey[600],
+                        )
+                      : null,
+                ),
+              ),
+            ),
+          ],
+        );
+      case DashboardCardKey.byCategories:
+        return ByCategoriesCard(dateRangeService: dateRangeService);
+      case DashboardCardKey.cashFlow:
+        return CashFlowCard(dateRangeService: dateRangeService);
+      case DashboardCardKey.byTags:
+        return ByTagsCard(dateRangeService: dateRangeService);
+      case DashboardCardKey.budgets:
+        return const BudgetsCard();
+    }
   }
 
   Widget totalBalanceIndicator(
@@ -1353,95 +1164,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
     );
   }
 
-  Widget buildAccountList(List<Account> accounts) {
-    final t = Translations.of(context);
-    return Builder(
-      builder: (context) {
-        if (accounts.isEmpty) {
-          return Column(
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(
-                        t.home.no_accounts,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        t.home.no_accounts_descr,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                          onPressed: () => RouteUtils.pushRoute(
-                              context, const AccountFormPage()),
-                          child: Text(t.account.form.create))
-                    ],
-                  ))
-            ],
-          );
-        }
-
-        return ListView.separated(
-            padding: EdgeInsets.zero,
-            itemCount: accounts.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (context, index) {
-              return const Divider(indent: 56);
-            },
-            itemBuilder: (context, index) {
-              final account = accounts[index];
-
-              return ListTile(
-                onTap: () => RouteUtils.pushRoute(
-                    context,
-                    AccountDetailsPage(
-                        account: account,
-                        accountIconHeroTag:
-                            'dashboard-page__account-icon-${account.id}')),
-                leading: Hero(
-                    tag: 'dashboard-page__account-icon-${account.id}',
-                    child: account.displayIcon(context)),
-                trailing: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      StreamBuilder(
-                          initialData: 0.0,
-                          stream: AccountService.instance
-                              .getAccountMoney(account: account),
-                          builder: (context, snapshot) {
-                            return CurrencyDisplayer(
-                              amountToConvert: snapshot.data!,
-                              currency: account.currency,
-                            );
-                          }),
-                      StreamBuilder(
-                          initialData: 0.0,
-                          stream: AccountService.instance
-                              .getAccountsMoneyVariation(
-                                  accounts: [account],
-                                  startDate: dateRangeService.startDate,
-                                  endDate: dateRangeService.endDate,
-                                  convertToPreferredCurrency: false),
-                          builder: (context, snapshot) {
-                            return TrendingValue(
-                              percentage: snapshot.data!,
-                              decimalDigits: 0,
-                            );
-                          }),
-                    ]),
-                title: Text(account.name),
-              );
-            });
-      },
-    );
-  }
-
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
@@ -1471,22 +1193,14 @@ class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class DashboardTransactionList extends StatelessWidget {
-  final TransactionListComponent child;
+  final Widget child;
 
   const DashboardTransactionList({Key? key, required this.child})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return TransactionListComponent(
-      heroTagBuilder: child.heroTagBuilder,
-      filters: child.filters,
-      limit: child.limit,
-      showGroupDivider: child.showGroupDivider,
-      prevPage: child.prevPage,
-      onLongPress: (_) {},
-      onEmptyList: child.onEmptyList,
-    );
+    return child;
   }
 }
 

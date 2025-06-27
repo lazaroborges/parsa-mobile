@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 618
+/// Strings: 619
 ///
-/// Built on 2025-06-05 at 14:42 UTC
+/// Built on 2025-06-27 at 12:37 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -587,6 +587,7 @@ class _TranslationsSettingsPt {
 	String get title_short => 'Preferências';
 	String get description => 'Configure o Parsa do seu jeito.';
 	String get edit_profile => 'Editar perfil';
+	late final _TranslationsSettingsDashboardPt dashboard = _TranslationsSettingsDashboardPt._(_root);
 	String get lang_section => 'Idioma e textos';
 	String get lang_title => 'Idioma do aplicativo';
 	String get lang_descr => 'Idioma em que os textos serão exibidos no aplicativo';
@@ -1256,6 +1257,16 @@ class _TranslationsBackupAboutPt {
 	String get modify_date => 'Última modificação';
 	String get last_backup => 'Último backup';
 	String get size => 'Tamanho';
+}
+
+// Path: settings.dashboard
+class _TranslationsSettingsDashboardPt {
+	_TranslationsSettingsDashboardPt._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	String get title => 'Personalizar Dashboard';
 }
 
 // Path: settings.security
@@ -2205,6 +2216,7 @@ extension on Translations {
 			case 'settings.title_short': return 'Preferências';
 			case 'settings.description': return 'Configure o Parsa do seu jeito.';
 			case 'settings.edit_profile': return 'Editar perfil';
+			case 'settings.dashboard.title': return 'Personalizar Dashboard';
 			case 'settings.lang_section': return 'Idioma e textos';
 			case 'settings.lang_title': return 'Idioma do aplicativo';
 			case 'settings.lang_descr': return 'Idioma em que os textos serão exibidos no aplicativo';

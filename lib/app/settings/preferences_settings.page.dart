@@ -13,6 +13,7 @@ import 'dart:io' show Platform;
 import 'widgets/settings_list_separator.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dashboard_cards_settings.page.dart';
 
 class PreferencesSettingsPage extends StatefulWidget {
   const PreferencesSettingsPage({super.key});
@@ -501,8 +502,17 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Removed language section and unused stream builders
-
+            createListSeparator(context, "Personalização"),
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize_outlined),
+              title: Text(t.settings.dashboard.title),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardCardsSettingsPage(),
+                ),
+              ),
+            ),
             createListSeparator(context, t.settings.security.title),
             StreamBuilder(
               stream: PrivateModeService.instance.getPrivateModeAtLaunch(),

@@ -632,6 +632,9 @@
     "title_short": "Settings",
     "description": "App theme, texts and other general settings",
     "edit_profile": "Edit profile",
+    "dashboard": {
+      "title": "Customize Dashboard"
+    },
     "lang.section": "Language and texts",
     "lang.title": "App language",
     "lang.descr": "Language in which the texts will be displayed in the app",

@@ -704,6 +704,9 @@
     "title_short": "Preferências",
     "description": "Configure o Parsa do seu jeito.",
     "edit_profile": "Editar perfil",
+    "dashboard": {
+      "title": "Personalizar Dashboard"
+    },
     "lang.section": "Idioma e textos",
     "lang.title": "Idioma do aplicativo",
     "lang.descr": "Idioma em que os textos serão exibidos no aplicativo",
