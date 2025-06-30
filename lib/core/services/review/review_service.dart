@@ -11,9 +11,6 @@ enum ReviewInteractionType {
 
   /// When a user accepts a "cousin" rule to categorize similar transactions.
   cousinRuleCreation,
-
-  /// When a user creates a budget.
-  budgetCreation,
 }
 
 class ReviewService {
@@ -22,14 +19,12 @@ class ReviewService {
     ReviewInteractionType.transactionEdit: 'review_interaction_transactionEdit',
     ReviewInteractionType.cousinRuleCreation:
         'review_interaction_cousinRuleCreation',
-    ReviewInteractionType.budgetCreation: 'review_interaction_budgetCreation',
   };
 
   // Thresholds for each interaction type to trigger a review.
   static const Map<ReviewInteractionType, int> _interactionThresholds = {
     ReviewInteractionType.transactionEdit: 5,
     ReviewInteractionType.cousinRuleCreation: 3,
-    ReviewInteractionType.budgetCreation: 1,
   };
 
   // New constants for foreground time tracking
@@ -46,16 +41,45 @@ class ReviewService {
   // New field to track session start time
   DateTime? _foregroundStartTime;
 
+  // New fields for engagement tracking
+  bool _hasVisitedTransactionsPage = false;
+  bool _hasVisitedInsightsPage = false;
+
+  bool get _isEngaged => _hasVisitedTransactionsPage && _hasVisitedInsightsPage;
+
+  /// Call when the user visits the transactions page.
+  void userVisitedTransactionsPage() {
+    if (!_hasVisitedTransactionsPage) {
+      _hasVisitedTransactionsPage = true;
+      debugPrint('[ReviewService] User has visited the transactions page.');
+    }
+  }
+
+  /// Call when the user visits the insights page.
+  void userVisitedInsightsPage() {
+    if (!_hasVisitedInsightsPage) {
+      _hasVisitedInsightsPage = true;
+      debugPrint('[ReviewService] User has visited the insights page.');
+    }
+  }
+
   /// Starts the foreground session timer. Should be called when the app is resumed.
   void appResumed() {
+    debugPrint('[ReviewService] appResumed called.');
     _foregroundStartTime = DateTime.now();
     debugPrint('[ReviewService] App resumed, starting foreground timer.');
+    _resetEngagementFlags();
   }
 
   /// Pauses the foreground session timer and saves the elapsed time.
   /// Should be called when the app is paused.
   Future<void> appPaused() async {
-    if (_foregroundStartTime == null) return;
+    debugPrint('[ReviewService] appPaused called.');
+    if (_foregroundStartTime == null) {
+      debugPrint(
+          '[ReviewService] appPaused: _foregroundStartTime is null, returning.');
+      return;
+    }
 
     final sessionDuration = DateTime.now().difference(_foregroundStartTime!);
     _foregroundStartTime = null;
@@ -74,15 +98,37 @@ class ReviewService {
   Future<void> resetAllCounters() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Reset all interaction counters
-    for (final key in _interactionCountKeys.values) {
-      await prefs.setInt(key, 0);
-    }
-
     // Reset the foreground time counter
     await prefs.setInt(_timeInForegroundKey, 0);
 
+    // Reset engagement flags
+    _resetEngagementFlags();
+
     debugPrint('[ReviewService] All counters have been reset.');
+  }
+
+  /// Gets the total foreground time, including the current session's elapsed time.
+  Future<int> _getCurrentForegroundTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedDuration = prefs.getInt(_timeInForegroundKey) ?? 0;
+    debugPrint(
+        '[ReviewService] _getCurrentForegroundTime: storedDuration is $storedDuration seconds.');
+
+    var currentSessionDuration = 0;
+    if (_foregroundStartTime != null) {
+      currentSessionDuration =
+          DateTime.now().difference(_foregroundStartTime!).inSeconds;
+      debugPrint(
+          '[ReviewService] _getCurrentForegroundTime: _foregroundStartTime is $_foregroundStartTime, currentSessionDuration is $currentSessionDuration seconds.');
+    } else {
+      debugPrint(
+          '[ReviewService] _getCurrentForegroundTime: _foregroundStartTime is null.');
+    }
+
+    final total = storedDuration + currentSessionDuration;
+    debugPrint(
+        '[ReviewService] _getCurrentForegroundTime: total foreground time is $total seconds.');
+    return total;
   }
 
   /// Increments the counter for a specific user interaction type.
@@ -93,6 +139,8 @@ class ReviewService {
     if (key == null) return;
     final userData = context.read<UserDataProvider>().userData;
     if (userData == null || userData['ask_feedback'] != true) {
+      debugPrint(
+          '[ReviewService] User has feedback disabled, not incrementing count.');
       return;
     }
 
@@ -101,6 +149,8 @@ class ReviewService {
     await prefs.setInt(key, currentCount);
     debugPrint(
         '[ReviewService] Interaction count for $type updated to: $currentCount');
+
+    await checkAndShowReviewDialog(context);
   }
 
   /// Gets the current interaction count for a specific type.
@@ -121,47 +171,80 @@ class ReviewService {
     debugPrint('[ReviewService] Interaction count for $type reset.');
   }
 
+  void _resetEngagementFlags() {
+    _hasVisitedTransactionsPage = false;
+    _hasVisitedInsightsPage = false;
+    debugPrint('[ReviewService] Engagement flags reset.');
+  }
+
   /// Checks if conditions are met to show an in-app review and displays it.
   ///
   /// It iterates through each interaction type, and if any has reached its
   /// threshold, it triggers the review prompt and resets that specific counter.
   Future<void> checkAndShowReviewDialog(BuildContext context) async {
     try {
+      debugPrint(
+          '[ReviewService] Checking conditions to show review dialog...');
+
+      final userData = context.read<UserDataProvider>().userData;
+      if (userData == null || userData['ask_feedback'] != true) {
+        debugPrint(
+            '[ReviewService] Will not show. User has feedback disabled.');
+        return;
+      }
+
+      if (!_isEngaged) {
+        debugPrint(
+            '[ReviewService] Engagement criteria not met. User has not visited both transactions and insights pages in this session.');
+        return;
+      }
+      debugPrint('[ReviewService] Engagement criteria met.');
+
       final prefs = await SharedPreferences.getInstance();
 
       // 1. Check if the cumulative foreground time has met the threshold.
-      final int foregroundTime = prefs.getInt(_timeInForegroundKey) ?? 0;
+      final int foregroundTime = await _getCurrentForegroundTime();
       if (foregroundTime < _timeInForegroundThreshold) {
         debugPrint(
             '[ReviewService] Foreground time threshold not met: $foregroundTime / $_timeInForegroundThreshold seconds.');
         return;
       }
-
-      final userData = context.read<UserDataProvider>().userData;
-      if (userData == null || userData['ask_feedback'] != true) {
-        return;
-      }
+      debugPrint('[ReviewService] Foreground time threshold met.');
 
       final InAppReview inAppReview = InAppReview.instance;
-      if (!await inAppReview.isAvailable()) {
+      final isAvailable = await inAppReview.isAvailable();
+      if (!isAvailable) {
+        debugPrint(
+            '[ReviewService] In-app review is not available on this device.');
         return;
       }
+      debugPrint('[ReviewService] In-app review is available.');
 
       // Check each interaction type against its threshold.
       for (final type in ReviewInteractionType.values) {
         final count = await getInteractionCount(type);
         final threshold = _interactionThresholds[type]!;
+        debugPrint(
+            '[ReviewService] Checking threshold for $type: Count is $count, Threshold is $threshold');
 
         if (count >= threshold) {
           debugPrint(
               '[ReviewService] Threshold met for $type. Requesting review.');
           await inAppReview.requestReview();
+          debugPrint('[ReviewService] Review requested.');
 
-          // Reset the counter for this specific type and exit.
-          await _resetInteractionCount(type);
+          _resetEngagementFlags();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt(_timeInForegroundKey, 0);
+          _foregroundStartTime = DateTime.now(); // Restart session timer
+          debugPrint('[ReviewService] Cumulative foreground time reset.');
+
           return;
         }
       }
+
+      debugPrint(
+          '[ReviewService] No interaction threshold met. Not showing review.');
     } catch (e) {
       debugPrint('Error in checkAndShowReviewDialog: $e');
     }

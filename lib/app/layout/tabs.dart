@@ -104,7 +104,6 @@ class TabsPageState extends State<TabsPage>
       ReviewService.instance.appResumed();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
-        await ReviewService.instance.checkAndShowReviewDialog(context);
       });
     } else if (state == AppLifecycleState.paused) {
       ReviewService.instance.appPaused();
@@ -119,11 +118,6 @@ class TabsPageState extends State<TabsPage>
 
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
-
-      // // After data loading, check uncategorized dialog
-      // WidgetsBinding.instance.addPostFrameCallback((_) async {
-      //   await _checkCousinFoundDialog();
-      // });
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -275,6 +269,16 @@ class TabsPageState extends State<TabsPage>
     setState(() {
       selectedDestination = destination;
     });
+
+    // Handle ReviewService engagement tracking
+    final destWidget = destination.destination;
+    if (destWidget is TransactionsPage) {
+      ReviewService.instance.userVisitedTransactionsPage();
+    } else if (destWidget is StatsPage) {
+      ReviewService.instance.userVisitedInsightsPage();
+    }
+
+    ReviewService.instance.checkAndShowReviewDialog(context);
 
     FocusScope.of(context).unfocus();
   }

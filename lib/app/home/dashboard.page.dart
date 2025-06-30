@@ -300,18 +300,15 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       double notConsideredInvestment = 0.0;
 
       if (investmentCategory != null) {
-        // Considered: what counts for stats.
         final consideredStatus =
             TransactionStatus.getStatusThatCountsForStats(null);
 
-        // Disconsidered: what DOES NOT count for stats.
         final notConsideredStatus = [
           TransactionStatus.pending,
           TransactionStatus.voided,
           TransactionStatus.notconsidered,
         ];
 
-        // We use TransactionService directly to avoid the filtering in getAccountsBalance
         final consideredStream = TransactionService.instance
             .countTransactions(
                 predicate: TransactionFilters(
