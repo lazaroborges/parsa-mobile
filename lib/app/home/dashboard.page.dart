@@ -1035,7 +1035,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               endDate: dateRangeService.endDate,
                             ),
                             onHeaderButtonClick: () {
-                              tabsPageKey.currentState?.navigateToStatsTab(2);
+                              tabsPageKey.currentState?.navigateToStatsTab(3);
                             },
                           ),
                           const SizedBox(height: 12),

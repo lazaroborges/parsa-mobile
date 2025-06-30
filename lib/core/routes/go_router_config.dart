@@ -87,7 +87,7 @@ final goRouter = GoRouter(
               },
             ),
             GoRoute(
-              path: 'cash-flow',
+              path: 'separation',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
                 return StatsPage(
@@ -98,7 +98,7 @@ final goRouter = GoRouter(
               },
             ),
             GoRoute(
-              path: 'financial-health',
+              path: 'cash-flow',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
                 return StatsPage(
@@ -109,11 +109,22 @@ final goRouter = GoRouter(
               },
             ),
             GoRoute(
-              path: 'balance-evolution',
+              path: 'financial-health',
               builder: (context, state) {
                 final filters = _parseFilters(state.uri.queryParameters);
                 return StatsPage(
                   initialIndex: 4,
+                  filters: filters,
+                  dateRangeService: const DatePeriodState(),
+                );
+              },
+            ),
+            GoRoute(
+              path: 'balance-evolution',
+              builder: (context, state) {
+                final filters = _parseFilters(state.uri.queryParameters);
+                return StatsPage(
+                  initialIndex: 5,
                   filters: filters,
                   dateRangeService: const DatePeriodState(),
                 );

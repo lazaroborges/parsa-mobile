@@ -5,6 +5,7 @@ import 'package:parsa/app/stats/widgets/fund_evolution_line_chart.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
+import 'package:parsa/app/stats/widgets/business_personal_separation.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
@@ -134,7 +135,7 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
 
     return DefaultTabController(
       initialIndex: widget.initialIndex,
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           title: Text(t.stats.title),
@@ -162,6 +163,7 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
               tabs: [
                 Tab(text: t.stats.distribution),
                 Tab(text: t.categories.subcategories),
+                Tab(text: 'Análise'),
                 Tab(text: t.stats.cash_flow),
                 Tab(text: t.financial_health.display),
                 Tab(text: t.stats.balance_evolution),
@@ -230,6 +232,12 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
                       filters: filters,
                       useSubcategories: true,
                     ),
+                  ),
+                ]),
+                buildContainerWithPadding([
+                  CardWithHeader(
+                    title: 'Análise Pessoal x Negócio',
+                    body: const BusinessPersonalSeparation(),
                   ),
                 ]),
                 buildContainerWithPadding([

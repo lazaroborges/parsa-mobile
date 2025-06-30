@@ -72,17 +72,21 @@ class NavigationDelegate {
           _deferTabNavigation(
               () => tabsPageKey.currentState?.navigateToStatsTab(1));
           break;
-        case 'stats/cash-flow':
+        case 'stats/separation':
           _deferTabNavigation(
               () => tabsPageKey.currentState?.navigateToStatsTab(2));
           break;
-        case 'stats/financial-health':
+        case 'stats/cash-flow':
           _deferTabNavigation(
               () => tabsPageKey.currentState?.navigateToStatsTab(3));
           break;
-        case 'stats/balance-evolution':
+        case 'stats/financial-health':
           _deferTabNavigation(
               () => tabsPageKey.currentState?.navigateToStatsTab(4));
+          break;
+        case 'stats/balance-evolution':
+          _deferTabNavigation(
+              () => tabsPageKey.currentState?.navigateToStatsTab(5));
           break;
         case 'settings':
           _deferTabNavigation(() => tabsPageKey.currentState?.navigateToTab(3));
