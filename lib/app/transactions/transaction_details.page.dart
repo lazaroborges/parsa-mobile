@@ -878,6 +878,37 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                       ),
                                       label: t.general.category,
                                     ),
+                                  if (transaction.isIncomeOrExpense)
+                                    LabelValueInfoItem(
+                                      isEditable: true,
+                                      value: GestureDetector(
+                                        onTap: () {
+                                          // TODO: Implementar seletor de tipo de transação (Negócio/Pessoal)
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Funcionalidade de edição de tipo em desenvolvimento')),
+                                          );
+                                        },
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.business_center,
+                                              size: 20,
+                                              color: AppColors.of(context).brand,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Negócio',
+                                              style: TextStyle(
+                                                color: AppColors.of(context).brand,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      label: 'Tipo',
+                                    ),
                                   if (transaction.isTransfer)
                                     LabelValueInfoItem(
                                         value: buildInfoTileWithIconAndColor(
