@@ -6,20 +6,16 @@ import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/category/category.dart';
 
 /// Represents a group of transactions sharing the same cousin id and classified as income or expense.
-/// This object comes fully populated with period and lifetime stats, ready for display.
+/// This object comes fully populated with period stats, ready for display.
 class TransactionGroupByType {
   final int cousin;
   final CategoryType type; // I for income, E for expense
   final List<MoneyTransaction> transactions;
-  final int lifetimeTransactionCount;
-  final double lifetimeTotalAmount;
 
   TransactionGroupByType({
     required this.cousin,
     required this.type,
     required this.transactions,
-    required this.lifetimeTransactionCount,
-    required this.lifetimeTotalAmount,
   });
 
   /// Sum of all transaction values in this group for the period.
@@ -43,15 +39,13 @@ class TransactionGroupByType {
 class CousinGroupSummary {
   final int cousin;
   final CategoryType type;
-  final int transactionsInPeriod;
-  final int transactionsInTotal;
+  final int transactionCount;
   final double totalAmount;
 
   CousinGroupSummary({
     required this.cousin,
     required this.type,
-    required this.transactionsInPeriod,
-    required this.transactionsInTotal,
+    required this.transactionCount,
     required this.totalAmount,
   });
 }
@@ -70,13 +64,14 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
     SELECT
       t.cousin,
       CASE WHEN t.value > 0 THEN 'I' ELSE 'E' END as type,
-      COUNT(t.id) as transactionsInTotal,
-      SUM(ABS(t.value)) as totalAmount,
-      SUM(CASE WHEN t.date >= ? AND t.date <= ? THEN 1 ELSE 0 END) as transactionsInPeriod
+      COUNT(t.id) as transactionCount,
+      SUM(ABS(t.value)) as totalAmount
     FROM transactions t
-    WHERE t.cousin IS NOT NULL AND t.status != 'notconsidered'
+    WHERE t.cousin IS NOT NULL 
+      AND t.status != 'notconsidered'
+      AND t.date >= ? AND t.date <= ?
     GROUP BY t.cousin, CASE WHEN t.value > 0 THEN 'I' ELSE 'E' END
-    HAVING transactionsInPeriod > 0 AND transactionsInTotal > 1
+    HAVING transactionCount > 1
   """;
 
   final summaryResult = await db.customSelect(summaryQuery, variables: [
@@ -90,9 +85,8 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
     return CousinGroupSummary(
       cousin: row.read<int>('cousin'),
       type: row.read<String>('type') == 'I' ? CategoryType.I : CategoryType.E,
-      transactionsInTotal: row.read<int>('transactionsInTotal'),
+      transactionCount: row.read<int>('transactionCount'),
       totalAmount: row.read<double>('totalAmount'),
-      transactionsInPeriod: row.read<int>('transactionsInPeriod'),
     );
   }).toList();
 
@@ -124,12 +118,11 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
       cousin: summary.cousin,
       type: summary.type,
       transactions: txs,
-      lifetimeTransactionCount: summary.transactionsInTotal,
-      lifetimeTotalAmount: summary.totalAmount,
     );
   }).toList();
 
-  groups.sort((a, b) => b.lifetimeTotalAmount.compareTo(a.lifetimeTotalAmount));
+  // Sort groups by total value in period for relevance.
+  groups.sort((a, b) => b.totalValueInPeriod.compareTo(a.totalValueInPeriod));
 
   return groups;
 }

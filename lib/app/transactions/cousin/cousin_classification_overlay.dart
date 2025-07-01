@@ -565,7 +565,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                     children: [
                       const Text('Transações', style: TextStyle(fontSize: 10)),
                       Text(
-                        group.lifetimeTransactionCount.toString(),
+                        group.countInPeriod.toString(),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -583,7 +583,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                     children: [
                       const Text('Total', style: TextStyle(fontSize: 10)),
                       Text(
-                        formatCurrency(group.lifetimeTotalAmount),
+                        formatCurrency(group.totalValueInPeriod),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: amountColor,
