@@ -33,17 +33,20 @@ class CousinFoundDialog {
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
       final cousinGroups =
-          await getCousinGroupsForPeriod(startOfTime, endOfToday);
+          await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);
 
-      // The `getCousinGroupsForPeriod` function already returns the groups
+      // The `getCousinGroupSummariesForPeriod` function already returns the groups
       // sorted by lifetime value, so no need for extra sorting here.
       if (context.mounted && cousinGroups.isNotEmpty) {
         showDialog(
           context: context,
           barrierDismissible: true,
           barrierColor: Colors.transparent,
-          builder: (context) =>
-              CousinClassificationOverlay(groups: cousinGroups),
+          builder: (context) => CousinClassificationOverlay(
+            groups: cousinGroups,
+            periodStart: startOfTime,
+            periodEnd: endOfToday,
+          ),
         );
       }
     }

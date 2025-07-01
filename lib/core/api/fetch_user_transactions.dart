@@ -93,7 +93,7 @@ Future<void> fetchUserTransactions(String? accountId,
             final endOfToday =
                 DateTime(now.year, now.month, now.day, 23, 59, 59);
             final cousinResult =
-                await getCousinGroupsForPeriod(startOfTime, endOfToday);
+                await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);
             final count = cousinResult.length;
 
             if (count > 0) {

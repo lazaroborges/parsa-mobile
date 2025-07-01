@@ -17,14 +17,63 @@ class FilteredSwipeCardReviewModal extends StatefulWidget {
 class _FilteredSwipeCardReviewModalState
     extends State<FilteredSwipeCardReviewModal> {
   bool _loading = false;
-  Map<String, List<TransactionGroupByType>> _results = {};
+  Map<String, List<CousinGroupSummary>> _results = {};
   int? _startOfWeek;
   int? _startOfMonth;
+
+  // Store the calculated dates to reuse them
+  late DateTime _thisWeekStart;
+  late DateTime _lastWeekStart;
+  late DateTime _lastWeekEnd;
+  late DateTime _thisMonthStart;
+  late DateTime _lastMonthStart;
+  late DateTime _lastMonthEnd;
 
   @override
   void initState() {
     super.initState();
     _loadPreferencesAndFetchCounts();
+  }
+
+  void _calculateDateRanges() {
+    final now = DateTime.now();
+    final int weekStart = _startOfWeek ?? DateTime.sunday; // fallback to Sunday
+
+    // Find the start of this week
+    final int daysSinceWeekStart = (now.weekday - weekStart + 7) % 7;
+    _thisWeekStart = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: daysSinceWeekStart));
+
+    // Last week is 7 days before this week
+    _lastWeekStart = _thisWeekStart.subtract(const Duration(days: 7));
+    _lastWeekEnd = _thisWeekStart.subtract(
+        const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
+
+    final int monthStartDay = _startOfMonth ?? 1;
+
+    // Start of this month - if today is before monthStartDay, this month is previous month
+    _thisMonthStart = now.day < monthStartDay
+        ? DateTime(now.year, now.month - 1, monthStartDay)
+        : DateTime(now.year, now.month, monthStartDay);
+
+    // Last month is always one month before this month
+    _lastMonthStart = DateTime(
+        _thisMonthStart.month == 1
+            ? _thisMonthStart.year - 1
+            : _thisMonthStart.year,
+        _thisMonthStart.month == 1 ? 12 : _thisMonthStart.month - 1,
+        monthStartDay);
+
+    // End of last month: day before thisMonthStart, at 23:59:59
+    _lastMonthEnd = _thisMonthStart.subtract(
+        const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
+
+    print('thisWeekStart: $_thisWeekStart');
+    print('lastWeekStart: $_lastWeekStart');
+    print('lastWeekEnd: $_lastWeekEnd');
+    print('thisMonthStart: $_thisMonthStart');
+    print('lastMonthStart: $_lastMonthStart');
+    print('lastMonthEnd: $_lastMonthEnd');
   }
 
   Future<void> _loadPreferencesAndFetchCounts() async {
@@ -40,51 +89,17 @@ class _FilteredSwipeCardReviewModalState
 
   Future<void> _fetchAllCounts() async {
     setState(() => _loading = true);
+
+    _calculateDateRanges();
     final now = DateTime.now();
-    final int weekStart = _startOfWeek ?? DateTime.sunday; // fallback to Sunday
-
-    // Find the start of this week
-    final int daysSinceWeekStart = (now.weekday - weekStart + 7) % 7;
-    final DateTime thisWeekStart = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: daysSinceWeekStart));
-
-    // Last week is 7 days before this week
-    final DateTime lastWeekStart =
-        thisWeekStart.subtract(const Duration(days: 7));
-    final DateTime lastWeekEnd = thisWeekStart.subtract(
-        const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
-
-    final int monthStartDay = _startOfMonth ?? 1;
-
-    // Start of this month - if today is before monthStartDay, this month is previous month
-    final DateTime thisMonthStart = now.day < monthStartDay
-        ? DateTime(now.year, now.month - 1, monthStartDay)
-        : DateTime(now.year, now.month, monthStartDay);
-
-    // Last month is always one month before this month
-    final DateTime lastMonthStart = DateTime(
-        thisMonthStart.month == 1
-            ? thisMonthStart.year - 1
-            : thisMonthStart.year,
-        thisMonthStart.month == 1 ? 12 : thisMonthStart.month - 1,
-        monthStartDay);
-
-    // End of last month: day before thisMonthStart, at 23:59:59
-    final DateTime lastMonthEnd = thisMonthStart.subtract(
-        const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
-
-    print('thisWeekStart: $thisWeekStart');
-    print('lastWeekStart: $lastWeekStart');
-    print('lastWeekEnd: $lastWeekEnd');
-    print('thisMonthStart: $thisMonthStart');
-    print('lastMonthStart: $lastMonthStart');
-    print('lastMonthEnd: $lastMonthEnd');
 
     final results = await Future.wait([
-      getCousinGroupsForPeriod(thisWeekStart, now), // this week
-      getCousinGroupsForPeriod(lastWeekStart, lastWeekEnd), // last week
-      getCousinGroupsForPeriod(thisMonthStart, now), // this month
-      getCousinGroupsForPeriod(lastMonthStart, lastMonthEnd), // last month
+      getCousinGroupSummariesForPeriod(_thisWeekStart, now), // this week
+      getCousinGroupSummariesForPeriod(
+          _lastWeekStart, _lastWeekEnd), // last week
+      getCousinGroupSummariesForPeriod(_thisMonthStart, now), // this month
+      getCousinGroupSummariesForPeriod(
+          _lastMonthStart, _lastMonthEnd), // last month
     ]);
 
     setState(() {
@@ -98,12 +113,38 @@ class _FilteredSwipeCardReviewModalState
     });
   }
 
-  void _openOverlay(List<TransactionGroupByType> groups, String label) {
+  void _openOverlay(List<CousinGroupSummary> groups, String label) {
     Navigator.of(context).pop();
 
     final totalTransactions =
-        groups.fold(0, (sum, item) => sum + item.countInPeriod);
+        groups.fold(0, (sum, item) => sum + item.transactionCount);
     final totalGroups = groups.map((g) => g.cousin).toSet().length;
+
+    final now = DateTime.now();
+    DateTime periodStart;
+    DateTime periodEnd;
+
+    switch (label) {
+      case 'Esta semana':
+        periodStart = _thisWeekStart;
+        periodEnd = now;
+        break;
+      case 'Semana passada':
+        periodStart = _lastWeekStart;
+        periodEnd = _lastWeekEnd;
+        break;
+      case 'Este mês':
+        periodStart = _thisMonthStart;
+        periodEnd = now;
+        break;
+      case 'Mês passado':
+        periodStart = _lastMonthStart;
+        periodEnd = _lastMonthEnd;
+        break;
+      default:
+        periodStart = now;
+        periodEnd = now;
+    }
 
     showDialog(
       context: context,
@@ -114,6 +155,8 @@ class _FilteredSwipeCardReviewModalState
         totalTransactions: totalTransactions,
         totalGroups: totalGroups,
         periodLabel: label,
+        periodStart: periodStart,
+        periodEnd: periodEnd,
       ),
     );
   }
@@ -287,14 +330,14 @@ class _FilteredSwipeCardReviewModalState
     required BuildContext context,
     required IconData icon,
     required String title,
-    required List<TransactionGroupByType> groups,
+    required List<CousinGroupSummary> groups,
     required VoidCallback? onTap,
   }) {
     final appColors = AppColors.of(context);
     final theme = Theme.of(context);
 
     final transactionCount =
-        groups.fold(0, (sum, item) => sum + item.countInPeriod);
+        groups.fold(0, (sum, item) => sum + item.transactionCount);
     final businessCount = groups.map((s) => s.cousin).toSet().length;
 
     final isEnabled = onTap != null && transactionCount > 0;

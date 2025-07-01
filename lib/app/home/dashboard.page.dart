@@ -813,8 +813,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                 1); // Far enough back to catch all transactions
                             final endOfToday = DateTime(
                                 now.year, now.month, now.day, 23, 59, 59);
-                            final cousinResult = await getCousinGroupsForPeriod(
-                                startOfTime, endOfToday);
+                            final cousinResult =
+                                await getCousinGroupSummariesForPeriod(
+                                    startOfTime, endOfToday);
                             final actualCount = cousinResult.length;
 
                             await CousinFoundDialog.showAndHandle(

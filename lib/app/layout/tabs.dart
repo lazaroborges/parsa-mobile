@@ -427,7 +427,7 @@ class TabsPageState extends State<TabsPage>
           DateTime(1900, 1, 1); // Far enough back to catch all transactions
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final cousinResult =
-          await getCousinGroupsForPeriod(startOfTime, endOfToday);
+          await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);
       final count = cousinResult.length;
       if (count > 0) {
         // Trigger the dialog and mark as triggered

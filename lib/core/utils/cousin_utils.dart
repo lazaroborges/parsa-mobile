@@ -1,39 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/database/services/transaction/transaction_service.dart';
-import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/category/category.dart';
-
-/// Represents a group of transactions sharing the same cousin id and classified as income or expense.
-/// This object comes fully populated with period stats, ready for display.
-class TransactionGroupByType {
-  final int cousin;
-  final CategoryType type; // I for income, E for expense
-  final List<MoneyTransaction> transactions;
-
-  TransactionGroupByType({
-    required this.cousin,
-    required this.type,
-    required this.transactions,
-  });
-
-  /// Sum of all transaction values in this group for the period.
-  double get totalValueInPeriod {
-    if (type == CategoryType.I) {
-      // Sum only positive values
-      return transactions.fold(
-          0.0, (sum, tx) => sum + ((tx.value ?? 0) > 0 ? tx.value! : 0));
-    } else {
-      // Sum only negative values, as positive
-      return transactions.fold(
-          0.0, (sum, tx) => sum + ((tx.value ?? 0) < 0 ? -tx.value! : 0));
-    }
-  }
-
-  /// Number of transactions in this group for the period.
-  int get countInPeriod => transactions.length;
-}
 
 /// Helper class to hold the aggregated data from the SQL query.
 class CousinGroupSummary {
@@ -50,8 +17,10 @@ class CousinGroupSummary {
   });
 }
 
-/// Fetches and processes cousin groups for a given period using an efficient, single SQL query for aggregation.
-Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
+/// Fetches and processes cousin group summaries for a given period using an efficient, single SQL query for aggregation.
+/// Returns only the summary (cousin, type, transactionCount, totalAmount),
+/// separated into E (expense) and I (income), excluding 'notconsidered' and groups with only one transaction.
+Future<List<CousinGroupSummary>> getCousinGroupSummariesForPeriod(
     DateTime start, DateTime end) async {
   final db = AppDB.instance;
 
@@ -59,7 +28,9 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
   final dbQueryStart = start.add(const Duration(hours: 3));
   final dbQueryEnd = end.add(const Duration(hours: 3));
 
-  // 1. Get aggregated summaries with a single, powerful SQL query.
+  final stopwatch = Stopwatch()..start();
+
+  // Get aggregated summaries with a single, powerful SQL query.
   const summaryQuery = """
     SELECT
       t.cousin,
@@ -90,60 +61,9 @@ Future<List<TransactionGroupByType>> getCousinGroupsForPeriod(
     );
   }).toList();
 
-  if (summaries.isEmpty) {
-    return [];
-  }
+  stopwatch.stop();
+  print(
+      'getCousinGroupSummariesForPeriod executed in [32m[1m[4m[3m[7m[5m${stopwatch.elapsedMilliseconds}ms\u001b[0m');
 
-  // 2. Get the full transaction objects for the cousins found in the period.
-  final cousinIds = summaries.map((s) => s.cousin).toSet();
-  final allTransactionsForPeriod =
-      (await TransactionService.instance.getTransactions().first)
-          .where((tx) =>
-              tx.date != null &&
-              !tx.date!.isBefore(start) &&
-              !tx.date!.isAfter(end) &&
-              cousinIds.contains(tx.cousin))
-          .toList();
-
-  // 3. Combine summaries and transaction objects into the final data structure.
-  final groups = summaries.map((summary) {
-    final txs = allTransactionsForPeriod
-        .where((tx) =>
-            tx.cousin == summary.cousin &&
-            ((summary.type == CategoryType.I && (tx.value ?? 0) > 0) ||
-                (summary.type == CategoryType.E && (tx.value ?? 0) < 0)))
-        .toList();
-
-    return TransactionGroupByType(
-      cousin: summary.cousin,
-      type: summary.type,
-      transactions: txs,
-    );
-  }).toList();
-
-  // Sort groups by total value in period for relevance.
-  groups.sort((a, b) => b.totalValueInPeriod.compareTo(a.totalValueInPeriod));
-
-  return groups;
-}
-
-/// Fetches all transactions and returns only those considered 'cousin'.
-/// A transaction is cousin if its category name is in the cousin set
-/// and its status is not 'notconsidered'.
-Future<List<MoneyTransaction>> getCousinTransactions() async {
-  final allTransactions =
-      await TransactionService.instance.getTransactions().first;
-  final cousins = filterCousinTransactions(allTransactions);
-  return cousins;
-}
-
-/// Filters a list of transactions, returning only those that are cousin.
-/// A transaction is cousin if its category name is in the cousin set
-/// and its status is not 'notconsidered'.
-List<MoneyTransaction> filterCousinTransactions(
-    List<MoneyTransaction> allTransactions) {
-  final filtered = allTransactions
-      .where((tx) => tx.status != TransactionStatus.notconsidered)
-      .toList();
-  return filtered;
+  return summaries;
 }
