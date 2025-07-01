@@ -57,8 +57,8 @@ android {
         applicationId "com.parsa.app"
         targetSdkVersion 35
 
-        manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
-        manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://auth.parsa-ai.com.br/android/com.app.parsa/callback"]
+        manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "com.parsa.app"]
+        manifestPlaceholders+= [appAuthRedirectScheme: "com.parsa.app"]
 
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
@@ -81,8 +81,8 @@ android {
         release {
             // Run `flutter build appbundle --release` to build .
 
-            manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "https"]
-            manifestPlaceholders+= [appAuthRedirectScheme: "SCHEME://auth.parsa-ai.com.br/android/com.app.parsa/callback"]
+            manifestPlaceholders += [auth0Domain: "auth.parsa-ai.com.br", auth0Scheme: "com.parsa.app"]
+            manifestPlaceholders+= [appAuthRedirectScheme: "com.parsa.app"]
 
             minifyEnabled true
             signingConfig signingConfigs.release

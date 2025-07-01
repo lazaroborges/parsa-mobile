@@ -25,22 +25,26 @@ class Auth0Provider extends ChangeNotifier {
 
   Future<void> login() async {
     try {
-      final result = await auth0.webAuthentication().login(
-            audience: 'https://api.parsa.com.br/api',
-          );
+      print('=== DEBUG: Auth0 login starting ===');
+      
+      final result = await auth0
+          .webAuthentication(scheme: 'com.parsa.app')
+          .login(audience: 'https://api.parsa.com.br/api');
+          
+      print('=== DEBUG: Login successful ===');
       _credentials = result;
       await auth0.credentialsManager.storeCredentials(result);
       notifyListeners();
       unawaited(SessionService.instance.registerUserSession());
     } catch (e) {
-      print('Login failed ---: $e');
+      print('=== DEBUG: Login failed with error: $e ===');
       rethrow;
     }
   }
 
   Future<void> logout() async {
     try {
-      await auth0.webAuthentication().logout();
+      await auth0.webAuthentication(scheme: 'com.parsa.app').logout();
       await auth0.credentialsManager.clearCredentials();
       _credentials = null;
       notifyListeners();
