@@ -594,7 +594,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
     }
 
     // Use cousin ID as display title
-    final displayTitle = 'Cousin ${group.cousin}';
+    // final displayTitle = 'Cousin ${group.cousin}';
 
     return Card(
       margin: const EdgeInsets.all(12),
@@ -605,19 +605,19 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Center(
-                child: Text(
-                  displayTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(vertical: 8),
+            //   child: Center(
+            //     child: Text(
+            //       displayTitle,
+            //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            //             fontWeight: FontWeight.bold,
+            //           ),
+            //       overflow: TextOverflow.ellipsis,
+            //       textAlign: TextAlign.center,
+            //     ),
+            //   ),
+            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
