@@ -25,7 +25,7 @@ class Auth0Provider extends ChangeNotifier {
 
   Future<void> login() async {
     try {
-      final result = await auth0.webAuthentication(scheme: 'com.parsa.app').login(
+      final result = await auth0.webAuthentication().login(
             audience: 'https://api.parsa.com.br/api',
           );
       _credentials = result;
@@ -40,7 +40,7 @@ class Auth0Provider extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
-      await auth0.webAuthentication(scheme: 'com.parsa.app').logout();
+      await auth0.webAuthentication().logout();
       await auth0.credentialsManager.clearCredentials();
       _credentials = null;
       notifyListeners();
