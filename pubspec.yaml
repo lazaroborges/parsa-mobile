@@ -3,7 +3,7 @@ description: controle financeiro sem esforço.
 
 publish_to: none
 
-version: 2.8.2+120
+version: 2.8.3+121
 
 environment:
   flutter: 3.22.3
@@ -17,7 +17,7 @@ dependencies:
     sdk: flutter
 
   # flutter_auth: ^1.1.0
-  auth0_flutter: ^1.8.0
+  auth0_flutter: ^1.11.0
   flutter_appauth: ^7.0.0
   flutter_dotenv: ^5.1.0
   flutter_pluggy_connect: ^3.0.1
@@ -53,7 +53,7 @@ dependencies:
   json_annotation: ^4.9.0
   fl_chart: ^0.68.0
   file_picker: ^8.0.3
-  share_plus: ^9.0.0
+  share_plus: ^11.0.0
   url_launcher: ^6.3.0
   auto_size_text: ^3.0.0
   uuid: ^4.4.2
@@ -105,11 +105,11 @@ dev_dependencies:
 build:
   ios:
 
-    build-name: 2.8.2 
-    build-number: 120
+    build-name: 2.8.3   
+    build-number: 121
   android:
-    build-name: 2.8.2
-    build-number: 118
+    build-name: 2.8.3
+    build-number: 121
 
 
 
