@@ -364,7 +364,7 @@ class _FilteredSwipeCardReviewModalState
 
     final transactionCount =
         groups.fold(0, (sum, item) => sum + item.transactionCount);
-    final businessCount = groups.map((s) => s.cousin).toSet().length;
+    final businessCount = groups.length;
 
     final isEnabled = onTap != null && transactionCount > 0;
 
