@@ -28,6 +28,7 @@ class _FilteredSwipeCardReviewModalState
   late DateTime _thisMonthStart;
   late DateTime _lastMonthStart;
   late DateTime _lastMonthEnd;
+  late DateTime _allTimeStart;
 
   @override
   void initState() {
@@ -68,12 +69,8 @@ class _FilteredSwipeCardReviewModalState
     _lastMonthEnd = _thisMonthStart.subtract(
         const Duration(days: 1, hours: -23, minutes: -59, seconds: -59));
 
-    print('thisWeekStart: $_thisWeekStart');
-    print('lastWeekStart: $_lastWeekStart');
-    print('lastWeekEnd: $_lastWeekEnd');
-    print('thisMonthStart: $_thisMonthStart');
-    print('lastMonthStart: $_lastMonthStart');
-    print('lastMonthEnd: $_lastMonthEnd');
+    // All time start (set to a reasonable past date)
+    _allTimeStart = DateTime(2020, 1, 1);
   }
 
   Future<void> _loadPreferencesAndFetchCounts() async {
@@ -92,22 +89,32 @@ class _FilteredSwipeCardReviewModalState
 
     _calculateDateRanges();
     final now = DateTime.now();
+    final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
     final results = await Future.wait([
-      getCousinGroupSummariesForPeriod(_thisWeekStart, now), // this week
+      getCousinGroupSummariesForPeriod(_thisWeekStart, endOfToday), // this week
       getCousinGroupSummariesForPeriod(
           _lastWeekStart, _lastWeekEnd), // last week
-      getCousinGroupSummariesForPeriod(_thisMonthStart, now), // this month
+      getCousinGroupSummariesForPeriod(
+          _thisMonthStart, endOfToday), // this month
       getCousinGroupSummariesForPeriod(
           _lastMonthStart, _lastMonthEnd), // last month
+      getCousinGroupSummariesForPeriod(_allTimeStart, now), // all time
     ]);
+
+    // Sort each list by total amount before storing
+    final sortedResults = results.map((groups) {
+      return List<CousinGroupSummary>.from(groups)
+        ..sort((a, b) => b.totalAmount.abs().compareTo(a.totalAmount.abs()));
+    }).toList();
 
     setState(() {
       _results = {
-        'thisWeek': results[0],
-        'lastWeek': results[1],
-        'thisMonth': results[2],
-        'lastMonth': results[3],
+        'thisWeek': sortedResults[0],
+        'lastWeek': sortedResults[1],
+        'thisMonth': sortedResults[2],
+        'lastMonth': sortedResults[3],
+        'allTime': sortedResults[4],
       };
       _loading = false;
     });
@@ -118,16 +125,17 @@ class _FilteredSwipeCardReviewModalState
 
     final totalTransactions =
         groups.fold(0, (sum, item) => sum + item.transactionCount);
-    final totalGroups = groups.map((g) => g.cousin).toSet().length;
+    final totalGroups = groups.length;
 
     final now = DateTime.now();
+    final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
     DateTime periodStart;
     DateTime periodEnd;
 
     switch (label) {
       case 'Esta semana':
         periodStart = _thisWeekStart;
-        periodEnd = now;
+        periodEnd = endOfToday;
         break;
       case 'Semana passada':
         periodStart = _lastWeekStart;
@@ -135,15 +143,19 @@ class _FilteredSwipeCardReviewModalState
         break;
       case 'Este mês':
         periodStart = _thisMonthStart;
-        periodEnd = now;
+        periodEnd = endOfToday;
         break;
       case 'Mês passado':
         periodStart = _lastMonthStart;
         periodEnd = _lastMonthEnd;
         break;
+      case 'Todo o período':
+        periodStart = _allTimeStart;
+        periodEnd = endOfToday;
+        break;
       default:
         periodStart = now;
-        periodEnd = now;
+        periodEnd = endOfToday;
     }
 
     showDialog(
@@ -222,100 +234,114 @@ class _FilteredSwipeCardReviewModalState
                           height: 200,
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Header with 'X' button
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const SizedBox(
-                                    width: 48), // Placeholder for alignment
-                                Text(
-                                  'Rever Transações',
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    color: appColors.onSurface,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
+                      : SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Header with 'X' button
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const SizedBox(
+                                      width: 48), // Placeholder for alignment
+                                  Text(
+                                    'Rever Transações',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      color: appColors.onSurface,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Icon
-
-                            const SizedBox(height: 16),
-
-                            // Body text
-                            Text(
-                              'Escolha o período para revisar suas transações',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: appColors.onSurface,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w400,
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
+                              const SizedBox(height: 8),
 
-                            // Period options
-                            Column(
-                              children: [
-                                _buildPeriodTile(
-                                  context: context,
-                                  icon: Icons.today,
-                                  title: 'Esta semana',
-                                  groups: _results['thisWeek'] ?? [],
-                                  onTap: (_results['thisWeek'] ?? []).isEmpty
-                                      ? null
-                                      : () => _openOverlay(
-                                          _results['thisWeek']!, 'Esta semana'),
+                              const SizedBox(height: 16),
+
+                              // Body text
+                              Text(
+                                'Escolha o período para revisar suas transações',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: appColors.onSurface,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
                                 ),
-                                const SizedBox(height: 12),
-                                _buildPeriodTile(
-                                  context: context,
-                                  icon: Icons.history,
-                                  title: 'Semana passada',
-                                  groups: _results['lastWeek'] ?? [],
-                                  onTap: (_results['lastWeek'] ?? []).isEmpty
-                                      ? null
-                                      : () => _openOverlay(
-                                          _results['lastWeek']!,
-                                          'Semana passada'),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildPeriodTile(
-                                  context: context,
-                                  icon: Icons.calendar_month,
-                                  title: 'Este mês',
-                                  groups: _results['thisMonth'] ?? [],
-                                  onTap: (_results['thisMonth'] ?? []).isEmpty
-                                      ? null
-                                      : () => _openOverlay(
-                                          _results['thisMonth']!, 'Este mês'),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildPeriodTile(
-                                  context: context,
-                                  icon: Icons.calendar_today,
-                                  title: 'Mês passado',
-                                  groups: _results['lastMonth'] ?? [],
-                                  onTap: (_results['lastMonth'] ?? []).isEmpty
-                                      ? null
-                                      : () => _openOverlay(
-                                          _results['lastMonth']!,
-                                          'Mês passado'),
-                                ),
-                              ],
-                            ),
-                          ],
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Period options
+                              Column(
+                                children: [
+                                  _buildPeriodTile(
+                                    context: context,
+                                    icon: Icons.today,
+                                    title: 'Esta semana',
+                                    groups: _results['thisWeek'] ?? [],
+                                    onTap: (_results['thisWeek'] ?? []).isEmpty
+                                        ? null
+                                        : () => _openOverlay(
+                                            _results['thisWeek']!,
+                                            'Esta semana'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildPeriodTile(
+                                    context: context,
+                                    icon: Icons.history,
+                                    title: 'Semana passada',
+                                    groups: _results['lastWeek'] ?? [],
+                                    onTap: (_results['lastWeek'] ?? []).isEmpty
+                                        ? null
+                                        : () => _openOverlay(
+                                            _results['lastWeek']!,
+                                            'Semana passada'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildPeriodTile(
+                                    context: context,
+                                    icon: Icons.calendar_month,
+                                    title: 'Este mês',
+                                    groups: _results['thisMonth'] ?? [],
+                                    onTap: (_results['thisMonth'] ?? []).isEmpty
+                                        ? null
+                                        : () => _openOverlay(
+                                            _results['thisMonth']!, 'Este mês'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildPeriodTile(
+                                    context: context,
+                                    icon: Icons.calendar_today,
+                                    title: 'Mês passado',
+                                    groups: _results['lastMonth'] ?? [],
+                                    onTap: (_results['lastMonth'] ?? []).isEmpty
+                                        ? null
+                                        : () => _openOverlay(
+                                            _results['lastMonth']!,
+                                            'Mês passado'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildPeriodTile(
+                                    context: context,
+                                    icon: Icons.all_inclusive,
+                                    title: 'Todo o período',
+                                    groups: _results['allTime'] ?? [],
+                                    onTap: (_results['allTime'] ?? []).isEmpty
+                                        ? null
+                                        : () => _openOverlay(
+                                            _results['allTime']!,
+                                            'Todo o período'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                 ),
               ),

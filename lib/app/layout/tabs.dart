@@ -424,7 +424,7 @@ class TabsPageState extends State<TabsPage>
       // If no items in progress, check for uncategorized transactions
       final now = DateTime.now();
       final startOfTime =
-          DateTime(1900, 1, 1); // Far enough back to catch all transactions
+          DateTime(2020, 1, 1); // Far enough back to catch all transactions
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final cousinResult =
           await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);

@@ -769,7 +769,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
             // --- Instructions Box (now at bottom) ---
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),

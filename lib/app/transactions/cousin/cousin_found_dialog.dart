@@ -25,29 +25,35 @@ class CousinFoundDialog {
     final result = await show(context, cousinCount: cousinCount);
 
     if (result == true && context.mounted) {
-      // User wants to reclassify now, show the overlay
-      // Use entire year instead of just current month
       final now = DateTime.now();
-      final startOfTime =
-          DateTime(1900, 1, 1); // Far enough back to catch all transactions
+      final startOfTime = DateTime(2020, 1, 1);
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
       final cousinGroups =
           await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);
 
-      // The `getCousinGroupSummariesForPeriod` function already returns the groups
-      // sorted by lifetime value, so no need for extra sorting here.
-      if (context.mounted && cousinGroups.isNotEmpty) {
-        showDialog(
-          context: context,
-          barrierDismissible: true,
-          barrierColor: Colors.transparent,
-          builder: (context) => CousinClassificationOverlay(
-            groups: cousinGroups,
-            periodStart: startOfTime,
-            periodEnd: endOfToday,
-          ),
-        );
+      // Sort groups by total amount (highest to lowest)
+      cousinGroups
+          .sort((a, b) => b.totalAmount.abs().compareTo(a.totalAmount.abs()));
+
+      // Use total groups count
+      final count = cousinGroups.length;
+
+      if (context.mounted) {
+        final result = await show(context, cousinCount: count);
+
+        if (result == true && context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            barrierColor: Colors.transparent,
+            builder: (context) => CousinClassificationOverlay(
+              groups: cousinGroups,
+              periodStart: startOfTime,
+              periodEnd: endOfToday,
+            ),
+          );
+        }
       }
     }
   }
