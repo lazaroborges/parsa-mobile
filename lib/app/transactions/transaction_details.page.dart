@@ -25,6 +25,7 @@ import 'package:parsa/core/presentation/widgets/monekin_quick_actions_buttons.da
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/routes/route_utils.dart';
+import 'package:parsa/core/services/review/review_service.dart';
 import 'package:parsa/core/services/view-actions/transaction_view_actions_service.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/core/utils/uuid.dart';
@@ -103,6 +104,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             },
           );
 
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
           );
@@ -138,6 +142,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
+
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -176,6 +183,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -211,6 +220,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               'transaction_type': transaction.type.toString(),
             },
           );
+
+          ReviewService.instance.incrementInteractionCount(
+              ReviewInteractionType.transactionEdit, context);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.transaction.edit_success)),
@@ -673,6 +685,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                         'transaction_type': transaction.type.toString(),
                       },
                     );
+                    ReviewService.instance.incrementInteractionCount(
+                        ReviewInteractionType.transactionEdit, context);
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(t.transaction.edit_success)),
@@ -800,7 +814,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                                           .toString(),
                                                 },
                                               );
-
+                                              ReviewService.instance
+                                                  .incrementInteractionCount(
+                                                      ReviewInteractionType
+                                                          .transactionEdit,
+                                                      context);
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 SnackBar(

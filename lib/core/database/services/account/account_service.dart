@@ -15,7 +15,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
 import 'package:parsa/core/api/delete_methods/delete_user_bank_account.dart';
 
-
 enum AccountDataFilter { income, expense, balance }
 
 class AccountService {
@@ -54,11 +53,11 @@ class AccountService {
     try {
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
-      
+
       // Only send the order update to API if we have credentials
       if (credentials?.accessToken != null) {
         unawaited(PostUserAccountService.updateAccountOrder(
-          account, 
+          account,
           credentials!.accessToken,
         ));
       }
@@ -71,16 +70,14 @@ class AccountService {
   }
 
   Future<int> deleteAccountFromLocalDB(String accountId) {
-            unawaited(fetchUserDataAtServer());  // Truly non-blocking
+    unawaited(fetchUserDataAtServer()); // Truly non-blocking
 
     return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
         .go();
   }
 
   Future<int> deleteAccount(String accountId) async {
-    
     try {
-      
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
 
@@ -90,7 +87,7 @@ class AccountService {
       if (!isDeleted) {
         throw Exception('Failed to delete account from the API.');
       }
-unawaited(fetchUserDataAtServer());  // Trul
+      unawaited(fetchUserDataAtServer()); // Trul
       return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
           .go();
     } catch (e) {
@@ -99,10 +96,8 @@ unawaited(fetchUserDataAtServer());  // Trul
     }
   }
 
-
-    Future<int> deleteAccountLocally(String accountId) async {
+  Future<int> deleteAccountLocally(String accountId) async {
     try {
-
       return (db.delete(db.accounts)..where((tbl) => tbl.id.equals(accountId)))
           .go();
     } catch (e) {
@@ -308,24 +303,24 @@ unawaited(fetchUserDataAtServer());  // Trul
 
       // First delete all transactions for this account
       await (db.delete(db.transactions)
-        ..where((tbl) => tbl.accountID.equals(accountId)))
-        .go();
+            ..where((tbl) => tbl.accountID.equals(accountId)))
+          .go();
 
       // Then fetch and update the account
       final accountToChange = await (db.select(db.accounts)
-        ..where((tbl) => tbl.id.equals(accountId)))
-        .getSingle();
-      
+            ..where((tbl) => tbl.id.equals(accountId)))
+          .getSingle();
+
       // Update account status
       await db.update(db.accounts).replace(
-        accountToChange.copyWith(
-          removed: true,
-          description: Value('Conta removida'),
-          closingDate: Value(DateTime.now()),
-        ),
-      );
+            accountToChange.copyWith(
+              removed: true,
+              description: Value('Conta removida'),
+              closingDate: Value(DateTime.now()),
+            ),
+          );
 
-      unawaited(fetchUserDataAtServer());  // Fire and forget
+      unawaited(fetchUserDataAtServer()); // Fire and forget
       return true;
     } catch (e) {
       print('Error removing account: $e');
@@ -333,23 +328,21 @@ unawaited(fetchUserDataAtServer());  // Trul
     }
   }
 
-
   Future<bool> restoreAccount(String accountId) async {
     try {
-
       // First fetch the account
       final accountToRestore = await (db.select(db.accounts)
-        ..where((tbl) => tbl.id.equals(accountId)))
-        .getSingle();
-      
+            ..where((tbl) => tbl.id.equals(accountId)))
+          .getSingle();
+
       // Then update it with the new values
       await db.update(db.accounts).replace(
-        accountToRestore.copyWith(
-          removed: false,
-          description: Value(''),
-          closingDate: Value(null),
-        ),
-      );
+            accountToRestore.copyWith(
+              removed: false,
+              description: Value(''),
+              closingDate: Value(null),
+            ),
+          );
 
       final auth0Provider = Auth0Provider.instance;
       final credentials = await auth0Provider.credentials;
@@ -362,7 +355,7 @@ unawaited(fetchUserDataAtServer());  // Trul
       }
 
       await updateRestoredAccount(accountId);
-      unawaited(fetchUserDataAtServer());  
+      unawaited(fetchUserDataAtServer());
       return true;
     } catch (e) {
       print('Error restoring account: $e');
@@ -372,11 +365,11 @@ unawaited(fetchUserDataAtServer());  // Trul
 }
 
 Future<void> updateRestoredAccount(String accountId) async {
-    try {        // Call the fetchUserAccounts function with the accountId
-        await fetchUserAccounts();
-        await fetchUserTransactions(accountId);
-    } catch (e) {
-        print('Error updating restored account: $e');
-    }
+  try {
+    // Call the fetchUserAccounts function with the accountId
+    await fetchUserAccounts();
+    await fetchUserTransactions(accountId);
+  } catch (e) {
+    print('Error updating restored account: $e');
+  }
 }
-

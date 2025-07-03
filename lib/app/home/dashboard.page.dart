@@ -1,69 +1,60 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:parsa/app/accounts/account_connection_modal.dart';
-import 'package:parsa/app/accounts/account_form.dart';
+import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
-import 'package:parsa/app/home/widgets/income_or_expense_card.dart';
+import 'package:parsa/app/budgets/components/budget_list_card.dart';
+import 'package:parsa/app/home/widgets/multi_value_progress_bar.dart';
 import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
 import 'package:parsa/app/tags/tag_list.page.dart';
+import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
+import 'package:parsa/core/api/fetch_user_accounts.dart';
+import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
+import 'package:parsa/core/api/fetch_user_tags_service.dart';
+import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
+import 'package:parsa/core/database/services/budget/budget_service.dart';
+import 'package:parsa/core/database/services/category/category_service.dart';
+import 'package:parsa/core/database/services/transaction/transaction_service.dart';
+import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
 import 'package:parsa/core/models/account/account.dart';
+import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
+import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/presentation/responsive/responsive_row_column.dart';
 import 'package:parsa/core/presentation/widgets/card_with_header.dart';
 import 'package:parsa/core/presentation/widgets/dates/date_period_modal.dart';
+import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
 import 'package:parsa/core/presentation/widgets/skeleton.dart';
 import 'package:parsa/core/presentation/widgets/tappable.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/presentation/widgets/trending_value.dart';
 import 'package:parsa/core/presentation/widgets/user_avatar.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/routes/route_utils.dart';
+import 'package:parsa/core/utils/cousin_utils.dart';
+import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:parsa/app/transactions/widgets/transaction_list.dart'; // Import the TransactionListComponent
+import 'package:parsa/main.dart'; // Import main to access routeObserver
+import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
-import '../../core/presentation/app_colors.dart';
-
-import 'package:parsa/core/api/fetch_user_transactions.dart';
-
-import 'package:provider/provider.dart';
-import 'package:parsa/core/providers/user_data_provider.dart';
-import 'package:parsa/core/presentation/widgets/feature_announcement_modal.dart';
-import 'package:in_app_review/in_app_review.dart';
-
-import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
-import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
-
-import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
-import 'package:parsa/app/budgets/components/budget_list_card.dart';
-import 'package:parsa/core/database/services/budget/budget_service.dart';
-
-import 'package:parsa/core/api/fetch_user_budgets_service.dart';
-
-import 'package:parsa/core/api/fetch_user_accounts.dart';
-import 'package:parsa/core/api/fetch_user_tags_service.dart';
-
-import 'package:parsa/main.dart'; // Import main to access routeObserver
-
-import 'package:parsa/core/api/post_methods/post_user_settings.dart';
-
-import 'package:parsa/core/utils/cousin_utils.dart';
-
-import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
-import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
-
-import 'package:flutter/foundation.dart';
-
-import 'package:parsa/app/accounts/bank_connection_dialog.dart';
+import '../accounts/account_form.dart';
+import '../transactions/widgets/transaction_list.dart';
+import 'widgets/income_or_expense_card.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -78,6 +69,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
   bool isLoadingTransactions = true;
   BalanceType currentBalanceType = BalanceType.available;
   bool _isDateRangeInitialized = false;
+
+  bool _isProgressBarLoading = true;
+  double _progressBarIncome = 0.0;
+  double _progressBarPureExpenses = 0.0;
+  double _progressBarTotalInvestments = 0.0;
 
   @override
   void initState() {
@@ -181,12 +177,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
       // Then fetch data
       await _refreshData();
-
-      // Add small delay to ensure userData is loaded and UI is stable
-      if (mounted) {
-        await Future.delayed(const Duration(seconds: 2));
-        await _checkAndShowReviewDialog();
-      }
     } catch (e) {
       print('Error in dashboard initialization: $e');
 
@@ -222,8 +212,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         );
         _isDateRangeInitialized = true;
       });
-    } else {
-      print("Preferences checked, no change detected or not mounted.");
     }
   }
 
@@ -250,6 +238,15 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         fetchUserTransactions(null),
         fetchUserBudgets(context),
       ]);
+
+      // HACK: Short delay to allow database writes to settle before reading.
+      // This is to address a race condition on initial login where the progress
+      // bar data is queried before transaction processing is complete.
+      await Future.delayed(const Duration(milliseconds: 2000));
+
+      if (mounted) {
+        await _updateProgressBarData();
+      }
     } catch (e) {
       print('Error refreshing data: $e');
       // You might want to show an error message to the user here
@@ -263,15 +260,99 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
     }
   }
 
-  Future<void> _checkAndShowReviewDialog() async {
-    final userData = context.read<UserDataProvider>().userData;
+  Future<void> _updateProgressBarData() async {
+    if (!mounted || !_isDateRangeInitialized) return;
 
-    if (userData != null && userData['ask_feedback'] == true) {
-      final InAppReview inAppReview = InAppReview.instance;
+    setState(() {
+      _isProgressBarLoading = true;
+    });
 
-      if (await inAppReview.isAvailable()) {
-        // Request review
-        await inAppReview.requestReview();
+    try {
+      final incomeStream = AccountService.instance.getAccountsBalance(
+        filters: TransactionFilters(
+          minDate: dateRangeService.startDate,
+          maxDate: dateRangeService.endDate,
+          transactionTypes: [TransactionType.I],
+        ),
+      );
+
+      final expenseStream = AccountService.instance.getAccountsBalance(
+        filters: TransactionFilters(
+          minDate: dateRangeService.startDate,
+          maxDate: dateRangeService.endDate,
+          transactionTypes: [TransactionType.E],
+        ),
+      );
+
+      final investmentCategoryStream =
+          CategoryService.instance.getCategoryByName('Investimentos');
+
+      final results = await Future.wait([
+        incomeStream.first,
+        expenseStream.first,
+        investmentCategoryStream.first,
+      ]);
+
+      final income = results[0] as double;
+      final totalExpenses = results[1] as double;
+      final investmentCategory = results[2] as Category?;
+
+      double consideredInvestments = 0.0;
+      double notConsideredInvestment = 0.0;
+
+      if (investmentCategory != null) {
+        final consideredStatus =
+            TransactionStatus.getStatusThatCountsForStats(null);
+
+        final notConsideredStatus = [
+          TransactionStatus.pending,
+          TransactionStatus.voided,
+          TransactionStatus.notconsidered,
+        ];
+
+        final consideredStream = TransactionService.instance
+            .countTransactions(
+                predicate: TransactionFilters(
+                    minDate: dateRangeService.startDate,
+                    maxDate: dateRangeService.endDate,
+                    categories: [investmentCategory.id],
+                    status: consideredStatus))
+            .map((event) => event.valueSum);
+
+        final notConsideredStream = TransactionService.instance
+            .countTransactions(
+                predicate: TransactionFilters(
+                    minDate: dateRangeService.startDate,
+                    maxDate: dateRangeService.endDate,
+                    categories: [investmentCategory.id],
+                    status: notConsideredStatus))
+            .map((event) => event.valueSum);
+
+        final investmentResults = await Future.wait(
+            [consideredStream.first, notConsideredStream.first]);
+
+        consideredInvestments = investmentResults[0];
+        notConsideredInvestment = investmentResults[1];
+      }
+
+      final totalInvestments =
+          consideredInvestments.abs() + notConsideredInvestment.abs();
+      final pureExpenses = totalExpenses.abs() - consideredInvestments.abs();
+
+      if (mounted) {
+        setState(() {
+          _progressBarIncome = income.abs();
+          _progressBarPureExpenses = pureExpenses;
+          _progressBarTotalInvestments = totalInvestments;
+          _isProgressBarLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error updating progress bar data: $e');
+      if (mounted) {
+        setState(() {
+          _isProgressBarLoading = false;
+        });
       }
     }
   }
@@ -322,16 +403,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
     final accountService = AccountService.instance;
 
-    final hideDrawerAndFloatingButton =
-        BreakPoint.of(context).isLargerOrEqualTo(BreakpointID.md);
-
     if (!_isDateRangeInitialized) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
-    final hasTriggered = userData?['trigger_swipe_cards_flow'] == false;
 
     return Scaffold(
         appBar: EmptyAppBar(color: AppColors.of(context).light),
@@ -413,7 +489,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                               if (userData != null &&
                                                   userData['first_name'] !=
                                                       null) {
-                                                final firstName = userData['first_name'].toString();
+                                                final firstName =
+                                                    userData['first_name']
+                                                        .toString();
 
                                                 return Row(
                                                   children: [
@@ -642,7 +720,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                       ),
                                     ).then((value) {
                                       if (value == null) return;
-
                                       setState(() {
                                         dateRangeService =
                                             dateRangeService.copyWith(
@@ -654,6 +731,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                               dateRangeService.startOfWeek,
                                         );
                                       });
+                                      _updateProgressBarData();
                                     });
                                   },
                                 ),
@@ -693,104 +771,110 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                             );
                           },
                         ),
-                        if (true) ...[
-                          const SizedBox(height: 16),
-                          StreamBuilder<double>(
-                            stream: AccountService.instance.getAccountsBalance(
+                        const SizedBox(height: 16),
+                        // --- PROGRESS BAR SECTION: Only show if enough data, use single StreamBuilder ---
+                        StreamBuilder<List<double>>(
+                          stream: Rx.combineLatest3<double, double, Category?,
+                              List<dynamic>>(
+                            AccountService.instance.getAccountsBalance(
                               filters: TransactionFilters(
                                 minDate: dateRangeService.startDate,
                                 maxDate: dateRangeService.endDate,
                                 transactionTypes: [TransactionType.I],
                               ),
                             ),
-                            builder: (context, incomeSnapshot) {
-                              return StreamBuilder<double>(
-                                stream:
-                                    AccountService.instance.getAccountsBalance(
-                                  filters: TransactionFilters(
-                                    minDate: dateRangeService.startDate,
-                                    maxDate: dateRangeService.endDate,
-                                    transactionTypes: [TransactionType.E],
-                                  ),
-                                ),
-                                builder: (context, expenseSnapshot) {
-                                  if (!incomeSnapshot.hasData ||
-                                      !expenseSnapshot.hasData) {
-                                    return const LinearProgressIndicator();
-                                  }
-
-                                  final income = incomeSnapshot.data!.abs();
-                                  final expenses = expenseSnapshot.data!.abs();
-                                  final percentage =
-                                      income > 0 ? (expenses / income) : 0.0;
-
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 2, vertical: 1),
-                                    width: double.infinity,
-                                    child: Column(
-                                      children: [
-                                        TweenAnimationBuilder<double>(
-                                          duration: const Duration(
-                                              milliseconds: 1500),
-                                          curve: Curves.easeInOut,
-                                          tween: Tween<double>(
-                                            begin: 0,
-                                            end: percentage,
-                                          ),
-                                          builder: (context, value, child) {
-                                            return ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                              child: LinearProgressIndicator(
-                                                value: value,
-                                                backgroundColor: Colors.green
-                                                    .withOpacity(0.9),
-                                                valueColor:
-                                                    const AlwaysStoppedAnimation<
-                                                        Color>(Colors.red),
-                                                minHeight: 16,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                        const SizedBox(height: 2),
-                                        TweenAnimationBuilder<double>(
-                                          duration: const Duration(
-                                              milliseconds: 1500),
-                                          curve: Curves.easeInOut,
-                                          tween: Tween<double>(
-                                            begin: 0,
-                                            end: percentage,
-                                          ),
-                                          builder: (context, value, child) {
-                                            return Text(
-                                              '${(value * 100).toStringAsFixed(1)}% da renda gasta.',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall,
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  );
+                            AccountService.instance.getAccountsBalance(
+                              filters: TransactionFilters(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate,
+                                transactionTypes: [TransactionType.E],
+                              ),
+                            ),
+                            CategoryService.instance
+                                .getCategoryByName('Investimentos'),
+                            (income, totalExpenses, investmentCategory) =>
+                                [income, totalExpenses, investmentCategory],
+                          ).switchMap((values) {
+                            final double income = (values[0] as double).abs();
+                            final double totalExpenses =
+                                (values[1] as double).abs();
+                            final Category? investmentCategory =
+                                values[2] as Category?;
+                            if (investmentCategory != null) {
+                              final consideredStatus =
+                                  TransactionStatus.getStatusThatCountsForStats(
+                                      null);
+                              final notConsideredStatus = [
+                                TransactionStatus.pending,
+                                TransactionStatus.voided,
+                                TransactionStatus.notconsidered,
+                              ];
+                              final consideredStream = TransactionService
+                                  .instance
+                                  .countTransactions(
+                                      predicate: TransactionFilters(
+                                          minDate: dateRangeService.startDate,
+                                          maxDate: dateRangeService.endDate,
+                                          categories: [investmentCategory.id],
+                                          status: consideredStatus))
+                                  .map((event) => event.valueSum);
+                              final notConsideredStream = TransactionService
+                                  .instance
+                                  .countTransactions(
+                                      predicate: TransactionFilters(
+                                          minDate: dateRangeService.startDate,
+                                          maxDate: dateRangeService.endDate,
+                                          categories: [investmentCategory.id],
+                                          status: notConsideredStatus))
+                                  .map((event) => event.valueSum);
+                              return Rx.combineLatest2<double, double,
+                                  List<double>>(
+                                consideredStream,
+                                notConsideredStream,
+                                (considered, notConsidered) {
+                                  final totalInvestments =
+                                      considered.abs() + notConsidered.abs();
+                                  final pureExpenses =
+                                      totalExpenses - considered.abs();
+                                  return [
+                                    income,
+                                    pureExpenses,
+                                    totalInvestments
+                                  ];
                                 },
                               );
-                            },
-                          ),
-                        ],
+                            } else {
+                              return Stream.value([income, totalExpenses, 0.0]);
+                            }
+                          }),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const LinearProgressIndicator();
+                            }
+                            final income = snapshot.data![0];
+                            final pureExpenses = snapshot.data![1];
+                            final totalInvestments = snapshot.data![2];
+                            if (income <= 0) {
+                              return const SizedBox.shrink();
+                            }
+                            return AnimatedExpenseProgressBar(
+                              key: ValueKey(
+                                  '${dateRangeService.startDate}-${dateRangeService.endDate}'),
+                              income: income,
+                              pureExpenses: pureExpenses,
+                              totalInvestments: totalInvestments,
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-              
-              // DEBUG: Debug buttons section
               if (kDebugMode) ...[
-                
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Column(
                     children: [
                       // Cousin Found Dialog Button
@@ -798,22 +882,27 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.bug_report),
-                          label: const Text('DEBUG: Trigger Cousin Found Dialog'),
+                          label:
+                              const Text('DEBUG: Trigger Cousin Found Dialog'),
                           onPressed: () async {
                             // Set firstTriggerSwipeCards to false for testing
                             await app_prefs.SharedPreferencesAsync.instance
                                 .setFirstTriggerSwipeCards(false);
-                            
+
                             // Get actual cousin count using all past transactions
                             final now = DateTime.now();
-                            final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
-                            final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
-                            final cousinResult = await getCousinGroupsForPeriod(startOfTime, endOfToday);
+                            final startOfTime = DateTime(1900, 1,
+                                1); // Far enough back to catch all transactions
+                            final endOfToday = DateTime(
+                                now.year, now.month, now.day, 23, 59, 59);
+                            final cousinResult = await getCousinGroupsForPeriod(
+                                startOfTime, endOfToday);
                             final actualCount = cousinResult.totalGroups;
-                            
+
                             await CousinFoundDialog.showAndHandle(
                               context,
-                              cousinCount: actualCount, // Use actual count instead of mock
+                              cousinCount:
+                                  actualCount, // Use actual count instead of mock
                             );
                           },
                           style: OutlinedButton.styleFrom(
@@ -828,7 +917,8 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.account_balance),
-                          label: const Text('DEBUG: Open Bank Connection Dialog'),
+                          label:
+                              const Text('DEBUG: Open Bank Connection Dialog'),
                           onPressed: () {
                             BankConnectionDialog.showAndHandle(context);
                           },
@@ -842,7 +932,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                   ),
                 ),
               ],
-              
+
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1024,9 +1114,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               onHeaderButtonClick: () {
                                 tabsPageKey.currentState?.navigateToStatsTab(0);
                               }),
-
                           const SizedBox(height: 12),
-
                           CardWithHeader(
                             title: t.stats.cash_flow,
                             bodyPadding: EdgeInsets.zero,
@@ -1059,9 +1147,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               if (!snapshot.hasData) {
                                 return const LinearProgressIndicator();
                               }
-
                               final budgets = snapshot.data!;
-
                               return BudgetListCard(
                                 budgets: budgets,
                                 limit: 3,
@@ -1479,6 +1565,73 @@ class DashboardTransactionList extends StatelessWidget {
       prevPage: child.prevPage,
       onLongPress: (_) {},
       onEmptyList: child.onEmptyList,
+    );
+  }
+}
+
+class AnimatedExpenseProgressBar extends StatelessWidget {
+  final double income;
+  final double pureExpenses;
+  final double totalInvestments;
+
+  const AnimatedExpenseProgressBar({
+    super.key,
+    required this.income,
+    required this.pureExpenses,
+    required this.totalInvestments,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    print("--- AnimatedExpenseProgressBar BUILD ---");
+    print(
+        "income: $income, pureExpenses: $pureExpenses, totalInvestments: $totalInvestments");
+    // Use a Tween from 0.0 to 1.0 to act as a multiplier for the animation progress.
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 1500),
+      curve: Curves.easeInOut,
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      builder: (context, animationValue, child) {
+        // The animated values are the final values multiplied by the animation progress (0.0 to 1.0)
+        final animatedPureExpenses = pureExpenses * animationValue;
+        final animatedTotalInvestments = totalInvestments * animationValue;
+
+        // The values to pass to the progress bar widget
+        final animatedValues = [
+          ProgressBarValue(amount: animatedPureExpenses, color: Colors.red),
+          ProgressBarValue(
+              amount: animatedTotalInvestments, color: Colors.blue),
+        ];
+
+        // Calculate percentages for the text labels based on the animated values
+        final animatedSpentPercentage =
+            income > 0 ? animatedPureExpenses / income : 0.0;
+        final animatedInvestmentPercentage =
+            income > 0 ? animatedTotalInvestments / income : 0.0;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+          width: double.infinity,
+          child: Column(
+            children: [
+              MultiValueProgressBar(
+                total: income, // The bar's total is the income
+                values: animatedValues,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${(animatedSpentPercentage * 100).toStringAsFixed(1)}% da renda gasta.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${(animatedInvestmentPercentage * 100).toStringAsFixed(1)}% da renda investida.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

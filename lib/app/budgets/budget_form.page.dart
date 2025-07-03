@@ -16,7 +16,6 @@ import 'package:parsa/core/presentation/widgets/form_fields/date_form_field.dart
 import 'package:parsa/core/utils/text_field_utils.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 
 import '../../core/models/account/account.dart';

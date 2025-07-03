@@ -21,6 +21,7 @@ import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:parsa/core/services/review/review_service.dart';
 
 class CousinClassificationOverlay extends StatefulWidget {
   final List<TransactionGroupByType> groups;
@@ -87,8 +88,6 @@ class _CousinClassificationOverlayState
   @override
   Widget build(BuildContext context) {
     final groups = widget.groups;
-    final totalTransactions = widget.totalTransactions;
-    final totalGroups = widget.totalGroups;
 
     if (groups.isEmpty && _hasShownInstructionCardBefore) {
       return const Center(child: Text('Nenhuma transação não categorizada.'));
@@ -410,6 +409,9 @@ class _CousinClassificationOverlayState
         'categoryId': selectedCategory.id,
       };
 
+      await ReviewService.instance.incrementInteractionCount(
+          ReviewInteractionType.cousinRuleCreation, context);
+
       await PostUserCousinRules.updateCousinRules(
         cousinValue: cousinValue,
         triggeringId: triggeringId,
@@ -703,7 +705,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 ),
               ],
             ),
-           // const Spacer(),
+            // const Spacer(),
             // --- Instructions Box (now at bottom) ---
             // Container(
             //   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
