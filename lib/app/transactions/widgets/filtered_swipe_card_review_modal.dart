@@ -203,10 +203,10 @@ class _FilteredSwipeCardReviewModalState
                     maxHeight: 600,
                   ),
                   padding: const EdgeInsets.only(
-                    top: 20,
+                    top: 16,
                     left: 16,
                     right: 16,
-                    bottom: 16,
+                    bottom: 12,
                   ),
                   clipBehavior: Clip.antiAlias,
                   decoration: ShapeDecoration(
@@ -261,21 +261,21 @@ class _FilteredSwipeCardReviewModalState
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 4),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
 
                               // Body text
                               Text(
                                 'Escolha o período para revisar suas transações',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: appColors.onSurface,
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w400,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 16),
 
                               // Period options
                               Column(
@@ -291,7 +291,7 @@ class _FilteredSwipeCardReviewModalState
                                             _results['thisWeek']!,
                                             'Esta semana'),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 8),
                                   _buildPeriodTile(
                                     context: context,
                                     icon: Icons.history,
@@ -303,7 +303,7 @@ class _FilteredSwipeCardReviewModalState
                                             _results['lastWeek']!,
                                             'Semana passada'),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 8),
                                   _buildPeriodTile(
                                     context: context,
                                     icon: Icons.calendar_month,
@@ -314,7 +314,7 @@ class _FilteredSwipeCardReviewModalState
                                         : () => _openOverlay(
                                             _results['thisMonth']!, 'Este mês'),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 8),
                                   _buildPeriodTile(
                                     context: context,
                                     icon: Icons.calendar_today,
@@ -326,7 +326,7 @@ class _FilteredSwipeCardReviewModalState
                                             _results['lastMonth']!,
                                             'Mês passado'),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 8),
                                   _buildPeriodTile(
                                     context: context,
                                     icon: Icons.all_inclusive,
@@ -372,7 +372,7 @@ class _FilteredSwipeCardReviewModalState
       onTap: isEnabled ? onTap : null,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: ShapeDecoration(
           color: isEnabled ? Colors.white : Colors.grey.shade50,
           shape: RoundedRectangleBorder(
@@ -422,11 +422,11 @@ class _FilteredSwipeCardReviewModalState
                       color: isEnabled
                           ? appColors.onSurface
                           : Colors.grey.shade500,
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     transactionCount > 0
                         ? '$transactionCount transações de $businessCount pessoas e negócios'
@@ -435,7 +435,7 @@ class _FilteredSwipeCardReviewModalState
                       color: isEnabled
                           ? const Color(0xFF344053)
                           : Colors.grey.shade400,
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
