@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_classification_overlay.dart';
+import 'package:parsa/app/transactions/cousin/cousin_classification_overlay.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
@@ -25,27 +25,36 @@ class CousinFoundDialog {
     final result = await show(context, cousinCount: cousinCount);
 
     if (result == true && context.mounted) {
-      // User wants to reclassify now, show the overlay
-      // Use entire year instead of just current month
       final now = DateTime.now();
-      final startOfTime = DateTime(1900, 1, 1); // Far enough back to catch all transactions
+      final startOfTime = DateTime(2020, 1, 1);
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-      print('-------- s3123124124 -------- Fetching cousin groups for period: $startOfTime to $endOfToday');
-      final cousinResult =
-          await getCousinGroupsForPeriod(startOfTime, endOfToday);
-          
-      // Sort groups by total value in descending order
-      final sortedGroups = List<TransactionGroupByType>.from(cousinResult.groups)
-        ..sort((a, b) => b.totalValue.compareTo(a.totalValue));
-      
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierColor: Colors.transparent,
-        builder: (context) =>
-            CousinClassificationOverlay(groups: sortedGroups),
-      );
+      final cousinGroups =
+          await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);
+
+      // Sort groups by total amount (highest to lowest)
+      cousinGroups
+          .sort((a, b) => b.totalAmount.abs().compareTo(a.totalAmount.abs()));
+
+      // Use total groups count
+      final count = cousinGroups.length;
+
+      if (context.mounted) {
+        final result = await show(context, cousinCount: count);
+
+        if (result == true && context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            barrierColor: Colors.transparent,
+            builder: (context) => CousinClassificationOverlay(
+              groups: cousinGroups,
+              periodStart: startOfTime,
+              periodEnd: endOfToday,
+            ),
+          );
+        }
+      }
     }
   }
 }
@@ -80,7 +89,8 @@ class _CousinFoundDialogWidget extends StatelessWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: GestureDetector(
-                onTap: () {}, // Prevents tap events from propagating to the background
+                onTap:
+                    () {}, // Prevents tap events from propagating to the background
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.only(
@@ -118,7 +128,8 @@ class _CousinFoundDialogWidget extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const SizedBox(width: 48), // Placeholder for alignment
+                          const SizedBox(
+                              width: 48), // Placeholder for alignment
                           Text(
                             'Revisar Transações',
                             style: theme.textTheme.titleLarge?.copyWith(
@@ -136,7 +147,7 @@ class _CousinFoundDialogWidget extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // Body text
                       Text(
                         'Terminamos de sincronizar suas contas e encontramos transações de $cousinCount pessoas e negócios diferentes.',
@@ -158,7 +169,7 @@ class _CousinFoundDialogWidget extends StatelessWidget {
                         textAlign: TextAlign.left,
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Options
                       Column(
                         children: [
@@ -180,7 +191,8 @@ class _CousinFoundDialogWidget extends StatelessWidget {
                             context: context,
                             icon: Icons.schedule,
                             title: 'Mais tarde',
-                            description: 'Revisar as transações em outro momento.',
+                            description:
+                                'Revisar as transações em outro momento.',
                             onTap: () => Navigator.of(context).pop(false),
                           ),
                         ],

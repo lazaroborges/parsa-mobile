@@ -12,8 +12,8 @@ import 'package:parsa/app/stats/widgets/income_expense_comparason.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/tags_stats.dart';
 import 'package:parsa/app/tags/tag_list.page.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
 import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
+import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
@@ -895,9 +895,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                 1); // Far enough back to catch all transactions
                             final endOfToday = DateTime(
                                 now.year, now.month, now.day, 23, 59, 59);
-                            final cousinResult = await getCousinGroupsForPeriod(
-                                startOfTime, endOfToday);
-                            final actualCount = cousinResult.totalGroups;
+                            final cousinResult =
+                                await getCousinGroupSummariesForPeriod(
+                                    startOfTime, endOfToday);
+                            final actualCount = cousinResult.length;
 
                             await CousinFoundDialog.showAndHandle(
                               context,
@@ -1583,10 +1584,6 @@ class AnimatedExpenseProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("--- AnimatedExpenseProgressBar BUILD ---");
-    print(
-        "income: $income, pureExpenses: $pureExpenses, totalInvestments: $totalInvestments");
-    // Use a Tween from 0.0 to 1.0 to act as a multiplier for the animation progress.
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 1500),
       curve: Curves.easeInOut,
