@@ -33,8 +33,6 @@ Future<List<CousinGroupSummary>> getCousinGroupSummariesForPeriod(
   final dbQueryStart = start.add(const Duration(hours: 3));
   final dbQueryEnd = end.add(const Duration(hours: 3));
 
-  final stopwatch = Stopwatch()..start();
-
   // Get aggregated summaries with a single, powerful SQL query.
   const summaryQuery = """
     SELECT
@@ -64,10 +62,6 @@ Future<List<CousinGroupSummary>> getCousinGroupSummariesForPeriod(
       totalAmount: row.read<double>('totalAmount'),
     );
   }).toList();
-
-  stopwatch.stop();
-  print(
-      'getCousinGroupSummariesForPeriod executed in [32m[1m[4m[3m[7m[5m${stopwatch.elapsedMilliseconds}ms\u001b[0m');
 
   return summaries;
 }
