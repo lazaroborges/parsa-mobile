@@ -15,6 +15,11 @@ class CousinGroupSummary {
     required this.transactionCount,
     required this.totalAmount,
   });
+
+  @override
+  String toString() {
+    return 'CousinGroupSummary(cousin: $cousin, type: $type, transactionCount: $transactionCount, totalAmount: $totalAmount)';
+  }
 }
 
 /// Fetches and processes cousin group summaries for a given period using an efficient, single SQL query for aggregation.

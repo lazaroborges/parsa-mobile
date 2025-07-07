@@ -71,6 +71,13 @@ class _FilteredSwipeCardReviewModalState
 
     // All time start (set to a reasonable past date)
     _allTimeStart = DateTime(2020, 1, 1);
+
+    print('thisWeekStart: $_thisWeekStart');
+    print('lastWeekStart: $_lastWeekStart');
+    print('lastWeekEnd: $_lastWeekEnd');
+    print('thisMonthStart: $_thisMonthStart');
+    print('lastMonthStart: $_lastMonthStart');
+    print('lastMonthEnd: $_lastMonthEnd');
   }
 
   Future<void> _loadPreferencesAndFetchCounts() async {
@@ -101,6 +108,8 @@ class _FilteredSwipeCardReviewModalState
           _lastMonthStart, _lastMonthEnd), // last month
       getCousinGroupSummariesForPeriod(_allTimeStart, now), // all time
     ]);
+
+    print('results: $results');
 
     // Sort each list by total amount before storing
     final sortedResults = results.map((groups) {
