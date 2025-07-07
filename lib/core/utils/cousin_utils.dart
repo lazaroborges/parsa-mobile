@@ -47,7 +47,6 @@ Future<List<CousinGroupSummary>> getCousinGroupSummariesForPeriod(
       AND t.status != 'notconsidered'
       AND t.date >= ? AND t.date <= ?
     GROUP BY t.cousin, CASE WHEN t.value > 0 THEN 'I' ELSE 'E' END
-    HAVING transactionCount > 1
   """;
 
   final summaryResult = await db.customSelect(summaryQuery, variables: [
