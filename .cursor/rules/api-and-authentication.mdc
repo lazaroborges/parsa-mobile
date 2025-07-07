@@ -1,6 +1,6 @@
 ---
 description: API and Authentication rules
-globs: *dart
+alwaysApply: false
 ---
 0. **Retrieve Valid Credentials Before API Calls**
     - Always retrieve valid `Auth0` credentials (`credentials.accessToken`) before making any authenticated requests.
