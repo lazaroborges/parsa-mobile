@@ -19,7 +19,7 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 
@@ -47,16 +47,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class FCMService {
-  // Singleton instance
   static final FCMService _instance = FCMService._internal();
 
   // Factory constructor to return the singleton instance
   factory FCMService() => _instance;
 
-  // Private constructor for singleton pattern
   FCMService._internal();
 
-  // Getter for the singleton instance
   static FCMService get instance => _instance;
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;

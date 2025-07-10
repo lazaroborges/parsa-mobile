@@ -200,7 +200,11 @@ class TransactionService {
             .get();
 
         if (cousins.isNotEmpty && changes?.hasChanges == true) {
-          if (onCousinFound != null) {
+          // Check if dontAskAgain is true for this transaction
+          if (transaction.dontAskAgain == true) {
+            // Skip the dialog if dontAskAgain is set
+            print('Skipping cousin dialog - dontAskAgain is true for transaction ${transaction.id}');
+          } else if (onCousinFound != null) {
             final shouldContinue = await onCousinFound!(
               cousins.length,
               transaction.id.toString(),

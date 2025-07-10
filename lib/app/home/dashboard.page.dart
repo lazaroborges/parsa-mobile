@@ -14,7 +14,7 @@ import 'package:parsa/app/home/widgets/dashboard_cards/cash_flow_card.dart';
 import 'package:parsa/app/home/widgets/dashboard_cards/credit_cards_card.dart';
 import 'package:parsa/app/home/widgets/dashboard_cards/last_transactions_card.dart';
 import 'package:parsa/app/home/widgets/multi_value_progress_bar.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/app/transactions/widgets/filtered_swipe_card_review_modal.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/api/fetch_user_budgets_service.dart';
@@ -53,6 +53,7 @@ import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/main.dart'; // Import main to access routeObserver
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../core/models/transaction/transaction_type.enum.dart';
 import 'widgets/income_or_expense_card.dart';
@@ -311,18 +312,15 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       double notConsideredInvestment = 0.0;
 
       if (investmentCategory != null) {
-        // Considered: what counts for stats.
         final consideredStatus =
             TransactionStatus.getStatusThatCountsForStats(null);
 
-        // Disconsidered: what DOES NOT count for stats.
         final notConsideredStatus = [
           TransactionStatus.pending,
           TransactionStatus.voided,
           TransactionStatus.notconsidered,
         ];
 
-        // We use TransactionService directly to avoid the filtering in getAccountsBalance
         final consideredStream = TransactionService.instance
             .countTransactions(
                 predicate: TransactionFilters(
@@ -791,18 +789,100 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                           },
                         ),
                         const SizedBox(height: 16),
-                        if (true) ...[
-                          if (_isProgressBarLoading)
-                            const LinearProgressIndicator()
-                          else
-                            AnimatedExpenseProgressBar(
+                        // --- PROGRESS BAR SECTION: Only show if enough data, use single StreamBuilder ---
+                        StreamBuilder<List<double>>(
+                          stream: Rx.combineLatest3<double, double, Category?,
+                              List<dynamic>>(
+                            AccountService.instance.getAccountsBalance(
+                              filters: TransactionFilters(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate,
+                                transactionTypes: [TransactionType.I],
+                              ),
+                            ),
+                            AccountService.instance.getAccountsBalance(
+                              filters: TransactionFilters(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate,
+                                transactionTypes: [TransactionType.E],
+                              ),
+                            ),
+                            CategoryService.instance
+                                .getCategoryByName('Investimentos'),
+                            (income, totalExpenses, investmentCategory) =>
+                                [income, totalExpenses, investmentCategory],
+                          ).switchMap((values) {
+                            final double income = (values[0] as double).abs();
+                            final double totalExpenses =
+                                (values[1] as double).abs();
+                            final Category? investmentCategory =
+                                values[2] as Category?;
+                            if (investmentCategory != null) {
+                              final consideredStatus =
+                                  TransactionStatus.getStatusThatCountsForStats(
+                                      null);
+                              final notConsideredStatus = [
+                                TransactionStatus.pending,
+                                TransactionStatus.voided,
+                                TransactionStatus.notconsidered,
+                              ];
+                              final consideredStream = TransactionService
+                                  .instance
+                                  .countTransactions(
+                                      predicate: TransactionFilters(
+                                          minDate: dateRangeService.startDate,
+                                          maxDate: dateRangeService.endDate,
+                                          categories: [investmentCategory.id],
+                                          status: consideredStatus))
+                                  .map((event) => event.valueSum);
+                              final notConsideredStream = TransactionService
+                                  .instance
+                                  .countTransactions(
+                                      predicate: TransactionFilters(
+                                          minDate: dateRangeService.startDate,
+                                          maxDate: dateRangeService.endDate,
+                                          categories: [investmentCategory.id],
+                                          status: notConsideredStatus))
+                                  .map((event) => event.valueSum);
+                              return Rx.combineLatest2<double, double,
+                                  List<double>>(
+                                consideredStream,
+                                notConsideredStream,
+                                (considered, notConsidered) {
+                                  final totalInvestments =
+                                      considered.abs() + notConsidered.abs();
+                                  final pureExpenses =
+                                      totalExpenses - considered.abs();
+                                  return [
+                                    income,
+                                    pureExpenses,
+                                    totalInvestments
+                                  ];
+                                },
+                              );
+                            } else {
+                              return Stream.value([income, totalExpenses, 0.0]);
+                            }
+                          }),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const LinearProgressIndicator();
+                            }
+                            final income = snapshot.data![0];
+                            final pureExpenses = snapshot.data![1];
+                            final totalInvestments = snapshot.data![2];
+                            if (income <= 0) {
+                              return const SizedBox.shrink();
+                            }
+                            return AnimatedExpenseProgressBar(
                               key: ValueKey(
                                   '${dateRangeService.startDate}-${dateRangeService.endDate}'),
-                              income: _progressBarIncome,
-                              pureExpenses: _progressBarPureExpenses,
-                              totalInvestments: _progressBarTotalInvestments,
-                            ),
-                        ],
+                              income: income,
+                              pureExpenses: pureExpenses,
+                              totalInvestments: totalInvestments,
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -832,9 +912,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                 1); // Far enough back to catch all transactions
                             final endOfToday = DateTime(
                                 now.year, now.month, now.day, 23, 59, 59);
-                            final cousinResult = await getCousinGroupsForPeriod(
-                                startOfTime, endOfToday);
-                            final actualCount = cousinResult.totalGroups;
+                            final cousinResult =
+                                await getCousinGroupSummariesForPeriod(
+                                    startOfTime, endOfToday);
+                            final actualCount = cousinResult.length;
 
                             await CousinFoundDialog.showAndHandle(
                               context,
@@ -1218,10 +1299,6 @@ class AnimatedExpenseProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("--- AnimatedExpenseProgressBar BUILD ---");
-    print(
-        "income: $income, pureExpenses: $pureExpenses, totalInvestments: $totalInvestments");
-    // Use a Tween from 0.0 to 1.0 to act as a multiplier for the animation progress.
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 1500),
       curve: Curves.easeInOut,

@@ -102,13 +102,13 @@ class _TransactionsPageState extends State<TransactionsPage> {
     setState(() {
       switch (_sortMode) {
         case SortMode.date:
-          _sortMode = SortMode.valueDesc;
-          break;
-        case SortMode.valueDesc:
           _sortMode = SortMode.valueAsc;
           break;
-        case SortMode.valueAsc:
+        case SortMode.valueDesc:
           _sortMode = SortMode.date;
+          break;
+        case SortMode.valueAsc:
+          _sortMode = SortMode.valueDesc;
           break;
       }
     });
@@ -116,10 +116,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   TransactionQueryOrderBy? _getOrderBy() {
     switch (_sortMode) {
-      case SortMode.valueAsc:
-        return amountAscOrderBy;
       case SortMode.valueDesc:
         return amountDescOrderBy;
+      case SortMode.valueAsc:
+        return amountAscOrderBy;
       case SortMode.date:
       default:
         return null;

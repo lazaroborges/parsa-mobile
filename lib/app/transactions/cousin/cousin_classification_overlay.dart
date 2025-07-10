@@ -15,7 +15,7 @@ import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/app/transactions/uncategorized/instruction_card.dart';
+import 'package:parsa/app/transactions/cousin/instruction_card.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/app/transactions/form/dialogs/transaction_status_selector.dart';
 import 'package:parsa/i18n/translations.g.dart';
@@ -24,10 +24,12 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:parsa/core/services/review/review_service.dart';
 
 class CousinClassificationOverlay extends StatefulWidget {
-  final List<TransactionGroupByType> groups;
+  final List<CousinGroupSummary> groups;
   final int? totalTransactions;
   final int? totalGroups;
   final String? periodLabel;
+  final DateTime? periodStart;
+  final DateTime? periodEnd;
 
   const CousinClassificationOverlay({
     Key? key,
@@ -35,6 +37,8 @@ class CousinClassificationOverlay extends StatefulWidget {
     this.totalTransactions,
     this.totalGroups,
     this.periodLabel,
+    this.periodStart,
+    this.periodEnd,
   }) : super(key: key);
 
   @override
@@ -136,6 +140,8 @@ class _CousinClassificationOverlayState
                 onCategoryPressed: () =>
                     _handleCategorizeButtonPressed(group, 0),
                 onStatusPressed: () => _handleStatusButtonPressed(group, 0),
+                periodStart: widget.periodStart,
+                periodEnd: widget.periodEnd,
               );
             },
             allowedSwipeDirection:
@@ -156,10 +162,12 @@ class _CousinClassificationOverlayState
                   });
                   return true;
                 }
+
                 final selectedCategory = await showCategoryPickerModal(
                   context,
                   modal: CategoryPicker(
-                    selectedCategory: group.transactions.first.category,
+                    selectedCategory:
+                        null, // No pre-selection since we're working with summaries
                     categoryType: group.type == CategoryType.I
                         ? [CategoryType.B, CategoryType.I]
                         : [CategoryType.E, CategoryType.B],
@@ -216,6 +224,8 @@ class _CousinClassificationOverlayState
                     _handleCategorizeButtonPressed(group, groupIndex),
                 onStatusPressed: () =>
                     _handleStatusButtonPressed(group, groupIndex),
+                periodStart: widget.periodStart,
+                periodEnd: widget.periodEnd,
               );
             } else {
               final groupIndex = index;
@@ -229,6 +239,8 @@ class _CousinClassificationOverlayState
                     _handleCategorizeButtonPressed(group, groupIndex),
                 onStatusPressed: () =>
                     _handleStatusButtonPressed(group, groupIndex),
+                periodStart: widget.periodStart,
+                periodEnd: widget.periodEnd,
               );
             }
           },
@@ -275,7 +287,8 @@ class _CousinClassificationOverlayState
               final selectedCategory = await showCategoryPickerModal(
                 context,
                 modal: CategoryPicker(
-                  selectedCategory: group.transactions.first.category,
+                  selectedCategory:
+                      null, // No pre-selection since we're working with summaries
                   categoryType: group.type == CategoryType.I
                       ? [CategoryType.B, CategoryType.I]
                       : [CategoryType.E, CategoryType.B],
@@ -325,11 +338,12 @@ class _CousinClassificationOverlayState
   }
 
   Future<void> _handleCategorizeButtonPressed(
-      TransactionGroupByType group, int index) async {
+      CousinGroupSummary group, int index) async {
     final selectedCategory = await showCategoryPickerModal(
       context,
       modal: CategoryPicker(
-        selectedCategory: group.transactions.first.category,
+        selectedCategory:
+            null, // No pre-selection since we're working with summaries
         categoryType: group.type == CategoryType.I
             ? [CategoryType.B, CategoryType.I]
             : [CategoryType.E, CategoryType.B],
@@ -358,11 +372,11 @@ class _CousinClassificationOverlayState
   }
 
   Future<void> _handleStatusButtonPressed(
-      TransactionGroupByType group, int index) async {
-    final t = Translations.of(context);
+      CousinGroupSummary group, int index) async {
     final modalResult = await showTransactioStatusModal(
       context,
-      initialStatus: group.transactions.first.status,
+      initialStatus:
+          null, // No initial status since we're working with summaries
     );
 
     if (modalResult != null && modalResult.result != null) {
@@ -372,12 +386,9 @@ class _CousinClassificationOverlayState
         _processedIndices.add(index);
       });
 
-      unawaited(Future.wait(group.transactions
-          .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
-                tx.copyWith(status: drift.Value(modalResult.result)),
-                null,
-                1,
-              ))).catchError((e) {
+      // Process status change in the background
+      unawaited(
+          _processStatusSelection(group, modalResult.result!).catchError((e) {
         if (mounted) {
           _cardController.undo();
           setState(() {
@@ -388,13 +399,61 @@ class _CousinClassificationOverlayState
     }
   }
 
+  Future<void> _processStatusSelection(
+    CousinGroupSummary group,
+    TransactionStatus newStatus,
+  ) async {
+    try {
+      // Get all transactions matching this cousin and type
+      final allTransactions =
+          await TransactionService.instance.getTransactions().first;
+      final matchingTransactions = allTransactions
+          .where((tx) =>
+              tx.cousin == group.cousin &&
+              ((group.type == CategoryType.I && (tx.value ?? 0) > 0) ||
+                  (group.type == CategoryType.E && (tx.value ?? 0) < 0)) &&
+              tx.status != TransactionStatus.notconsidered)
+          .toList();
+
+      // Update all matching transactions
+      await Future.wait(matchingTransactions
+          .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
+                tx.copyWith(status: drift.Value(newStatus)),
+                null,
+                1,
+              )));
+    } catch (e) {
+      print('Failed to process status change: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao alterar status das transações'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _processCategorySelection(
-    TransactionGroupByType group,
+    CousinGroupSummary group,
     Category selectedCategory,
   ) async {
     try {
+      // Get all transactions matching this cousin and type
+      final allTransactions =
+          await TransactionService.instance.getTransactions().first;
+      final matchingTransactions = allTransactions
+          .where((tx) =>
+              tx.cousin == group.cousin &&
+              ((group.type == CategoryType.I && (tx.value ?? 0) > 0) ||
+                  (group.type == CategoryType.E && (tx.value ?? 0) < 0)) &&
+              tx.status != TransactionStatus.notconsidered)
+          .toList();
+
       // Update all transactions in the group
-      await Future.wait(group.transactions
+      await Future.wait(matchingTransactions
           .map((tx) => TransactionService.instance.insertOrUpdateTransaction(
                 tx.copyWith(categoryID: drift.Value(selectedCategory.id)),
                 null,
@@ -402,22 +461,24 @@ class _CousinClassificationOverlayState
               )));
 
       // Update cousin rules for future automatic categorization
-      final triggeringId = group.transactions.first.id.toString();
-      final cousinValue = group.cousin;
-      final changes = {
-        'categoryName': selectedCategory.name,
-        'categoryId': selectedCategory.id,
-      };
+      if (matchingTransactions.isNotEmpty) {
+        final triggeringId = matchingTransactions.first.id.toString();
+        final cousinValue = group.cousin;
+        final changes = {
+          'categoryName': selectedCategory.name,
+          'categoryId': selectedCategory.id,
+        };
 
-      await ReviewService.instance.incrementInteractionCount(
-          ReviewInteractionType.cousinRuleCreation, context);
+        await ReviewService.instance.incrementInteractionCount(
+            ReviewInteractionType.cousinRuleCreation, context);
 
-      await PostUserCousinRules.updateCousinRules(
-        cousinValue: cousinValue,
-        triggeringId: triggeringId,
-        changes: changes,
-        applyToFuture: true,
-      );
+        await PostUserCousinRules.updateCousinRules(
+          cousinValue: cousinValue,
+          triggeringId: triggeringId,
+          changes: changes,
+          applyToFuture: true,
+        );
+      }
     } catch (e) {
       print('Failed to process category selection: $e');
 
@@ -437,78 +498,82 @@ class _CousinClassificationOverlayState
 
 /// Card with a label for income/expense type and group summary
 class _LabeledTransactionGroupCard extends StatelessWidget {
-  final TransactionGroupByType group;
+  final CousinGroupSummary group;
   final VoidCallback onCategoryPressed;
   final VoidCallback onStatusPressed;
+  final DateTime? periodStart;
+  final DateTime? periodEnd;
 
   const _LabeledTransactionGroupCard({
     Key? key,
     required this.group,
     required this.onCategoryPressed,
     required this.onStatusPressed,
+    this.periodStart,
+    this.periodEnd,
   }) : super(key: key);
 
-  // Helper to clean up the title (copied from overlay for consistency)
-  String cleanTitle(String? title) {
-    if (title == null || title.trim().isEmpty) return 'NA';
-    final genericWords = [
-      'Transferencia',
-      'Transferência',
-      'Pix',
-      'de',
-      'para',
-      'TED',
-      'DOC',
-      'Pagamento',
-      'Fatura',
-      'Bancária',
-      'Recebida',
-      'Recebido',
-      'Enviada',
-      'Enviado',
-      'Outros',
-      'Pagamento',
-      'Cartão',
-      'Fatura',
-      'Boleto',
-      'Crédito',
-      'Débito',
-      'Conta',
-      'Banco',
-      'Saldo',
-      'NA',
-      'Não Classificada',
-      'Despesa',
-      'Receita'
-    ];
+  // // Helper to clean up the title (copied from overlay for consistency)
+  // String cleanTitle(String? title) {
+  //   if (title == null || title.trim().isEmpty) return 'NA';
+  //   final genericWords = [
+  //     'Transferencia',
+  //     'Transferência',
+  //     'Pix',
+  //     'de',
+  //     'para',
+  //     'TED',
+  //     'DOC',
+  //     'Pagamento',
+  //     'Fatura',
+  //     'Bancária',
+  //     'Recebida',
+  //     'Recebido',
+  //     'Enviada',
+  //     'Enviado',
+  //     'Outros',
+  //     'Pagamento',
+  //     'Cartão',
+  //     'Fatura',
+  //     'Boleto',
+  //     'Crédito',
+  //     'Débito',
+  //     'Conta',
+  //     'Banco',
+  //     'Saldo',
+  //     'NA',
+  //     'Não Classificada',
+  //     'Despesa',
+  //     'Receita'
+  //   ];
 
-    // Split into words and find first non-generic word
-    final words = title.split(' ');
-    int startIndex = -1;
+  //   // Split into words and find first non-generic word
+  //   final words = title.split(' ');
+  //   int startIndex = -1;
 
-    for (int i = 0; i < words.length; i++) {
-      final word = words[i].trim();
-      if (word.isNotEmpty &&
-          !genericWords
-              .any((generic) => generic.toLowerCase() == word.toLowerCase())) {
-        startIndex = i;
-        break;
-      }
-    }
+  //   for (int i = 0; i < words.length; i++) {
+  //     final word = words[i].trim();
+  //     if (word.isNotEmpty &&
+  //         !genericWords
+  //             .any((generic) => generic.toLowerCase() == word.toLowerCase())) {
+  //       startIndex = i;
+  //       break;
+  //     }
+  //   }
 
-    if (startIndex == -1) return 'Não identificado';
+  //   if (startIndex == -1) return 'Não identificado';
 
-    // Join words from the first non-generic word onward
-    final result = words.sublist(startIndex).join(' ').trim();
+  //   // Join words from the first non-generic word onward
+  //   final result = words.sublist(startIndex).join(' ').trim();
 
-    // Clean special characters but keep basic punctuation
-    final cleaned = result
-        .replaceAll(RegExp('[^a-zA-Z0-9áéíóúãõâêîôûçÁÉÍÓÚÃÕÂÊÎÔÛÇ .-]'), '')
-        .trim();
+  //   // Clean special characters but keep basic punctuation
+  //   final cleaned = result
+  //       .replaceAll(RegExp('[^a-zA-Z0-9áéíóúãõâêîôûçÁÉÍÓÚÃÕÂÊÎÔÛÇ .-]'), '')
+  //       .trim();
 
-    if (cleaned.isEmpty) return 'Não identificado';
-    return cleaned;
-  }
+  //   if (cleaned.isEmpty) return 'Não identificado';
+  //   return cleaned;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -517,20 +582,23 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
     final isIncome = group.type == CategoryType.I;
     final amountColor = isIncome ? Colors.green : Colors.red;
 
-    // Get the first non-empty, non-generic title from the group's transactions
-    String displayTitle = 'Não identificado';
-    for (final tx in group.transactions) {
-      final cleaned = cleanTitle(tx.title);
-      if (cleaned != 'NA' && cleaned != 'Não identificado') {
-        displayTitle = cleaned;
-        break;
-      }
-    }
+    // // Get the first non-empty, non-generic title from the group's transactions
+    // String displayTitle = 'Não identificado';
+    // for (final tx in group.transactions) {
+    //   final cleaned = cleanTitle(tx.title);
+    //   if (cleaned != 'NA' && cleaned != 'Não identificado') {
+    //     displayTitle = cleaned;
+    //     break;
+    //   }
+    // }
 
     // Format amount as currency string (no CurrencyDisplayer)
     String formatCurrency(double value) {
       return 'R\$ ' + value.abs().toStringAsFixed(2).replaceAll('.', ',');
     }
+
+    // Use cousin ID as display title
+    // final displayTitle = 'Cousin ${group.cousin}';
 
     return Card(
       margin: const EdgeInsets.all(12),
@@ -541,19 +609,19 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Center(
-                child: Text(
-                  displayTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(vertical: 8),
+            //   child: Center(
+            //     child: Text(
+            //       displayTitle,
+            //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            //             fontWeight: FontWeight.bold,
+            //           ),
+            //       overflow: TextOverflow.ellipsis,
+            //       textAlign: TextAlign.center,
+            //     ),
+            //   ),
+            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -570,7 +638,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                     children: [
                       const Text('Transações', style: TextStyle(fontSize: 10)),
                       Text(
-                        group.count.toString(),
+                        group.transactionCount.toString(),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -588,7 +656,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                     children: [
                       const Text('Total', style: TextStyle(fontSize: 10)),
                       Text(
-                        formatCurrency(group.totalValue),
+                        formatCurrency(group.totalAmount),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: amountColor,
@@ -621,6 +689,8 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                         TransactionStatus.unreconciled,
                         TransactionStatus.voided,
                       ],
+                      minDate: periodStart,
+                      maxDate: periodEnd,
                     ),
                   ),
                 );
@@ -642,6 +712,8 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                           ? TransactionType.I
                           : TransactionType.E
                     ],
+                    minDate: periodStart,
+                    maxDate: periodEnd,
                   ),
                   limit: 4,
                   accountNameMaxLength: 10,
@@ -681,11 +753,7 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: onStatusPressed,
-                    icon: Icon(
-                      group.transactions.first.status?.icon ??
-                          Icons.help_outline,
-                      size: 18,
-                    ),
+                    icon: const Icon(Icons.help_outline, size: 18),
                     label: Text(
                       'Status',
                       style: const TextStyle(fontSize: 13),
@@ -705,31 +773,31 @@ class _LabeledTransactionGroupCard extends StatelessWidget {
                 ),
               ],
             ),
-            // const Spacer(),
+            const SizedBox(height: 16),
             // --- Instructions Box (now at bottom) ---
-            // Container(
-            //   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            //   decoration: BoxDecoration(
-            //     color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-            //     borderRadius: BorderRadius.circular(8),
-            //   ),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     children: [
-            //       Icon(Icons.swipe,
-            //           size: 18, color: Theme.of(context).colorScheme.primary),
-            //       const SizedBox(width: 8),
-            //       const Flexible(
-            //         child: Text(
-            //           'Deslize para direita para reclassificar\nDeslize para esquerda para descartar',
-            //           textAlign: TextAlign.center,
-            //           style:
-            //               TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.swipe,
+                      size: 18, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  const Flexible(
+                    child: Text(
+                      'Deslize para direita para reclassificar\nDeslize para esquerda para descartar',
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

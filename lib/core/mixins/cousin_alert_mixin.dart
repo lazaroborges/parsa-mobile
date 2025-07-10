@@ -141,13 +141,12 @@ mixin CousinAlertMixin<T extends StatefulWidget> on State<T> {
                               cousinValue: cousinValue,
                               triggeringId: triggeringId,
                               changes: {},
-                              applyToFuture: false,
+                              applyToFuture: true,
                               dontAskAgain: true,
                             );
-                            Navigator.pop(context, false);
+                            Navigator.pop(context, true);
                           } catch (e) {
-                            print(
-                                'Failed to update cousin rules (don\'t ask again): $e');
+                            print('Failed to update cousin rules (don\'t ask again): $e');
                             Navigator.pop(context, false);
                           }
                         },

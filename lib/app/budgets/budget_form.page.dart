@@ -16,7 +16,6 @@ import 'package:parsa/core/presentation/widgets/form_fields/date_form_field.dart
 import 'package:parsa/core/utils/text_field_utils.dart';
 import 'package:parsa/core/utils/uuid.dart';
 import 'package:parsa/i18n/translations.g.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 
 import '../../core/models/account/account.dart';
@@ -26,7 +25,6 @@ import '../../core/presentation/widgets/persistent_footer_button.dart';
 import '../tags/tags_selector.modal.dart';
 import '../../core/database/services/tags/tags_service.dart';
 import '../../core/models/tags/tag.dart';
-import 'package:parsa/core/services/review/review_service.dart';
 
 class BudgetFormPage extends StatefulWidget {
   const BudgetFormPage({super.key, this.budgetToEdit, required this.prevPage});
@@ -112,9 +110,6 @@ class _BudgetFormPageState extends State<BudgetFormPage> {
       });
     } else {
       BudgetService.instance.insertBudget(toPush).then((value) {
-        ReviewService.instance.incrementInteractionCount(
-            ReviewInteractionType.budgetCreation, context);
-
         // Track budget creation
         firebaseAnalytics?.logEvent(
           name: 'budget_created',

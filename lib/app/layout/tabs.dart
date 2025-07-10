@@ -26,7 +26,7 @@ import 'package:parsa/core/utils/check_items_availability.dart';
 import 'package:parsa/app/accounts/bank_connection_dialog.dart';
 import 'package:parsa/main.dart' show firebaseAnalytics;
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
-import 'package:parsa/app/transactions/uncategorized/cousin_found_dialog.dart';
+import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/review/review_service.dart';
@@ -104,7 +104,6 @@ class TabsPageState extends State<TabsPage>
       ReviewService.instance.appResumed();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _processPendingNav();
-        await ReviewService.instance.checkAndShowReviewDialog(context);
       });
     } else if (state == AppLifecycleState.paused) {
       ReviewService.instance.appPaused();
@@ -119,11 +118,6 @@ class TabsPageState extends State<TabsPage>
 
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
-
-      // // After data loading, check uncategorized dialog
-      // WidgetsBinding.instance.addPostFrameCallback((_) async {
-      //   await _checkCousinFoundDialog();
-      // });
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -275,6 +269,16 @@ class TabsPageState extends State<TabsPage>
     setState(() {
       selectedDestination = destination;
     });
+
+    // Handle ReviewService engagement tracking
+    final destWidget = destination.destination;
+    if (destWidget is TransactionsPage) {
+      ReviewService.instance.userVisitedTransactionsPage();
+    } else if (destWidget is StatsPage) {
+      ReviewService.instance.userVisitedInsightsPage();
+    }
+
+    ReviewService.instance.checkAndShowReviewDialog(context);
 
     FocusScope.of(context).unfocus();
   }
@@ -431,11 +435,11 @@ class TabsPageState extends State<TabsPage>
       // If no items in progress, check for uncategorized transactions
       final now = DateTime.now();
       final startOfTime =
-          DateTime(1900, 1, 1); // Far enough back to catch all transactions
+          DateTime(2020, 1, 1); // Far enough back to catch all transactions
       final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final cousinResult =
-          await getCousinGroupsForPeriod(startOfTime, endOfToday);
-      final count = cousinResult.totalGroups;
+          await getCousinGroupSummariesForPeriod(startOfTime, endOfToday);
+      final count = cousinResult.length;
       if (count > 0) {
         // Trigger the dialog and mark as triggered
         try {

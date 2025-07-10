@@ -1,6 +1,6 @@
 ---
 description: Design-System Elements - Material Design T3
-globs: *.dart
+alwaysApply: false
 ---
 Rule Name: design-system.mdc
 Description: Design System Structure in Parsa App (Material Design 3)
