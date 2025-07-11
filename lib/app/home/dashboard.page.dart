@@ -179,6 +179,9 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // Show help modal if needed
       if (mounted) {
         await _checkAndShowHelpModal();
+
+        // To test the modal, uncomment this
+        // await HelpModalService.forceShowHelpModal(context);
       }
 
       // Then fetch data
