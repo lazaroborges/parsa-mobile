@@ -10,7 +10,7 @@ class FeatureAnnouncementModal extends StatelessWidget {
   static Future<void> showIfNeeded(BuildContext context) async {
     if (!(await FeatureAnnouncementService.hasSeenAnnouncement())) {
       if (context.mounted) {
-        showDialog(
+        await showDialog(
           context: context,
           barrierDismissible: true,
           builder: (context) => const FeatureAnnouncementModal(),
@@ -23,7 +23,7 @@ class FeatureAnnouncementModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
     final textTheme = Theme.of(context).textTheme;
-    
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 0,
@@ -51,29 +51,31 @@ class FeatureAnnouncementModal extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-
                   const SizedBox(height: 24),
                   _buildFeatureItem(
                     context,
                     icon: Icons.account_balance,
-                    text: 'Novas Conexões - Acesso direto às suas corretoras e à B3 para sincronização automática dos seus investimentos.',
+                    text:
+                        'Novas Conexões - Acesso direto às suas corretoras e à B3 para sincronização automática dos seus investimentos.',
                   ),
                   _buildFeatureItem(
                     context,
                     icon: Icons.savings,
-                    text: 'Orçamentos finalmente disponíveis! Defina metas de gastos por categoria e acompanhe seu progresso em tempo real.',
+                    text:
+                        'Orçamentos finalmente disponíveis! Defina metas de gastos por categoria e acompanhe seu progresso em tempo real.',
                   ),
                   _buildFeatureItem(
                     context,
                     icon: Icons.account_balance_wallet,
-                    text: 'Saldo consolidado aprimorado - Agora mostrando apenas o valor realmente disponível nas suas contas correntes.',
+                    text:
+                        'Saldo consolidado aprimorado - Agora mostrando apenas o valor realmente disponível nas suas contas correntes.',
                   ),
                   _buildFeatureItem(
                     context,
                     icon: Icons.calendar_today,
-                    text: 'Regime de Competência: Lançamento opcional de todas as prestações na data da compra. Visite suas preferências para ativar.',
+                    text:
+                        'Regime de Competência: Lançamento opcional de todas as prestações na data da compra. Visite suas preferências para ativar.',
                   ),
-
                   const SizedBox(height: 24),
                   Text(
                     'Fique por dentro das novidades:',
@@ -94,12 +96,14 @@ class FeatureAnnouncementModal extends StatelessWidget {
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      final whatsappUrl = 'whatsapp://chat?code=GJe81VbLmEt9nbWNb2EX8C';
+                      final whatsappUrl =
+                          'whatsapp://chat?code=GJe81VbLmEt9nbWNb2EX8C';
                       if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
                         await launchUrl(Uri.parse(whatsappUrl));
                       } else {
                         // Fallback to web URL if WhatsApp is not installed
-                        await launchUrl(Uri.parse('https://chat.whatsapp.com/GJe81VbLmEt9nbWNb2EX8C'));
+                        await launchUrl(Uri.parse(
+                            'https://chat.whatsapp.com/GJe81VbLmEt9nbWNb2EX8C'));
                       }
                     },
                     icon: const FaIcon(
@@ -165,13 +169,14 @@ class FeatureAnnouncementModal extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem(BuildContext context, {
+  Widget _buildFeatureItem(
+    BuildContext context, {
     required IconData icon,
     required String text,
   }) {
     final appColors = AppColors.of(context);
     final textTheme = Theme.of(context).textTheme;
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -199,4 +204,4 @@ class FeatureAnnouncementModal extends StatelessWidget {
       ),
     );
   }
-} 
+}

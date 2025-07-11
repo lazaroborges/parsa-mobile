@@ -55,6 +55,7 @@ import '../../core/models/transaction/transaction_type.enum.dart';
 import '../accounts/account_form.dart';
 import '../transactions/widgets/transaction_list.dart';
 import 'widgets/income_or_expense_card.dart';
+import 'package:parsa/app/help/help_modal.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -175,6 +176,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         await FeatureAnnouncementModal.showIfNeeded(context);
       }
 
+      // Show help modal if needed
+      if (mounted) {
+        await _checkAndShowHelpModal();
+      }
+
       // Then fetch data
       await _refreshData();
     } catch (e) {
@@ -192,6 +198,13 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
           isLoadingTransactions = false;
         });
       }
+    }
+  }
+
+  Future<void> _checkAndShowHelpModal() async {
+    final shouldShow = await HelpModalService.shouldShowHelpModal();
+    if (shouldShow && mounted) {
+      await HelpModalService.showHelpModal(context);
     }
   }
 

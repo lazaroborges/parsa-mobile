@@ -19,9 +19,8 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/routes/navigation_delegate.dart';
-import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
-import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/app/help/help_modal.dart';
 
 enum NotificationCategory {
   budgets,
@@ -122,6 +121,12 @@ class FCMService {
             final String? itemId = message.data['item_id'];
             _handleReloadAction(context, itemId: itemId);
           }
+        } else if (message.data.containsKey('action') &&
+            message.data['action'] == 'help') {
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            _handleHelpAction(context);
+          }
         }
       });
 
@@ -157,6 +162,14 @@ class FCMService {
               // Use index 0 for dashboard tab
               tabsPageKey.currentState!.navigateToTab(0);
             }
+          }
+          return;
+        }
+        if (message.data.containsKey('action') &&
+            message.data['action'] == 'help') {
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            _handleHelpAction(context);
           }
           return;
         }
@@ -279,6 +292,16 @@ class FCMService {
                 // Use index 0 for dashboard tab
                 tabsPageKey.currentState!.navigateToTab(0);
               }
+            }
+          });
+          return;
+        } else if (initialMessage.data.containsKey('action') &&
+            initialMessage.data['action'] == 'help') {
+          // Handle help action from terminated state.
+          Future.delayed(const Duration(seconds: 1), () {
+            final context = navigatorKey.currentContext;
+            if (context != null) {
+              _handleHelpAction(context);
             }
           });
           return;
@@ -542,6 +565,16 @@ class FCMService {
           ),
         );
       }
+    }
+  }
+
+  // Method to handle help action from notification data
+  Future<void> _handleHelpAction(BuildContext? context) async {
+    if (kDebugMode) {
+      print("Handling help action");
+    }
+    if (context != null && context.mounted) {
+      await HelpModalService.forceShowHelpModal(context);
     }
   }
 
