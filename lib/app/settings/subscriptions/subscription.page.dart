@@ -25,7 +25,7 @@ class PremiumWidget extends StatefulWidget {
 }
 
 class _PremiumWidgetState extends State<PremiumWidget> {
-  String? selectedPlan;
+  String? selectedPlan = 'premium_monthly1'; // Pre-select monthly plan
 
   // In-App Purchase variables
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
@@ -734,94 +734,97 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    // Annual Plan
-                                    GestureDetector(
-                                      onTap: hasYearlySubscription
-                                          ? null
-                                          : () => setState(() =>
-                                              selectedPlan = 'premium_yearly'),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: ShapeDecoration(
-                                          color: hasYearlySubscription
-                                              ? Colors.grey.shade300
-                                              : (selectedPlan ==
-                                                      'premium_yearly'
-                                                  ? Colors.blue.shade50
-                                                  : Colors.white),
-                                          shape: RoundedRectangleBorder(
-                                            side: BorderSide(
-                                              width: 1,
-                                              color: hasYearlySubscription
-                                                  ? Colors.grey
-                                                  : (selectedPlan ==
-                                                          'premium_yearly'
-                                                      ? Colors.blue.shade200
-                                                      : Color(0xFFE4E7EC)),
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  hasYearlySubscription
-                                                      ? 'Plano Anual (Ativo)'
-                                                      : 'Plano Anual',
-                                                  style: TextStyle(
-                                                    color: hasYearlySubscription
-                                                        ? Colors.grey
-                                                        : (selectedPlan ==
-                                                                'premium_yearly'
-                                                            ? Colors
-                                                                .blue.shade700
-                                                            : Color(
-                                                                0xFF344053)),
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _formatServerYearlyFullPrice(),
-                                                  style: TextStyle(
-                                                    color: hasYearlySubscription
-                                                        ? Colors.grey
-                                                        : (selectedPlan ==
-                                                                'premium_yearly'
-                                                            ? Colors
-                                                                .blue.shade600
-                                                            : Color(
-                                                                0xFF667084)),
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Text(
-                                              _formatServerYearlyPrice(),
-                                              style: TextStyle(
+                                    // Only show yearly plan if user has active subscription
+                                    if (hasYearlySubscription) ...[
+                                      const SizedBox(height: 12),
+                                      // Annual Plan
+                                      GestureDetector(
+                                        onTap: hasYearlySubscription
+                                            ? null
+                                            : () => setState(() =>
+                                                selectedPlan = 'premium_yearly'),
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: ShapeDecoration(
+                                            color: hasYearlySubscription
+                                                ? Colors.grey.shade300
+                                                : (selectedPlan ==
+                                                        'premium_yearly'
+                                                    ? Colors.blue.shade50
+                                                    : Colors.white),
+                                            shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                width: 1,
                                                 color: hasYearlySubscription
                                                     ? Colors.grey
                                                     : (selectedPlan ==
                                                             'premium_yearly'
-                                                        ? Colors.blue.shade600
-                                                        : Color(0xFF667084)),
-                                                fontSize: 14,
+                                                        ? Colors.blue.shade200
+                                                        : Color(0xFFE4E7EC)),
                                               ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                          ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    hasYearlySubscription
+                                                        ? 'Plano Anual (Ativo)'
+                                                        : 'Plano Anual',
+                                                    style: TextStyle(
+                                                      color: hasYearlySubscription
+                                                          ? Colors.grey
+                                                          : (selectedPlan ==
+                                                                  'premium_yearly'
+                                                              ? Colors
+                                                                  .blue.shade700
+                                                              : Color(
+                                                                  0xFF344053)),
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _formatServerYearlyFullPrice(),
+                                                    style: TextStyle(
+                                                      color: hasYearlySubscription
+                                                          ? Colors.grey
+                                                          : (selectedPlan ==
+                                                                  'premium_yearly'
+                                                              ? Colors
+                                                                  .blue.shade600
+                                                              : Color(
+                                                                  0xFF667084)),
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Text(
+                                                _formatServerYearlyPrice(),
+                                                style: TextStyle(
+                                                  color: hasYearlySubscription
+                                                      ? Colors.grey
+                                                      : (selectedPlan ==
+                                                              'premium_yearly'
+                                                          ? Colors.blue.shade600
+                                                          : Color(0xFF667084)),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 28),
