@@ -1617,12 +1617,7 @@ class AnimatedExpenseProgressBar extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '${(animatedSpentPercentage * 100).toStringAsFixed(1)}% da renda gasta.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${(animatedInvestmentPercentage * 100).toStringAsFixed(1)}% da renda investida.',
+                '${(animatedSpentPercentage * 100).toStringAsFixed(1)}% da renda gasta - ${(animatedInvestmentPercentage * 100).toStringAsFixed(1)}% da renda investida.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
