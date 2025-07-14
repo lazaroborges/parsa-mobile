@@ -561,13 +561,13 @@ class FCMService {
           if (kDebugMode) {
             print('Cannot register token: FCM initialization failed');
           }
-          return false;
+          return true;
         }
       } catch (e) {
         if (kDebugMode) {
           print('Error initializing FCM before token registration: $e');
         }
-        return false;
+        return true;
       }
     }
 

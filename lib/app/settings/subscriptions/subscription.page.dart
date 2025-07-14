@@ -647,15 +647,15 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                 const SizedBox(height: 24),
                                 // Title
                                 const Text(
-                                  'Parsa Premium\nTeste por 7 dias grátis!',
+                                  'Parsa Premium\n',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Color(0xFF0F1728),
-                                    fontSize: 20,
+                                    fontSize: 28,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 0),
                                 // Subtitle
                                 const Text(
                                   'Integração via Open Finance com até 3 contas, sincronização automática, insights precisos.',
@@ -890,7 +890,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                           ),
                                           recognizer: TapGestureRecognizer()
                                             ..onTap = () => launchUrl(Uri.parse(
-                                                'https://www.parsa-ai.com.br/bancos')),
+                                                'https://www.parsa-ai.com.br/bancos-disponiveis')),
                                         ),
                                       ],
                                     ),
