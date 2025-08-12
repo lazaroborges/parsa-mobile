@@ -37,14 +37,14 @@ class ServerHealthCheck extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text(
-                  'O serviço de assinaturas não está disponível atualmente. Tente novamente mais tarde.')),
+                  'O serviço de assinaturas será descontinuado em 29 de agosto e por isso não é possível mais assinar ao Parsa. Para mais informações, acesse o nosso site. ')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(
-                'O serviço de assinaturas não está disponível atualmente. Tente novamente mais tarde.')),
+                'O serviço de assinaturas será descontinuado em 29 de agosto e por isso não é possível mais assinar ao Parsa. Para mais informações, acesse o nosso site. ')),
       );
     }
   }

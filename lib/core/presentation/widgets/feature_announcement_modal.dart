@@ -37,13 +37,13 @@ class FeatureAnnouncementModal extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.celebration,
+                    Icons.warning_amber_rounded,
                     size: 56,
-                    color: appColors.brandLight,
+                    color: Colors.orange.shade700,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Novos Recursos!',
+                    'Comunicado Importante',
                     style: textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: appColors.onSurface,
@@ -53,30 +53,26 @@ class FeatureAnnouncementModal extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   const SizedBox(height: 24),
-                  _buildFeatureItem(
-                    context,
-                    icon: Icons.account_balance,
-                    text: 'Novas Conexões - Acesso direto às suas corretoras e à B3 para sincronização automática dos seus investimentos.',
-                  ),
-                  _buildFeatureItem(
-                    context,
-                    icon: Icons.savings,
-                    text: 'Orçamentos finalmente disponíveis! Defina metas de gastos por categoria e acompanhe seu progresso em tempo real.',
-                  ),
-                  _buildFeatureItem(
-                    context,
-                    icon: Icons.account_balance_wallet,
-                    text: 'Saldo consolidado aprimorado - Agora mostrando apenas o valor realmente disponível nas suas contas correntes.',
-                  ),
-                  _buildFeatureItem(
-                    context,
-                    icon: Icons.calendar_today,
-                    text: 'Regime de Competência: Lançamento opcional de todas as prestações na data da compra. Visite suas preferências para ativar.',
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      border: Border.all(color: Colors.orange.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'O serviço de assinaturas será encerrado em 29 de agosto. Nesta data nossa sincronização automática de dados será interrompida.',
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey.shade700,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
 
                   const SizedBox(height: 24),
                   Text(
-                    'Fique por dentro das novidades:',
+                    'Para mais informações:',
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -85,7 +81,7 @@ class FeatureAnnouncementModal extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Entre no nosso grupo do WhatsApp para saber das novidades em primeira mão e vote nas próximas features',
+                    'Acesse nossa página com detalhes completos sobre o encerramento do serviço.',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(
                       color: appColors.onSurface.withOpacity(0.8),
@@ -94,20 +90,14 @@ class FeatureAnnouncementModal extends StatelessWidget {
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      final whatsappUrl = 'whatsapp://chat?code=GJe81VbLmEt9nbWNb2EX8C';
-                      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-                        await launchUrl(Uri.parse(whatsappUrl));
-                      } else {
-                        // Fallback to web URL if WhatsApp is not installed
-                        await launchUrl(Uri.parse('https://chat.whatsapp.com/GJe81VbLmEt9nbWNb2EX8C'));
-                      }
+                      await launchUrl(Uri.parse('https://www.parsa-ai.com.br/encerramento-subscricoes'));
                     },
-                    icon: const FaIcon(
-                      FontAwesomeIcons.whatsapp,
-                      color: Color(0xFF25D366),
+                    icon: Icon(
+                      Icons.info_outline,
+                      color: appColors.primary,
                     ),
                     label: Text(
-                      'Entrar no Grupo',
+                      'Saber Mais',
                       style: textTheme.labelLarge,
                     ),
                     style: OutlinedButton.styleFrom(
@@ -134,7 +124,7 @@ class FeatureAnnouncementModal extends StatelessWidget {
                         backgroundColor: appColors.primary,
                       ),
                       child: Text(
-                        'Entendi!',
+                        'Entendi',
                         style: textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: appColors.onPrimary,
