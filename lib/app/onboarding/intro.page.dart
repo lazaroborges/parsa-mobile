@@ -161,69 +161,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                       // Subscription Notice Section
                       FadeTransition(
                         opacity: _contentFadeAnimation,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 20),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            border: Border.all(color: Colors.orange.shade300),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.warning_amber_rounded,
-                                    color: Colors.orange.shade700,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Comunicado Importante',
-                                      style: TextStyle(
-                                        color: Colors.orange.shade700,
-                                        fontSize: 14,
-                                        fontFamily: 'Nunito',
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'O serviço de assinaturas será encerrado em 29 de agosto. Nesta data nossa sincronização automática de dados será interrompida.',
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: 13,
-                                  fontFamily: 'Nunito',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: GestureDetector(
-                                  onTap: () => _launchURL('https://www.parsa-ai.com.br/encerramento-subscricoes'),
-                                  child: Text(
-                                    'Clique aqui para saber mais.',
-                                    style: TextStyle(
-                                      color: appColors.brand,
-                                      fontSize: 13,
-                                      fontFamily: 'Nunito',
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+  ),
                       // Bottom Buttons Section
                       FadeTransition(
                         opacity: _contentFadeAnimation,
