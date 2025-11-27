@@ -36,7 +36,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.parsa.app"
-    compileSdkVersion 35
+    compileSdkVersion 36
     ndkVersion = "26.1.10909125"
 
     compileOptions {
@@ -55,7 +55,7 @@ android {
 
     defaultConfig {
         applicationId "com.parsa.app"
-        targetSdkVersion 35
+        targetSdkVersion 36
 
         manifestPlaceholders = [
             applicationName: "io.flutter.app.FlutterApplication",
@@ -66,7 +66,7 @@ android {
 
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion 21
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
