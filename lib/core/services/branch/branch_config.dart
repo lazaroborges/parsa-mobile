@@ -11,7 +11,7 @@ class BranchConfig {
     if (_isInitialized) return;
 
     try {
-      await FlutterBranchSdk.init(enableLogging: kDebugMode);
+      await FlutterBranchSdk.init(enableLogging: false); //TODO: Enable logging futurely
 
       _isInitialized = true;
     } catch (e) {

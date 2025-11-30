@@ -1,30 +1,40 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/core/services/auth/auth_service.dart';
 import 'package:parsa/core/services/review/review_service.dart';
 import 'package:parsa/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/app/onboarding/intro.page.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 class AuthMethods {
   // Fetch user profile data
-  static Future<void> fetchUserProfile(Auth0 auth0) async {
+  static Future<void> fetchUserProfile() async {
     try {
-      final credentials = await auth0.credentialsManager.credentials();
-      final accessToken = credentials.accessToken;
+      final token = await BackendAuthService.instance.token;
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
 
-      print('accessToken: $accessToken');
+      final response = await http.get(
+        Uri.parse('$apiEndpoint/api/users/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
-      final userProfile = await auth0.api.userProfile(accessToken: accessToken);
-
-      // Print user profile in a readable format
-      print('User Profile:');
-      print('Name: ${userProfile.customClaims}');
-      print('Email: ${userProfile.email}');
-      // Add other fields as necessary
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        UserDataProvider.instance.setUserData(data);
+        return data;
+      } else {
+        throw Exception('Failed to fetch user profile: ${response.statusCode}');
+      }
     } catch (e) {
       print('Error fetching user profile: $e');
       throw Exception(
@@ -33,26 +43,28 @@ class AuthMethods {
   }
 
   // Logout function
-  static Future<void> logout(BuildContext context, Auth0 auth0) async {
+  static Future<void> logout(BuildContext context) async {
     try {
       print('Logout attempt started');
 
-      final auth0Provider = Auth0Provider.instance;
-      final accessToken = auth0Provider.credentials!.accessToken;
+      final authService = BackendAuthService.instance;
+      final accessToken = authService.token;
 
-      final response = await http.post(
-        Uri.parse('$apiEndpoint/users/api_logout/'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
-      );
+      if (accessToken != null) {
+        final response = await http.post(
+          Uri.parse('$apiEndpoint/users/api_logout/'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+        );
 
-      if (response.statusCode == 200) {
-        print('Logout successful');
-      } else {
-        print(
-            'Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
+        if (response.statusCode == 200) {
+          print('Logout successful');
+        } else {
+          print(
+              'Invalidação do token falhou. Avise ao time de desenvolvimento do Parsa.');
+        }
       }
 
       // Clear database tables
@@ -64,14 +76,9 @@ class AuthMethods {
         await AppDB.instance.delete(AppDB.instance.budgets).go();
       });
 
-      // Perform logout
-      await auth0.webAuthentication().logout(
-            useHTTPS: true,
-          );
+      // Perform logout with backend auth service
+      await authService.logout();
       print('Logout successful');
-
-      // Clear stored credentials
-      await auth0.credentialsManager.clearCredentials();
 
       // Navigate back to the login page
       Navigator.pushAndRemoveUntil(
@@ -96,26 +103,15 @@ class AuthMethods {
       if (isOnline) {
         // If online, check if credentials are valid
         final hasValid =
-            await auth0(context).credentialsManager.hasValidCredentials();
+            await backendAuthService.checkLoginStatus();
 
         if (hasValid) {
           // Retrieve credentials
-          final credentials =
-              await auth0(context).credentialsManager.credentials();
-          final accessToken = credentials.accessToken;
-
-          if (accessToken != null && accessToken.isNotEmpty) {
-            // Validate the token
-            final isValid = await _validateToken(context, accessToken);
-            if (isValid) {
-              return true;
-            } else {
-              // Token invalid, need to re-login
-              await logout(context, auth0(context));
-              return false;
-            }
+          final token =
+              await backendAuthService.token;
+          if (token != null && token.isNotEmpty) {
+            return true;
           } else {
-            // No access token found
             return false;
           }
         } else {
@@ -125,7 +121,7 @@ class AuthMethods {
       } else {
         // Offline: Let the user in if we have stored credentials
         final hasStoredCredentials =
-            await auth0(context).credentialsManager.hasValidCredentials();
+            await backendAuthService.checkLoginStatus();
         return hasStoredCredentials;
       }
     } catch (e) {
@@ -159,7 +155,7 @@ class AuthMethods {
   }
 
   // Helper to get Auth0 instance from context
-  static Auth0 auth0(BuildContext context) {
-    return Auth0Provider.instance.auth0;
+  static BackendAuthService get backendAuthService {
+    return BackendAuthService.instance;
   }
 }

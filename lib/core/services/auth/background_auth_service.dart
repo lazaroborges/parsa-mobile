@@ -15,6 +15,7 @@ import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 class BackgroundAuthService with WidgetsBindingObserver {
   // Singleton instance
@@ -123,7 +124,7 @@ class BackgroundAuthService with WidgetsBindingObserver {
     if (_context == null) return;
 
     // Log user out
-    AuthMethods.logout(_context!, Auth0Provider.instance.auth0);
+    AuthMethods.logout(_context!);
 
     // Navigate to login screen
     Navigator.of(_context!, rootNavigator: true).pushAndRemoveUntil(

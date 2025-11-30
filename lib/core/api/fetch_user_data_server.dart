@@ -1,22 +1,26 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/main.dart'; // Add this import
 import 'package:parsa/core/providers/user_data_provider.dart';
 
 
-// Function that calls the API to fetch the user data like name, avatar photo, and different summarized balances to be displayed at the Dashboard Page Top. Set's a provider for it. 
+// Function that calls the API to fetch the user data like name, avatar photo, and different summarized balances to be displayed at the Dashboard Page Top. Set's a provider for it.
 
 
 Future<Map<String, dynamic>> fetchUserDataAtServer() async {
-  final auth0 = Auth0Provider.instance.auth0;
+  final authService = BackendAuthService.instance;
 
-  final credentials = await auth0.credentialsManager.credentials();
+  final token = authService.token;
+
+  if (token == null) {
+    throw Exception('No authentication token found');
+  }
 
   final response = await http.get(
-    Uri.parse('$apiEndpoint/api/user-info/'),
+    Uri.parse('$apiEndpoint/api/users/me'),
     headers: {
-      'Authorization': 'Bearer ${credentials.accessToken}',
+      'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     },
   );

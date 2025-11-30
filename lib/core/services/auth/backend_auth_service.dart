@@ -1,0 +1,261 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:parsa/core/services/auth/token_storage.dart';
+import 'package:parsa/core/services/session_service.dart';
+import 'package:parsa/main.dart';
+
+/// Model for authentication response
+class AuthResponse {
+  final String token;
+  final Map<String, dynamic> user;
+
+  AuthResponse({
+    required this.token,
+    required this.user,
+  });
+
+  factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    return AuthResponse(
+      token: json['token'] as String,
+      user: json['user'] as Map<String, dynamic>,
+    );
+  }
+}
+
+/// Backend authentication service for Parsa Go API
+class BackendAuthService extends ChangeNotifier {
+  final TokenStorage _tokenStorage = TokenStorage();
+  String? _currentToken;
+  Map<String, dynamic>? _currentUser;
+
+  // Singleton pattern
+  static BackendAuthService? _instance;
+  static BackendAuthService get instance {
+    if (_instance == null) {
+      throw Exception('BackendAuthService has not been initialized');
+    }
+    return _instance!;
+  }
+
+  BackendAuthService() {
+    _instance = this;
+  }
+
+  String? get token => _currentToken;
+  Map<String, dynamic>? get user => _currentUser;
+  bool get isLoggedIn => _currentToken != null;
+
+  /// Email/Password Login
+  Future<AuthResponse> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/api/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final authResponse = AuthResponse.fromJson(data);
+
+        // Save token and user data
+        await _saveAuthData(authResponse.token, authResponse.user);
+
+        // Register user session
+        unawaited(SessionService.instance.registerUserSession());
+
+        notifyListeners();
+        return authResponse;
+      } else if (response.statusCode == 400 &&
+          response.body.contains('OAuth authentication')) {
+        throw Exception('Esta conta usa Login com Google');
+      } else {
+        throw Exception('Falha no login: ${response.body}');
+      }
+    } catch (e) {
+      print('Login failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Email/Password Registration
+  Future<AuthResponse> register({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/api/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'name': name,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final authResponse = AuthResponse.fromJson(data);
+
+        // Save token and user data
+        await _saveAuthData(authResponse.token, authResponse.user);
+
+        // Register user session
+        unawaited(SessionService.instance.registerUserSession());
+
+        notifyListeners();
+        return authResponse;
+      } else {
+        throw Exception('Falha no registro: ${response.body}');
+      }
+    } catch (e) {
+      print('Registration failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Get Google OAuth URL
+  Future<String> getGoogleAuthUrl() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiEndpoint/api/auth/oauth/url'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url'] as String;
+      } else {
+        throw Exception('Falha ao obter URL de autenticação');
+      }
+    } catch (e) {
+      print('Failed to get OAuth URL: $e');
+      rethrow;
+    }
+  }
+
+  /// Exchange OAuth code for token (for mobile deep link handling)
+  Future<AuthResponse> exchangeCodeForToken(String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/api/auth/oauth/mobile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final authResponse = AuthResponse.fromJson(data);
+
+        // Save token and user data
+        await _saveAuthData(authResponse.token, authResponse.user);
+
+        // Register user session
+        unawaited(SessionService.instance.registerUserSession());
+
+        notifyListeners();
+        return authResponse;
+      } else {
+        throw Exception('Falha na autenticação OAuth');
+      }
+    } catch (e) {
+      print('OAuth exchange failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Logout
+  Future<void> logout() async {
+    try {
+      // Call logout endpoint if token exists
+      if (_currentToken != null) {
+        await http.post(
+          Uri.parse('$apiEndpoint/api/auth/logout'),
+          headers: {'Authorization': 'Bearer $_currentToken'},
+        );
+      }
+
+      // Clear local data
+      await _tokenStorage.clearAll();
+      _currentToken = null;
+      _currentUser = null;
+
+      notifyListeners();
+    } catch (e) {
+      print('Logout failed: $e');
+      // Clear local data even if API call fails
+      await _tokenStorage.clearAll();
+      _currentToken = null;
+      _currentUser = null;
+      notifyListeners();
+    }
+  }
+
+  /// Check if user is logged in and load stored credentials
+  Future<bool> checkLoginStatus() async {
+    try {
+      final token = await _tokenStorage.getToken();
+      final userDataStr = await _tokenStorage.getUserData();
+
+      if (token != null && userDataStr != null) {
+        _currentToken = token;
+        _currentUser = jsonDecode(userDataStr);
+
+        // Check if token is expired
+        if (_isTokenExpired(token)) {
+          await logout();
+          return false;
+        }
+
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false;
+    }
+  }
+
+  /// Save authentication data
+  Future<void> _saveAuthData(
+      String token, Map<String, dynamic> user) async {
+    await _tokenStorage.saveToken(token);
+    await _tokenStorage.saveUserData(jsonEncode(user));
+    _currentToken = token;
+    _currentUser = user;
+  }
+
+  /// Check if JWT token is expired
+  bool _isTokenExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+
+      // Decode payload (second part)
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> claims = jsonDecode(decoded);
+
+      if (claims['exp'] != null) {
+        final expiryDate =
+            DateTime.fromMillisecondsSinceEpoch(claims['exp'] * 1000);
+        return DateTime.now().isAfter(expiryDate);
+      }
+    } catch (e) {
+      print('Error checking token expiration: $e');
+      return true;
+    }
+    return true;
+  }
+}

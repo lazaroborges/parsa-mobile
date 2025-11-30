@@ -141,7 +141,7 @@ class TabsPageState extends State<TabsPage>
       await _fetchUserInfoServer();
 
       // Refresh accounts, transactions in parallel
-      await Future.wait([_fetchUserAccounts(), _fetchUserTags()]);
+      // await Future.wait([_fetchUserAccounts(), _fetchUserTags()]);
 
       print('[TABS] Data refresh complete.');
 
@@ -210,39 +210,39 @@ class TabsPageState extends State<TabsPage>
     }
   }
 
-  Future<void> _fetchUserAccounts() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      await fetchUserAccounts();
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      print('--Error fetching user accounts: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+  // Future<void> _fetchUserAccounts() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+  //   try {
+  //     await fetchUserAccounts();
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   } catch (e) {
+  //     print('--Error fetching user accounts: $e');
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
 
-  Future<void> _fetchUserTags() async {
-    setState(() {
-      isLoadingTags = true;
-    });
-    try {
-      await fetchUserTags(context);
-      setState(() {
-        isLoadingTags = false;
-      });
-    } catch (e) {
-      print('--Error fetching user tags: $e');
-      setState(() {
-        isLoadingTags = false;
-      });
-    }
-  }
+  // Future<void> _fetchUserTags() async {
+  //   setState(() {
+  //     isLoadingTags = true;
+  //   });
+  //   try {
+  //     await fetchUserTags(context);
+  //     setState(() {
+  //       isLoadingTags = false;
+  //     });
+  //   } catch (e) {
+  //     print('--Error fetching user tags: $e');
+  //     setState(() {
+  //       isLoadingTags = false;
+  //     });
+  //   }
+  // }
 
   Future<void> _fetchUserInfoServer() async {
     try {

@@ -1,11 +1,8 @@
-// New Login Page - Backend Authentication
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intake.dart';
-import 'package:parsa/app/settings/about.page.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/services/auth/backend_auth_service.dart';
@@ -13,20 +10,19 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:parsa/core/presentation/audio/audio.dart';
-
-import '../../core/presentation/app_colors.dart';
+import 'package:parsa/core/presentation/app_colors.dart';
+import 'package:parsa/app/settings/about.page.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
-class IntroPage extends StatefulWidget {
-  const IntroPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<IntroPage> createState() => _IntroPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _contentController;
   late Animation<Offset> _logoSlideAnimation;
@@ -191,8 +187,8 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content:
-                Text('Complete o login no navegador e retorne ao aplicativo'),
+            content: Text(
+                'Complete o login no navegador e retorne ao aplicativo'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -261,7 +257,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
-    final t = Translations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -278,14 +273,14 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(height: constraints.maxHeight * 0.05),
-                      // Logo and Title Section grouped together
+                      // Logo and Title Section
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Parsa Text - Positioned first in the stack
+                              // Parsa Text
                               Padding(
                                 padding: const EdgeInsets.only(top: 80),
                                 child: FadeTransition(
@@ -303,7 +298,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                              // Logo on top
+                              // Logo
                               SlideTransition(
                                 position: _logoSlideAnimation,
                                 child: ScaleTransition(
@@ -315,6 +310,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
+
                       // Login Form Section
                       FadeTransition(
                         opacity: _contentFadeAnimation,
@@ -428,18 +424,15 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                             // Divider
                             Row(
                               children: [
-                                Expanded(
-                                    child: Divider(color: Colors.grey[300])),
+                                Expanded(child: Divider(color: Colors.grey[300])),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                   child: Text(
                                     'ou',
                                     style: TextStyle(color: Colors.grey[600]),
                                   ),
                                 ),
-                                Expanded(
-                                    child: Divider(color: Colors.grey[300])),
+                                Expanded(child: Divider(color: Colors.grey[300])),
                               ],
                             ),
                             const SizedBox(height: 16),
@@ -455,18 +448,24 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                               icon: const Icon(Icons.g_mobiledata, size: 28),
                               label: const Text('Continuar com Google'),
                             ),
-                            const SizedBox(height: 20),
-                            // Updated Text Styling
+                          ],
+                        ),
+                      ),
+
+                      // Terms and Privacy Section
+                      FadeTransition(
+                        opacity: _contentFadeAnimation,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
-                                    TextSpan(
-                                      text:
-                                          'Ao continuar, estou de acordo com os ',
-                                      style: const TextStyle(
+                                    const TextSpan(
+                                      text: 'Ao continuar, estou de acordo com os ',
+                                      style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
@@ -486,9 +485,9 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                         ..onTap = () => _launchURL(
                                             'https://www.parsa-ai.com.br/termos-e-condições-de-serviço'),
                                     ),
-                                    TextSpan(
+                                    const TextSpan(
                                       text: ' e a ',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
@@ -508,9 +507,9 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                         ..onTap = () => _launchURL(
                                             'https://www.parsa-ai.com.br/política-de-privacidade'),
                                     ),
-                                    TextSpan(
+                                    const TextSpan(
                                       text: ' do Parsa.',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
@@ -522,7 +521,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 16),
                           ],
                         ),
                       ),

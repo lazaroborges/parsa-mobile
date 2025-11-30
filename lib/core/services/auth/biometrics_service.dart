@@ -10,6 +10,7 @@ import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 class BiometricsService {
   final LocalAuthentication _localAuth = LocalAuthentication();
@@ -57,7 +58,7 @@ class BiometricsService {
       }
     } else {
       try {
-        await AuthMethods.logout(context, Auth0Provider.instance.auth0);
+        await BackendAuthService.instance.logout();
       } catch (e) {
         print('Error during logout: $e');
       }

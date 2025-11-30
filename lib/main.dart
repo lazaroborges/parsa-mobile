@@ -25,8 +25,7 @@ import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:flutter/services.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
@@ -34,7 +33,7 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:parsa/core/services/branch/branch_config.dart';
+//import 'package:parsa/core/services/branch/branch_config.dart';
 // Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
@@ -92,19 +91,17 @@ void main() async {
       ? 'https://app.parsa-ai.com.br'
       : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
 
-  final auth0 = Auth0(
-    dotenv.env['AUTH0_DOMAIN']!,
-    dotenv.env['AUTH0_CLIENT_ID']!,
-  );
+  // Initialize Backend Auth Service
+  final backendAuthService = BackendAuthService();
 
   // Initialize Branch but don't process links yet
-  await BranchConfig.initialize();
+  //await BranchConfig.initialize();
 
   final app = MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
       ChangeNotifierProvider(
-        create: (_) => Auth0Provider(auth0: auth0),
+        create: (_) => backendAuthService,
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
       ChangeNotifierProvider(create: (_) => LinkProvider.instance),
@@ -310,8 +307,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   }
 
   Future<void> _checkLoginStatus() async {
-    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-    bool status = await auth0Provider.checkLoginStatus();
+    final authService = Provider.of<BackendAuthService>(context, listen: false);
+    bool status = await authService.checkLoginStatus();
 
     if (!status) {
       // If not logged in, use navigatorKey instead of context-based navigation
@@ -334,7 +331,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final auth0Provider = Provider.of<Auth0Provider>(context);
+    final authService = Provider.of<BackendAuthService>(context);
     Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
 
     if (isLoading) {
@@ -429,7 +426,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             return const OnboardingPage();
           }
 
-          if (auth0Provider.credentials == null) {
+          if (!authService.isLoggedIn) {
             return const IntroPage();
           } else {
             return BiometricsCheckScreen(

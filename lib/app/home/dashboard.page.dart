@@ -227,17 +227,17 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // First fetch user data
       unawaited(fetchUserDataAtServer());
 
-      // Then fetch accounts and tags before transactions and budget
-      await Future.wait([
-        fetchUserAccounts(),
-        fetchUserTags(context),
-      ]);
+      // // Then fetch accounts and tags before transactions and budget
+      // await Future.wait([
+      //   fetchUserAccounts(),
+      //   fetchUserTags(context),
+      // ]);
 
-      // Finally fetch transactions and budgets
-      await Future.wait([
-        fetchUserTransactions(null),
-        fetchUserBudgets(context),
-      ]);
+      // // Finally fetch transactions and budgets
+      // await Future.wait([
+      //   fetchUserTransactions(null),
+      //   fetchUserBudgets(context),
+      // ]);
 
       // HACK: Short delay to allow database writes to settle before reading.
       // This is to address a race condition on initial login where the progress
@@ -447,10 +447,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                     if (BreakPoint.of(context)
                                         .isSmallerThan(BreakpointID.md)) ...[
                                       if (userData != null &&
-                                          userData['avatar_url'] != null)
+                                          userData['avatarUrl'] != null)
                                         CircleAvatar(
                                           backgroundImage: NetworkImage(
-                                              userData['avatar_url']),
+                                              userData['avatarUrl']),
                                           radius: 18,
                                         )
                                       else
@@ -487,10 +487,10 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                                                       true;
 
                                               if (userData != null &&
-                                                  userData['first_name'] !=
+                                                  userData['firstName'] !=
                                                       null) {
                                                 final firstName =
-                                                    userData['first_name']
+                                                    userData['firstName']
                                                         .toString();
 
                                                 return Row(

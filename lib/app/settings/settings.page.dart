@@ -15,7 +15,6 @@ import 'package:parsa/core/presentation/responsive/breakpoints.dart';
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/auth/auth_methods.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -28,7 +27,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final auth0 = Auth0Provider.instance.auth0;
     final t = Translations.of(context);
 
     return Scaffold(
@@ -170,7 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () => AuthMethods.logout(context, auth0),
+                    onTap: () => AuthMethods.logout(context),
                     child: const Padding(
                       padding: EdgeInsets.symmetric(
                         vertical:
