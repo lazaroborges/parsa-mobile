@@ -97,7 +97,7 @@ class BackendAuthService extends ChangeNotifier {
           'password': password,
           'name': name,
         }),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -125,7 +125,7 @@ class BackendAuthService extends ChangeNotifier {
     try {
       final response = await http.get(
         Uri.parse('$apiEndpoint/api/auth/oauth/mobile/start'),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -234,7 +234,7 @@ class BackendAuthService extends ChangeNotifier {
         await http.post(
           Uri.parse('$apiEndpoint/api/auth/logout'),
           headers: {'Authorization': 'Bearer $_currentToken'},
-        );
+        ).timeout(const Duration(seconds: 30));
       }
 
       // Clear local data

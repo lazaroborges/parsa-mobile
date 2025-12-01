@@ -10,11 +10,11 @@ import 'package:parsa/app/onboarding/intro.page.dart';
 
 class AuthMethods {
   // Fetch user profile data
-  static Future<void> fetchUserProfile() async {
+  static Future<Map<String, dynamic>> fetchUserProfile() async {
     try {
       final token = await BackendAuthService.instance.token;
       if (token == null) {
-        throw Exception('No authentication token found');
+        throw Exception('No authentication token found'); 
       }
 
       final response = await http.get(
@@ -49,7 +49,7 @@ class AuthMethods {
 
       if (accessToken != null) {
         final response = await http.post(
-          Uri.parse('$apiEndpoint/users/api_logout/'),
+          Uri.parse('$apiEndpoint/api/auth/logout'),
           headers: {
             'Authorization': 'Bearer $accessToken',
             'Content-Type': 'application/json',
