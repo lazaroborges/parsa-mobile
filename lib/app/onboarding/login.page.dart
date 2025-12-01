@@ -35,10 +35,19 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   bool _isLoading = false;
   bool _isRegistering = false;
   bool _obscurePassword = true;
+  
+  late final TapGestureRecognizer _termsRecognizer;
+  late final TapGestureRecognizer _privacyRecognizer;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize gesture recognizers
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchURL('https://www.parsa-ai.com.br/termos-e-condições-de-serviço');
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchURL('https://www.parsa-ai.com.br/política-de-privacidade');
 
     // Logo animation controller
     _logoController = AnimationController(
@@ -94,6 +103,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     super.dispose();
   }
 
@@ -496,9 +507,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () => _launchURL(
-                                            'https://www.parsa-ai.com.br/termos-e-condições-de-serviço'),
+                                      recognizer: _termsRecognizer,
                                     ),
                                     const TextSpan(
                                       text: ' e a ',
@@ -518,9 +527,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () => _launchURL(
-                                            'https://www.parsa-ai.com.br/política-de-privacidade'),
+                                      recognizer: _privacyRecognizer,
                                     ),
                                     const TextSpan(
                                       text: ' do Parsa.',
