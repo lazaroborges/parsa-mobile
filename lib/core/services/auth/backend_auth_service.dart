@@ -30,18 +30,14 @@ class BackendAuthService extends ChangeNotifier {
   String? _currentToken;
   Map<String, dynamic>? _currentUser;
 
-  // Singleton pattern
-  static BackendAuthService? _instance;
-  static BackendAuthService get instance {
-    if (_instance == null) {
-      throw Exception('BackendAuthService has not been initialized');
-    }
-    return _instance!;
-  }
 
-  BackendAuthService() {
-    _instance = this;
-  }
+  static final BackendAuthService _instance = BackendAuthService._internal();
+  static BackendAuthService get instance => _instance;
+
+  BackendAuthService._internal();
+
+  // For provider compatibility, expose the singleton
+  factory BackendAuthService() => _instance;
 
   String? get token => _currentToken;
   Map<String, dynamic>? get user => _currentUser;
