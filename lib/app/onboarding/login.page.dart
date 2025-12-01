@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         await _handlePostLogin();
       }
     } catch (e) {
-      print('Login failed: $e');
+      ('Login failed: $e');
       if (mounted) {
         _showError(e.toString().replaceAll('Exception: ', ''));
       }
@@ -217,7 +217,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         await _handlePostLogin();
       }
     } catch (e) {
-      print('OAuth failed: $e');
       if (mounted) {
         _showError('Falha no login com Google: ${e.toString()}');
       }
@@ -229,46 +228,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Future<void> _handlePostLogin() async {
-    // Fetch user data from server
     await fetchUserDataAtServer();
-
-    // Check if widget is still mounted before accessing context
+    
     if (!mounted) return;
-
-    // // Get user data from provider
-    // final userData =
-    //     Provider.of<UserDataProvider>(context, listen: false).userData;
-
-    // Check if filled_questionaire is true
-    // if (userData != null && userData['filled_questionaire'] == true) {
-    //   print("USER DATA: $userData , ${userData['filled_questionaire']}");
-    //   // If questionnaire is filled, go directly to TabsPage
-    //   if (!mounted) return;
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    //   );
-    // } else {
-    //   print("Questionnaire not filled, redirecting to intake form");
-    //   // Check if intake form is completed
-    //   final isIntakeCompleted =
-    //       await SharedPreferencesAsync.instance.getIntakeCompleted();
-    //   if (isIntakeCompleted) {
-    //     // If intake is completed, go to main app (TabsPage)
-    //     if (!mounted) return;
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-    //     );
-    //   } else {
-    //     // If intake is not completed, show IntakeForm
-    //     if (!mounted) return;
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(builder: (context) => const IntakeForm()),
-    //     );
-    //   }
-    // }
+    
+    // Navigate to main app
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => TabsPage(key: GlobalKey<TabsPageState>())),
+    );
   }
 
   void _showError(String message) {

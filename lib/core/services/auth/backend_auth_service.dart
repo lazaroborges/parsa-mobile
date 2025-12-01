@@ -77,7 +77,6 @@ class BackendAuthService extends ChangeNotifier {
         throw Exception('Falha no login: ${response.body}');
       }
     } catch (e) {
-      print('Login failed: $e');
       rethrow;
     }
   }
@@ -146,7 +145,7 @@ class BackendAuthService extends ChangeNotifier {
       final response = await http.get(
         Uri.parse('$apiEndpoint/api/auth/oauth/mobile/callback')
             .replace(queryParameters: {'code': code}),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -212,7 +211,8 @@ class BackendAuthService extends ChangeNotifier {
               .replace(queryParameters: {'redirect_uri': redirectUri})
           : Uri.parse('$apiEndpoint/api/auth/oauth/url');
 
-      final response = await http.get(uri);
+      final response = await http.get(uri
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

@@ -130,7 +130,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
         await _handlePostLogin();
       }
     } catch (e) {
-      print('Login failed: $e');
       if (mounted) {
         _showError(e.toString().replaceAll('Exception: ', ''));
       }
@@ -210,7 +209,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
         await _handlePostLogin();
       }
     } catch (e) {
-      print('OAuth failed: $e');
       if (mounted) {
         _showError('Falha no login com Google: ${e.toString()}');
       }
