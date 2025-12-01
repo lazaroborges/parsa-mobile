@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/services/auth/backend_auth_service.dart';
-import 'package:parsa/core/services/auth/auth_service.dart';
-import 'package:parsa/core/services/review/review_service.dart';
 import 'package:parsa/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:parsa/app/onboarding/intro.page.dart';
-import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 class AuthMethods {
   // Fetch user profile data
