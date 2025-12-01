@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
-import 'package:parsa/app/onboarding/intake.dart';
+import 'package:parsa/app/onboarding/intake.dart' hide tabsPageKey;
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/services/auth/backend_auth_service.dart';
@@ -234,7 +234,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     // Navigate to main app
     await Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => TabsPage(key: GlobalKey<TabsPageState>())),
+      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
     );
   }
 

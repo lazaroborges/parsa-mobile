@@ -11,7 +11,8 @@ import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
-import 'package:parsa/app/onboarding/intake.dart';
+// TODO: Re-enable when intake form check is needed
+// import 'package:parsa/app/onboarding/intake.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -434,6 +435,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                 // Fetch user data from server
                 await fetchUserDataAtServer();
 
+                // Skip intake form check - go directly to TabsPage
+                // TODO: Re-enable intake form check when needed
+                // To restore: uncomment the block below and remove the direct navigation
+                /*
                 // Get user data from provider
                 final userData =
                     Provider.of<UserDataProvider>(context, listen: false)
@@ -462,6 +467,19 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                   if (!mounted) return;
                   _checkIntakeFormCompletion(context);
                 }
+                */
+                
+                // Direct navigation to TabsPage (bypassing intake form)
+                if (!mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => TabsPage(key: tabsPageKey)),
+                );
+                // After navigation, process pending deep links
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  await LinkHandlerService.instance.processPendingDeepLinks();
+                });
               },
             );
           }
@@ -470,30 +488,31 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     );
   }
 
+  // TODO: Re-enable when intake form check is needed
   // Helper method to check intake form completion and navigate accordingly
-  void _checkIntakeFormCompletion(BuildContext context) {
-    // We'll use SharedPreferences to check if intake form is completed
-    SharedPreferencesAsync.instance
-        .getIntakeCompleted()
-        .then((isIntakeCompleted) {
-      if (!mounted) return; // Check mount status before navigation
-      if (isIntakeCompleted) {
-        // If intake is completed, go to main app (TabsPage)
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-        );
-        // After navigation, process pending deep links
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await LinkHandlerService.instance.processPendingDeepLinks();
-        });
-      } else {
-        // If intake is not completed, show IntakeForm
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const IntakeForm()),
-        );
-      }
-    });
-  }
+  // void _checkIntakeFormCompletion(BuildContext context) {
+  //   // We'll use SharedPreferences to check if intake form is completed
+  //   SharedPreferencesAsync.instance
+  //       .getIntakeCompleted()
+  //       .then((isIntakeCompleted) {
+  //     if (!mounted) return; // Check mount status before navigation
+  //     if (isIntakeCompleted) {
+  //       // If intake is completed, go to main app (TabsPage)
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+  //       );
+  //       // After navigation, process pending deep links
+  //       WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //         await LinkHandlerService.instance.processPendingDeepLinks();
+  //       });
+  //     } else {
+  //       // If intake is not completed, show IntakeForm
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const IntakeForm()),
+  //       );
+  //     }
+  //   });
+  // }
 }
