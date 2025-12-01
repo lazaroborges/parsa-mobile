@@ -13,8 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/settings/about.page.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
-
-final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
+import 'package:parsa/main.dart' show tabsPageKey;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -179,7 +178,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       // Step 1: Get OAuth URL from backend mobile endpoint
       final authUrl = await authService.getMobileOAuthUrl();
 
-      print('OAuth URL: $authUrl');
 
       // Step 2: Open native authentication session
       // ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android
@@ -223,40 +221,43 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     // Fetch user data from server
     await fetchUserDataAtServer();
 
-    // Get user data from provider
-    final userData =
-        Provider.of<UserDataProvider>(context, listen: false).userData;
+    // Check if widget is still mounted before accessing context
+    if (!mounted) return;
+
+    // // Get user data from provider
+    // final userData =
+    //     Provider.of<UserDataProvider>(context, listen: false).userData;
 
     // Check if filled_questionaire is true
-    if (userData != null && userData['filled_questionaire'] == true) {
-      print("USER DATA: $userData , ${userData['filled_questionaire']}");
-      // If questionnaire is filled, go directly to TabsPage
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-      );
-    } else {
-      print("Questionnaire not filled, redirecting to intake form");
-      // Check if intake form is completed
-      final isIntakeCompleted =
-          await SharedPreferencesAsync.instance.getIntakeCompleted();
-      if (isIntakeCompleted) {
-        // If intake is completed, go to main app (TabsPage)
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-        );
-      } else {
-        // If intake is not completed, show IntakeForm
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const IntakeForm()),
-        );
-      }
-    }
+    // if (userData != null && userData['filled_questionaire'] == true) {
+    //   print("USER DATA: $userData , ${userData['filled_questionaire']}");
+    //   // If questionnaire is filled, go directly to TabsPage
+    //   if (!mounted) return;
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+    //   );
+    // } else {
+    //   print("Questionnaire not filled, redirecting to intake form");
+    //   // Check if intake form is completed
+    //   final isIntakeCompleted =
+    //       await SharedPreferencesAsync.instance.getIntakeCompleted();
+    //   if (isIntakeCompleted) {
+    //     // If intake is completed, go to main app (TabsPage)
+    //     if (!mounted) return;
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+    //     );
+    //   } else {
+    //     // If intake is not completed, show IntakeForm
+    //     if (!mounted) return;
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => const IntakeForm()),
+    //     );
+    //   }
+    // }
   }
 
   void _showError(String message) {

@@ -183,7 +183,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       // Step 1: Get OAuth URL from backend mobile endpoint
       final authUrl = await authService.getMobileOAuthUrl();
 
-      print('OAuth URL: $authUrl');
 
       // Step 2: Open native authentication session
       // ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android
@@ -193,7 +192,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
         callbackUrlScheme: 'com.parsa.app',
       );
 
-      print('OAuth callback result: $result');
 
       // Step 3: Extract token from callback URL
       final uri = Uri.parse(result);
