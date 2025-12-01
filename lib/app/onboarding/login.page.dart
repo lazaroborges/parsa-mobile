@@ -136,7 +136,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         await _handlePostLogin();
       }
     } catch (e) {
-      ('Login failed: $e');
       if (mounted) {
         _showError(e.toString().replaceAll('Exception: ', ''));
       }
