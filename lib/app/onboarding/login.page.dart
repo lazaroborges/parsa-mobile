@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/settings/about.page.dart';
+import 'package:flutter_web_auth/flutter_web_auth.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
@@ -174,29 +175,42 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     try {
       final authService = BackendAuthService.instance;
-      final authUrl = await authService.getGoogleAuthUrl();
 
-      // Launch OAuth URL in browser
-      await launchUrl(
-        Uri.parse(authUrl),
-        mode: LaunchMode.externalApplication,
+      // Step 1: Get OAuth URL from backend mobile endpoint
+      final authUrl = await authService.getMobileOAuthUrl();
+
+      print('OAuth URL: $authUrl');
+
+      // Step 2: Open native authentication session
+      // ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android
+      // Backend will redirect to com.parsa.app://oauth-callback?token=...
+      final result = await FlutterWebAuth.authenticate(
+        url: authUrl,
+        callbackUrlScheme: 'com.parsa.app',
       );
 
-      // TODO: Handle the OAuth callback through deep linking
-      // For now, show a message to the user
+      print('OAuth callback result: $result');
+
+      // Step 3: Extract token from callback URL
+      final uri = Uri.parse(result);
+      final token = uri.queryParameters['token'];
+
+      if (token == null) {
+        throw Exception('Token não recebido');
+      }
+
+      print('OAuth token received');
+
+      // Step 4: Save token and user data
+      await authService.saveTokenFromMobileOAuth(token);
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Complete o login no navegador e retorne ao aplicativo'),
-            duration: Duration(seconds: 3),
-          ),
-        );
+        await _handlePostLogin();
       }
     } catch (e) {
-      print('OAuth initiation failed: $e');
+      print('OAuth failed: $e');
       if (mounted) {
-        _showError('Falha ao iniciar login com Google');
+        _showError('Falha no login com Google: ${e.toString()}');
       }
     } finally {
       if (mounted) {

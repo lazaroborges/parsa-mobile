@@ -124,11 +124,11 @@ class BackendAuthService extends ChangeNotifier {
     }
   }
 
-  /// Get Google OAuth URL
-  Future<String> getGoogleAuthUrl() async {
+  /// Get Google OAuth URL for mobile (uses HTTPS endpoint)
+  Future<String> getMobileOAuthUrl() async {
     try {
       final response = await http.get(
-        Uri.parse('$apiEndpoint/api/auth/oauth/url'),
+        Uri.parse('$apiEndpoint/api/auth/oauth/mobile/start'),
       );
 
       if (response.statusCode == 200) {
@@ -143,13 +143,13 @@ class BackendAuthService extends ChangeNotifier {
     }
   }
 
-  /// Exchange OAuth code for token (for mobile deep link handling)
-  Future<AuthResponse> exchangeCodeForToken(String code) async {
+  /// Exchange OAuth code for token using mobile callback endpoint
+  Future<AuthResponse> exchangeMobileOAuthCode(String code) async {
     try {
-      final response = await http.post(
-        Uri.parse('$apiEndpoint/api/auth/oauth/mobile'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'code': code}),
+      // Call the mobile callback endpoint with the code
+      final response = await http.get(
+        Uri.parse('$apiEndpoint/api/auth/oauth/mobile/callback')
+            .replace(queryParameters: {'code': code}),
       );
 
       if (response.statusCode == 200) {
@@ -165,10 +165,67 @@ class BackendAuthService extends ChangeNotifier {
         notifyListeners();
         return authResponse;
       } else {
-        throw Exception('Falha na autenticação OAuth');
+        final error = jsonDecode(response.body)['error'];
+        throw Exception('Falha na autenticação OAuth: $error');
       }
     } catch (e) {
       print('OAuth exchange failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Save token from mobile OAuth redirect (receives token directly)
+  Future<void> saveTokenFromMobileOAuth(String token) async {
+    try {
+      // Decode JWT to get user info
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        throw Exception('Token JWT inválido');
+      }
+
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> claims = jsonDecode(decoded);
+
+      // Extract user info from JWT claims
+      final userInfo = {
+        'id': claims['user_id'] ?? claims['sub'],
+        'email': claims['email'],
+        'name': claims['name'],
+      };
+
+      // Save token and user data
+      await _saveAuthData(token, userInfo);
+
+      // Register user session
+      unawaited(SessionService.instance.registerUserSession());
+
+      notifyListeners();
+    } catch (e) {
+      print('Failed to save token from mobile OAuth: $e');
+      rethrow;
+    }
+  }
+
+  /// Get Google OAuth URL (legacy, for web)
+  Future<String> getGoogleAuthUrl({String? redirectUri}) async {
+    try {
+      final uri = redirectUri != null
+          ? Uri.parse('$apiEndpoint/api/auth/oauth/url')
+              .replace(queryParameters: {'redirect_uri': redirectUri})
+          : Uri.parse('$apiEndpoint/api/auth/oauth/url');
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url'] as String;
+      } else {
+        throw Exception('Falha ao obter URL de autenticação');
+      }
+    } catch (e) {
+      print('Failed to get OAuth URL: $e');
       rethrow;
     }
   }
