@@ -11,7 +11,8 @@ import 'package:parsa/app/layout/navigation_sidebar.dart';
 import 'package:parsa/app/layout/tabs.dart';
 import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/app/onboarding/onboarding.dart';
-import 'package:parsa/app/onboarding/intake.dart';
+// TODO: Re-enable when intake form check is needed
+// import 'package:parsa/app/onboarding/intake.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/services/app-data/app_data_service.dart';
 import 'package:parsa/core/database/services/user-setting/user_setting_service.dart';
@@ -25,8 +26,7 @@ import 'package:parsa/core/utils/scroll_behavior_override.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:flutter/services.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
@@ -34,7 +34,7 @@ import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:parsa/core/services/branch/branch_config.dart';
+//import 'package:parsa/core/services/branch/branch_config.dart';
 // Keep import but don't use processing methods directly
 import 'package:parsa/core/providers/link_provider.dart';
 import 'package:parsa/core/routes/material_app_routes.dart';
@@ -92,19 +92,17 @@ void main() async {
       ? 'https://app.parsa-ai.com.br'
       : (dotenv.env['API_ENDPOINT'] ?? 'https://app.parsa-ai.com.br');
 
-  final auth0 = Auth0(
-    dotenv.env['AUTH0_DOMAIN']!,
-    dotenv.env['AUTH0_CLIENT_ID']!,
-  );
+  // Initialize Backend Auth Service
+  final backendAuthService = BackendAuthService();
 
   // Initialize Branch but don't process links yet
-  await BranchConfig.initialize();
+  //await BranchConfig.initialize();
 
   final app = MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => UserDataProvider.instance),
       ChangeNotifierProvider(
-        create: (_) => Auth0Provider(auth0: auth0),
+        create: (_) => backendAuthService,
       ),
       ChangeNotifierProvider(create: (_) => AppVersionProvider.instance),
       ChangeNotifierProvider(create: (_) => LinkProvider.instance),
@@ -310,8 +308,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   }
 
   Future<void> _checkLoginStatus() async {
-    final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-    bool status = await auth0Provider.checkLoginStatus();
+    final authService = Provider.of<BackendAuthService>(context, listen: false);
+    bool status = await authService.checkLoginStatus();
 
     if (!status) {
       // If not logged in, use navigatorKey instead of context-based navigation
@@ -334,7 +332,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final auth0Provider = Provider.of<Auth0Provider>(context);
+    final authService = Provider.of<BackendAuthService>(context);
     Intl.defaultLocale = LocaleSettings.currentLocale.languageTag;
 
     if (isLoading) {
@@ -429,7 +427,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
             return const OnboardingPage();
           }
 
-          if (auth0Provider.credentials == null) {
+          if (!authService.isLoggedIn) {
             return const IntroPage();
           } else {
             return BiometricsCheckScreen(
@@ -437,6 +435,10 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                 // Fetch user data from server
                 await fetchUserDataAtServer();
 
+                // Skip intake form check - go directly to TabsPage
+                // TODO: Re-enable intake form check when needed
+                // To restore: uncomment the block below and remove the direct navigation
+                /*
                 // Get user data from provider
                 final userData =
                     Provider.of<UserDataProvider>(context, listen: false)
@@ -465,6 +467,19 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                   if (!mounted) return;
                   _checkIntakeFormCompletion(context);
                 }
+                */
+                
+                // Direct navigation to TabsPage (bypassing intake form)
+                if (!mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => TabsPage(key: tabsPageKey)),
+                );
+                // After navigation, process pending deep links
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  await LinkHandlerService.instance.processPendingDeepLinks();
+                });
               },
             );
           }
@@ -473,30 +488,31 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
     );
   }
 
+  // TODO: Re-enable when intake form check is needed
   // Helper method to check intake form completion and navigate accordingly
-  void _checkIntakeFormCompletion(BuildContext context) {
-    // We'll use SharedPreferences to check if intake form is completed
-    SharedPreferencesAsync.instance
-        .getIntakeCompleted()
-        .then((isIntakeCompleted) {
-      if (!mounted) return; // Check mount status before navigation
-      if (isIntakeCompleted) {
-        // If intake is completed, go to main app (TabsPage)
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-        );
-        // After navigation, process pending deep links
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await LinkHandlerService.instance.processPendingDeepLinks();
-        });
-      } else {
-        // If intake is not completed, show IntakeForm
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const IntakeForm()),
-        );
-      }
-    });
-  }
+  // void _checkIntakeFormCompletion(BuildContext context) {
+  //   // We'll use SharedPreferences to check if intake form is completed
+  //   SharedPreferencesAsync.instance
+  //       .getIntakeCompleted()
+  //       .then((isIntakeCompleted) {
+  //     if (!mounted) return; // Check mount status before navigation
+  //     if (isIntakeCompleted) {
+  //       // If intake is completed, go to main app (TabsPage)
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+  //       );
+  //       // After navigation, process pending deep links
+  //       WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //         await LinkHandlerService.instance.processPendingDeepLinks();
+  //       });
+  //     } else {
+  //       // If intake is not completed, show IntakeForm
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const IntakeForm()),
+  //       );
+  //     }
+  //   });
+  // }
 }

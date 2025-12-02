@@ -50,6 +50,14 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 
+			<!-- OAuth Callback -->
+			<intent-filter>
+				<data android:scheme="com.parsa.app" android:host="oauth-callback" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+
 			<!-- Branch App Links - Live App -->
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />

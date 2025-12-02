@@ -1,11 +1,8 @@
-// New Login Page - Backend Authentication
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
-import 'package:parsa/app/onboarding/intake.dart';
-import 'package:parsa/app/settings/about.page.dart';
+import 'package:parsa/app/onboarding/intake.dart' hide tabsPageKey;
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/services/auth/backend_auth_service.dart';
@@ -13,21 +10,20 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:parsa/core/presentation/audio/audio.dart';
+import 'package:parsa/core/presentation/app_colors.dart';
+import 'package:parsa/app/settings/about.page.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'package:parsa/main.dart' show tabsPageKey;
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
-import '../../core/presentation/app_colors.dart';
-
-final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
-
-class IntroPage extends StatefulWidget {
-  const IntroPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<IntroPage> createState() => _IntroPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _contentController;
   late Animation<Offset> _logoSlideAnimation;
@@ -40,10 +36,20 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   bool _isLoading = false;
   bool _isRegistering = false;
   bool _obscurePassword = true;
+  
+  late final TapGestureRecognizer _termsRecognizer;
+  late final TapGestureRecognizer _privacyRecognizer;
+  Timer? _animationTimer; // Add this field
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize gesture recognizers
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchURL('https://www.parsa-ai.com.br/termos-e-condições-de-serviço');
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchURL('https://www.parsa-ai.com.br/política-de-privacidade');
 
     // Logo animation controller
     _logoController = AnimationController(
@@ -84,9 +90,11 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       curve: Curves.easeOut,
     ));
 
-    // Start animations sequence
-    Future.delayed(const Duration(seconds: 1), () {
+    // Start animations sequence with proper guards
+    _animationTimer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
       _logoController.forward().then((_) {
+        if (!mounted) return;
         _contentController.forward();
       });
     });
@@ -94,11 +102,15 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    // Cancel timer before disposing controllers
+    _animationTimer?.cancel();
     _logoController.dispose();
     _contentController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     super.dispose();
   }
 
@@ -107,7 +119,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
-      throw 'Could not launch $urlString';
+      throw Exception('Could not launch $urlString');
     }
   }
 
@@ -191,6 +203,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
         callbackUrlScheme: 'com.parsa.app',
       );
 
+      print('OAuth callback result: $result');
 
       // Step 3: Extract token from callback URL
       final uri = Uri.parse(result);
@@ -220,43 +233,19 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   }
 
   Future<void> _handlePostLogin() async {
-    // Fetch user data from server
     await fetchUserDataAtServer();
-
-    // Get user data from provider
-    final userData =
-        Provider.of<UserDataProvider>(context, listen: false).userData;
-
-    // Check if filled_questionaire is true
-    if (userData != null && userData['filled_questionaire'] == true) {
-      print("USER DATA: $userData , ${userData['filled_questionaire']}");
-      // If questionnaire is filled, go directly to TabsPage
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-      );
-    } else {
-      print("Questionnaire not filled, redirecting to intake form");
-      // Check if intake form is completed
-      final isIntakeCompleted =
-          await SharedPreferencesAsync.instance.getIntakeCompleted();
-      if (isIntakeCompleted) {
-        // If intake is completed, go to main app (TabsPage)
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
-        );
-      } else {
-        // If intake is not completed, show IntakeForm
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const IntakeForm()),
-        );
-      }
-    }
+    
+    if (!mounted) return;
+    
+    // Navigate to main app
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
+    );
+    
+    // Process pending deep links after navigation
+    if (!mounted) return;
+    await LinkHandlerService.instance.processPendingDeepLinks();
   }
 
   void _showError(String message) {
@@ -271,7 +260,6 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final appColors = AppColors.of(context);
-    final t = Translations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -288,14 +276,14 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(height: constraints.maxHeight * 0.05),
-                      // Logo and Title Section grouped together
+                      // Logo and Title Section
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Parsa Text - Positioned first in the stack
+                              // Parsa Text
                               Padding(
                                 padding: const EdgeInsets.only(top: 80),
                                 child: FadeTransition(
@@ -313,7 +301,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                              // Logo on top
+                              // Logo
                               SlideTransition(
                                 position: _logoSlideAnimation,
                                 child: ScaleTransition(
@@ -325,6 +313,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
+
                       // Login Form Section
                       FadeTransition(
                         opacity: _contentFadeAnimation,
@@ -438,18 +427,15 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                             // Divider
                             Row(
                               children: [
-                                Expanded(
-                                    child: Divider(color: Colors.grey[300])),
+                                Expanded(child: Divider(color: Colors.grey[300])),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                   child: Text(
                                     'ou',
                                     style: TextStyle(color: Colors.grey[600]),
                                   ),
                                 ),
-                                Expanded(
-                                    child: Divider(color: Colors.grey[300])),
+                                Expanded(child: Divider(color: Colors.grey[300])),
                               ],
                             ),
                             const SizedBox(height: 16),
@@ -465,18 +451,24 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                               icon: const Icon(Icons.g_mobiledata, size: 28),
                               label: const Text('Continuar com Google'),
                             ),
-                            const SizedBox(height: 20),
-                            // Updated Text Styling
+                          ],
+                        ),
+                      ),
+
+                      // Terms and Privacy Section
+                      FadeTransition(
+                        opacity: _contentFadeAnimation,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
-                                    TextSpan(
-                                      text:
-                                          'Ao continuar, estou de acordo com os ',
-                                      style: const TextStyle(
+                                    const TextSpan(
+                                      text: 'Ao continuar, estou de acordo com os ',
+                                      style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
@@ -492,13 +484,11 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                         fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () => _launchURL(
-                                            'https://www.parsa-ai.com.br/termos-e-condições-de-serviço'),
+                                      recognizer: _termsRecognizer,
                                     ),
-                                    TextSpan(
+                                    const TextSpan(
                                       text: ' e a ',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
@@ -514,13 +504,11 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                         fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () => _launchURL(
-                                            'https://www.parsa-ai.com.br/política-de-privacidade'),
+                                      recognizer: _privacyRecognizer,
                                     ),
-                                    TextSpan(
+                                    const TextSpan(
                                       text: ' do Parsa.',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
                                         fontFamily: 'Nunito',
@@ -532,7 +520,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 16),
                           ],
                         ),
                       ),
