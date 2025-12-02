@@ -14,7 +14,7 @@ ApiTransaction _$ApiTransactionFromJson(Map<String, dynamic> json) =>
       notes: json['notes'] as String?,
       currency: json['currency'] as String?,
       account: json['account'] as String,
-      transactionCategory: json['original_category'] as String,
+      transactionCategory: json['category'] as String,
       transactionType: json['type'] as String,
       transactionDate:
           ApiTransaction._parseDate(json['transactionDate'] as String),
@@ -39,7 +39,7 @@ Map<String, dynamic> _$ApiTransactionToJson(ApiTransaction instance) =>
       'notes': instance.notes,
       'currency': instance.currency,
       'account': instance.account,
-      'original_category': instance.transactionCategory,
+      'category': instance.transactionCategory,
       'type': instance.transactionType,
       'transactionDate': ApiTransaction._dateToJson(instance.transactionDate),
       'status': instance.status,
