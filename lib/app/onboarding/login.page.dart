@@ -14,6 +14,7 @@ import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/app/settings/about.page.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:parsa/main.dart' show tabsPageKey;
+import 'package:parsa/core/services/branch/link_handler_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -38,6 +39,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   
   late final TapGestureRecognizer _termsRecognizer;
   late final TapGestureRecognizer _privacyRecognizer;
+  Timer? _animationTimer; // Add this field
 
   @override
   void initState() {
@@ -88,9 +90,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       curve: Curves.easeOut,
     ));
 
-    // Start animations sequence
-    Future.delayed(const Duration(seconds: 1), () {
+    // Start animations sequence with proper guards
+    _animationTimer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
       _logoController.forward().then((_) {
+        if (!mounted) return;
         _contentController.forward();
       });
     });
@@ -98,6 +102,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    // Cancel timer before disposing controllers
+    _animationTimer?.cancel();
     _logoController.dispose();
     _contentController.dispose();
     _emailController.dispose();
@@ -236,6 +242,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       context,
       MaterialPageRoute(builder: (context) => TabsPage(key: tabsPageKey)),
     );
+    
+    // Process pending deep links after navigation
+    if (!mounted) return;
+    await LinkHandlerService.instance.processPendingDeepLinks();
   }
 
   void _showError(String message) {
