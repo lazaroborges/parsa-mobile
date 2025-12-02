@@ -65,7 +65,6 @@ Future<void> fetchUserTransactions(String? accountId,
 
   if (response.statusCode == 200) {
     var jsonResponse = json.decode(response.body);
-    print('Transactions synced successfully. $jsonResponse');
     // Extract the results field and encode it back to JSON string
     String resultsJson = json.encode(jsonResponse['results']);
     unawaited(syncTransactions(resultsJson));
