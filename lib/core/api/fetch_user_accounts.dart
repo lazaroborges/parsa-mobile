@@ -27,7 +27,6 @@ Future<void> fetchUserAccounts() async {
   );
 
   if (response.statusCode == 200) {
-    print('Accounts synced successfully. ${response.body}');
     await syncAccounts(response.body);
     return json.decode(response.body);
   } else if (response.statusCode == 401) {
