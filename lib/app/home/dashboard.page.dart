@@ -227,11 +227,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // First fetch user data
       unawaited(fetchUserDataAtServer());
 
-      // // Then fetch accounts and tags before transactions and budget
-      // await Future.wait([
-      //   fetchUserAccounts(),
-      //   fetchUserTags(context),
-      // ]);
+      // Then fetch accounts and tags before transactions and budget
+      await Future.wait([
+        fetchUserAccounts(),
+        //fetchUserTags(context),
+      ]);
 
       // // Finally fetch transactions and budgets
       // await Future.wait([

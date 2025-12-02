@@ -210,39 +210,39 @@ class ApiAccount {
       accountId: json['accountId'] ??
           'unknown-account', // Fallback for missing accountId
       bankName:
-          json['bank_name'] ?? 'Unknown Bank', // Fallback for missing bank name
+          json['bankName'] ?? 'Unknown Bank', // Fallback for missing bank name
       accountType:
-          json['account_type'] ?? 'normal', // Default to 'normal' if missing
+          json['accountType'] ?? 'normal', // Default to 'normal' if missing
       number: json['number'] ?? '', // Handle null number
-      iniValue: json['initial_value'] != null
-          ? double.tryParse(json['initial_value'].toString()) ?? 0.0
+      iniValue: json['initialValue'] != null
+          ? double.tryParse(json['initialValue'].toString()) ?? 0.0
           : 0.0, // Safely parse iniValue
       name: json['name'] ?? 'Parsa', // Fallback for missing name
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
           : DateTime.now(), // Default to now if missing
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
           : DateTime.now(), // Default to now if missing
       profile: json['profile'] ?? 0, // Default to 0 if missing
-      iconId: json['connector_id'] ?? '1', // Fallback for missing iconId
+      iconId: json['connectorID'] ?? '1', // Fallback for missing iconId
       connectorId:
-          json['connector_id'] ?? '1', // Fallback for missing connectorId
+          json['connectorID'] ?? '1', // Fallback for missing connectorId
       primaryColor:
-          json['primary_color'] ?? '1194F6', // Default to black if missing
+          json['primaryColor'] ?? '1194F6', // Default to black if missing
       balance: json['balance'] != null
           ? double.tryParse(json['balance'].toString())
           : null, // Safely parse balance
       isOpenFinance:
           json['isOpenFinance'] ?? false, // Default to false if missing
-      closedAt: json['closed_at'] != null
-          ? DateTime.parse(json['closed_at'])
+      closedAt: json['closedAt'] != null
+          ? DateTime.parse(json['closedAt'])
           : null, // Safely parse closedAt
       order: json['order'] ?? 90, // Default to 0 if missing
       removed: json['removed'] ?? false, // Default to false if missing
       description: json['description'] ?? '', // Default to empty string if missing
-      hiddenByUser: json['hidden_by_user'] ?? false, // Default to false if missing
-      hasMFA: json['has_mfa'] ?? false, // Default to false if missing
+      hiddenByUser: json['hiddenByUser'] ?? false, // Default to false if missing
+      hasMFA: json['hasMFA'] ?? false, // Default to false if missing
     );
   }
 }

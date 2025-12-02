@@ -6,38 +6,32 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/main.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
+
 
 Future<void> fetchUserAccounts() async {
-  final auth0Provider = Auth0Provider.instance; // Access the instance directly
+  final authService = BackendAuthService.instance;
 
-  // Check if we have valid credentials
-  if (auth0Provider.credentials == null) {
-    // If no valid credentials, try to refresh them
-    final isLoggedIn = await auth0Provider.checkLoginStatus();
-    if (!isLoggedIn) {
-      throw Exception('User is not logged in');
-    }
+  final token = authService.token;
+
+  if (token == null) {
+    throw Exception('No authentication token found');
   }
-
-  final accessToken = auth0Provider.credentials!.accessToken;
 
   final response = await http.get(
     Uri.parse('$apiEndpoint/api/accounts/'),
     headers: {
-      'Authorization': 'Bearer $accessToken',
+      'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     },
   );
 
   if (response.statusCode == 200) {
+    print('Accounts synced successfully. ${response.body}');
     await syncAccounts(response.body);
     return json.decode(response.body);
   } else if (response.statusCode == 401) {
-    // Token might be expired, try to refresh
-    await auth0Provider.login();
-    // Retry the request
-    return fetchUserAccounts();
+    throw Exception('Authentication failed. Please log in again.');
   } else {
     throw Exception('Failed to load user accounts: ${response.statusCode}');
   }
@@ -83,7 +77,7 @@ Future<List<Account>> convertApiAccountsToLocal(
     Account account = Account(
       id: apiAccount.accountId,
       name: name,
-      iniValue: apiAccount.iniValue ?? 0.0,
+      iniValue: apiAccount.iniValue,
       date: apiAccount.createdAt,
 
       type: _mapAccountType(apiAccount.accountType),
@@ -99,7 +93,7 @@ Future<List<Account>> convertApiAccountsToLocal(
       swift: null, // Set if applicable
       color: apiAccount.primaryColor,
       isOpenFinance: apiAccount.isOpenFinance,
-      removed: apiAccount.removed ?? false,
+      removed: apiAccount.removed,
       hiddenByUser: apiAccount.hiddenByUser,
       hasMFA: apiAccount.hasMFA,
     );
@@ -140,8 +134,6 @@ Future<void> insertAccountsIntoDB(List<Account> accounts) async {
 
   // Delete accounts that are not in the API response from the local database
   for (final idToDelete in accountIdsToDelete) {
-    //find the Auth0 context and pass it up in here:
-
     accountService.deleteAccountLocally(idToDelete);
   }
 
