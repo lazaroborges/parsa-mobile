@@ -233,11 +233,11 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         //fetchUserTags(context),
       ]);
 
-      // // Finally fetch transactions and budgets
-      // await Future.wait([
-      //   fetchUserTransactions(null),
-      //   fetchUserBudgets(context),
-      // ]);
+      // Finally fetch transactions and budgets
+      await Future.wait([
+        fetchUserTransactions(null),
+        //fetchUserBudgets(context),
+      ]);
 
       // HACK: Short delay to allow database writes to settle before reading.
       // This is to address a race condition on initial login where the progress
