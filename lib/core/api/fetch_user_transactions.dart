@@ -15,7 +15,6 @@ import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
