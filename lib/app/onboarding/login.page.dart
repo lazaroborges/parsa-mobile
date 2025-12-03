@@ -1,4 +1,7 @@
+//This is deprecated login page. It is not used anymore. Use IntroPage instead.
+
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
@@ -232,6 +235,57 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _loginWithApple() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final authService = BackendAuthService.instance;
+
+      // Step 1: Get Apple OAuth URL from backend mobile endpoint
+      final authUrl = await authService.getAppleMobileOAuthUrl();
+
+      // Step 2: Open native authentication session
+      // ASWebAuthenticationSession on iOS
+      // Backend will redirect to com.parsa.app://oauth-callback?token=...
+      final result = await FlutterWebAuth.authenticate(
+        url: authUrl,
+        callbackUrlScheme: 'com.parsa.app',
+      );
+
+      print('Apple OAuth callback result: $result');
+
+      // Step 3: Extract token from callback URL
+      final uri = Uri.parse(result);
+      final token = uri.queryParameters['token'];
+      final error = uri.queryParameters['error'];
+
+      if (error != null) {
+        throw Exception('Erro Apple: $error');
+      }
+
+      if (token == null) {
+        throw Exception('Token não recebido');
+      }
+
+      print('Apple OAuth token received');
+
+      // Step 4: Save token and user data
+      await authService.saveTokenFromMobileOAuth(token);
+
+      if (mounted) {
+        await _handlePostLogin();
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Falha no login com Apple: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Future<void> _handlePostLogin() async {
     await fetchUserDataAtServer();
     
@@ -451,6 +505,23 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               icon: const Icon(Icons.g_mobiledata, size: 28),
                               label: const Text('Continuar com Google'),
                             ),
+                            // Apple Sign In (iOS only)
+                            if (Platform.isIOS) ...[
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(48),
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: _isLoading ? null : _loginWithApple,
+                                icon: const Icon(Icons.apple, size: 24),
+                                label: const Text('Continuar com Apple'),
+                              ),
+                            ],
                           ],
                         ),
                       ),
