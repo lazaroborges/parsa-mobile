@@ -11,6 +11,7 @@ import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_transaction.dart';
@@ -92,8 +93,12 @@ class TransactionService {
   Future<int> insertOrUpdateTransaction(TransactionInDB transaction,
       [List<Tag>? tags, int? notMassUpdate]) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final authService = BackendAuthService.instance;
+      final backendToken = authService.token;
+
+      if (backendToken == null) {
+        throw Exception('No authentication token found');
+      }
 
       final existing = await (db.select(db.transactions)
             ..where((t) => t.id.equals(transaction.id)))
@@ -157,7 +162,7 @@ class TransactionService {
 
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
-            accessToken: credentials!.accessToken,
+            accessToken: backendToken,
             tags: tagsToUse,
             method: 'PUT');
 
@@ -169,7 +174,7 @@ class TransactionService {
 
         bool isPosted = await PostUserTransactionService.postUserTransaction(
             transaction: transaction,
-            accessToken: credentials!.accessToken,
+            accessToken: backendToken,
             tags: tagsToUse,
             method: 'POST');
 
@@ -203,7 +208,8 @@ class TransactionService {
           // Check if dontAskAgain is true for this transaction
           if (transaction.dontAskAgain == true) {
             // Skip the dialog if dontAskAgain is set
-            print('Skipping cousin dialog - dontAskAgain is true for transaction ${transaction.id}');
+            print(
+                'Skipping cousin dialog - dontAskAgain is true for transaction ${transaction.id}');
           } else if (onCousinFound != null) {
             final shouldContinue = await onCousinFound!(
               cousins.length,

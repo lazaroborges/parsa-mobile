@@ -308,10 +308,15 @@ class PostUserSettings {
           }),
         );
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
           print('Successfully updated provider key.');
           return true;
+        } else if (response.statusCode == 401) {
+          // Key is wrong, don't retry
+          print('Provider key is wrong (401): ${response.body}');
+          return false;
         } else {
+          // 400 or any other error - treat as error
           print(
               'Failed to update provider key: ${response.statusCode} ${response.body}');
           if (response.statusCode >= 400 && response.statusCode < 500) {
