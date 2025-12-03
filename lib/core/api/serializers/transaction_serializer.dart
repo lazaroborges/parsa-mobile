@@ -35,7 +35,7 @@ class ApiTransaction {
 
   final String account;
 
-  @JsonKey(name: 'original_category')
+  @JsonKey(name: 'category')
   final String transactionCategory;
 
   @JsonKey(name: 'type')

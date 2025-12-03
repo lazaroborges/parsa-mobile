@@ -951,7 +951,7 @@ class _PremiumWidgetState extends State<PremiumWidget> {
                                                 'https://www.parsa-ai.com.br/pol%C3%ADtica-de-privacidade')),
                                         ),
                                         TextSpan(
-                                          text: ' do Parsa.',
+                                          text: ' do Parsa. Atualizado em 03/12/2025.',
                                           style: TextStyle(
                                             color: Color(0xFF475466),
                                             fontSize: 14,
