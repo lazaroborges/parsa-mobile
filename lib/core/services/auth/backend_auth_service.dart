@@ -138,6 +138,25 @@ class BackendAuthService extends ChangeNotifier {
     }
   }
 
+  /// Get Apple OAuth URL for mobile (uses HTTPS endpoint)
+  Future<String> getAppleMobileOAuthUrl() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiEndpoint/api/auth/oauth/apple/mobile/start'),
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url'] as String;
+      } else {
+        throw Exception('Falha ao obter URL de autenticação Apple');
+      }
+    } catch (e) {
+      print('Failed to get Apple OAuth URL: $e');
+      rethrow;
+    }
+  }
+
   /// Exchange OAuth code for token using mobile callback endpoint
   Future<AuthResponse> exchangeMobileOAuthCode(String code) async {
     try {

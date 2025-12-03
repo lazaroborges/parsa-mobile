@@ -1,6 +1,7 @@
 // New Login Page - Backend Authentication
 
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:parsa/app/layout/tabs.dart';
@@ -219,6 +220,70 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
     }
   }
 
+   Future<void> _loginWithApple() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final authService = BackendAuthService.instance;
+
+      // Step 1: Get Apple OAuth URL from backend mobile endpoint
+      print('Requesting Apple OAuth URL...');
+      final authUrl = await authService.getAppleMobileOAuthUrl();
+      print('Apple OAuth URL received: $authUrl');
+
+      // Step 2: Open native authentication session
+      // ASWebAuthenticationSession on iOS
+      // Backend will redirect to com.parsa.app://oauth-callback?token=...
+      print('Opening FlutterWebAuth session...');
+      final result = await FlutterWebAuth.authenticate(
+        url: authUrl,
+        callbackUrlScheme: 'com.parsa.app',
+      );
+
+      print('Apple OAuth callback result: $result');
+
+      // Step 3: Extract token from callback URL
+      final uri = Uri.parse(result);
+      final token = uri.queryParameters['token'];
+      final error = uri.queryParameters['error'];
+
+      if (error != null) {
+        print('Error in callback URL: $error');
+        throw Exception('Erro Apple: $error');
+      }
+
+      if (token == null) {
+        print('No token in callback URL. Full URL: $result');
+        throw Exception('Token não recebido');
+      }
+
+      print('Apple OAuth token received');
+
+      // Step 4: Save token and user data
+      await authService.saveTokenFromMobileOAuth(token);
+
+      if (mounted) {
+        await _handlePostLogin();
+      }
+    } catch (e) {
+      print('Apple login error: $e');
+      print('Error type: ${e.runtimeType}');
+      if (mounted) {
+        final errorMessage = e.toString().contains('CANCELLED') || 
+                            e.toString().contains('canceled')
+            ? 'Login cancelado'
+            : 'Falha no login com Apple: ${e.toString()}';
+        _showError(errorMessage);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  
+  
   Future<void> _handlePostLogin() async {
     // Fetch user data from server
     await fetchUserDataAtServer();
@@ -239,8 +304,11 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
     } else {
       print("Questionnaire not filled, redirecting to intake form");
       // Check if intake form is completed
-      final isIntakeCompleted =
+      //final isIntakeCompleted =
           await SharedPreferencesAsync.instance.getIntakeCompleted();
+
+      //Intake is always true for now.
+      final isIntakeCompleted = true; //TODO: Remove this after testing
       if (isIntakeCompleted) {
         // If intake is completed, go to main app (TabsPage)
         if (!mounted) return;
@@ -465,6 +533,23 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                               icon: const Icon(Icons.g_mobiledata, size: 28),
                               label: const Text('Continuar com Google'),
                             ),
+                            // Apple Sign In (iOS only)
+                            if (Platform.isIOS) ...[
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(48),
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: _isLoading ? null : _loginWithApple,
+                                icon: const Icon(Icons.apple, size: 24),
+                                label: const Text('Continuar com Apple'),
+                              ),
+                            ],
                             const SizedBox(height: 20),
                             // Updated Text Styling
                             Padding(
