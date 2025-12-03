@@ -507,7 +507,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       recognizer: _privacyRecognizer,
                                     ),
                                     const TextSpan(
-                                      text: ' do Parsa.',
+                                      text: ' do Parsa. Atualizado em 03/12/2025.',
                                       style: TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,

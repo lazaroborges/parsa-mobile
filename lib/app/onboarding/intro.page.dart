@@ -518,7 +518,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                             'https://www.parsa-ai.com.br/política-de-privacidade'),
                                     ),
                                     TextSpan(
-                                      text: ' do Parsa.',
+                                      text: ' do Parsa. Atualizado em 03/12/2025.',
                                       style: const TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,
