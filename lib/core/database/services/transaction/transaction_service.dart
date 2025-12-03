@@ -64,7 +64,12 @@ class TransactionChanges {
           'description': utf8.decode(utf8.encode(description!)),
         if (categoryName != null)
           'category': utf8.decode(utf8.encode(categoryName!)),
-        if (status != null) 'status': status?.name,
+        if (status != null)
+          'considered': status == TransactionStatus.reconciled
+              ? true
+              : status == TransactionStatus.notconsidered
+                  ? false
+                  : null,
         if (notes != null) 'notes': utf8.decode(utf8.encode(notes!)),
         if (tags != null) 'tags': tags?.map((tag) => tag.id).toList(),
       };
@@ -160,14 +165,14 @@ class TransactionService {
       if (existing != null) {
         print('Updating existing transaction: ${transaction.id}');
 
-        bool isPosted = await PostUserTransactionService.postUserTransaction(
-            transaction: transaction,
-            accessToken: backendToken,
-            tags: tagsToUse,
-            method: 'PUT');
+        // Use PATCH to send only changed fields
+        bool isPatched = await PostUserTransactionService.patchUserTransaction(
+            transactionId: transaction.id,
+            changes: changes!,
+            accessToken: backendToken);
 
-        if (!isPosted) {
-          throw Exception('Failed to post transaction to the API.');
+        if (!isPatched) {
+          throw Exception('Failed to patch transaction to the API.');
         }
       } else {
         print('Inserting new transaction: ${transaction.id}');
