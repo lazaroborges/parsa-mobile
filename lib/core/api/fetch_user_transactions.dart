@@ -11,10 +11,10 @@ import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/api/serializers/transaction_serializer.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
@@ -46,13 +46,18 @@ Future<void> fetchUserTransactions(String? accountId,
 
   print('--------Requesting URL: $url');
 
-  final auth0Provider = Auth0Provider.instance;
-  final credentials = await auth0Provider.credentials;
+  final authService = BackendAuthService.instance;
+
+  final token = authService.token;
+
+  if (token == null) {
+    throw Exception('No authentication token found');
+  }
 
   final response = await http.get(
     Uri.parse(url),
     headers: {
-      'Authorization': 'Bearer ${credentials?.accessToken}',
+      'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     },
   );
@@ -63,7 +68,6 @@ Future<void> fetchUserTransactions(String? accountId,
     String resultsJson = json.encode(jsonResponse['results']);
     unawaited(syncTransactions(resultsJson));
 
-    print('Count: ${jsonResponse['count']}, Next: ${jsonResponse['next']}');
     int objectCount = jsonResponse['results'].length;
     print('Number of transactions synced: $objectCount');
 

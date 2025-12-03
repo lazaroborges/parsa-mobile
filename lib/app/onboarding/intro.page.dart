@@ -13,7 +13,6 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:parsa/core/presentation/audio/audio.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
 
 import '../../core/presentation/app_colors.dart';
@@ -519,7 +518,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                                             'https://www.parsa-ai.com.br/política-de-privacidade'),
                                     ),
                                     TextSpan(
-                                      text: ' do Parsa.',
+                                      text: ' do Parsa. Atualizado em 03/12/2025.',
                                       style: const TextStyle(
                                         color: Color(0xFF25282B),
                                         fontSize: 14,

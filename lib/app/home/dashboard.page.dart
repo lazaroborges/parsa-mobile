@@ -227,17 +227,17 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
       // First fetch user data
       unawaited(fetchUserDataAtServer());
 
-      // // Then fetch accounts and tags before transactions and budget
-      // await Future.wait([
-      //   fetchUserAccounts(),
-      //   fetchUserTags(context),
-      // ]);
+      // Then fetch accounts and tags before transactions and budget
+      await Future.wait([
+        fetchUserAccounts(),
+        //fetchUserTags(context),
+      ]);
 
-      // // Finally fetch transactions and budgets
-      // await Future.wait([
-      //   fetchUserTransactions(null),
-      //   fetchUserBudgets(context),
-      // ]);
+      // Finally fetch transactions and budgets
+      await Future.wait([
+        fetchUserTransactions(null),
+        //fetchUserBudgets(context),
+      ]);
 
       // HACK: Short delay to allow database writes to settle before reading.
       // This is to address a race condition on initial login where the progress
@@ -1352,19 +1352,19 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                 child: switch (currentBalanceType) {
                   BalanceType.available => _buildBalanceDisplay(
                       context,
-                      userData?['balance_available']?.toDouble() ?? 0.0,
+                      userData?['balanceAvailable']?.toDouble() ?? 0.0,
                       key: ValueKey(
                           'available-balance-${currentBalanceType.index}'),
                     ),
                   BalanceType.total => _buildBalanceDisplay(
                       context,
-                      userData?['balance_total']?.toDouble() ?? 0.0,
+                      userData?['balanceTotal']?.toDouble() ?? 0.0,
                       key:
                           ValueKey('total-balance-${currentBalanceType.index}'),
                     ),
                   BalanceType.future => _buildBalanceDisplay(
                       context,
-                      userData?['balance_future']?.toDouble() ?? 0.0,
+                      userData?['balanceFuture']?.toDouble() ?? 0.0,
                       key: ValueKey(
                           'future-balance-${currentBalanceType.index}'),
                     ),
