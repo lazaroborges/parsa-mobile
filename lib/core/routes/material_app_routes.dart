@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/app/accounts/all_accounts.page.dart';
 import 'package:parsa/app/accounts/details/account_details.dart';
 import 'package:parsa/app/budgets/budgets.page.dart';
@@ -35,6 +36,15 @@ class MaterialAppRoutes {
 
     final uri = Uri.parse(settings.name ?? '/');
     final pathSegments = uri.pathSegments;
+
+    // Android OAuth workaround: Check if this is OAuth callback with token
+    // Backend redirects to com.parsa.app://?token=... which arrives as /?token=...
+    if (pathSegments.isEmpty && uri.queryParameters.containsKey('token')) {
+      print('Android OAuth: Detected token in deep link, redirecting to IntroPage');
+      return MaterialPageRoute(
+        builder: (_) => IntroPage(oauthToken: uri.queryParameters['token']),
+      );
+    }
 
     // Helper function to check route pattern
     bool routeMatches(List<String> pattern) {

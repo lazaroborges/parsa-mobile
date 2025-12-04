@@ -1,21 +1,6 @@
 PODS:
-  - AppAuth (1.7.5):
-    - AppAuth/Core (= 1.7.5)
-    - AppAuth/ExternalUserAgent (= 1.7.5)
-  - AppAuth/Core (1.7.5)
-  - AppAuth/ExternalUserAgent (1.7.5):
-    - AppAuth/Core
   - audio_session (0.0.1):
     - Flutter
-  - Auth0 (2.10.0):
-    - JWTDecode (= 3.2.0)
-    - SimpleKeychain (= 1.2.0)
-  - auth0_flutter (1.11.0):
-    - Auth0 (= 2.10.0)
-    - Flutter
-    - FlutterMacOS
-    - JWTDecode (= 3.2.0)
-    - SimpleKeychain (= 1.2.0)
   - BranchSDK (3.12.2)
   - device_info_plus (0.0.1):
     - Flutter
@@ -129,9 +114,6 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - nanopb (~> 3.30910.0)
   - Flutter (1.0.0)
-  - flutter_appauth (0.0.1):
-    - AppAuth (= 1.7.5)
-    - Flutter
   - flutter_branch_sdk (8.5.0):
     - BranchSDK (~> 3.12.0)
     - Flutter
@@ -201,7 +183,6 @@ PODS:
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
-  - JWTDecode (3.2.0)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -231,7 +212,6 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - SimpleKeychain (1.2.0)
   - sqlite3 (3.49.2):
     - sqlite3/common (= 3.49.2)
   - sqlite3/common (3.49.2)
@@ -263,7 +243,6 @@ PODS:
 
 DEPENDENCIES:
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
-  - auth0_flutter (from `.symlinks/plugins/auth0_flutter/darwin`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
@@ -271,7 +250,6 @@ DEPENDENCIES:
   - firebase_in_app_messaging (from `.symlinks/plugins/firebase_in_app_messaging/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
-  - flutter_appauth (from `.symlinks/plugins/flutter_appauth/ios`)
   - flutter_branch_sdk (from `.symlinks/plugins/flutter_branch_sdk/ios`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -293,8 +271,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - AppAuth
-    - Auth0
     - BranchSDK
     - DKImagePickerController
     - DKPhotoGallery
@@ -309,20 +285,16 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
-    - JWTDecode
     - nanopb
     - PromisesObjC
     - SDWebImage
     - Sentry
-    - SimpleKeychain
     - sqlite3
     - SwiftyGif
 
 EXTERNAL SOURCES:
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
-  auth0_flutter:
-    :path: ".symlinks/plugins/auth0_flutter/darwin"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
@@ -337,8 +309,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
     :path: Flutter
-  flutter_appauth:
-    :path: ".symlinks/plugins/flutter_appauth/ios"
   flutter_branch_sdk:
     :path: ".symlinks/plugins/flutter_branch_sdk/ios"
   flutter_keyboard_visibility:
@@ -377,10 +347,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
-  Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
-  auth0_flutter: 98b19f9c237bb5e508c512d6280d7db81bd76b9a
   BranchSDK: db2c2ffa5b85ad3e202f73393ca794878afd3c52
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
@@ -399,7 +366,6 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 0ee9074f2c1e86561ace168ee1470dc67aabaf02
   FirebaseMessaging: 195bbdb73e6ca1dbc76cd46e73f3552c084ef6e4
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_appauth: 273bf736e38f7d85000b1a9ac15ace5800c277f2
   flutter_branch_sdk: 9c9ec6d44145b4fc5168e011bfce824b2c1fe506
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
@@ -411,7 +377,6 @@ SPEC CHECKSUMS:
   in_app_purchase_storekit: d1a48cb0f8b29dbf5f85f782f5dd79b21b90a5e6
   in_app_review: 5596fe56fab799e8edb3561c03d053363ab13457
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
-  JWTDecode: 7dae24cb9bf9b608eae61e5081029ec169bb5527
   local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
@@ -423,7 +388,6 @@ SPEC CHECKSUMS:
   sentry_flutter: 27892878729f42701297c628eb90e7c6529f3684
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
-  SimpleKeychain: 768cf43ae778b1c21816e94dddf01bb8ee96a075
   sqlite3: 3c950dc86011117c307eb0b28c4a7bb449dce9f1
   sqlite3_flutter_libs: 74334e3ef2dbdb7d37e50859bb45da43935779c4
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4

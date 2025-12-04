@@ -34,13 +34,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-            </intent-filter>
-            
             <!-- Branch URI Scheme -->
 			<intent-filter>
 				<!-- If utilizing $deeplink_path please explicitly declare your hosts, or utilize a wildcard(*) -->
