@@ -800,7 +800,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   Widget _buildOpenFinanceSection(BuildContext context) {
     final appColors = AppColors.of(context);
     final theme = Theme.of(context);
-    final userData = UserDataProvider.instance.userData;
+    final userData = context.watch<UserDataProvider>().userData;
     
     // Check for hasValidKey (try both camelCase and snake_case)
     final hasValidKey = userData?['hasValidKey'] == true || 
