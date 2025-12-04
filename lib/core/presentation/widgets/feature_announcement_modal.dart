@@ -4,7 +4,7 @@ import 'package:parsa/core/providers/feature_announcement_provider.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/core/utils/open_external_url.dart';
 
-class FeatureAnnouncementModal extends StatelessWidget {
+class FeatureAnnouncementModal extends StatefulWidget {
   const FeatureAnnouncementModal({Key? key}) : super(key: key);
 
   static Future<void> showIfNeeded(BuildContext context) async {
@@ -17,6 +17,28 @@ class FeatureAnnouncementModal extends StatelessWidget {
         );
       }
     }
+  }
+
+  @override
+  State<FeatureAnnouncementModal> createState() => _FeatureAnnouncementModalState();
+}
+
+class _FeatureAnnouncementModalState extends State<FeatureAnnouncementModal> {
+  late TapGestureRecognizer _tapRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _tapRecognizer = TapGestureRecognizer()
+      ..onTap = () {
+        openExternalURL(context, 'https://pierre.finance/');
+      };
+  }
+
+  @override
+  void dispose() {
+    _tapRecognizer.dispose();
+    super.dispose();
   }
 
   @override
@@ -106,10 +128,7 @@ class FeatureAnnouncementModal extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     decoration: TextDecoration.underline,
                                   ),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      openExternalURL(context, 'https://pierre.finance/');
-                                    },
+                                  recognizer: _tapRecognizer,
                                 ),
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,

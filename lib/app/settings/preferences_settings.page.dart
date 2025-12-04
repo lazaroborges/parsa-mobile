@@ -12,6 +12,7 @@ import 'package:parsa/core/services/notification/notification_preferences_servic
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:provider/provider.dart';
 import 'widgets/settings_list_separator.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -54,6 +55,9 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   final _apiKeyFormKey = GlobalKey<FormState>();
   final _apiKeyController = TextEditingController();
   bool _isSubmittingApiKey = false;
+
+  // TapGestureRecognizer for Pierre Finance link
+  TapGestureRecognizer? _pierreFinanceTapRecognizer;
 
   @override
   void didChangeDependencies() {
@@ -132,6 +136,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _apiKeyController.dispose();
+    _pierreFinanceTapRecognizer?.dispose();
     super.dispose();
   }
 
@@ -845,8 +850,8 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   Widget _buildOpenFinanceSection(BuildContext context) {
     final appColors = AppColors.of(context);
     final theme = Theme.of(context);
-    final userData = context.watch<UserDataProvider>().userData;
-    
+    final userData = Provider.of<UserDataProvider>(context, listen: false).userData;
+        
     // Check for hasValidKey (try both camelCase and snake_case)
     final hasValidKey = userData?['hasValidKey'] == true || 
                         userData?['has_valid_key'] == true;
@@ -1088,7 +1093,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                     fontWeight: FontWeight.w400,
                     decoration: TextDecoration.underline,
                   ),
-                  recognizer: TapGestureRecognizer()
+                  recognizer: _pierreFinanceTapRecognizer ??= TapGestureRecognizer()
                     ..onTap = () {
                       openExternalURL(context, linkUrl);
                     },
