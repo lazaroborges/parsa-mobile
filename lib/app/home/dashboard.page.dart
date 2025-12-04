@@ -172,7 +172,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
 
       // Ensure we check the announcement first
       if (mounted) {
-        //await FeatureAnnouncementModal.showIfNeeded(context);
+        await FeatureAnnouncementModal.showIfNeeded(context);
       }
 
       // Then fetch data

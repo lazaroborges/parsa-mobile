@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FeatureAnnouncementService {
-  static const String _storageKey = 'has_seen_feature_announcementfinal';
+  static const String _storageKey = 'has_seen_feature_v2120_test';
   
   static Future<bool> hasSeenAnnouncement() async {
     final prefs = await SharedPreferences.getInstance();
