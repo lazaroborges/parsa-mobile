@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:parsa/core/database/services/user-setting/private_mode_service.dart';
 import 'package:parsa/core/presentation/widgets/platform_alert_dialogue.dart';
+import 'package:parsa/core/presentation/app_colors.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/providers/user_data_provider.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
+import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
 import 'package:parsa/core/services/notification/notification_preferences_service.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
+import 'package:parsa/core/utils/open_external_url.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:url_launcher/url_launcher_string.dart';
-import 'dart:io' show Platform;
 import 'widgets/settings_list_separator.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -46,6 +48,11 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
 
   // Store ScaffoldMessengerState to avoid "Looking up a deactivated widget's ancestor" error
   ScaffoldMessengerState? _scaffoldMessenger;
+
+  // API Key form state
+  final _apiKeyFormKey = GlobalKey<FormState>();
+  final _apiKeyController = TextEditingController();
+  bool _isSubmittingApiKey = false;
 
   @override
   void didChangeDependencies() {
@@ -123,6 +130,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _apiKeyController.dispose();
     super.dispose();
   }
 
@@ -169,24 +177,44 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     }
   }
 
-  Future<void> _openSubscriptionManagement() async {
-    final String url;
-    if (Platform.isIOS) {
-      url = 'https://apps.apple.com/account/subscriptions';
-    } else {
-      url =
-          'https://play.google.com/store/account/subscriptions?package=com.parsa.app';
+  Future<void> _submitApiKey() async {
+    if (!_apiKeyFormKey.currentState!.validate()) {
+      return;
     }
 
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
-    } else {
+    setState(() {
+      _isSubmittingApiKey = true;
+    });
+
+    try {
+      final success = await PostUserSettings.updateProviderKey(
+        providerKey: _apiKeyController.text.trim(),
+      );
+
+      if (success && mounted) {
+        // Refresh user data to get updated hasValidKey status
+        await fetchUserDataAtServer();
+        
+        // Clear the input field
+        _apiKeyController.clear();
+        
+        setState(() {
+          _isSubmittingApiKey = false;
+        });
+
+        _showSnackBar('Chave API configurada com sucesso!', isError: false);
+      } else if (mounted) {
+        setState(() {
+          _isSubmittingApiKey = false;
+        });
+        _showSnackBar('Erro ao configurar chave API. Tente novamente.', isError: true);
+      }
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Não foi possível abrir a página de gerenciamento de assinaturas')),
-        );
+        setState(() {
+          _isSubmittingApiKey = false;
+        });
+        _showSnackBar('Erro: $e', isError: true);
       }
     }
   }
@@ -760,24 +788,290 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
             ],
             const SizedBox(height: 24),
 
-            // Subscription management section
-            Center(
-              child: GestureDetector(
-                onTap: _openSubscriptionManagement,
-                child: Text(
-                  'Gerencie sua assinatura',
-                  style: TextStyle(
-                    color: Color(0xFF475466),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                  ),
+            // Open Finance API Key section
+            createListSeparator(context, 'Open Finance'),
+            _buildOpenFinanceSection(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOpenFinanceSection(BuildContext context) {
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+    final userData = UserDataProvider.instance.userData;
+    
+    // Check for hasValidKey (try both camelCase and snake_case)
+    final hasValidKey = userData?['hasValidKey'] == true || 
+                        userData?['has_valid_key'] == true;
+
+    if (hasValidKey) {
+      // Show positive message when key is valid
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          border: Border.all(color: Colors.green.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              color: Colors.green.shade700,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Chave API Open Finance configurada com sucesso!',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.green.shade900,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ],
         ),
-      ),
+      );
+    } else {
+      // Show input form when key is not valid
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: appColors.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Form(
+          key: _apiKeyFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Conectar com Open Finance',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: appColors.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Para conectar sua conta automaticamente, você precisa:',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: appColors.onSurface,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildInstructionStepWithLink(
+                context: context,
+                step: '1',
+                text: 'Acesse o ',
+                linkText: 'Pierre Finance',
+                linkUrl: 'https://pierre.finance/',
+                textAfter: ' e crie uma conta',
+              ),
+              const SizedBox(height: 8),
+              _buildInstructionStep(
+                context: context,
+                step: '2',
+                text: 'Sincronize suas contas bancárias',
+              ),
+              const SizedBox(height: 8),
+              _buildInstructionStep(
+                context: context,
+                step: '3',
+                text: 'Obtenha sua chave API nas configurações',
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _apiKeyController,
+                decoration: InputDecoration(
+                  labelText: 'Chave API',
+                  hintText: 'Cole sua chave API aqui',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: appColors.inputFill,
+                ),
+                enabled: !_isSubmittingApiKey,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Por favor, insira sua chave API';
+                  }
+                  return null;
+                },
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submitApiKey(),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isSubmittingApiKey ? null : _submitApiKey,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appColors.primary,
+                    foregroundColor: appColors.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isSubmittingApiKey
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'Conectar',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildInstructionStep({
+    required BuildContext context,
+    required String step,
+    required String text,
+  }) {
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: appColors.primary,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              step,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: appColors.onPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: appColors.onSurface,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInstructionStepWithLink({
+    required BuildContext context,
+    required String step,
+    required String text,
+    required String linkText,
+    required String linkUrl,
+    required String textAfter,
+  }) {
+    final appColors = AppColors.of(context);
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: appColors.primary,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              step,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: appColors.onPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text.rich(
+            TextSpan(
+              text: text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: appColors.onSurface,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+              children: [
+                TextSpan(
+                  text: linkText,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: appColors.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      openExternalURL(context, linkUrl);
+                    },
+                ),
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Icon(
+                      Icons.open_in_new,
+                      size: 14,
+                      color: appColors.primary,
+                    ),
+                  ),
+                ),
+                TextSpan(
+                  text: textAfter,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: appColors.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
