@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'widgets/settings_list_separator.dart';
 import 'package:parsa/core/services/notification/fcm_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 class PreferencesSettingsPage extends StatefulWidget {
   const PreferencesSettingsPage({super.key});
@@ -187,6 +188,18 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
     });
 
     try {
+      // Check login status before making authenticated request
+      final isLoggedIn = await BackendAuthService.instance.checkLoginStatus();
+      if (!isLoggedIn) {
+        if (mounted) {
+          setState(() {
+            _isSubmittingApiKey = false;
+          });
+          _showSnackBar('Sessão expirada. Por favor, faça login novamente.', isError: true);
+        }
+        return;
+      }
+
       final success = await PostUserSettings.updateProviderKey(
         providerKey: _apiKeyController.text.trim(),
       );
@@ -579,6 +592,18 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                   // If user confirmed, proceed with the change
                   if (confirmed == true) {
                     try {
+                      // Check login status before making authenticated request
+                      final isLoggedIn = await BackendAuthService.instance.checkLoginStatus();
+                      if (!isLoggedIn) {
+                        _scaffoldMessenger!.showSnackBar(
+                          SnackBar(
+                            content: Text('Sessão expirada. Por favor, faça login novamente.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
                       // Update the value in the backend
                       await PostUserSettings
                           .updateAccrualBasisAccountingSetting(
@@ -630,6 +655,16 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                       setState(() {
                         _startOfWeek = value;
                       });
+                      
+                      // Check login status before making authenticated request
+                      final isLoggedIn = await BackendAuthService.instance.checkLoginStatus();
+                      if (!isLoggedIn) {
+                        if (mounted) {
+                          _showSnackBar('Sessão expirada. Por favor, faça login novamente.', isError: true);
+                        }
+                        return;
+                      }
+                      
                       // Send updated preferences to the backend
                       final success =
                           await PostUserSettings.updateDatePreferences(
@@ -680,6 +715,16 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage>
                       setState(() {
                         _startOfMonth = value;
                       });
+                      
+                      // Check login status before making authenticated request
+                      final isLoggedIn = await BackendAuthService.instance.checkLoginStatus();
+                      if (!isLoggedIn) {
+                        if (mounted) {
+                          _showSnackBar('Sessão expirada. Por favor, faça login novamente.', isError: true);
+                        }
+                        return;
+                      }
+                      
                       // Send updated preferences to the backend
                       final success =
                           await PostUserSettings.updateDatePreferences(
