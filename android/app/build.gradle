@@ -36,8 +36,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.parsa.app"
-    compileSdkVersion 36
-    ndkVersion = "26.1.10909125"
+    compileSdkVersion 37
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
