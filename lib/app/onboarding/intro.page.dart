@@ -14,7 +14,7 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../../core/presentation/app_colors.dart';
 
@@ -186,7 +186,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       // Step 2: Open native authentication session
       // ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android
       // Backend will redirect to com.parsa.app://oauth-callback?token=...
-      final result = await FlutterWebAuth.authenticate(
+      final result = await FlutterWebAuth2.authenticate(
         url: authUrl,
         callbackUrlScheme: 'com.parsa.app',
       );
@@ -234,7 +234,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       // ASWebAuthenticationSession on iOS
       // Backend will redirect to com.parsa.app://oauth-callback?token=...
       print('Opening FlutterWebAuth session...');
-      final result = await FlutterWebAuth.authenticate(
+      final result = await FlutterWebAuth2.authenticate(
         url: authUrl,
         callbackUrlScheme: 'com.parsa.app',
       );
