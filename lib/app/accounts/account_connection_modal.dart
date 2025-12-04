@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parsa/core/presentation/app_colors.dart';
-import 'package:parsa/core/utils/check_items_availability.dart';
-import 'package:parsa/i18n/translations.g.dart';
-import 'pluggy_connector.dart';
 import 'account_form.dart';
-import 'package:parsa/app/settings/subscriptions/subscription.page.dart';
+import 'open_finance_api_key_modal.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 // import 'package:parsa/core/presentation/audio/app_sound_player.dart';
 
@@ -125,48 +122,15 @@ class AccountConnectionModal extends StatelessWidget {
                                 },
                               );
 
-                              // Check Pluggy availability
-                              String? errorMessage =
-                                  await checkItemAvailability(context);
+                              // Close the current modal first
+                              Navigator.pop(context);
 
-                              if (errorMessage == null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PluggyConnectorPage(),
-                                  ),
-                                );
-                              } else {
-                                // Close the modal first
-                                Navigator.pop(context);
-
-                                // await AppSoundPlayer.playErrorSound();
-
-                                // Show the error message in a SnackBar
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    duration: const Duration(seconds: 4),
-                                    content: Text(errorMessage),
-                                  ),
-                                );
-
-                                // If error code is 0 (not subscribed), navigate to subscription page
-                                if (errorMessage ==
-                                    t.account.connection_errors
-                                        .not_subscribed) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PremiumWidget(),
-                                      settings: RouteSettings(
-                                        arguments: {
-                                          'source': 'account_connection_modal',
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
+                              // Open the Open Finance API key modal
+                              await showDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                builder: (context) => const OpenFinanceApiKeyModal(),
+                              );
                             },
                             image: Container(
                               width: 100, // Adjust size as needed

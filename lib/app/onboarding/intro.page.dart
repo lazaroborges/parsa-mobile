@@ -14,14 +14,17 @@ import 'package:parsa/core/utils/shared_preferences_async.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../../core/presentation/app_colors.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
 class IntroPage extends StatefulWidget {
-  const IntroPage({super.key});
+  const IntroPage({super.key, this.oauthToken});
+
+  // Android workaround: token received via deep link instead of FlutterWebAuth2
+  final String? oauthToken;
 
   @override
   State<IntroPage> createState() => _IntroPageState();
@@ -40,6 +43,9 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   bool _isLoading = false;
   bool _isRegistering = false;
   bool _obscurePassword = true;
+
+  // Android workaround: Store OAuth token received via router deep link
+  static String? _pendingOAuthToken;
 
   @override
   void initState() {
@@ -90,6 +96,33 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
         _contentController.forward();
       });
     });
+
+    // Android workaround: Check if OAuth token was passed via deep link
+    if (widget.oauthToken != null) {
+      print('Android OAuth: Token received via deep link');
+      _handleOAuthToken(widget.oauthToken!);
+    }
+  }
+
+  // Android workaround: Handle OAuth token received via deep link
+  Future<void> _handleOAuthToken(String token) async {
+    setState(() => _isLoading = true);
+    try {
+      final authService = BackendAuthService.instance;
+      await authService.saveTokenFromMobileOAuth(token);
+      if (mounted) {
+        await _handlePostLogin();
+      }
+    } catch (e) {
+      print('Error processing OAuth token: $e');
+      if (mounted) {
+        _showError('Falha no login: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -180,40 +213,67 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       final authService = BackendAuthService.instance;
 
       // Step 1: Get OAuth URL from backend mobile endpoint
+      print('Requesting OAuth URL from backend...');
       final authUrl = await authService.getMobileOAuthUrl();
+      print('OAuth URL received: $authUrl');
 
+      if (Platform.isAndroid) {
+        // Android workaround: Backend redirects to com.parsa.app://?token=...
+        // which gets intercepted by the router instead of FlutterWebAuth2
+        // So we just open the URL and wait for the router to bring us back
+        print('Android: Opening OAuth URL with url_launcher');
+        final uri = Uri.parse(authUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          // The token will be received via deep link and handled in initState
+          print('Android: OAuth URL launched, waiting for callback...');
+        } else {
+          throw Exception('Não foi possível abrir o navegador');
+        }
+      } else {
+        // iOS: Use FlutterWebAuth2 (works correctly on iOS)
+        print('iOS: Opening FlutterWebAuth2 with scheme: com.parsa.app');
+        final result = await FlutterWebAuth2.authenticate(
+          url: authUrl,
+          callbackUrlScheme: 'com.parsa.app',
+        );
 
-      // Step 2: Open native authentication session
-      // ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android
-      // Backend will redirect to com.parsa.app://oauth-callback?token=...
-      final result = await FlutterWebAuth.authenticate(
-        url: authUrl,
-        callbackUrlScheme: 'com.parsa.app',
-      );
+        print('OAuth callback received: $result');
 
+        // Step 3: Extract token from callback URL
+        final uri = Uri.parse(result);
+        final token = uri.queryParameters['token'];
 
-      // Step 3: Extract token from callback URL
-      final uri = Uri.parse(result);
-      final token = uri.queryParameters['token'];
+        if (token == null) {
+          print('No token in callback URL. Full URL: $result');
+          throw Exception('Token não recebido');
+        }
 
-      if (token == null) {
-        throw Exception('Token não recebido');
-      }
+        print('OAuth token received');
 
-      print('OAuth token received');
+        // Step 4: Save token and user data
+        await authService.saveTokenFromMobileOAuth(token);
 
-      // Step 4: Save token and user data
-      await authService.saveTokenFromMobileOAuth(token);
-
-      if (mounted) {
-        await _handlePostLogin();
+        if (mounted) {
+          await _handlePostLogin();
+        }
       }
     } catch (e) {
+      print('Google OAuth error: $e');
+      print('Error type: ${e.runtimeType}');
+
       if (mounted) {
-        _showError('Falha no login com Google: ${e.toString()}');
+        // Check if user canceled
+        final errorStr = e.toString();
+        if (errorStr.contains('CANCELED') || errorStr.contains('canceled')) {
+          _showError('Login cancelado');
+        } else {
+          _showError('Falha no login com Google: ${e.toString()}');
+        }
       }
     } finally {
-      if (mounted) {
+      // On Android, don't clear loading state yet - wait for deep link callback
+      if (mounted && !Platform.isAndroid) {
         setState(() => _isLoading = false);
       }
     }
@@ -234,7 +294,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       // ASWebAuthenticationSession on iOS
       // Backend will redirect to com.parsa.app://oauth-callback?token=...
       print('Opening FlutterWebAuth session...');
-      final result = await FlutterWebAuth.authenticate(
+      final result = await FlutterWebAuth2.authenticate(
         url: authUrl,
         callbackUrlScheme: 'com.parsa.app',
       );

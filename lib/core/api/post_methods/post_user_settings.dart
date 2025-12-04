@@ -6,6 +6,7 @@ import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart' as app_prefs;
 
 class PostUserSettings {
@@ -277,5 +278,66 @@ class PostUserSettings {
       print('Error triggering swipe cards flow: $e');
       return false;
     }
+  }
+
+  static Future<bool> updateProviderKey({
+    required String providerKey,
+    int maxRetries = 3,
+  }) async {
+    int retryCount = 0;
+    int retryDelayMs = 300;
+
+    while (retryCount <= maxRetries) {
+      try {
+        final authService = BackendAuthService.instance;
+        final token = authService.token;
+
+        if (token == null) {
+          print('User not authenticated, cannot update provider key.');
+          return false;
+        }
+
+        final response = await http.patch(
+          Uri.parse('$apiEndpoint/api/users/me'),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            'providerKey': providerKey,
+          }),
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+          print('Successfully updated provider key.');
+          return true;
+        } else if (response.statusCode == 401) {
+          // Key is wrong, don't retry
+          print('Provider key is wrong (401): ${response.body}');
+          return false;
+        } else {
+          // 400 or any other error - treat as error
+          print(
+              'Failed to update provider key: ${response.statusCode} ${response.body}');
+          if (response.statusCode >= 400 && response.statusCode < 500) {
+            // Don't retry on client errors
+            return false;
+          }
+        }
+      } catch (e) {
+        retryCount++;
+        print('Error updating provider key (attempt $retryCount): $e');
+
+        if (retryCount >= maxRetries) {
+          print('Max retries reached. Returning false.');
+          return false;
+        }
+
+        await Future.delayed(Duration(milliseconds: retryDelayMs));
+        retryDelayMs *= 2;
+      }
+    }
+
+    return false;
   }
 }

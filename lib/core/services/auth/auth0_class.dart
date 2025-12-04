@@ -1,8 +1,50 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:auth0_flutter/auth0_flutter.dart';
+// Removed: import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:parsa/core/services/session_service.dart';
+
+// Placeholder Credentials class
+class Credentials {
+  final String accessToken;
+  Credentials({required this.accessToken});
+}
+
+// Placeholder Auth0 stub
+class Auth0 {
+  Auth0({required String domain, required String clientId});
+  
+  WebAuthentication webAuthentication() => WebAuthentication();
+  CredentialsManager get credentialsManager => CredentialsManager();
+}
+
+class WebAuthentication {
+  Future<Credentials> login({String? audience}) async {
+    throw UnimplementedError('Auth0 login not implemented - placeholder');
+  }
+  
+  Future<void> logout() async {
+    throw UnimplementedError('Auth0 logout not implemented - placeholder');
+  }
+}
+
+class CredentialsManager {
+  Future<void> storeCredentials(Credentials credentials) async {
+    // Placeholder - no-op
+  }
+  
+  Future<void> clearCredentials() async {
+    // Placeholder - no-op
+  }
+  
+  Future<bool> hasValidCredentials() async {
+    return false; // Always return false for placeholder
+  }
+  
+  Future<Credentials> credentials() async {
+    throw UnimplementedError('Auth0 credentials not implemented - placeholder');
+  }
+}
 
 class Auth0Provider extends ChangeNotifier {
   final Auth0 auth0;

@@ -1,6 +1,6 @@
 import 'dart:async'; // Added for StreamSubscription
 import 'dart:io';
-import 'package:app_links/app_links.dart'; // Correctly imported package
+//import 'package:app_links/app_links.dart'; // Correctly imported package
 import 'package:drift/drift.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -141,45 +141,45 @@ class MonekinAppEntryPoint extends StatefulWidget {
 }
 
 class _MonekinAppEntryPointState extends State<MonekinAppEntryPoint> {
-  final AppLinks _appLinks = AppLinks();
+  // final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
 
-  @override
-  void initState() {
-    super.initState();
-    _captureInitialLink();
-    _setupLinkSubscription();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _captureInitialLink();
+  //   _setupLinkSubscription();
+  // }
 
-  // Simplified method to just capture the initial link
-  void _captureInitialLink() async {
-    try {
-      final initialLink = await _appLinks.getInitialLink();
-      if (initialLink != null) {
-        if (mounted) {
-          Provider.of<LinkProvider>(context, listen: false)
-              .setPendingUri(initialLink);
-        }
-      }
-    } catch (e) {
-      print('Error capturing initial link: $e');
-    }
-  }
+  // // Simplified method to just capture the initial link
+  // void _captureInitialLink() async {
+  //   try {
+  //     final initialLink = await _appLinks.getInitialLink();
+  //     if (initialLink != null) {
+  //       if (mounted) {
+  //         Provider.of<LinkProvider>(context, listen: false)
+  //             .setPendingUri(initialLink);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error capturing initial link: $e');
+  //   }
+  // }
 
-  // Add subscription for new incoming links while app is running
-  void _setupLinkSubscription() {
-    try {
-      _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
-        if (mounted) {
-          Provider.of<LinkProvider>(context, listen: false).setPendingUri(uri);
-        }
-      }, onError: (error) {
-        print('Error receiving link updates: $error');
-      });
-    } catch (e) {
-      print('Error setting up link subscription: $e');
-    }
-  }
+  // // Add subscription for new incoming links while app is running
+  // void _setupLinkSubscription() {
+  //   try {
+  //     _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
+  //       if (mounted) {
+  //         Provider.of<LinkProvider>(context, listen: false).setPendingUri(uri);
+  //       }
+  //     }, onError: (error) {
+  //       print('Error receiving link updates: $error');
+  //     });
+  //   } catch (e) {
+  //     print('Error setting up link subscription: $e');
+  //   }
+  // }
 
   @override
   void dispose() {
