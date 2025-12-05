@@ -177,10 +177,10 @@ class PostUserSettings {
 
   static Future<Map<String, dynamic>?> fetchUserSettings() async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;   
 
-      if (credentials == null) {
+      if (token == null) {
         print('User not authenticated, cannot fetch user settings.');
         return null;
       }
@@ -189,7 +189,7 @@ class PostUserSettings {
         Uri.parse('$apiEndpoint/users/preferences/'),
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': 'Bearer ${credentials.accessToken}',
+          'Authorization': 'Bearer ${token}',
         },
       );
 
