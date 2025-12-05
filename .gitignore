@@ -61,3 +61,7 @@ app.*.map.json
 # FVM Version Cache
 .fvm/
 .fvmrc
+
+# Private keys
+private_keys/key.properties
+private_keys/upload_cert.pem
