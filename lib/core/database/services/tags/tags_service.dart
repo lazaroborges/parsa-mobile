@@ -2,8 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:parsa/core/api/post_methods/post_user_tag_service.dart';
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/models/tags/tag.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
-
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 class TagService {
   final AppDB db;
@@ -11,81 +10,104 @@ class TagService {
   TagService._(this.db);
   static final TagService instance = TagService._(AppDB.instance);
 
-  Future<int> insertTag(TagInDB tag) async {
+  /// Creates a new tag via POST /api/tags/
+  /// The server generates the UUID, so we use the returned ID for local storage.
+  Future<TagInDB> insertTag(TagInDB tag) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;
 
-      bool isPosted = await PostUserTagService.postUserTag(
-          tag, credentials!.accessToken, 'POST');
+      final apiTag =
+          await PostUserTagService.createTag(tag, token ?? '');
 
-      if (!isPosted) {
-        throw Exception('Failed to post account to the API.');
-      } else {
-        return await db
-            .into(db.tags)
-            .insert(tag, mode: InsertMode.insertOrReplace);
+      if (apiTag == null) {
+        throw Exception('Failed to create tag on the API.');
       }
+
+      // Use the server-generated ID
+      final tagWithServerId = TagInDB(
+        id: apiTag.id,
+        name: apiTag.name,
+        color: apiTag.color,
+        description: apiTag.description,
+        displayOrder: apiTag.displayOrder,
+      );
+
+      await db
+          .into(db.tags)
+          .insert(tagWithServerId, mode: InsertMode.insertOrReplace);
+
+      return tagWithServerId;
     } catch (e) {
-      print('Error inserting account: $e');
-      rethrow; // Propagate the error to be handled upstream if needed
+      print('Error inserting tag: $e');
+      rethrow;
     }
   }
 
+  /// Updates an existing tag via PUT /api/tags/{id}
   Future<bool> updateTag(TagInDB tag) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;
 
-      bool isPut = await PostUserTagService.postUserTag(
-          tag, credentials!.accessToken, 'PUT');
+      final apiTag =
+          await PostUserTagService.updateTag(tag, token ?? '');
 
-      if (!isPut) {
-        throw Exception('Failed to post account to the API.');
-      } else {
-        return db.update(db.tags).replace(tag);
+      if (apiTag == null) {
+        throw Exception('Failed to update tag on the API.');
       }
+
+      // Update local DB with the response data
+      final updatedTag = TagInDB(
+        id: apiTag.id,
+        name: apiTag.name,
+        color: apiTag.color,
+        description: apiTag.description,
+        displayOrder: apiTag.displayOrder,
+      );
+
+      return db.update(db.tags).replace(updatedTag);
     } catch (e) {
-      print('Error updating account: $e');
-      rethrow; // Propagate the error to be handled upstream if needed
+      print('Error updating tag: $e');
+      rethrow;
     }
   }
 
+  /// Deletes a tag via DELETE /api/tags/{id}
   Future<int> deleteTag(String tagId) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;
 
-      bool isPut = await PostUserTagService.deleteUserTag(
-          tagId, credentials!.accessToken);
+      bool isDeleted =
+          await PostUserTagService.deleteTag(tagId, token ?? '');
 
-      if (!isPut) {
-        throw Exception('Failed to post account to the API.');
-      } else {
-        return (db.delete(db.tags)..where((tbl) => tbl.id.equals(tagId))).go();
+      if (!isDeleted) {
+        throw Exception('Failed to delete tag on the API.');
       }
+
+      return (db.delete(db.tags)..where((tbl) => tbl.id.equals(tagId))).go();
     } catch (e) {
-      print('Error updating account: $e');
-      rethrow; // Propagate the error to be handled upstream if needed
+      print('Error deleting tag: $e');
+      rethrow;
     }
   }
 
-  // Batch insert or replace tags
+  // Batch insert or replace tags (used for syncing from API)
   Future<void> batchInsertOrReplaceTags(List<TagInDB> tags) async {
     await db.batch((batch) {
-      // Insert each tag in the batch
       for (var tag in tags) {
         batch.insert(
-          db.tags, // The table to insert into
-          tag, // The data to insert
-          mode: InsertMode.insertOrReplace, // Insert or replace mode
+          db.tags,
+          tag,
+          mode: InsertMode.insertOrReplace,
         );
       }
     });
   }
 
   Future<int> insertTagFromAPI(TagInDB tag) {
-    return db.into(db.tags).insert(tag); // Single insert method
+    return db.into(db.tags).insert(tag);
   }
 
   Stream<TagInDB?> getTagById(String tagId) {

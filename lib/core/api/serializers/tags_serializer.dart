@@ -2,51 +2,44 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'tags_serializer.g.dart';
 
-/// Custom converter to handle the 'displayOrder' field, which may be null or missing.
-class DisplayOrderConverter implements JsonConverter<int?, dynamic> {
-  const DisplayOrderConverter();
-
-  @override
-  int? fromJson(dynamic json) {
-    if (json == null) {
-      return null;
-    } else if (json is int) {
-      return json;
-    } else if (json is String) {
-      return int.tryParse(json);
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  dynamic toJson(int? object) => object;
-}
-
+/// API Tag model matching the new Go backend response format.
+/// Response fields are camelCase (id, name, color, displayOrder, description)
 @JsonSerializable()
 class ApiTag {
-  final String id; // Assuming the ID is required and always present
-  final String name; // Assuming the name is required and always present
-
-  final String? color; // Color might be null or missing
-  final String? description; // Description might be null or missing
-
-  @DisplayOrderConverter()
-  @JsonKey(name: 'display_order')
-  final int?
-      displayOrder; // Use the custom converter to handle nulls or missing
+  final String id;
+  final String name;
+  final String color;
+  final int displayOrder;
+  final String description;
 
   ApiTag({
     required this.id,
     required this.name,
-    this.color,
-    this.description,
-    this.displayOrder,
+    required this.color,
+    required this.displayOrder,
+    required this.description,
   });
 
   /// Factory constructor for creating a new `ApiTag` instance from JSON.
   factory ApiTag.fromJson(Map<String, dynamic> json) => _$ApiTagFromJson(json);
 
-  /// Converts the `ApiTag` instance to JSON.
+  /// Converts the `ApiTag` instance to JSON (for POST/PUT requests).
+  /// Note: id is excluded for create requests, but included for update requests.
   Map<String, dynamic> toJson() => _$ApiTagToJson(this);
+
+  /// Creates JSON for POST request (excludes id)
+  Map<String, dynamic> toCreateJson() => {
+        'name': name,
+        'color': color,
+        'displayOrder': displayOrder,
+        'description': description,
+      };
+
+  /// Creates JSON for PUT request (excludes id since it's in the URL path)
+  Map<String, dynamic> toUpdateJson() => {
+        'name': name,
+        'color': color,
+        'displayOrder': displayOrder,
+        'description': description,
+      };
 }
