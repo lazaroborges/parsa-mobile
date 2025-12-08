@@ -11,24 +11,40 @@ import 'package:parsa/main.dart';
 /// Fetches all tags for the authenticated user from GET /api/tags/
 /// Tags are ordered by displayOrder ascending, then name ascending.
 Future<void> fetchUserTags(BuildContext context) async {
-    final backendAuthService = BackendAuthService.instance;
-    final token = backendAuthService.token;
+  final backendAuthService = BackendAuthService.instance;
+  final token = backendAuthService.token;
 
-  String url = '$apiEndpoint/api/tags/';
+  if (token == null || token.isEmpty) {
+    throw Exception('Authentication token is missing or empty');
+  }
 
-  final response = await http.get(
-    Uri.parse(url),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-  );
+  final String url = '$apiEndpoint/api/tags/';
+
+  http.Response response;
+  try {
+    response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    );
+  } catch (e) {
+    throw Exception('Network error fetching user tags: $e');
+  }
 
   if (response.statusCode == 200) {
-    final String decodedBody = utf8.decode(response.bodyBytes);
-    await syncTags(decodedBody);
+    try {
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      await syncTags(decodedBody);
+    } catch (e) {
+      throw Exception('Error processing tags response: $e');
+    }
   } else {
-    throw Exception('Failed to load user tags');
+    final String body = utf8.decode(response.bodyBytes);
+    throw Exception(
+      'Failed to load user tags: status ${response.statusCode}, body: $body',
+    );
   }
 }
 
