@@ -111,10 +111,10 @@ class PostUserAccountService {
   }
 
   static Future<bool> updateAccountOrder(AccountInDB account, String accessToken) async {
-    final url = Uri.parse('$apiEndpoint/api/account-order/');
+    final url = Uri.parse('$apiEndpoint/api/accounts/${account.id}');
 
     try {
-      final response = await http.post(
+      final response = await http.patch(
         url,
         headers: {
           'Authorization': 'Bearer $accessToken',
@@ -123,7 +123,7 @@ class PostUserAccountService {
         body: json.encode({
           'accountId': account.id,
           'order': account.displayOrder,
-          'hidden_by_user': account.hiddenByUser,
+          'hiddenByUser': account.hiddenByUser,
         }),
       );
 

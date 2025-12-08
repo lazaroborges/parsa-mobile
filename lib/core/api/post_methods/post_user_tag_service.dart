@@ -1,88 +1,95 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parsa/core/api/serializers/tags_serializer.dart';
 import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/models/account/account.dart';
-import 'package:parsa/core/models/tags/tag.dart';
 import 'package:parsa/main.dart';
 
+/// Service for tag API operations following the new RESTful backend.
+///
+/// Endpoints:
+/// - POST /api/tags/ - Create tag
+/// - PUT /api/tags/{id} - Update tag
+/// - DELETE /api/tags/{id} - Delete tag
 class PostUserTagService {
-  static String get _apiEndpoint => '$apiEndpoint/api/insert-user-tags/';
+  static String get _baseEndpoint => '$apiEndpoint/api/tags/';
 
-  /// Serializes the [account] and sends it to the API.
-  /// Returns [true] if the operation is successful (HTTP 200), otherwise [false].
-  static Future<bool> postUserTag(
-      TagInDB tag, String accessToken, String? method) async {
-    try {
-      // Serialize AccountInDB to JSON
-      final Map<String, dynamic> tagJson = {
-        'id': tag.id,
-        'name': tag.name,
-        'description': tag.description ?? '', // Add empty string as fallback
-        'displayOrder': tag.displayOrder,
-        'color': tag.color,
+  static Map<String, String> _headers(String accessToken) => {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
       };
 
-      print('tagJson: $tagJson');
+  /// Creates a new tag via POST /api/tags/
+  /// Returns the created tag with server-generated ID, or null on failure.
+  static Future<ApiTag?> createTag(TagInDB tag, String accessToken) async {
+    try {
+      final Map<String, dynamic> tagJson = {
+        'name': tag.name,
+        'color': tag.color,
+        'displayOrder': tag.displayOrder,
+        'description': tag.description ?? '',
+      };
 
-      // Send POST request to the API
+      final response = await http.post(
+        Uri.parse(_baseEndpoint),
+        headers: _headers(accessToken),
+        body: json.encode(tagJson),
+      );
 
-      final response = method == 'POST'
-          ? await http.post(
-              Uri.parse(_apiEndpoint),
-              headers: {
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              },
-              body: json.encode(tagJson),
-            )
-          : await http.put(
-              Uri.parse(_apiEndpoint),
-              headers: {
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              },
-              body: json.encode(tagJson),
-            );
-
-      print(
-          'LA respuesta es la verdad ${response.body} ${response.statusCode}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
+      if (response.statusCode == 201) {
+        final responseData = json.decode(utf8.decode(response.bodyBytes));
+        return ApiTag.fromJson(responseData);
       } else {
         print(
-            'Failed to post account. Status Code: ${response.statusCode}, Body: ${response.body}');
-        return false;
+            'Failed to create tag. Status Code: ${response.statusCode}, Body: ${response.body}');
+        return null;
       }
     } catch (e) {
-      print('Error posting account: $e');
-      return false;
+      print('Error creating tag: $e');
+      return null;
     }
   }
 
-  static Future<bool> deleteUserTag(String tagId, String accessToken) async {
+  /// Updates an existing tag via PUT /api/tags/{id}
+  /// Returns the updated tag, or null on failure.
+  static Future<ApiTag?> updateTag(TagInDB tag, String accessToken) async {
     try {
-      // Send DELETE request to the API
-
       final Map<String, dynamic> tagJson = {
-        'id': tagId,
+        'name': tag.name,
+        'color': tag.color,
+        'displayOrder': tag.displayOrder,
+        'description': tag.description ?? '',
       };
 
-      final response = await http.delete(
-        Uri.parse(_apiEndpoint),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
+      final response = await http.put(
+        Uri.parse('$_baseEndpoint${tag.id}'),
+        headers: _headers(accessToken),
         body: json.encode(tagJson),
-        // No body needed for DELETE request
       );
 
-      print(
-          'LA respuesta es la verdad ${response.body} ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final responseData = json.decode(utf8.decode(response.bodyBytes));
+        return ApiTag.fromJson(responseData);
+      } else {
+        print(
+            'Failed to update tag. Status Code: ${response.statusCode}, Body: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error updating tag: $e');
+      return null;
+    }
+  }
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        // 204 No Content for successful delete
+  /// Deletes a tag via DELETE /api/tags/{id}
+  /// Returns true on success (204 No Content), false otherwise.
+  static Future<bool> deleteTag(String tagId, String accessToken) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseEndpoint$tagId'),
+        headers: _headers(accessToken),
+      );
+
+      if (response.statusCode == 204) {
         return true;
       } else {
         print(
@@ -93,5 +100,23 @@ class PostUserTagService {
       print('Error deleting tag: $e');
       return false;
     }
+  }
+
+  // Legacy methods for backward compatibility during migration
+  @Deprecated('Use createTag or updateTag instead')
+  static Future<bool> postUserTag(
+      TagInDB tag, String accessToken, String? method) async {
+    if (method == 'POST') {
+      final result = await createTag(tag, accessToken);
+      return result != null;
+    } else {
+      final result = await updateTag(tag, accessToken);
+      return result != null;
+    }
+  }
+
+  @Deprecated('Use deleteTag instead')
+  static Future<bool> deleteUserTag(String tagId, String accessToken) async {
+    return deleteTag(tagId, accessToken);
   }
 }

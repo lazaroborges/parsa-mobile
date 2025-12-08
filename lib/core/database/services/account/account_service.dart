@@ -11,6 +11,7 @@ import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
 import 'package:parsa/core/api/delete_methods/delete_user_bank_account.dart';
@@ -26,11 +27,11 @@ class AccountService {
   /// Inserts an account after successfully posting it to the API.
   Future<int> insertAccount(AccountInDB account) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;
 
       bool isPosted = await PostUserAccountService.postUserAccount(
-          account, credentials?.accessToken ?? '');
+          account, token ?? '');
 
       if (!isPosted) {
         throw Exception('Failed to post account to the API.');
@@ -51,14 +52,14 @@ class AccountService {
 
   Future<bool> updateAccount(AccountInDB account) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;
 
       // Only send the order update to API if we have credentials
-      if (credentials?.accessToken != null) {
+      if (token != null) {
         unawaited(PostUserAccountService.updateAccountOrder(
           account,
-          credentials!.accessToken,
+          token,
         ));
       }
 

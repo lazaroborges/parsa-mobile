@@ -4,59 +4,65 @@ import 'package:http/http.dart' as http;
 import 'package:parsa/core/database/app_db.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/models/tags/tag.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
-
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/core/api/serializers/tags_serializer.dart';
 import 'package:parsa/main.dart';
 
+/// Fetches all tags for the authenticated user from GET /api/tags/
+/// Tags are ordered by displayOrder ascending, then name ascending.
 Future<void> fetchUserTags(BuildContext context) async {
-  final auth0 = Auth0Provider.instance.auth0;
-  final credentials = await auth0.credentialsManager.credentials();
+  final backendAuthService = BackendAuthService.instance;
+  final token = backendAuthService.token;
 
-  // URL for fetching user tags
-  String url = '$apiEndpoint/api/tags/';
+  if (token == null || token.isEmpty) {
+    throw Exception('Authentication token is missing or empty');
+  }
 
-  final response = await http.get(
-    Uri.parse(url),
-    headers: {
-      'Authorization': 'Bearer ${credentials.accessToken}',
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-  );
+  final String url = '$apiEndpoint/api/tags/';
+
+  http.Response response;
+  try {
+    response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    );
+  } catch (e) {
+    throw Exception('Network error fetching user tags: $e');
+  }
 
   if (response.statusCode == 200) {
-    // Explicitly decode as UTF-8
-    final String decodedBody = utf8.decode(response.bodyBytes);
-    
-    // Sync the fetched tags with the local database
-    await syncTags(decodedBody);
-
-    var jsonResponse = json.decode(decodedBody);
-    int objectCount = jsonResponse.length;
+    try {
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      await syncTags(decodedBody);
+    } catch (e) {
+      throw Exception('Error processing tags response: $e');
+    }
   } else {
-    throw Exception('Failed to load user tags');
+    final String body = utf8.decode(response.bodyBytes);
+    throw Exception(
+      'Failed to load user tags: status ${response.statusCode}, body: $body',
+    );
   }
 }
 
 Future<void> syncTags(String apiResponse) async {
   try {
-    // Step 1: Parse the API response
     List<ApiTag> apiTags = fetchAndParseTags(apiResponse);
     if (apiTags.isEmpty) {
       print('No tags to sync.');
       return;
     }
 
-    // Step 2: Convert API tags to local Tag model
-    List<Tag> localTags = await convertTagsToLocal(apiTags);
+    List<Tag> localTags = convertTagsToLocal(apiTags);
     if (localTags.isEmpty) {
       print('No valid tags after conversion.');
       return;
     }
 
-    // Step 3: Batch insert or update the tags in the local database
     await insertTagsIntoDB(localTags);
-
     print('Tags synced successfully.');
   } catch (e) {
     print('Error syncing tags: $e');
@@ -72,24 +78,23 @@ List<ApiTag> fetchAndParseTags(String responseBody) {
   }
 }
 
-Future<List<Tag>> convertTagsToLocal(List<ApiTag> apiTags) async {
+/// Converts API tags to local Tag model.
+/// New backend returns all fields as required (non-null).
+List<Tag> convertTagsToLocal(List<ApiTag> apiTags) {
   List<Tag> localTags = [];
 
   for (final apiTag in apiTags) {
     try {
-      // Create a local Tag instance from the API tag data
       Tag tag = Tag(
         id: apiTag.id,
         name: apiTag.name,
-        color: apiTag.color ?? '#FFFFFF', // Default color if not provided
-        description: apiTag.description ?? 'No description',
-        displayOrder: apiTag.displayOrder ?? 0, // Default to 0 if not provided
+        color: apiTag.color,
+        description: apiTag.description,
+        displayOrder: apiTag.displayOrder,
       );
-
       localTags.add(tag);
     } catch (e) {
       print('Error processing tag ID: ${apiTag.id}: $e');
-      // Continue processing other tags
       continue;
     }
   }
@@ -98,7 +103,6 @@ Future<List<Tag>> convertTagsToLocal(List<ApiTag> apiTags) async {
 }
 
 Future<void> insertTagsIntoDB(List<Tag> tags) async {
-  // Convert the list of `Tag` objects to `TagInDB` (the database representation of the tag)
   final List<TagInDB> tagsInDB = tags
       .map((tag) => TagInDB(
             id: tag.id,
@@ -109,6 +113,5 @@ Future<void> insertTagsIntoDB(List<Tag> tags) async {
           ))
       .toList();
 
-  // Perform a batch insert or replace operation
   await TagService.instance.batchInsertOrReplaceTags(tagsInDB);
 }
