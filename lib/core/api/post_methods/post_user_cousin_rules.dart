@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 
 import '../fetch_user_transactions.dart';
 
@@ -16,25 +16,21 @@ class PostUserCousinRules {
   }) async {
     try {
       // Get auth token using Provider
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
-
-      if (credentials == null) {
-        throw Exception('User not authenticated');
-      }
+      final backendAuthService = BackendAuthService.instance;
+      final token = backendAuthService.token;
 
       final response = await http.post(
         Uri.parse('$apiEndpoint/api/cousin-rules/'),
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': 'Bearer ${credentials.accessToken}',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'cousin': cousinValue,
-          'triggering_id': triggeringId,
+          'cousinId': cousinValue,
+          'triggeringId': triggeringId,
           'changes': changes,
-          'create_rule': applyToFuture,
-          'dont_ask_again': dontAskAgain,
+          'createRule': applyToFuture,
+          'dontAskAgain': dontAskAgain,
         }, toEncodable: (object) {
           if (object is String) {
             return utf8.decode(utf8.encode(object));

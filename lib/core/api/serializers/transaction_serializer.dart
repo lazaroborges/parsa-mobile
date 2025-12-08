@@ -62,7 +62,7 @@ class ApiTransaction {
 
   final bool? manipulated;
 
-  @JsonKey(name: 'dont_ask_again')
+  @JsonKey(name: 'dontAskAgain')
   final bool? dontAskAgain;
 
   @JsonKey(name: 'lastUpdateDateParsa')
