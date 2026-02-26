@@ -25,15 +25,22 @@ Future<Map<String, dynamic>> fetchUserDataAtServer() async {
     },
   );
 
-  final data = json.decode(response.body);
-  print('data: $data');
+  // Handle 401 Unauthorized - logout and redirect to login
+  if (response.statusCode == 401) {
+    await authService.handleUnauthorized();
+    throw Exception('Sessão expirada. Por favor, faça login novamente.');
+  }
 
-  if (response.statusCode == 200) {
-    UserDataProvider.instance.setUserData(data);
-    return data;
-  } else {
+  // Check status before decoding - error responses may not be valid JSON
+  if (response.statusCode != 200) {
     throw Exception('Failed to load user data');
   }
+
+  final data = json.decode(response.body) as Map<String, dynamic>;
+  print('data: $data');
+
+  UserDataProvider.instance.setUserData(data);
+  return data;
 }
 
 // New function to check if the questionnaire is filled

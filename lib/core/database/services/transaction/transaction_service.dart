@@ -43,6 +43,7 @@ class TransactionChanges {
   final TransactionStatus? status;
   final String? notes;
   final List<Tag>? tags;
+  final double? value;
 
   TransactionChanges({
     this.description,
@@ -50,6 +51,7 @@ class TransactionChanges {
     this.status,
     this.notes,
     this.tags,
+    this.value,
   });
 
   bool get hasChanges =>
@@ -57,7 +59,8 @@ class TransactionChanges {
       categoryName != null ||
       status != null ||
       notes != null ||
-      tags != null;
+      tags != null ||
+      value != null;
 
   Map<String, dynamic> toJson() => {
         if (description != null)
@@ -72,6 +75,7 @@ class TransactionChanges {
                   : null,
         if (notes != null) 'notes': utf8.decode(utf8.encode(notes!)),
         if (tags != null) 'tags': tags?.map((tag) => tag.id).toList(),
+        if (value != null) 'amount': value,
       };
 }
 
@@ -140,6 +144,7 @@ class TransactionService {
           status:
               existing.status != transaction.status ? transaction.status : null,
           notes: existing.notes != transaction.notes ? transaction.notes : null,
+          value: existing.value != transaction.value ? transaction.value : null,
         );
 
         // Only compare tags if they were explicitly provided
@@ -157,6 +162,7 @@ class TransactionService {
               status: changes.status,
               notes: changes.notes,
               tags: tags,
+              value: changes.value,
             );
           }
         }
