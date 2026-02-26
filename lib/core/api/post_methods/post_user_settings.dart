@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/database/app_db.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/services/auth/backend_auth_service.dart';
@@ -19,11 +18,10 @@ class PostUserSettings {
 
     while (true) {
       try {
-        // Get auth token using Provider
-        final auth0Provider = Auth0Provider.instance;
-        final credentials = await auth0Provider.credentials;
+        final authService = BackendAuthService.instance;
+        final token = authService.token;
 
-        if (credentials == null) {
+        if (token == null) {
           throw Exception('User not authenticated');
         }
 
@@ -31,7 +29,7 @@ class PostUserSettings {
           Uri.parse('$apiEndpoint/users/accrual-basis-accounting/'),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer ${credentials.accessToken}',
+            'Authorization': 'Bearer $token',
           },
           body: jsonEncode({
             'accrual_basis_accounting': isAccrualBasisAccounting,
@@ -96,19 +94,19 @@ class PostUserSettings {
 
     while (retryCount <= maxRetries) {
       try {
-        final auth0Provider = Auth0Provider.instance;
-        final credentials = await auth0Provider.credentials;
+        final authService = BackendAuthService.instance;
+        final token = authService.token;
 
-        if (credentials == null) {
+        if (token == null) {
           print('User not authenticated, cannot update date preferences.');
           return false;
         }
 
         final response = await http.post(
-          Uri.parse('$apiEndpoint/users/preferences/'),
+          Uri.parse('$apiEndpoint/api/notifications/preferences/'),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer ${credentials.accessToken}',
+            'Authorization': 'Bearer $token',
           },
           body: jsonEncode({
             'startOfWeek': startOfWeekString,
@@ -186,7 +184,7 @@ class PostUserSettings {
       }
 
       final response = await http.get(
-        Uri.parse('$apiEndpoint/users/preferences/'),
+        Uri.parse('$apiEndpoint/api/notifications/preferences/'),
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
           'Authorization': 'Bearer ${token}',
@@ -218,10 +216,10 @@ class PostUserSettings {
 
   static Future<bool> finishOpenFinanceFlow() async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final authService = BackendAuthService.instance;
+      final token = authService.token;
 
-      if (credentials == null) {
+      if (token == null) {
         print('User not authenticated, cannot finish open finance flow.');
         return false;
       }
@@ -230,7 +228,7 @@ class PostUserSettings {
         Uri.parse('$apiEndpoint/users/finish-openfinance-flow/'),
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': 'Bearer ${credentials.accessToken}',
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -250,10 +248,10 @@ class PostUserSettings {
 
   static Future<bool> triggerSwipeCardsFlow() async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final authService = BackendAuthService.instance;
+      final token = authService.token;
 
-      if (credentials == null) {
+      if (token == null) {
         print('User not authenticated, cannot trigger swipe cards flow.');
         return false;
       }
@@ -262,7 +260,7 @@ class PostUserSettings {
         Uri.parse('$apiEndpoint/users/trigger-swipe-cards-flow/'),
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': 'Bearer ${credentials.accessToken}',
+          'Authorization': 'Bearer $token',
         },
       );
 

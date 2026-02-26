@@ -26,7 +26,7 @@ alwaysApply: false
 ## Token Management
 - Get FCM token: `PermissionService.instance.getToken()`
 - Register token with backend: `FCMService.instance.registerToken()` or `saveTokenToServer(token)`
-- The backend endpoint for token registration is `$apiEndpoint/messaging/register-device/`
+- The backend endpoint for token registration is `$apiEndpoint/api/notifications/register-device/`
 
 ## Notification Preferences
 - Get preferences: `NotificationPreferencesService.instance.getPreferences(forceRefresh: true)`

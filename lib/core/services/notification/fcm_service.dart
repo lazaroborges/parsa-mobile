@@ -10,8 +10,7 @@ import 'package:parsa/core/services/notification/permission_service.dart';
 import 'package:parsa/main.dart';
 import '../../../firebase_options.dart';
 import 'package:http/http.dart' as http;
-import 'package:parsa/core/services/auth/auth0_class.dart';
-import 'package:provider/provider.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
 import 'package:parsa/core/api/fetch_user_accounts.dart';
 import 'package:parsa/core/routes/pending_navigation.dart';
@@ -620,7 +619,7 @@ class FCMService {
         }
 
         final response = await http.post(
-          Uri.parse('$apiEndpoint/messaging/register-device/'),
+          Uri.parse('$apiEndpoint/api/notifications/register-device/'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $accessToken',
@@ -672,21 +671,14 @@ class FCMService {
     return false;
   }
 
-  /// Helper method to get the access token
+  /// Helper method to get the access token from BackendAuthService
   Future<String?> _getAccessToken() async {
     try {
-      final context = navigatorKey.currentContext;
-      if (context == null) {
-        if (kDebugMode) {
-          print('No context available to get access token');
-        }
-        return null;
+      final token = BackendAuthService.instance.token;
+      if (token == null && kDebugMode) {
+        print('No access token available');
       }
-
-      // Use the Provider to get the Auth0Provider
-      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-      final credentials = auth0Provider.credentials;
-      return credentials?.accessToken;
+      return token;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting access token: $e');
