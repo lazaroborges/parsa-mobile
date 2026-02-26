@@ -25,6 +25,12 @@ Future<Map<String, dynamic>> fetchUserDataAtServer() async {
     },
   );
 
+  // Handle 401 Unauthorized - logout and redirect to login
+  if (response.statusCode == 401) {
+    await authService.handleUnauthorized();
+    throw Exception('Sessão expirada. Por favor, faça login novamente.');
+  }
+
   final data = json.decode(response.body);
   print('data: $data');
 

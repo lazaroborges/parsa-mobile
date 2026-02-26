@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:parsa/app/onboarding/intro.page.dart';
 import 'package:parsa/core/services/auth/token_storage.dart';
 import 'package:parsa/core/services/session_service.dart';
 import 'package:parsa/main.dart';
@@ -269,6 +270,25 @@ class BackendAuthService extends ChangeNotifier {
       _currentToken = null;
       _currentUser = null;
       notifyListeners();
+    }
+  }
+
+  /// Handle unauthorized (401) response - logout and navigate to login page
+  Future<void> handleUnauthorized() async {
+    print('Unauthorized (401) - logging out and redirecting to login');
+
+    // Clear local data without calling logout endpoint (token is already invalid)
+    await _tokenStorage.clearAll();
+    _currentToken = null;
+    _currentUser = null;
+    notifyListeners();
+
+    // Navigate to IntroPage using the global navigator key
+    if (navigatorKey.currentState != null) {
+      navigatorKey.currentState!.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const IntroPage()),
+        (route) => false,
+      );
     }
   }
 
