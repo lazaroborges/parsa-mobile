@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/main.dart';
-import 'package:provider/provider.dart';
 import 'package:parsa/core/services/notification/permission_service.dart';
 
 /// Service to interact with notification preferences API endpoints
@@ -67,18 +66,18 @@ class NotificationPreferencesService {
         }
 
         // We have permission, proceed with getting preferences from server
-        // Get access token
-        final accessToken = await _getAccessToken();
-        if (accessToken == null) {
-          throw Exception('No access token available');
+        final authService = BackendAuthService.instance;
+        final token = authService.token;
+        if (token == null) {
+          throw Exception('No authentication token found');
         }
 
         // Make API request
         final response = await http.get(
-          Uri.parse('$apiEndpoint/messaging/preferences/'),
+          Uri.parse('$apiEndpoint/api/notifications/preferences/'),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken',
+            'Authorization': 'Bearer $token',
           },
         );
 
@@ -256,21 +255,21 @@ class NotificationPreferencesService {
   Future<bool> _updateBackendPreferences(
       Map<String, dynamic> requestBody) async {
     try {
-      // Get access token
-      final accessToken = await _getAccessToken();
-      if (accessToken == null) {
+      final authService = BackendAuthService.instance;
+      final token = authService.token;
+      if (token == null) {
         if (kDebugMode) {
-          print('No access token available');
+          print('No authentication token found');
         }
         return false;
       }
 
       // Make API request
       final response = await http.post(
-        Uri.parse('$apiEndpoint/messaging/preferences/'),
+        Uri.parse('$apiEndpoint/api/notifications/preferences/'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(requestBody),
       );
@@ -293,28 +292,5 @@ class NotificationPreferencesService {
   /// Reset the session flag to force refresh on next app start
   void resetSessionFlag() {
     _preferencesRefreshedThisSession = false;
-  }
-
-  /// Helper method to get the access token
-  Future<String?> _getAccessToken() async {
-    try {
-      final context = navigatorKey.currentContext;
-      if (context == null) {
-        if (kDebugMode) {
-          print('No context available to get access token');
-        }
-        return null;
-      }
-
-      // Use the Provider to get the Auth0Provider
-      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-      final credentials = auth0Provider.credentials;
-      return credentials?.accessToken;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error getting access token: $e');
-      }
-      return null;
-    }
   }
 }
