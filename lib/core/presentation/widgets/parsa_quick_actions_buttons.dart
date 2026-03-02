@@ -79,15 +79,17 @@ class ParsaQuickActionsButtons extends StatelessWidget {
                     ),
             ),
           ),
-          Expanded(
-            child: _buildActionButton(
-              context,
-              Icons.link_off,
-              _buildMultilineText(t.account.disconnect.title),
-              () => AccountDetailsActions.disconnectAccount(context, account),
-              isDisconnectAction: true,
-            ),
-          ),
+          // FROZEN: Desconectar Banco - API: POST /api/account-insert/actions/disconnect/
+          // Uncomment to re-enable.
+          // Expanded(
+          //   child: _buildActionButton(
+          //     context,
+          //     Icons.link_off,
+          //     _buildMultilineText(t.account.disconnect.title),
+          //     () => AccountDetailsActions.disconnectAccount(context, account),
+          //     isDisconnectAction: true,
+          //   ),
+          // ),
           Expanded(
             child: _buildActionButton(
               context,

@@ -69,19 +69,49 @@ class PostUserAccountService {
 
   static Future<bool> deleteOpenFinanceAccount(
       String accountId, String accessToken) async {
-    return await _postAccountAction(accountId, accessToken, 'delete');
+    return await _postToAccountPath(accountId, accessToken, 'delete-bank');
   }
 
   static Future<bool> removeAccount(
       String accountId, String accessToken) async {
-    return await _postAccountAction(accountId, accessToken, 'remove');
+    return await _postToAccountPath(accountId, accessToken, 'remove');
   }
 
   static Future<bool> restoreAccount(
       String accountId, String accessToken) async {
-    return await _postAccountAction(accountId, accessToken, 'restore');
+    return await _postToAccountPath(accountId, accessToken, 'restore');
   }
 
+  /// New accounts API: POST /api/accounts/{id}/{action}
+  static Future<bool> _postToAccountPath(
+      String accountId, String accessToken, String pathSuffix) async {
+    final url = Uri.parse(
+        '$apiEndpoint/api/accounts/$accountId/$pathSuffix');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Failed to $pathSuffix account. Status Code: ${response.statusCode}, Body: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error $pathSuffix account: $e');
+      return false;
+    }
+  }
+
+  /// Legacy: POST /api/account-insert/actions/{action}/ (used by disconnect)
   static Future<bool> _postAccountAction(
       String accountId, String accessToken, String action) async {
     final url = Uri.parse(
