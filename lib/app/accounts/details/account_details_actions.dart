@@ -9,11 +9,10 @@ import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/presentation/widgets/confirm_dialog.dart';
 import 'package:parsa/core/routes/route_utils.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
+import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:parsa/core/utils/list_tile_action_item.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
-import 'package:provider/provider.dart';
 
 import '../../../core/models/transaction/transaction_type.enum.dart';
 
@@ -203,17 +202,14 @@ abstract class AccountDetailsActions {
     if (isConfirmed != true) return;
 
     try {
-      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-      final credentials = auth0Provider.credentials;
+      final token = BackendAuthService.instance.token;
 
-      if (credentials == null) {
+      if (token == null || token.isEmpty) {
         throw Exception('User is not logged in');
       }
 
-      final accessToken = credentials.accessToken;
-
       final success = await PostUserAccountService.disconnectAccount(
-          account.id, accessToken);
+          account.id, token);
 
       if (success) {
         // Close the account in the local database
@@ -251,6 +247,12 @@ abstract class AccountDetailsActions {
 
     if (isConfirmed != true) return;
 
+    final token = BackendAuthService.instance.token;
+    if (token == null || token.isEmpty) {
+      scaffold.showSnackBar(SnackBar(content: Text('User is not logged in')));
+      return;
+    }
+
     // Show loading snackbar
     scaffold.showSnackBar(
       SnackBar(
@@ -273,16 +275,8 @@ abstract class AccountDetailsActions {
     );
 
     try {
-      final auth0Provider = Provider.of<Auth0Provider>(context, listen: false);
-      final credentials = await auth0Provider.credentials;
-
-      if (credentials == null) {
-        throw Exception('User is not logged in');
-      }
-
-      final accessToken = credentials.accessToken;
       final success = await PostUserAccountService.deleteOpenFinanceAccount(
-          accountId, accessToken);
+          accountId, token);
 
       if (success) {
         // Hide the loading snackbar
