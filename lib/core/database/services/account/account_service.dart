@@ -10,7 +10,6 @@ import 'package:parsa/core/database/services/transaction/transaction_service.dar
 import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
-import 'package:parsa/core/services/auth/auth0_class.dart';
 import 'package:parsa/core/services/auth/backend_auth_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:parsa/core/api/post_methods/post_user_account.dart';
@@ -79,11 +78,10 @@ class AccountService {
 
   Future<int> deleteAccount(String accountId) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final token = BackendAuthService.instance.token;
 
       bool isDeleted = await DeleteUserBankAccount.deleteUser(
-          accountId, credentials?.accessToken ?? '');
+          accountId, token ?? '');
 
       if (!isDeleted) {
         throw Exception('Failed to delete account from the API.');
@@ -292,11 +290,10 @@ class AccountService {
 
   Future<bool> removeAccount(String accountId) async {
     try {
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final token = BackendAuthService.instance.token;
 
       bool isRemoved = await PostUserAccountService.removeAccount(
-          accountId, credentials?.accessToken ?? '');
+          accountId, token ?? '');
 
       if (!isRemoved) {
         throw Exception('Failed to remove account from the API.');
@@ -345,11 +342,10 @@ class AccountService {
             ),
           );
 
-      final auth0Provider = Auth0Provider.instance;
-      final credentials = await auth0Provider.credentials;
+      final token = BackendAuthService.instance.token;
 
       bool isRestored = await PostUserAccountService.restoreAccount(
-          accountId, credentials?.accessToken ?? '');
+          accountId, token ?? '');
 
       if (!isRestored) {
         throw Exception('Failed to restore account from the API.');
