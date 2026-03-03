@@ -82,11 +82,11 @@ class PostUserAccountService {
     return await _postToAccountPath(accountId, accessToken, 'restore');
   }
 
-  /// New accounts API: POST /api/accounts/{id}/{action}
+  /// New accounts API: POST /api/accounts/{action}/{id}
   static Future<bool> _postToAccountPath(
-      String accountId, String accessToken, String pathSuffix) async {
+      String accountId, String accessToken, String action) async {
     final url = Uri.parse(
-        '$apiEndpoint/api/accounts/$accountId/$pathSuffix');
+        '$apiEndpoint/api/accounts/$action/$accountId');
 
     try {
       final response = await http.post(
@@ -98,15 +98,15 @@ class PostUserAccountService {
         body: json.encode({}),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204)  {
         return true;
       } else {
         print(
-            'Failed to $pathSuffix account. Status Code: ${response.statusCode}, Body: ${response.body}');
+            'Failed to $action account. Status Code: ${response.statusCode}, Body: ${response.body}');
         return false;
       }
     } catch (e) {
-      print('Error $pathSuffix account: $e');
+      print('Error $action account: $e');
       return false;
     }
   }
