@@ -162,9 +162,10 @@ class BackendAuthService extends ChangeNotifier {
   Future<AuthResponse> exchangeMobileOAuthCode(String code) async {
     try {
       // Call the mobile callback endpoint with the code
-      final response = await http.get(
-        Uri.parse('$apiEndpoint/api/auth/oauth/mobile/callback')
-            .replace(queryParameters: {'code': code}),
+      final response = await http.post(
+        Uri.parse('$apiEndpoint/api/auth/oauth/mobile/exchange'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code}),
       ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
