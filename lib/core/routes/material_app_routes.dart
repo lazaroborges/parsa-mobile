@@ -39,8 +39,13 @@ class MaterialAppRoutes {
 
     // Android OAuth workaround: Check if this is OAuth callback with token
     // Backend redirects to com.parsa.app://?token=... which arrives as /?token=...
-    if (pathSegments.isEmpty && uri.queryParameters.containsKey('token')) {
-      print('Android OAuth: Detected token in deep link, redirecting to IntroPage');
+    if (pathSegments.isEmpty && uri.queryParameters.containsKey('code')) {
+      print('Android OAuth: Detected code in deep link, redirecting to IntroPage');
+      return MaterialPageRoute(
+        builder: (_) => IntroPage(oauthCode: uri.queryParameters['code']),
+      );
+    } else if (pathSegments.isEmpty && uri.queryParameters.containsKey('token')) {
+      print('Android OAuth: Detected token in deep link (legacy), redirecting to IntroPage');
       return MaterialPageRoute(
         builder: (_) => IntroPage(oauthToken: uri.queryParameters['token']),
       );

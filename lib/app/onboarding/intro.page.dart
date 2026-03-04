@@ -21,10 +21,13 @@ import '../../core/presentation/app_colors.dart';
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
 
 class IntroPage extends StatefulWidget {
-  const IntroPage({super.key, this.oauthToken});
+  const IntroPage({super.key, this.oauthToken, this.oauthCode});
 
   // Android workaround: token received via deep link instead of FlutterWebAuth2
   final String? oauthToken;
+
+  // OAuth code to exchange for token via backend
+  final String? oauthCode;
 
   @override
   State<IntroPage> createState() => _IntroPageState();
@@ -97,14 +100,40 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       });
     });
 
-    // Android workaround: Check if OAuth token was passed via deep link
-    if (widget.oauthToken != null) {
-      print('Android OAuth: Token received via deep link');
+    // Check if OAuth code was passed via deep link (new flow)
+    if (widget.oauthCode != null) {
+      print('OAuth: Code received via deep link');
+      _handleOAuthCode(widget.oauthCode!);
+    }
+    // Legacy fallback: token received directly via deep link
+    else if (widget.oauthToken != null) {
+      print('Android OAuth: Token received via deep link (legacy)');
       _handleOAuthToken(widget.oauthToken!);
     }
   }
 
-  // Android workaround: Handle OAuth token received via deep link
+  // Handle OAuth code by exchanging it for a token via backend
+  Future<void> _handleOAuthCode(String code) async {
+    setState(() => _isLoading = true);
+    try {
+      final authService = BackendAuthService.instance;
+      await authService.exchangeMobileOAuthCode(code);
+      if (mounted) {
+        await _handlePostLogin();
+      }
+    } catch (e) {
+      print('Error exchanging OAuth code: $e');
+      if (mounted) {
+        _showError('Falha no login: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  // Legacy: Handle OAuth token received via deep link
   Future<void> _handleOAuthToken(String token) async {
     setState(() => _isLoading = true);
     try {
@@ -240,19 +269,21 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
 
         print('OAuth callback received: $result');
 
-        // Step 3: Extract token from callback URL
+        // Step 3: Extract code or token from callback URL
         final uri = Uri.parse(result);
+        final code = uri.queryParameters['code'];
         final token = uri.queryParameters['token'];
 
-        if (token == null) {
-          print('No token in callback URL. Full URL: $result');
+        if (code != null) {
+          print('OAuth code received, exchanging...');
+          await authService.exchangeMobileOAuthCode(code);
+        } else if (token != null) {
+          print('OAuth token received (legacy)');
+          await authService.saveTokenFromMobileOAuth(token);
+        } else {
+          print('No code or token in callback URL. Full URL: $result');
           throw Exception('Token não recebido');
         }
-
-        print('OAuth token received');
-
-        // Step 4: Save token and user data
-        await authService.saveTokenFromMobileOAuth(token);
 
         if (mounted) {
           await _handlePostLogin();
@@ -301,8 +332,9 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
 
       print('Apple OAuth callback result: $result');
 
-      // Step 3: Extract token from callback URL
+      // Step 3: Extract code or token from callback URL
       final uri = Uri.parse(result);
+      final code = uri.queryParameters['code'];
       final token = uri.queryParameters['token'];
       final error = uri.queryParameters['error'];
 
@@ -311,15 +343,16 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
         throw Exception('Erro Apple: $error');
       }
 
-      if (token == null) {
-        print('No token in callback URL. Full URL: $result');
+      if (code != null) {
+        print('Apple OAuth code received, exchanging...');
+        await authService.exchangeMobileOAuthCode(code);
+      } else if (token != null) {
+        print('Apple OAuth token received (legacy)');
+        await authService.saveTokenFromMobileOAuth(token);
+      } else {
+        print('No code or token in callback URL. Full URL: $result');
         throw Exception('Token não recebido');
       }
-
-      print('Apple OAuth token received');
-
-      // Step 4: Save token and user data
-      await authService.saveTokenFromMobileOAuth(token);
 
       if (mounted) {
         await _handlePostLogin();
