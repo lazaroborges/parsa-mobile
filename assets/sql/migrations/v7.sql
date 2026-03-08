@@ -27,6 +27,7 @@ CREATE TABLE transactions_temp (
   intervalEach INTEGER,
   endDate DATETIME,
   remainingTransactions INTEGER,
+  recurrency_type TEXT CHECK(recurrency_type IS NULL OR recurrency_type IN ('recurrent_fixed', 'recurring_variable', 'irregular')),
 
   CHECK ((receivingAccountID IS NULL) != (categoryID IS NULL)),
   CHECK ((intervalPeriod IS NULL) == (intervalEach IS NULL)),
@@ -57,7 +58,8 @@ INSERT INTO transactions_temp (
  intervalPeriod,
  intervalEach,
  endDate,
- remainingTransactions
+ remainingTransactions,
+ recurrency_type
 ) SELECT id,
     date,
     accountID,
@@ -78,7 +80,8 @@ INSERT INTO transactions_temp (
     intervalPeriod,
     intervalEach,
     endDate,
-    remainingTransactions
+    remainingTransactions,
+    NULL AS recurrency_type
 FROM transactions;
 
 -- Step 3: Drop the old table

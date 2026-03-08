@@ -256,11 +256,11 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
         accountCurrency: currency,
         category: categoryInDB,
         status: status,
-        notes: notes,
-        manipulated: apiTransaction.manipulated,
-        paymentMethod: paymentMethod,
-        lastUpdateTime: apiTransaction.lastUpdateTime,
-        valueInDestiny: null,
+      notes: notes,
+      manipulated: apiTransaction.manipulated,
+      paymentMethod: paymentMethod,
+      lastUpdateTime: apiTransaction.lastUpdateTime,
+      valueInDestiny: null,
         locAddress: null,
         locLatitude: null,
         locLongitude: null,
@@ -275,6 +275,7 @@ Future<List<MoneyTransaction>> convertApiTransactionsToLocal(
             apiTransaction.amount, // Adjust as needed
         tags: tagsInDB, // Add this line
         dontAskAgain: apiTransaction.dontAskAgain ?? false,
+        recurrencyType: apiTransaction.recurrencyType,
       );
 
       localTransactions.add(transaction);
@@ -375,6 +376,7 @@ extension MoneyTransactionExtension on MoneyTransaction {
       notes: notes,
       cousin: cousin,
       dontAskAgain: dontAskAgain,
+      recurrencyType: recurrencyType,
     );
   }
 }

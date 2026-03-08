@@ -1804,6 +1804,14 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _recurrencyTypeMeta =
+      const VerificationMeta('recurrencyType');
+  late final GeneratedColumn<String> recurrencyType = GeneratedColumn<String>(
+      'recurrency_type', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'CHECK (recurrency_type IS NULL OR recurrency_type IN (\'recurrent_fixed\', \'recurring_variable\', \'irregular\'))');
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1830,7 +1838,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
         intervalPeriod,
         intervalEach,
         endDate,
-        remainingTransactions
+        remainingTransactions,
+        recurrencyType
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1966,6 +1975,12 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           remainingTransactions.isAcceptableOrUnknown(
               data['remainingTransactions']!, _remainingTransactionsMeta));
     }
+    if (data.containsKey('recurrency_type')) {
+      context.handle(
+          _recurrencyTypeMeta,
+          recurrencyType.isAcceptableOrUnknown(
+              data['recurrency_type']!, _recurrencyTypeMeta));
+    }
     return context;
   }
 
@@ -2027,6 +2042,8 @@ class Transactions extends Table with TableInfo<Transactions, TransactionInDB> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}endDate']),
       remainingTransactions: attachedDatabase.typeMapping.read(
           DriftSqlType.int, data['${effectivePrefix}remainingTransactions']),
+      recurrencyType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}recurrency_type']),
     );
   }
 
@@ -2114,6 +2131,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
 
   /// Number of payments remaining. This value must dicrease by one in the case a new payment is done within this rule. If this field or the `endDate` field is not specified, the recurring transaction will never end.
   final int? remainingTransactions;
+
+  /// Type of recurrency: recurrent_fixed, recurring_variable, or irregular (from Open Finance)
+  final String? recurrencyType;
   const TransactionInDB(
       {required this.id,
       required this.date,
@@ -2139,7 +2159,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       this.intervalPeriod,
       this.intervalEach,
       this.endDate,
-      this.remainingTransactions});
+      this.remainingTransactions,
+      this.recurrencyType});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2208,6 +2229,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
     if (!nullToAbsent || remainingTransactions != null) {
       map['remainingTransactions'] = Variable<int>(remainingTransactions);
     }
+    if (!nullToAbsent || recurrencyType != null) {
+      map['recurrency_type'] = Variable<String>(recurrencyType);
+    }
     return map;
   }
 
@@ -2270,6 +2294,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       remainingTransactions: remainingTransactions == null && nullToAbsent
           ? const Value.absent()
           : Value(remainingTransactions),
+      recurrencyType: recurrencyType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recurrencyType),
     );
   }
 
@@ -2307,6 +2334,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       endDate: serializer.fromJson<DateTime?>(json['endDate']),
       remainingTransactions:
           serializer.fromJson<int?>(json['remainingTransactions']),
+      recurrencyType: serializer.fromJson<String?>(json['recurrency_type']),
     );
   }
   @override
@@ -2341,6 +2369,7 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       'intervalEach': serializer.toJson<int?>(intervalEach),
       'endDate': serializer.toJson<DateTime?>(endDate),
       'remainingTransactions': serializer.toJson<int?>(remainingTransactions),
+      'recurrency_type': serializer.toJson<String?>(recurrencyType),
     };
   }
 
@@ -2369,7 +2398,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           Value<Periodicity?> intervalPeriod = const Value.absent(),
           Value<int?> intervalEach = const Value.absent(),
           Value<DateTime?> endDate = const Value.absent(),
-          Value<int?> remainingTransactions = const Value.absent()}) =>
+          Value<int?> remainingTransactions = const Value.absent(),
+          Value<String?> recurrencyType = const Value.absent()}) =>
       TransactionInDB(
         id: id ?? this.id,
         date: date ?? this.date,
@@ -2407,6 +2437,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         remainingTransactions: remainingTransactions.present
             ? remainingTransactions.value
             : this.remainingTransactions,
+        recurrencyType:
+            recurrencyType.present ? recurrencyType.value : this.recurrencyType,
       );
   TransactionInDB copyWithCompanion(TransactionsCompanion data) {
     return TransactionInDB(
@@ -2459,6 +2491,9 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
       remainingTransactions: data.remainingTransactions.present
           ? data.remainingTransactions.value
           : this.remainingTransactions,
+      recurrencyType: data.recurrencyType.present
+          ? data.recurrencyType.value
+          : this.recurrencyType,
     );
   }
 
@@ -2489,7 +2524,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           ..write('intervalPeriod: $intervalPeriod, ')
           ..write('intervalEach: $intervalEach, ')
           ..write('endDate: $endDate, ')
-          ..write('remainingTransactions: $remainingTransactions')
+          ..write('remainingTransactions: $remainingTransactions, ')
+          ..write('recurrencyType: $recurrencyType')
           ..write(')'))
         .toString();
   }
@@ -2520,7 +2556,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
         intervalPeriod,
         intervalEach,
         endDate,
-        remainingTransactions
+        remainingTransactions,
+        recurrencyType
       ]);
   @override
   bool operator ==(Object other) =>
@@ -2550,7 +2587,8 @@ class TransactionInDB extends DataClass implements Insertable<TransactionInDB> {
           other.intervalPeriod == this.intervalPeriod &&
           other.intervalEach == this.intervalEach &&
           other.endDate == this.endDate &&
-          other.remainingTransactions == this.remainingTransactions);
+          other.remainingTransactions == this.remainingTransactions &&
+          other.recurrencyType == this.recurrencyType);
 }
 
 class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
@@ -2579,6 +2617,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
   final Value<int?> intervalEach;
   final Value<DateTime?> endDate;
   final Value<int?> remainingTransactions;
+  final Value<String?> recurrencyType;
   final Value<int> rowid;
   const TransactionsCompanion({
     this.id = const Value.absent(),
@@ -2606,6 +2645,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.intervalEach = const Value.absent(),
     this.endDate = const Value.absent(),
     this.remainingTransactions = const Value.absent(),
+    this.recurrencyType = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TransactionsCompanion.insert({
@@ -2634,6 +2674,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     this.intervalEach = const Value.absent(),
     this.endDate = const Value.absent(),
     this.remainingTransactions = const Value.absent(),
+    this.recurrencyType = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         date = Value(date),
@@ -2666,6 +2707,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     Expression<int>? intervalEach,
     Expression<DateTime>? endDate,
     Expression<int>? remainingTransactions,
+    Expression<String>? recurrencyType,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2695,6 +2737,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       if (endDate != null) 'endDate': endDate,
       if (remainingTransactions != null)
         'remainingTransactions': remainingTransactions,
+      if (recurrencyType != null) 'recurrency_type': recurrencyType,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2725,6 +2768,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       Value<int?>? intervalEach,
       Value<DateTime?>? endDate,
       Value<int?>? remainingTransactions,
+      Value<String?>? recurrencyType,
       Value<int>? rowid}) {
     return TransactionsCompanion(
       id: id ?? this.id,
@@ -2753,6 +2797,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
       endDate: endDate ?? this.endDate,
       remainingTransactions:
           remainingTransactions ?? this.remainingTransactions,
+      recurrencyType: recurrencyType ?? this.recurrencyType,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2838,6 +2883,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
     if (remainingTransactions.present) {
       map['remainingTransactions'] = Variable<int>(remainingTransactions.value);
     }
+    if (recurrencyType.present) {
+      map['recurrency_type'] = Variable<String>(recurrencyType.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2872,6 +2920,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionInDB> {
           ..write('intervalEach: $intervalEach, ')
           ..write('endDate: $endDate, ')
           ..write('remainingTransactions: $remainingTransactions, ')
+          ..write('recurrencyType: $recurrencyType, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5304,6 +5353,7 @@ abstract class _$AppDB extends GeneratedDatabase {
           cousin: row.readNullable<int>('cousin'),
           dontAskAgain: row.readNullable<bool>('dontAskAgain'),
           paymentMethod: row.readNullable<String>('payment_method'),
+          recurrencyType: row.readNullable<String>('recurrency_type'),
         ));
   }
 
@@ -6436,6 +6486,7 @@ typedef $TransactionsCreateCompanionBuilder = TransactionsCompanion Function({
   Value<int?> intervalEach,
   Value<DateTime?> endDate,
   Value<int?> remainingTransactions,
+  Value<String?> recurrencyType,
   Value<int> rowid,
 });
 typedef $TransactionsUpdateCompanionBuilder = TransactionsCompanion Function({
@@ -6464,6 +6515,7 @@ typedef $TransactionsUpdateCompanionBuilder = TransactionsCompanion Function({
   Value<int?> intervalEach,
   Value<DateTime?> endDate,
   Value<int?> remainingTransactions,
+  Value<String?> recurrencyType,
   Value<int> rowid,
 });
 
@@ -6509,6 +6561,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<int?> intervalEach = const Value.absent(),
             Value<DateTime?> endDate = const Value.absent(),
             Value<int?> remainingTransactions = const Value.absent(),
+            Value<String?> recurrencyType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TransactionsCompanion(
@@ -6537,6 +6590,7 @@ class $TransactionsTableManager extends RootTableManager<
             intervalEach: intervalEach,
             endDate: endDate,
             remainingTransactions: remainingTransactions,
+            recurrencyType: recurrencyType,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -6565,6 +6619,7 @@ class $TransactionsTableManager extends RootTableManager<
             Value<int?> intervalEach = const Value.absent(),
             Value<DateTime?> endDate = const Value.absent(),
             Value<int?> remainingTransactions = const Value.absent(),
+            Value<String?> recurrencyType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TransactionsCompanion.insert(
@@ -6593,6 +6648,7 @@ class $TransactionsTableManager extends RootTableManager<
             intervalEach: intervalEach,
             endDate: endDate,
             remainingTransactions: remainingTransactions,
+            recurrencyType: recurrencyType,
             rowid: rowid,
           ),
         ));
@@ -6714,6 +6770,11 @@ class $TransactionsFilterComposer
 
   ColumnFilters<int> get remainingTransactions => $state.composableBuilder(
       column: $state.table.remainingTransactions,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get recurrencyType => $state.composableBuilder(
+      column: $state.table.recurrencyType,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6877,6 +6938,11 @@ class $TransactionsOrderingComposer
 
   ColumnOrderings<int> get remainingTransactions => $state.composableBuilder(
       column: $state.table.remainingTransactions,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get recurrencyType => $state.composableBuilder(
+      column: $state.table.recurrencyType,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

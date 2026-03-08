@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 1
-/// Strings: 618
+/// Strings: 622
 ///
-/// Built on 2025-12-08 at 16:26 UTC
+/// Built on 2026-03-08 at 19:57 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -350,6 +350,10 @@ class _TranslationsTransactionPt {
 	String get manual_source => 'Manual';
 	String get manipulated => 'Modificada pelo usuário';
 	String get synch_method => 'Sincronizada';
+	String get recurrency_type => 'Tipo de recorrência';
+	String get recurrency_type_recurrent_fixed => 'Recorrente fixo';
+	String get recurrency_type_recurring_variable => 'Recorrente variável';
+	String get recurrency_type_irregular => 'Irregular';
 	String get synch_auto => 'Automaticamente (Open Finance)';
 	String get synch_manual => 'Manualmente';
 	String get yes => 'Sim';
@@ -1847,6 +1851,10 @@ extension on Translations {
 			case 'transaction.manual_source': return 'Manual';
 			case 'transaction.manipulated': return 'Modificada pelo usuário';
 			case 'transaction.synch_method': return 'Sincronizada';
+			case 'transaction.recurrency_type': return 'Tipo de recorrência';
+			case 'transaction.recurrency_type_recurrent_fixed': return 'Recorrente fixo';
+			case 'transaction.recurrency_type_recurring_variable': return 'Recorrente variável';
+			case 'transaction.recurrency_type_irregular': return 'Irregular';
 			case 'transaction.synch_auto': return 'Automaticamente (Open Finance)';
 			case 'transaction.synch_manual': return 'Manualmente';
 			case 'transaction.yes': return 'Sim';

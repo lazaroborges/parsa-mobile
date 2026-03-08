@@ -74,6 +74,20 @@ class TransactionDetailsPage extends StatefulWidget {
   State<TransactionDetailsPage> createState() => _TransactionDetailsPageState();
 }
 
+String _recurrencyTypeDisplay(BuildContext context, String recurrencyType) {
+  final t = Translations.of(context);
+  switch (recurrencyType) {
+    case 'recurrent_fixed':
+      return t.transaction.recurrency_type_recurrent_fixed;
+    case 'recurring_variable':
+      return t.transaction.recurrency_type_recurring_variable;
+    case 'irregular':
+      return t.transaction.recurrency_type_irregular;
+    default:
+      return recurrencyType;
+  }
+}
+
 class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   void updateCategory(BuildContext context, MoneyTransaction transaction) {
     showCategoryPickerModal(
@@ -979,6 +993,14 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                                     ),
                                     label: t.transaction.synch_method,
                                   ),
+                                  if (transaction.recurrencyType != null)
+                                    LabelValueInfoItem(
+                                      value: Text(
+                                        _recurrencyTypeDisplay(
+                                            context, transaction.recurrencyType!),
+                                      ),
+                                      label: t.transaction.recurrency_type,
+                                    ),
                                 ],
                               ),
                             ),

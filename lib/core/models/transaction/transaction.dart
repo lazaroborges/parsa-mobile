@@ -59,7 +59,8 @@ class MoneyTransaction extends TransactionInDB {
       super.lastUpdateTime,
       super.cousin, 
       super.dontAskAgain = false,
-      super.paymentMethod})
+      super.paymentMethod,
+      super.recurrencyType})
       : category =
             category != null ? Category.fromDB(category, parentCategory) : null,
         account = Account.fromDB(account, accountCurrency),

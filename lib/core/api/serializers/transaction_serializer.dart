@@ -68,6 +68,9 @@ class ApiTransaction {
   @JsonKey(name: 'lastUpdateDateParsa')
   final DateTime? lastUpdateTime;
 
+  @JsonKey(name: 'recurrencyType')
+  final String? recurrencyType;
+
   ApiTransaction({
     required this.id,
     this.description,
@@ -87,6 +90,7 @@ class ApiTransaction {
     this.lastUpdateTime,
     this.cousin,
     this.dontAskAgain,
+    this.recurrencyType,
   });
 
   /// Factory constructor for creating a new `ApiTransaction` instance from JSON.

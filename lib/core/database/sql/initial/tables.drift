@@ -166,6 +166,9 @@ CREATE TABLE IF NOT EXISTS transactions (
   -- Number of payments remaining. This value must dicrease by one in the case a new payment is done within this rule. If this field or the `endDate` field is not specified, the recurring transaction will never end.
   remainingTransactions INTEGER,
 
+  -- Type of recurrency: recurrent_fixed, recurring_variable, or irregular (from Open Finance)
+  recurrency_type TEXT CHECK(recurrency_type IS NULL OR recurrency_type IN ('recurrent_fixed', 'recurring_variable', 'irregular')),
+
   -- Should be Transfer or income/expense (not both). Leaving both to null is also not valid
   CHECK ((receivingAccountID IS NULL) != (categoryID IS NULL)),
 
