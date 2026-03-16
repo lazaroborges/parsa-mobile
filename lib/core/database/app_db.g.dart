@@ -4688,6 +4688,740 @@ class BudgetTagCompanion extends UpdateCompanion<BudgetTagData> {
   }
 }
 
+class ForecastTransactions extends Table
+    with TableInfo<ForecastTransactions, ForecastTransactionInDB> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ForecastTransactions(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL PRIMARY KEY');
+  static const VerificationMeta _recurrencyPatternIdMeta =
+      const VerificationMeta('recurrencyPatternId');
+  late final GeneratedColumn<String> recurrencyPatternId =
+      GeneratedColumn<String>('recurrencyPatternId', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: '');
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  late final GeneratedColumnWithTypeConverter<TransactionType, String> type =
+      GeneratedColumn<String>('type', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: true,
+              $customConstraints: 'NOT NULL CHECK (type IN (\'E\', \'I\'))')
+          .withConverter<TransactionType>(ForecastTransactions.$convertertype);
+  static const VerificationMeta _recurrencyTypeMeta =
+      const VerificationMeta('recurrencyType');
+  late final GeneratedColumnWithTypeConverter<RecurrencyType,
+      String> recurrencyType = GeneratedColumn<String>(
+          'recurrencyType', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          $customConstraints:
+              'NOT NULL CHECK (recurrencyType IN (\'recurrent_fixed\', \'recurrent_variable\', \'irregular\'))')
+      .withConverter<RecurrencyType>(
+          ForecastTransactions.$converterrecurrencyType);
+  static const VerificationMeta _forecastAmountMeta =
+      const VerificationMeta('forecastAmount');
+  late final GeneratedColumn<double> forecastAmount = GeneratedColumn<double>(
+      'forecastAmount', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _forecastLowMeta =
+      const VerificationMeta('forecastLow');
+  late final GeneratedColumn<double> forecastLow = GeneratedColumn<double>(
+      'forecastLow', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _forecastHighMeta =
+      const VerificationMeta('forecastHigh');
+  late final GeneratedColumn<double> forecastHigh = GeneratedColumn<double>(
+      'forecastHigh', aliasedName, true,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _forecastDateMeta =
+      const VerificationMeta('forecastDate');
+  late final GeneratedColumn<DateTime> forecastDate = GeneratedColumn<DateTime>(
+      'forecastDate', aliasedName, true,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _forecastMonthMeta =
+      const VerificationMeta('forecastMonth');
+  late final GeneratedColumn<DateTime> forecastMonth =
+      GeneratedColumn<DateTime>('forecastMonth', aliasedName, false,
+          type: DriftSqlType.dateTime,
+          requiredDuringInsert: true,
+          $customConstraints: 'NOT NULL');
+  static const VerificationMeta _cousinMeta = const VerificationMeta('cousin');
+  late final GeneratedColumn<int> cousin = GeneratedColumn<int>(
+      'cousin', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _categoryIDMeta =
+      const VerificationMeta('categoryID');
+  late final GeneratedColumn<String> categoryID = GeneratedColumn<String>(
+      'categoryID', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'REFERENCES categories(id)ON UPDATE CASCADE ON DELETE SET NULL');
+  static const VerificationMeta _accountIDMeta =
+      const VerificationMeta('accountID');
+  late final GeneratedColumn<String> accountID = GeneratedColumn<String>(
+      'accountID', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES accounts(id)ON UPDATE CASCADE ON DELETE CASCADE');
+  static const VerificationMeta _parentCategoryMeta =
+      const VerificationMeta('parentCategory');
+  late final GeneratedColumn<String> parentCategory = GeneratedColumn<String>(
+      'parentCategory', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        recurrencyPatternId,
+        type,
+        recurrencyType,
+        forecastAmount,
+        forecastLow,
+        forecastHigh,
+        forecastDate,
+        forecastMonth,
+        cousin,
+        categoryID,
+        accountID,
+        parentCategory
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'forecastTransactions';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ForecastTransactionInDB> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('recurrencyPatternId')) {
+      context.handle(
+          _recurrencyPatternIdMeta,
+          recurrencyPatternId.isAcceptableOrUnknown(
+              data['recurrencyPatternId']!, _recurrencyPatternIdMeta));
+    }
+    context.handle(_typeMeta, const VerificationResult.success());
+    context.handle(_recurrencyTypeMeta, const VerificationResult.success());
+    if (data.containsKey('forecastAmount')) {
+      context.handle(
+          _forecastAmountMeta,
+          forecastAmount.isAcceptableOrUnknown(
+              data['forecastAmount']!, _forecastAmountMeta));
+    } else if (isInserting) {
+      context.missing(_forecastAmountMeta);
+    }
+    if (data.containsKey('forecastLow')) {
+      context.handle(
+          _forecastLowMeta,
+          forecastLow.isAcceptableOrUnknown(
+              data['forecastLow']!, _forecastLowMeta));
+    }
+    if (data.containsKey('forecastHigh')) {
+      context.handle(
+          _forecastHighMeta,
+          forecastHigh.isAcceptableOrUnknown(
+              data['forecastHigh']!, _forecastHighMeta));
+    }
+    if (data.containsKey('forecastDate')) {
+      context.handle(
+          _forecastDateMeta,
+          forecastDate.isAcceptableOrUnknown(
+              data['forecastDate']!, _forecastDateMeta));
+    }
+    if (data.containsKey('forecastMonth')) {
+      context.handle(
+          _forecastMonthMeta,
+          forecastMonth.isAcceptableOrUnknown(
+              data['forecastMonth']!, _forecastMonthMeta));
+    } else if (isInserting) {
+      context.missing(_forecastMonthMeta);
+    }
+    if (data.containsKey('cousin')) {
+      context.handle(_cousinMeta,
+          cousin.isAcceptableOrUnknown(data['cousin']!, _cousinMeta));
+    }
+    if (data.containsKey('categoryID')) {
+      context.handle(
+          _categoryIDMeta,
+          categoryID.isAcceptableOrUnknown(
+              data['categoryID']!, _categoryIDMeta));
+    }
+    if (data.containsKey('accountID')) {
+      context.handle(_accountIDMeta,
+          accountID.isAcceptableOrUnknown(data['accountID']!, _accountIDMeta));
+    } else if (isInserting) {
+      context.missing(_accountIDMeta);
+    }
+    if (data.containsKey('parentCategory')) {
+      context.handle(
+          _parentCategoryMeta,
+          parentCategory.isAcceptableOrUnknown(
+              data['parentCategory']!, _parentCategoryMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ForecastTransactionInDB map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ForecastTransactionInDB(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      recurrencyPatternId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}recurrencyPatternId']),
+      type: ForecastTransactions.$convertertype.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
+      recurrencyType: ForecastTransactions.$converterrecurrencyType.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}recurrencyType'])!),
+      forecastAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}forecastAmount'])!,
+      forecastLow: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}forecastLow']),
+      forecastHigh: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}forecastHigh']),
+      forecastDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}forecastDate']),
+      forecastMonth: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}forecastMonth'])!,
+      cousin: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cousin']),
+      categoryID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}categoryID']),
+      accountID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}accountID'])!,
+      parentCategory: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}parentCategory']),
+    );
+  }
+
+  @override
+  ForecastTransactions createAlias(String alias) {
+    return ForecastTransactions(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<TransactionType, String, String> $convertertype =
+      const EnumNameConverter<TransactionType>(TransactionType.values);
+  static JsonTypeConverter2<RecurrencyType, String, String>
+      $converterrecurrencyType =
+      const EnumNameConverter<RecurrencyType>(RecurrencyType.values);
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ForecastTransactionInDB extends DataClass
+    implements Insertable<ForecastTransactionInDB> {
+  final String id;
+
+  /// FK to recurrency_patterns (from backend)
+  final String? recurrencyPatternId;
+
+  /// Only E (expense) and I (income) are valid — forecasts are never transfers
+  final TransactionType type;
+
+  /// Classification of recurrency pattern
+  final RecurrencyType recurrencyType;
+
+  /// Point estimate
+  final double forecastAmount;
+
+  /// Confidence bounds (nullable for fixed recurrencies)
+  final double? forecastLow;
+  final double? forecastHigh;
+
+  /// Specific day for recurrent_fixed, NULL for others
+  final DateTime? forecastDate;
+
+  /// 1st of the target month (always set)
+  final DateTime forecastMonth;
+
+  /// Counterparty ID for "Transacoes Similares" lookup
+  final int? cousin;
+
+  /// FK to categories table
+  final String? categoryID;
+
+  /// FK to accounts table
+  final String accountID;
+
+  /// Parent category name for irregular envelopes
+  final String? parentCategory;
+  const ForecastTransactionInDB(
+      {required this.id,
+      this.recurrencyPatternId,
+      required this.type,
+      required this.recurrencyType,
+      required this.forecastAmount,
+      this.forecastLow,
+      this.forecastHigh,
+      this.forecastDate,
+      required this.forecastMonth,
+      this.cousin,
+      this.categoryID,
+      required this.accountID,
+      this.parentCategory});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || recurrencyPatternId != null) {
+      map['recurrencyPatternId'] = Variable<String>(recurrencyPatternId);
+    }
+    {
+      map['type'] =
+          Variable<String>(ForecastTransactions.$convertertype.toSql(type));
+    }
+    {
+      map['recurrencyType'] = Variable<String>(
+          ForecastTransactions.$converterrecurrencyType.toSql(recurrencyType));
+    }
+    map['forecastAmount'] = Variable<double>(forecastAmount);
+    if (!nullToAbsent || forecastLow != null) {
+      map['forecastLow'] = Variable<double>(forecastLow);
+    }
+    if (!nullToAbsent || forecastHigh != null) {
+      map['forecastHigh'] = Variable<double>(forecastHigh);
+    }
+    if (!nullToAbsent || forecastDate != null) {
+      map['forecastDate'] = Variable<DateTime>(forecastDate);
+    }
+    map['forecastMonth'] = Variable<DateTime>(forecastMonth);
+    if (!nullToAbsent || cousin != null) {
+      map['cousin'] = Variable<int>(cousin);
+    }
+    if (!nullToAbsent || categoryID != null) {
+      map['categoryID'] = Variable<String>(categoryID);
+    }
+    map['accountID'] = Variable<String>(accountID);
+    if (!nullToAbsent || parentCategory != null) {
+      map['parentCategory'] = Variable<String>(parentCategory);
+    }
+    return map;
+  }
+
+  ForecastTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return ForecastTransactionsCompanion(
+      id: Value(id),
+      recurrencyPatternId: recurrencyPatternId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recurrencyPatternId),
+      type: Value(type),
+      recurrencyType: Value(recurrencyType),
+      forecastAmount: Value(forecastAmount),
+      forecastLow: forecastLow == null && nullToAbsent
+          ? const Value.absent()
+          : Value(forecastLow),
+      forecastHigh: forecastHigh == null && nullToAbsent
+          ? const Value.absent()
+          : Value(forecastHigh),
+      forecastDate: forecastDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(forecastDate),
+      forecastMonth: Value(forecastMonth),
+      cousin:
+          cousin == null && nullToAbsent ? const Value.absent() : Value(cousin),
+      categoryID: categoryID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryID),
+      accountID: Value(accountID),
+      parentCategory: parentCategory == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentCategory),
+    );
+  }
+
+  factory ForecastTransactionInDB.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ForecastTransactionInDB(
+      id: serializer.fromJson<String>(json['id']),
+      recurrencyPatternId:
+          serializer.fromJson<String?>(json['recurrencyPatternId']),
+      type: ForecastTransactions.$convertertype
+          .fromJson(serializer.fromJson<String>(json['type'])),
+      recurrencyType: ForecastTransactions.$converterrecurrencyType
+          .fromJson(serializer.fromJson<String>(json['recurrencyType'])),
+      forecastAmount: serializer.fromJson<double>(json['forecastAmount']),
+      forecastLow: serializer.fromJson<double?>(json['forecastLow']),
+      forecastHigh: serializer.fromJson<double?>(json['forecastHigh']),
+      forecastDate: serializer.fromJson<DateTime?>(json['forecastDate']),
+      forecastMonth: serializer.fromJson<DateTime>(json['forecastMonth']),
+      cousin: serializer.fromJson<int?>(json['cousin']),
+      categoryID: serializer.fromJson<String?>(json['categoryID']),
+      accountID: serializer.fromJson<String>(json['accountID']),
+      parentCategory: serializer.fromJson<String?>(json['parentCategory']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'recurrencyPatternId': serializer.toJson<String?>(recurrencyPatternId),
+      'type': serializer
+          .toJson<String>(ForecastTransactions.$convertertype.toJson(type)),
+      'recurrencyType': serializer.toJson<String>(
+          ForecastTransactions.$converterrecurrencyType.toJson(recurrencyType)),
+      'forecastAmount': serializer.toJson<double>(forecastAmount),
+      'forecastLow': serializer.toJson<double?>(forecastLow),
+      'forecastHigh': serializer.toJson<double?>(forecastHigh),
+      'forecastDate': serializer.toJson<DateTime?>(forecastDate),
+      'forecastMonth': serializer.toJson<DateTime>(forecastMonth),
+      'cousin': serializer.toJson<int?>(cousin),
+      'categoryID': serializer.toJson<String?>(categoryID),
+      'accountID': serializer.toJson<String>(accountID),
+      'parentCategory': serializer.toJson<String?>(parentCategory),
+    };
+  }
+
+  ForecastTransactionInDB copyWith(
+          {String? id,
+          Value<String?> recurrencyPatternId = const Value.absent(),
+          TransactionType? type,
+          RecurrencyType? recurrencyType,
+          double? forecastAmount,
+          Value<double?> forecastLow = const Value.absent(),
+          Value<double?> forecastHigh = const Value.absent(),
+          Value<DateTime?> forecastDate = const Value.absent(),
+          DateTime? forecastMonth,
+          Value<int?> cousin = const Value.absent(),
+          Value<String?> categoryID = const Value.absent(),
+          String? accountID,
+          Value<String?> parentCategory = const Value.absent()}) =>
+      ForecastTransactionInDB(
+        id: id ?? this.id,
+        recurrencyPatternId: recurrencyPatternId.present
+            ? recurrencyPatternId.value
+            : this.recurrencyPatternId,
+        type: type ?? this.type,
+        recurrencyType: recurrencyType ?? this.recurrencyType,
+        forecastAmount: forecastAmount ?? this.forecastAmount,
+        forecastLow: forecastLow.present ? forecastLow.value : this.forecastLow,
+        forecastHigh:
+            forecastHigh.present ? forecastHigh.value : this.forecastHigh,
+        forecastDate:
+            forecastDate.present ? forecastDate.value : this.forecastDate,
+        forecastMonth: forecastMonth ?? this.forecastMonth,
+        cousin: cousin.present ? cousin.value : this.cousin,
+        categoryID: categoryID.present ? categoryID.value : this.categoryID,
+        accountID: accountID ?? this.accountID,
+        parentCategory:
+            parentCategory.present ? parentCategory.value : this.parentCategory,
+      );
+  ForecastTransactionInDB copyWithCompanion(
+      ForecastTransactionsCompanion data) {
+    return ForecastTransactionInDB(
+      id: data.id.present ? data.id.value : this.id,
+      recurrencyPatternId: data.recurrencyPatternId.present
+          ? data.recurrencyPatternId.value
+          : this.recurrencyPatternId,
+      type: data.type.present ? data.type.value : this.type,
+      recurrencyType: data.recurrencyType.present
+          ? data.recurrencyType.value
+          : this.recurrencyType,
+      forecastAmount: data.forecastAmount.present
+          ? data.forecastAmount.value
+          : this.forecastAmount,
+      forecastLow:
+          data.forecastLow.present ? data.forecastLow.value : this.forecastLow,
+      forecastHigh: data.forecastHigh.present
+          ? data.forecastHigh.value
+          : this.forecastHigh,
+      forecastDate: data.forecastDate.present
+          ? data.forecastDate.value
+          : this.forecastDate,
+      forecastMonth: data.forecastMonth.present
+          ? data.forecastMonth.value
+          : this.forecastMonth,
+      cousin: data.cousin.present ? data.cousin.value : this.cousin,
+      categoryID:
+          data.categoryID.present ? data.categoryID.value : this.categoryID,
+      accountID: data.accountID.present ? data.accountID.value : this.accountID,
+      parentCategory: data.parentCategory.present
+          ? data.parentCategory.value
+          : this.parentCategory,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ForecastTransactionInDB(')
+          ..write('id: $id, ')
+          ..write('recurrencyPatternId: $recurrencyPatternId, ')
+          ..write('type: $type, ')
+          ..write('recurrencyType: $recurrencyType, ')
+          ..write('forecastAmount: $forecastAmount, ')
+          ..write('forecastLow: $forecastLow, ')
+          ..write('forecastHigh: $forecastHigh, ')
+          ..write('forecastDate: $forecastDate, ')
+          ..write('forecastMonth: $forecastMonth, ')
+          ..write('cousin: $cousin, ')
+          ..write('categoryID: $categoryID, ')
+          ..write('accountID: $accountID, ')
+          ..write('parentCategory: $parentCategory')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      recurrencyPatternId,
+      type,
+      recurrencyType,
+      forecastAmount,
+      forecastLow,
+      forecastHigh,
+      forecastDate,
+      forecastMonth,
+      cousin,
+      categoryID,
+      accountID,
+      parentCategory);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ForecastTransactionInDB &&
+          other.id == this.id &&
+          other.recurrencyPatternId == this.recurrencyPatternId &&
+          other.type == this.type &&
+          other.recurrencyType == this.recurrencyType &&
+          other.forecastAmount == this.forecastAmount &&
+          other.forecastLow == this.forecastLow &&
+          other.forecastHigh == this.forecastHigh &&
+          other.forecastDate == this.forecastDate &&
+          other.forecastMonth == this.forecastMonth &&
+          other.cousin == this.cousin &&
+          other.categoryID == this.categoryID &&
+          other.accountID == this.accountID &&
+          other.parentCategory == this.parentCategory);
+}
+
+class ForecastTransactionsCompanion
+    extends UpdateCompanion<ForecastTransactionInDB> {
+  final Value<String> id;
+  final Value<String?> recurrencyPatternId;
+  final Value<TransactionType> type;
+  final Value<RecurrencyType> recurrencyType;
+  final Value<double> forecastAmount;
+  final Value<double?> forecastLow;
+  final Value<double?> forecastHigh;
+  final Value<DateTime?> forecastDate;
+  final Value<DateTime> forecastMonth;
+  final Value<int?> cousin;
+  final Value<String?> categoryID;
+  final Value<String> accountID;
+  final Value<String?> parentCategory;
+  final Value<int> rowid;
+  const ForecastTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.recurrencyPatternId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.recurrencyType = const Value.absent(),
+    this.forecastAmount = const Value.absent(),
+    this.forecastLow = const Value.absent(),
+    this.forecastHigh = const Value.absent(),
+    this.forecastDate = const Value.absent(),
+    this.forecastMonth = const Value.absent(),
+    this.cousin = const Value.absent(),
+    this.categoryID = const Value.absent(),
+    this.accountID = const Value.absent(),
+    this.parentCategory = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ForecastTransactionsCompanion.insert({
+    required String id,
+    this.recurrencyPatternId = const Value.absent(),
+    required TransactionType type,
+    required RecurrencyType recurrencyType,
+    required double forecastAmount,
+    this.forecastLow = const Value.absent(),
+    this.forecastHigh = const Value.absent(),
+    this.forecastDate = const Value.absent(),
+    required DateTime forecastMonth,
+    this.cousin = const Value.absent(),
+    this.categoryID = const Value.absent(),
+    required String accountID,
+    this.parentCategory = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        type = Value(type),
+        recurrencyType = Value(recurrencyType),
+        forecastAmount = Value(forecastAmount),
+        forecastMonth = Value(forecastMonth),
+        accountID = Value(accountID);
+  static Insertable<ForecastTransactionInDB> custom({
+    Expression<String>? id,
+    Expression<String>? recurrencyPatternId,
+    Expression<String>? type,
+    Expression<String>? recurrencyType,
+    Expression<double>? forecastAmount,
+    Expression<double>? forecastLow,
+    Expression<double>? forecastHigh,
+    Expression<DateTime>? forecastDate,
+    Expression<DateTime>? forecastMonth,
+    Expression<int>? cousin,
+    Expression<String>? categoryID,
+    Expression<String>? accountID,
+    Expression<String>? parentCategory,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recurrencyPatternId != null)
+        'recurrencyPatternId': recurrencyPatternId,
+      if (type != null) 'type': type,
+      if (recurrencyType != null) 'recurrencyType': recurrencyType,
+      if (forecastAmount != null) 'forecastAmount': forecastAmount,
+      if (forecastLow != null) 'forecastLow': forecastLow,
+      if (forecastHigh != null) 'forecastHigh': forecastHigh,
+      if (forecastDate != null) 'forecastDate': forecastDate,
+      if (forecastMonth != null) 'forecastMonth': forecastMonth,
+      if (cousin != null) 'cousin': cousin,
+      if (categoryID != null) 'categoryID': categoryID,
+      if (accountID != null) 'accountID': accountID,
+      if (parentCategory != null) 'parentCategory': parentCategory,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ForecastTransactionsCompanion copyWith(
+      {Value<String>? id,
+      Value<String?>? recurrencyPatternId,
+      Value<TransactionType>? type,
+      Value<RecurrencyType>? recurrencyType,
+      Value<double>? forecastAmount,
+      Value<double?>? forecastLow,
+      Value<double?>? forecastHigh,
+      Value<DateTime?>? forecastDate,
+      Value<DateTime>? forecastMonth,
+      Value<int?>? cousin,
+      Value<String?>? categoryID,
+      Value<String>? accountID,
+      Value<String?>? parentCategory,
+      Value<int>? rowid}) {
+    return ForecastTransactionsCompanion(
+      id: id ?? this.id,
+      recurrencyPatternId: recurrencyPatternId ?? this.recurrencyPatternId,
+      type: type ?? this.type,
+      recurrencyType: recurrencyType ?? this.recurrencyType,
+      forecastAmount: forecastAmount ?? this.forecastAmount,
+      forecastLow: forecastLow ?? this.forecastLow,
+      forecastHigh: forecastHigh ?? this.forecastHigh,
+      forecastDate: forecastDate ?? this.forecastDate,
+      forecastMonth: forecastMonth ?? this.forecastMonth,
+      cousin: cousin ?? this.cousin,
+      categoryID: categoryID ?? this.categoryID,
+      accountID: accountID ?? this.accountID,
+      parentCategory: parentCategory ?? this.parentCategory,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (recurrencyPatternId.present) {
+      map['recurrencyPatternId'] = Variable<String>(recurrencyPatternId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+          ForecastTransactions.$convertertype.toSql(type.value));
+    }
+    if (recurrencyType.present) {
+      map['recurrencyType'] = Variable<String>(ForecastTransactions
+          .$converterrecurrencyType
+          .toSql(recurrencyType.value));
+    }
+    if (forecastAmount.present) {
+      map['forecastAmount'] = Variable<double>(forecastAmount.value);
+    }
+    if (forecastLow.present) {
+      map['forecastLow'] = Variable<double>(forecastLow.value);
+    }
+    if (forecastHigh.present) {
+      map['forecastHigh'] = Variable<double>(forecastHigh.value);
+    }
+    if (forecastDate.present) {
+      map['forecastDate'] = Variable<DateTime>(forecastDate.value);
+    }
+    if (forecastMonth.present) {
+      map['forecastMonth'] = Variable<DateTime>(forecastMonth.value);
+    }
+    if (cousin.present) {
+      map['cousin'] = Variable<int>(cousin.value);
+    }
+    if (categoryID.present) {
+      map['categoryID'] = Variable<String>(categoryID.value);
+    }
+    if (accountID.present) {
+      map['accountID'] = Variable<String>(accountID.value);
+    }
+    if (parentCategory.present) {
+      map['parentCategory'] = Variable<String>(parentCategory.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ForecastTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('recurrencyPatternId: $recurrencyPatternId, ')
+          ..write('type: $type, ')
+          ..write('recurrencyType: $recurrencyType, ')
+          ..write('forecastAmount: $forecastAmount, ')
+          ..write('forecastLow: $forecastLow, ')
+          ..write('forecastHigh: $forecastHigh, ')
+          ..write('forecastDate: $forecastDate, ')
+          ..write('forecastMonth: $forecastMonth, ')
+          ..write('cousin: $cousin, ')
+          ..write('categoryID: $categoryID, ')
+          ..write('accountID: $accountID, ')
+          ..write('parentCategory: $parentCategory, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class UserSettings extends Table with TableInfo<UserSettings, UserSetting> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5128,6 +5862,8 @@ abstract class _$AppDB extends GeneratedDatabase {
   late final BudgetCategory budgetCategory = BudgetCategory(this);
   late final BudgetAccount budgetAccount = BudgetAccount(this);
   late final BudgetTag budgetTag = BudgetTag(this);
+  late final ForecastTransactions forecastTransactions =
+      ForecastTransactions(this);
   late final UserSettings userSettings = UserSettings(this);
   late final AppData appData = AppData(this);
   Selectable<Account> getAccountsWithFullData(
@@ -5504,6 +6240,112 @@ abstract class _$AppDB extends GeneratedDatabase {
         ));
   }
 
+  Selectable<GetForecastTransactionsWithFullDataResult>
+      getForecastTransactionsWithFullData(
+          {GetForecastTransactionsWithFullData$predicate? predicate,
+          GetForecastTransactionsWithFullData$orderBy? orderBy,
+          required GetForecastTransactionsWithFullData$limit limit}) {
+    var $arrayStartIndex = 1;
+    final generatedpredicate = $write(
+        predicate?.call(
+                alias(this.forecastTransactions, 'ft'),
+                alias(this.accounts, 'a'),
+                alias(this.currencies, 'accountCurrency'),
+                alias(this.categories, 'c'),
+                alias(this.categories, 'pc')) ??
+            const CustomExpression('(TRUE)'),
+        hasMultipleTables: true,
+        startIndex: $arrayStartIndex);
+    $arrayStartIndex += generatedpredicate.amountOfVariables;
+    final generatedorderBy = $write(
+        orderBy?.call(
+                alias(this.forecastTransactions, 'ft'),
+                alias(this.accounts, 'a'),
+                alias(this.currencies, 'accountCurrency'),
+                alias(this.categories, 'c'),
+                alias(this.categories, 'pc')) ??
+            const OrderBy.nothing(),
+        hasMultipleTables: true,
+        startIndex: $arrayStartIndex);
+    $arrayStartIndex += generatedorderBy.amountOfVariables;
+    final generatedlimit = $write(
+        limit(
+            alias(this.forecastTransactions, 'ft'),
+            alias(this.accounts, 'a'),
+            alias(this.currencies, 'accountCurrency'),
+            alias(this.categories, 'c'),
+            alias(this.categories, 'pc')),
+        hasMultipleTables: true,
+        startIndex: $arrayStartIndex);
+    $arrayStartIndex += generatedlimit.amountOfVariables;
+    return customSelect(
+        'SELECT ft.*,"a"."id" AS "nested_0.id", "a"."name" AS "nested_0.name", "a"."iniValue" AS "nested_0.iniValue", "a"."date" AS "nested_0.date", "a"."description" AS "nested_0.description", "a"."type" AS "nested_0.type", "a"."iconId" AS "nested_0.iconId", "a"."displayOrder" AS "nested_0.displayOrder", "a"."color" AS "nested_0.color", "a"."closingDate" AS "nested_0.closingDate", "a"."hiddenByUser" AS "nested_0.hiddenByUser", "a"."hasMFA" AS "nested_0.hasMFA", "a"."currencyId" AS "nested_0.currencyId", "a"."iban" AS "nested_0.iban", "a"."swift" AS "nested_0.swift", "a"."balance" AS "nested_0.balance", "a"."last_update_time" AS "nested_0.last_update_time", "a"."connectorID" AS "nested_0.connectorID", "a"."isOpenFinance" AS "nested_0.isOpenFinance", "a"."removed" AS "nested_0.removed","accountCurrency"."code" AS "nested_1.code", "accountCurrency"."symbol" AS "nested_1.symbol", "accountCurrency"."name" AS "nested_1.name","c"."id" AS "nested_2.id", "c"."name" AS "nested_2.name", "c"."iconId" AS "nested_2.iconId", "c"."color" AS "nested_2.color", "c"."displayOrder" AS "nested_2.displayOrder", "c"."type" AS "nested_2.type", "c"."parentCategoryID" AS "nested_2.parentCategoryID","pc"."id" AS "nested_3.id", "pc"."name" AS "nested_3.name", "pc"."iconId" AS "nested_3.iconId", "pc"."color" AS "nested_3.color", "pc"."displayOrder" AS "nested_3.displayOrder", "pc"."type" AS "nested_3.type", "pc"."parentCategoryID" AS "nested_3.parentCategoryID" FROM forecastTransactions AS ft INNER JOIN accounts AS a ON ft.accountID = a.id INNER JOIN currencies AS accountCurrency ON a.currencyId = accountCurrency.code LEFT JOIN categories AS c ON ft.categoryID = c.id LEFT JOIN categories AS pc ON c.parentCategoryID = pc.id WHERE ${generatedpredicate.sql} ${generatedorderBy.sql} ${generatedlimit.sql}',
+        variables: [
+          ...generatedpredicate.introducedVariables,
+          ...generatedorderBy.introducedVariables,
+          ...generatedlimit.introducedVariables
+        ],
+        readsFrom: {
+          forecastTransactions,
+          accounts,
+          currencies,
+          categories,
+          ...generatedpredicate.watchedTables,
+          ...generatedorderBy.watchedTables,
+          ...generatedlimit.watchedTables,
+        }).asyncMap((QueryRow row) async =>
+        GetForecastTransactionsWithFullDataResult(
+          id: row.read<String>('id'),
+          recurrencyPatternId: row.readNullable<String>('recurrencyPatternId'),
+          type: ForecastTransactions.$convertertype
+              .fromSql(row.read<String>('type')),
+          recurrencyType: ForecastTransactions.$converterrecurrencyType
+              .fromSql(row.read<String>('recurrencyType')),
+          forecastAmount: row.read<double>('forecastAmount'),
+          forecastLow: row.readNullable<double>('forecastLow'),
+          forecastHigh: row.readNullable<double>('forecastHigh'),
+          forecastDate: row.readNullable<DateTime>('forecastDate'),
+          forecastMonth: row.read<DateTime>('forecastMonth'),
+          cousin: row.readNullable<int>('cousin'),
+          categoryID: row.readNullable<String>('categoryID'),
+          accountID: row.read<String>('accountID'),
+          parentCategory: row.readNullable<String>('parentCategory'),
+          account: await accounts.mapFromRow(row, tablePrefix: 'nested_0'),
+          accountCurrency:
+              await currencies.mapFromRow(row, tablePrefix: 'nested_1'),
+          category:
+              await categories.mapFromRowOrNull(row, tablePrefix: 'nested_2'),
+          parentCat:
+              await categories.mapFromRowOrNull(row, tablePrefix: 'nested_3'),
+        ));
+  }
+
+  Selectable<CountForecastTransactionsResult> countForecastTransactions(
+      {CountForecastTransactions$predicate? predicate}) {
+    var $arrayStartIndex = 1;
+    final generatedpredicate = $write(
+        predicate?.call(alias(this.forecastTransactions, 'ft'),
+                alias(this.accounts, 'a'), alias(this.categories, 'c')) ??
+            const CustomExpression('(TRUE)'),
+        hasMultipleTables: true,
+        startIndex: $arrayStartIndex);
+    $arrayStartIndex += generatedpredicate.amountOfVariables;
+    return customSelect(
+        'SELECT COUNT(*) AS forecastsNumber, COALESCE(SUM(ft.forecastAmount), 0) AS totalAmount FROM forecastTransactions AS ft INNER JOIN accounts AS a ON ft.accountID = a.id LEFT JOIN categories AS c ON ft.categoryID = c.id WHERE ${generatedpredicate.sql}',
+        variables: [
+          ...generatedpredicate.introducedVariables
+        ],
+        readsFrom: {
+          forecastTransactions,
+          accounts,
+          categories,
+          ...generatedpredicate.watchedTables,
+        }).map((QueryRow row) => CountForecastTransactionsResult(
+          forecastsNumber: row.read<int>('forecastsNumber'),
+          totalAmount: row.read<double>('totalAmount'),
+        ));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5520,6 +6362,7 @@ abstract class _$AppDB extends GeneratedDatabase {
         budgetCategory,
         budgetAccount,
         budgetTag,
+        forecastTransactions,
         userSettings,
         appData
       ];
@@ -5706,6 +6549,34 @@ abstract class _$AppDB extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.update),
             result: [
               TableUpdate('budgetTag', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('categories',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('forecastTransactions', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('categories',
+                limitUpdateKind: UpdateKind.update),
+            result: [
+              TableUpdate('forecastTransactions', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('accounts',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('forecastTransactions', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('accounts',
+                limitUpdateKind: UpdateKind.update),
+            result: [
+              TableUpdate('forecastTransactions', kind: UpdateKind.update),
             ],
           ),
         ],
@@ -6113,6 +6984,19 @@ class $AccountsFilterComposer extends FilterComposer<_$AppDB, Accounts> {
                 parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter forecastTransactionsRefs(
+      ComposableFilter Function($ForecastTransactionsFilterComposer f) f) {
+    final $ForecastTransactionsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.forecastTransactions,
+        getReferencedColumn: (t) => t.accountID,
+        builder: (joinBuilder, parentComposers) =>
+            $ForecastTransactionsFilterComposer(ComposerState($state.db,
+                $state.db.forecastTransactions, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $AccountsOrderingComposer extends OrderingComposer<_$AppDB, Accounts> {
@@ -6367,6 +7251,19 @@ class $CategoriesFilterComposer extends FilterComposer<_$AppDB, Categories> {
         builder: (joinBuilder, parentComposers) =>
             $BudgetCategoryFilterComposer(ComposerState($state.db,
                 $state.db.budgetCategory, joinBuilder, parentComposers)));
+    return f(composer);
+  }
+
+  ComposableFilter forecastTransactionsRefs(
+      ComposableFilter Function($ForecastTransactionsFilterComposer f) f) {
+    final $ForecastTransactionsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.forecastTransactions,
+        getReferencedColumn: (t) => t.categoryID,
+        builder: (joinBuilder, parentComposers) =>
+            $ForecastTransactionsFilterComposer(ComposerState($state.db,
+                $state.db.forecastTransactions, joinBuilder, parentComposers)));
     return f(composer);
   }
 }
@@ -7793,6 +8690,294 @@ class $BudgetTagOrderingComposer extends OrderingComposer<_$AppDB, BudgetTag> {
   }
 }
 
+typedef $ForecastTransactionsCreateCompanionBuilder
+    = ForecastTransactionsCompanion Function({
+  required String id,
+  Value<String?> recurrencyPatternId,
+  required TransactionType type,
+  required RecurrencyType recurrencyType,
+  required double forecastAmount,
+  Value<double?> forecastLow,
+  Value<double?> forecastHigh,
+  Value<DateTime?> forecastDate,
+  required DateTime forecastMonth,
+  Value<int?> cousin,
+  Value<String?> categoryID,
+  required String accountID,
+  Value<String?> parentCategory,
+  Value<int> rowid,
+});
+typedef $ForecastTransactionsUpdateCompanionBuilder
+    = ForecastTransactionsCompanion Function({
+  Value<String> id,
+  Value<String?> recurrencyPatternId,
+  Value<TransactionType> type,
+  Value<RecurrencyType> recurrencyType,
+  Value<double> forecastAmount,
+  Value<double?> forecastLow,
+  Value<double?> forecastHigh,
+  Value<DateTime?> forecastDate,
+  Value<DateTime> forecastMonth,
+  Value<int?> cousin,
+  Value<String?> categoryID,
+  Value<String> accountID,
+  Value<String?> parentCategory,
+  Value<int> rowid,
+});
+
+class $ForecastTransactionsTableManager extends RootTableManager<
+    _$AppDB,
+    ForecastTransactions,
+    ForecastTransactionInDB,
+    $ForecastTransactionsFilterComposer,
+    $ForecastTransactionsOrderingComposer,
+    $ForecastTransactionsCreateCompanionBuilder,
+    $ForecastTransactionsUpdateCompanionBuilder> {
+  $ForecastTransactionsTableManager(_$AppDB db, ForecastTransactions table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $ForecastTransactionsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $ForecastTransactionsOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> recurrencyPatternId = const Value.absent(),
+            Value<TransactionType> type = const Value.absent(),
+            Value<RecurrencyType> recurrencyType = const Value.absent(),
+            Value<double> forecastAmount = const Value.absent(),
+            Value<double?> forecastLow = const Value.absent(),
+            Value<double?> forecastHigh = const Value.absent(),
+            Value<DateTime?> forecastDate = const Value.absent(),
+            Value<DateTime> forecastMonth = const Value.absent(),
+            Value<int?> cousin = const Value.absent(),
+            Value<String?> categoryID = const Value.absent(),
+            Value<String> accountID = const Value.absent(),
+            Value<String?> parentCategory = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ForecastTransactionsCompanion(
+            id: id,
+            recurrencyPatternId: recurrencyPatternId,
+            type: type,
+            recurrencyType: recurrencyType,
+            forecastAmount: forecastAmount,
+            forecastLow: forecastLow,
+            forecastHigh: forecastHigh,
+            forecastDate: forecastDate,
+            forecastMonth: forecastMonth,
+            cousin: cousin,
+            categoryID: categoryID,
+            accountID: accountID,
+            parentCategory: parentCategory,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<String?> recurrencyPatternId = const Value.absent(),
+            required TransactionType type,
+            required RecurrencyType recurrencyType,
+            required double forecastAmount,
+            Value<double?> forecastLow = const Value.absent(),
+            Value<double?> forecastHigh = const Value.absent(),
+            Value<DateTime?> forecastDate = const Value.absent(),
+            required DateTime forecastMonth,
+            Value<int?> cousin = const Value.absent(),
+            Value<String?> categoryID = const Value.absent(),
+            required String accountID,
+            Value<String?> parentCategory = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ForecastTransactionsCompanion.insert(
+            id: id,
+            recurrencyPatternId: recurrencyPatternId,
+            type: type,
+            recurrencyType: recurrencyType,
+            forecastAmount: forecastAmount,
+            forecastLow: forecastLow,
+            forecastHigh: forecastHigh,
+            forecastDate: forecastDate,
+            forecastMonth: forecastMonth,
+            cousin: cousin,
+            categoryID: categoryID,
+            accountID: accountID,
+            parentCategory: parentCategory,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $ForecastTransactionsFilterComposer
+    extends FilterComposer<_$AppDB, ForecastTransactions> {
+  $ForecastTransactionsFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get recurrencyPatternId => $state.composableBuilder(
+      column: $state.table.recurrencyPatternId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<TransactionType, TransactionType, String>
+      get type => $state.composableBuilder(
+          column: $state.table.type,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<RecurrencyType, RecurrencyType, String>
+      get recurrencyType => $state.composableBuilder(
+          column: $state.table.recurrencyType,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get forecastAmount => $state.composableBuilder(
+      column: $state.table.forecastAmount,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get forecastLow => $state.composableBuilder(
+      column: $state.table.forecastLow,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get forecastHigh => $state.composableBuilder(
+      column: $state.table.forecastHigh,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get forecastDate => $state.composableBuilder(
+      column: $state.table.forecastDate,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get forecastMonth => $state.composableBuilder(
+      column: $state.table.forecastMonth,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get cousin => $state.composableBuilder(
+      column: $state.table.cousin,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get parentCategory => $state.composableBuilder(
+      column: $state.table.parentCategory,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  $CategoriesFilterComposer get categoryID {
+    final $CategoriesFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryID,
+        referencedTable: $state.db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $CategoriesFilterComposer(
+            ComposerState($state.db, $state.db.categories, joinBuilder,
+                parentComposers)));
+    return composer;
+  }
+
+  $AccountsFilterComposer get accountID {
+    final $AccountsFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.accountID,
+        referencedTable: $state.db.accounts,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $AccountsFilterComposer(
+            ComposerState(
+                $state.db, $state.db.accounts, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $ForecastTransactionsOrderingComposer
+    extends OrderingComposer<_$AppDB, ForecastTransactions> {
+  $ForecastTransactionsOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get recurrencyPatternId => $state.composableBuilder(
+      column: $state.table.recurrencyPatternId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get type => $state.composableBuilder(
+      column: $state.table.type,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get recurrencyType => $state.composableBuilder(
+      column: $state.table.recurrencyType,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get forecastAmount => $state.composableBuilder(
+      column: $state.table.forecastAmount,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get forecastLow => $state.composableBuilder(
+      column: $state.table.forecastLow,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get forecastHigh => $state.composableBuilder(
+      column: $state.table.forecastHigh,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get forecastDate => $state.composableBuilder(
+      column: $state.table.forecastDate,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get forecastMonth => $state.composableBuilder(
+      column: $state.table.forecastMonth,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get cousin => $state.composableBuilder(
+      column: $state.table.cousin,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get parentCategory => $state.composableBuilder(
+      column: $state.table.parentCategory,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  $CategoriesOrderingComposer get categoryID {
+    final $CategoriesOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryID,
+        referencedTable: $state.db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $CategoriesOrderingComposer(
+            ComposerState($state.db, $state.db.categories, joinBuilder,
+                parentComposers)));
+    return composer;
+  }
+
+  $AccountsOrderingComposer get accountID {
+    final $AccountsOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.accountID,
+        referencedTable: $state.db.accounts,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) => $AccountsOrderingComposer(
+            ComposerState(
+                $state.db, $state.db.accounts, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
 typedef $UserSettingsCreateCompanionBuilder = UserSettingsCompanion Function({
   required SettingKey settingKey,
   Value<String?> settingValue,
@@ -7972,6 +9157,8 @@ class $AppDBManager {
       $BudgetAccountTableManager(_db, _db.budgetAccount);
   $BudgetTagTableManager get budgetTag =>
       $BudgetTagTableManager(_db, _db.budgetTag);
+  $ForecastTransactionsTableManager get forecastTransactions =>
+      $ForecastTransactionsTableManager(_db, _db.forecastTransactions);
   $UserSettingsTableManager get userSettings =>
       $UserSettingsTableManager(_db, _db.userSettings);
   $AppDataTableManager get appData => $AppDataTableManager(_db, _db.appData);
@@ -8041,3 +9228,70 @@ typedef GetBudgetsWithFullData$predicate = Expression<bool> Function(
     Budgets budgets);
 typedef GetBudgetsWithFullData$orderBy = OrderBy Function(Budgets budgets);
 typedef GetBudgetsWithFullData$limit = Limit Function(Budgets budgets);
+
+class GetForecastTransactionsWithFullDataResult {
+  final String id;
+  final String? recurrencyPatternId;
+  final TransactionType type;
+  final RecurrencyType recurrencyType;
+  final double forecastAmount;
+  final double? forecastLow;
+  final double? forecastHigh;
+  final DateTime? forecastDate;
+  final DateTime forecastMonth;
+  final int? cousin;
+  final String? categoryID;
+  final String accountID;
+  final String? parentCategory;
+  final AccountInDB account;
+  final CurrencyInDB accountCurrency;
+  final CategoryInDB? category;
+  final CategoryInDB? parentCat;
+  GetForecastTransactionsWithFullDataResult({
+    required this.id,
+    this.recurrencyPatternId,
+    required this.type,
+    required this.recurrencyType,
+    required this.forecastAmount,
+    this.forecastLow,
+    this.forecastHigh,
+    this.forecastDate,
+    required this.forecastMonth,
+    this.cousin,
+    this.categoryID,
+    required this.accountID,
+    this.parentCategory,
+    required this.account,
+    required this.accountCurrency,
+    this.category,
+    this.parentCat,
+  });
+}
+
+typedef GetForecastTransactionsWithFullData$predicate
+    = Expression<bool> Function(ForecastTransactions ft, Accounts a,
+        Currencies accountCurrency, Categories c, Categories pc);
+typedef GetForecastTransactionsWithFullData$orderBy = OrderBy Function(
+    ForecastTransactions ft,
+    Accounts a,
+    Currencies accountCurrency,
+    Categories c,
+    Categories pc);
+typedef GetForecastTransactionsWithFullData$limit = Limit Function(
+    ForecastTransactions ft,
+    Accounts a,
+    Currencies accountCurrency,
+    Categories c,
+    Categories pc);
+
+class CountForecastTransactionsResult {
+  final int forecastsNumber;
+  final double totalAmount;
+  CountForecastTransactionsResult({
+    required this.forecastsNumber,
+    required this.totalAmount,
+  });
+}
+
+typedef CountForecastTransactions$predicate = Expression<bool> Function(
+    ForecastTransactions ft, Accounts a, Categories c);

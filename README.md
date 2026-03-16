@@ -215,6 +215,7 @@ Good first contributions:
 
 - Extracting hardcoded Portuguese strings into the Slang i18n system (Issue #50)
 - Adding language support beyond Portuguese
+- Remove the need for the local database to run migrations. It already recreates the local database at every new version, so we don't need to keep the legacy code used to maintain database integrity between versions. 
 - Test coverage (unit, widget, integration)
 - Accessibility improvements
 
