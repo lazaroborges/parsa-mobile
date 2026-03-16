@@ -65,3 +65,5 @@ app.*.map.json
 # Private keys
 private_keys/key.properties
 private_keys/upload_cert.pem
+
+firebase.json
