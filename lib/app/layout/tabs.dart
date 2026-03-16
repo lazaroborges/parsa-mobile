@@ -259,17 +259,26 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
-    // Forecast destination is a toggle, not a page
+    // Forecast destination: enter forecast mode
     if (destination.id == AppMenuDestinationsID.forecast) {
-      ForecastModeService.instance.toggle();
+      ForecastModeService.instance.setForecastMode(true);
       firebaseAnalytics?.logEvent(
         name: 'forecast_mode_toggle',
-        parameters: {
-          'enabled':
-              (!ForecastModeService.instance.isInForecastMode).toString(),
-        },
+        parameters: {'enabled': 'true'},
       );
-      setState(() {}); // rebuild nav bar to update icon
+      setState(() {});
+      return;
+    }
+
+    // Tapping "Início" while in forecast mode: exit forecast mode
+    if (destination.id == AppMenuDestinationsID.dashboard &&
+        ForecastModeService.instance.isInForecastMode) {
+      ForecastModeService.instance.setForecastMode(false);
+      firebaseAnalytics?.logEvent(
+        name: 'forecast_mode_toggle',
+        parameters: {'enabled': 'false'},
+      );
+      setState(() {});
       return;
     }
 
@@ -342,34 +351,26 @@ class TabsPageState extends State<TabsPage>
                   !(0 <= selectedNavItemIndex &&
                       selectedNavItemIndex < menuItems.length)
               ? null
-              : NavigationBar(
-                  destinations: menuItems.map((e) {
-                    // Customize the forecast toggle item appearance
-                    if (e.id == AppMenuDestinationsID.forecast) {
-                      return NavigationDestination(
-                        icon: Icon(
-                          isForecast
-                              ? Icons.trending_up_rounded
-                              : Icons.trending_up_rounded,
-                          color: isForecast
-                              ? ForecastModeService.forecastAccentColor
-                              : null,
-                        ),
-                        selectedIcon: Icon(
-                          Icons.trending_up_rounded,
-                          color: isForecast
-                              ? ForecastModeService.forecastAccentColor
-                              : null,
-                        ),
-                        label: isForecast ? 'Real' : 'Previsao',
-                      );
-                    }
-                    return e.toNavigationDestinationWidget();
-                  }).toList(),
-                  selectedIndex: selectedNavItemIndex,
-                  onDestinationSelected: (e) =>
-                      changePage(menuItems.elementAt(e)),
-                ),
+              : (() {
+                  // In forecast mode, hide the forecast button from nav
+                  final navItems = isForecast
+                      ? menuItems
+                          .where((e) =>
+                              e.id != AppMenuDestinationsID.forecast)
+                          .toList()
+                      : menuItems;
+                  final navIndex = navItems.indexWhere(
+                      (e) => e.id == selectedDestination!.id);
+                  return NavigationBar(
+                    destinations: navItems
+                        .map((e) => e.toNavigationDestinationWidget())
+                        .toList(),
+                    selectedIndex:
+                        navIndex >= 0 ? navIndex : 0,
+                    onDestinationSelected: (e) =>
+                        changePage(navItems.elementAt(e)),
+                  );
+                })(),
           body: Builder(builder: (context) {
             // Exclude the forecast toggle from the page stack
             final allDestinations = getAllDestinations(context,
