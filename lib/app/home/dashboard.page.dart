@@ -405,8 +405,6 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
     final userData = context.watch<UserDataProvider>().userData;
     final t = Translations.of(context);
 
-    final accountService = AccountService.instance;
-
     if (!_isDateRangeInitialized) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -914,7 +912,7 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 totalBalanceIndicator(
-                                    context, accounts, accountService),
+                                    context, accounts, AccountService.instance),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

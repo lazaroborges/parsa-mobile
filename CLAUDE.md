@@ -133,9 +133,10 @@ dart fix --apply
 - **Biometric Authentication**: Local authentication support
 
 ### Environment Configuration
-- Uses `.env` file for environment-specific settings
-- Firebase configuration in `firebase_options.dart`
+- Uses `.env` file for environment-specific settings (copy from `.env.example`)
+- Firebase configuration in `firebase_options.dart` (reads from `.env`)
 - Auth0 credentials configured via environment variables
+- **Android Firebase DEVELOPER_ERROR**: Add SHA-1 to Firebase Console. See `docs/firebase-android-setup.md`
 
 ### Asset Management
 - Icons organized by category in `assets/icons/`

@@ -61,22 +61,21 @@ void main() async {
   // Initialize sound settings
   await SoundSettings.initialize();
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+  if (DefaultFirebaseOptions.isConfigured) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      print("Firebase initialized successfully");
+      firebaseAnalytics = FirebaseAnalytics.instance;
+      await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
+    } catch (e) {
+      print("Error initializing Firebase: $e");
+    }
+  } else {
+    print(
+      "Firebase credentials not configured. Add FIREBASE_* vars to .env (see .env.example). Skipping Firebase init.",
     );
-    print("Firebase initialized successfully");
-
-    // Initialize and configure Firebase Analytics only in release mode
-    // if (kReleaseMode) {
-    firebaseAnalytics = FirebaseAnalytics.instance;
-    await firebaseAnalytics?.setAnalyticsCollectionEnabled(true);
-    //   print("Firebase Analytics initialized and enabled");
-    // } else {
-    //   print("Firebase Analytics skipped in debug mode");
-    // }
-  } catch (e) {
-    print("Error initializing Firebase: $e");
   }
 
   // Set preferred orientations to portrait only

@@ -6,6 +6,24 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DefaultFirebaseOptions {
+  /// Returns true when all required Firebase env vars are present in .env.
+  /// When false, skip Firebase init - the app can run without it (analytics disabled).
+  static bool get isConfigured {
+    const requiredKeys = [
+      'FIREBASE_PROJECT_ID',
+      'FIREBASE_STORAGE_BUCKET',
+      'FIREBASE_MESSAGING_SENDER_ID',
+      'FIREBASE_ANDROID_API_KEY',
+      'FIREBASE_ANDROID_APP_ID',
+      'FIREBASE_IOS_API_KEY',
+      'FIREBASE_IOS_APP_ID',
+      'FIREBASE_ANDROID_CLIENT_ID',
+      'FIREBASE_IOS_BUNDLE_ID',
+    ];
+    return requiredKeys.every(
+        (k) => dotenv.env[k] != null && dotenv.env[k]!.trim().isNotEmpty);
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       throw UnsupportedError(
