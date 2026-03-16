@@ -27,7 +27,6 @@ import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
 import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
 import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
-import 'package:parsa/app/transactions/widgets/forecast_transaction_list.dart';
 import 'package:parsa/core/presentation/widgets/forecast/forecast_empty_state.dart';
 
 enum SortMode { date, valueAsc, valueDesc }
@@ -161,9 +160,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
   }
 
   Widget _buildForecastView(BuildContext context, Translations t) {
+    final searchText =
+        searchController.text.isNotEmpty ? searchController.text : null;
+
     return StreamBuilder<ForecastCountResult>(
       stream: ForecastTransactionService.instance.countForecasts(
-        searchValue: searchController.text.isNotEmpty ? searchController.text : null,
+        searchValue: searchText,
       ),
       builder: (context, snapshot) {
         return Scaffold(
@@ -222,8 +224,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         if (snapshot.hasData) ...[
-                          Text(
-                              '${snapshot.data!.numberOfRes} previsoes'),
+                          Text('${snapshot.data!.numberOfRes} previsoes'),
                           CurrencyDisplayer(
                             amountToConvert: snapshot.data!.valueSum,
                           ),
@@ -238,14 +239,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 ),
               ),
               Expanded(
-                child: ForecastTransactionListComponent(
+                child: TransactionListComponent(
+                  filters: filters.copyWith(searchValue: searchController.text),
+                  transactionsStream:
+                      ForecastTransactionService.instance.getTransactions(
+                    searchValue: searchText,
+                  ),
                   heroTagBuilder: (tr) =>
                       'forecast-page__tr-icon-${tr.id}',
                   showGroupDivider: _sortMode == SortMode.date,
                   prevPage: const TabsPage(),
-                  searchValue: searchController.text.isNotEmpty
-                      ? searchController.text
-                      : null,
                   onEmptyList: const ForecastEmptyState(),
                 ),
               ),

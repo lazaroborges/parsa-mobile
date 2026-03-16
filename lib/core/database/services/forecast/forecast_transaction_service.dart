@@ -1,9 +1,8 @@
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
-import 'package:parsa/core/models/account/account.dart';
-import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/forecast/forecasted_transaction.dart';
 import 'package:parsa/core/models/forecast/recurrency_type.dart';
+import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -234,6 +233,32 @@ class ForecastTransactionService {
       print('Error seeding mock forecast data: $e');
       _forecastsController.add([]);
     }
+  }
+
+  /// Get forecasts as MoneyTransaction objects for reuse with existing UI components
+  Stream<List<MoneyTransaction>> getTransactions({
+    DateTime? minDate,
+    DateTime? maxDate,
+    List<TransactionType>? transactionTypes,
+    Iterable<String>? accountsIDs,
+    Iterable<String>? categories,
+    String? searchValue,
+    int? limit,
+  }) {
+    return getForecasts(
+      minDate: minDate,
+      maxDate: maxDate,
+      transactionTypes: transactionTypes,
+      accountsIDs: accountsIDs,
+      categories: categories,
+      searchValue: searchValue,
+      limit: limit,
+    ).map((forecasts) {
+      return forecasts
+          .where((f) => f.account != null)
+          .map((f) => f.toMoneyTransaction())
+          .toList();
+    });
   }
 
   /// Check if there are any forecasts available

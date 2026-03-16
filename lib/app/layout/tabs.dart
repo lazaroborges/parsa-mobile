@@ -30,7 +30,6 @@ import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/review/review_service.dart';
-import 'package:parsa/core/presentation/widgets/forecast/forecast_mode_pill.dart';
 import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
 import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 
@@ -260,6 +259,20 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
+    // Forecast destination is a toggle, not a page
+    if (destination.id == AppMenuDestinationsID.forecast) {
+      ForecastModeService.instance.toggle();
+      firebaseAnalytics?.logEvent(
+        name: 'forecast_mode_toggle',
+        parameters: {
+          'enabled':
+              (!ForecastModeService.instance.isInForecastMode).toString(),
+        },
+      );
+      setState(() {}); // rebuild nav bar to update icon
+      return;
+    }
+
     // Track destination click in Firebase Analytics
     firebaseAnalytics?.logEvent(
       name: 'navigation_destination_click',
@@ -269,8 +282,6 @@ class TabsPageState extends State<TabsPage>
         'navigation_type': 'bottom_navigation',
       },
     );
-
-    // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {
       selectedDestination = destination;
@@ -319,26 +330,53 @@ class TabsPageState extends State<TabsPage>
     final selectedNavItemIndex = menuItems
         .indexWhere((element) => element.id == selectedDestination!.id);
 
-    return Stack(
-      children: [
-        Scaffold(
+    return StreamBuilder<bool>(
+      stream: ForecastModeService.instance.forecastModeStream,
+      initialData: ForecastModeService.instance.isInForecastMode,
+      builder: (context, forecastSnapshot) {
+        final isForecast = forecastSnapshot.data ?? false;
+
+        return Scaffold(
           bottomNavigationBar: BreakPoint.of(context)
                       .isLargerThan(BreakpointID.sm) ||
                   !(0 <= selectedNavItemIndex &&
                       selectedNavItemIndex < menuItems.length)
               ? null
               : NavigationBar(
-                  destinations: menuItems
-                      .map((e) => e.toNavigationDestinationWidget())
-                      .toList(),
+                  destinations: menuItems.map((e) {
+                    // Customize the forecast toggle item appearance
+                    if (e.id == AppMenuDestinationsID.forecast) {
+                      return NavigationDestination(
+                        icon: Icon(
+                          isForecast
+                              ? Icons.trending_up_rounded
+                              : Icons.trending_up_rounded,
+                          color: isForecast
+                              ? ForecastModeService.forecastAccentColor
+                              : null,
+                        ),
+                        selectedIcon: Icon(
+                          Icons.trending_up_rounded,
+                          color: isForecast
+                              ? ForecastModeService.forecastAccentColor
+                              : null,
+                        ),
+                        label: isForecast ? 'Real' : 'Previsao',
+                      );
+                    }
+                    return e.toNavigationDestinationWidget();
+                  }).toList(),
                   selectedIndex: selectedNavItemIndex,
                   onDestinationSelected: (e) =>
                       changePage(menuItems.elementAt(e)),
                 ),
           body: Builder(builder: (context) {
+            // Exclude the forecast toggle from the page stack
             final allDestinations = getAllDestinations(context,
-                shortLabels:
-                    BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+                    shortLabels:
+                        BreakPoint.of(context).isSmallerThan(BreakpointID.xl))
+                .where((d) => d.id != AppMenuDestinationsID.forecast)
+                .toList();
 
             return FadeIndexedStack(
               index: allDestinations.indexWhere(
@@ -368,15 +406,8 @@ class TabsPageState extends State<TabsPage>
               }).toList(),
             );
           }),
-        ),
-        // Floating forecast mode pill above NavigationBar
-        Positioned(
-          bottom: kBottomNavigationBarHeight + 12,
-          left: 0,
-          right: 0,
-          child: const Center(child: ForecastModePill()),
-        ),
-      ],
+        );
+      },
     );
   }
 

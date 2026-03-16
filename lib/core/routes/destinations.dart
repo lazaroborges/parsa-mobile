@@ -15,6 +15,7 @@ enum AppMenuDestinationsID {
   recurrentTransactions,
   accounts,
   stats,
+  forecast,
   settings,
   categories,
 }
@@ -113,6 +114,13 @@ List<MainMenuDestination> getAllDestinations(
       destination: const StatsPage(dateRangeService: DatePeriodState()),
     ),
     MainMenuDestination(
+      AppMenuDestinationsID.forecast,
+      label: 'Previsao',
+      icon: Icons.trending_up_rounded,
+      selectedIcon: Icons.trending_up_rounded,
+      destination: const SizedBox(), // toggle action, not a page
+    ),
+    MainMenuDestination(
       AppMenuDestinationsID.settings,
       label: t.more.title,
       selectedIcon: Icons.more_horiz_rounded,
@@ -144,7 +152,8 @@ List<MainMenuDestination> getDestinations(
               AppMenuDestinationsID.dashboard, // 0
               AppMenuDestinationsID.transactions, // 1
               AppMenuDestinationsID.stats, // 2
-              AppMenuDestinationsID.settings, // 3
+              AppMenuDestinationsID.forecast, // 3
+              AppMenuDestinationsID.settings, // 4
             ].contains(element.id))
         .toList();
   }

@@ -92,13 +92,13 @@ dart run build_runner build --delete-conflicting-outputs
 
 ## UI Components
 
-### Floating Pill Toggle
+### Nav Bar Toggle
 
-**File:** `lib/core/presentation/widgets/forecast/forecast_mode_pill.dart`
-**Placement:** `lib/app/layout/tabs.dart` — positioned above the `NavigationBar` via a `Stack`
+**Placement:** `lib/app/layout/tabs.dart` — integrated into the `NavigationBar` between Stats and Settings
 
-- Real mode: outlined pill labeled "Previsao" with graph icon
-- Forecast mode: filled amber pill labeled "Real" with bank icon
+- Real mode: nav item labeled "Previsao" with trending up icon
+- Forecast mode: nav item labeled "Real" with teal accent color
+- Tapping toggles forecast mode (does not navigate to a page)
 - Fires `forecast_mode_toggle` Firebase Analytics event on tap
 
 ### RecurrencyTypeBadge
@@ -138,28 +138,19 @@ Informational card: "Previsoes serao geradas quando houver historico suficiente 
 
 ## Page Adaptations
 
-All four main pages listen to `ForecastModeService.instance.forecastModeStream` and switch between a forecast view and the original (real) view.
+Pages **reuse existing components** — forecast data is converted to `MoneyTransaction` via `ForecastedTransaction.toMoneyTransaction()` and piped through the same widgets.
 
 ### Dashboard (`lib/app/home/dashboard.page.dart`)
 
-Forecast mode shows:
-- Summary card with predicted income, expenses, and net balance
-- List of upcoming forecast transactions (limit 10)
+No separate forecast view — the dashboard always shows the real dashboard. The theme color shift communicates forecast mode.
 
 ### Transactions (`lib/app/transactions/transactions.page.dart`)
 
-Forecast mode shows:
-- Summary card with forecast count and total
-- `ForecastTransactionListComponent` with search support
-- **FAB hidden** — forecasts aren't manually created
-- **Selection/bulk edit disabled**
+Forecast mode uses the same `TransactionListComponent` via its `transactionsStream` parameter, passing `ForecastTransactionService.instance.getTransactions()`. No FAB in forecast mode.
 
 ### Stats (`lib/app/stats/stats.page.dart`)
 
-Forecast mode shows:
-- Summary card (income/expenses/net)
-- Expense distribution by category with progress bars
-- Recurrency type breakdown (Fixo/Variavel/Irregular with counts and totals)
+No separate forecast view — the stats page always shows the real stats. The theme color shift communicates forecast mode. (Phase 2 will wire forecast data into the existing stat widgets.)
 
 ---
 
@@ -168,7 +159,7 @@ Forecast mode shows:
 **Mechanism:** `ForecastModeService` owns a `BehaviorSubject<ThemeData>` stream. `main.dart` wraps `MaterialApp` in a `StreamBuilder<ThemeData>` listening to this stream.
 
 **What changes in forecast mode:**
-- `colorScheme.primary` → amber (`0xFFD97706`)
+- `colorScheme.primary` → teal (`0xFF0D9488`)
 - All M3 components that derive from primary (FAB, AppBar, nav highlights, pills)
 - Floating pill fills with forecast accent
 
@@ -180,28 +171,25 @@ Forecast mode shows:
 
 ## Files Changed
 
-### New Files (10)
+### New Files (7)
 | File | Purpose |
 |------|---------|
 | `lib/core/models/forecast/recurrency_type.dart` | RecurrencyType enum |
-| `lib/core/models/forecast/forecasted_transaction.dart` | ForecastedTransaction model |
-| `lib/core/database/services/forecast/forecast_mode_service.dart` | Mode toggle + theme service |
-| `lib/core/database/services/forecast/forecast_transaction_service.dart` | Forecast data service with mock data |
-| `lib/core/presentation/widgets/forecast/forecast_mode_pill.dart` | Floating toggle pill |
+| `lib/core/models/forecast/forecasted_transaction.dart` | ForecastedTransaction model + `toMoneyTransaction()` converter |
+| `lib/core/database/services/forecast/forecast_mode_service.dart` | Mode toggle + theme service (teal accent) |
+| `lib/core/database/services/forecast/forecast_transaction_service.dart` | Forecast data service with mock data + `getTransactions()` returning MoneyTransaction streams |
+| `lib/core/presentation/widgets/forecast/forecast_mode_pill.dart` | Toggle pill (unused in nav bar approach, kept for potential reuse) |
 | `lib/core/presentation/widgets/forecast/recurrency_type_badge.dart` | Colored type chip |
 | `lib/core/presentation/widgets/forecast/forecast_empty_state.dart` | Empty state widget |
-| `lib/app/transactions/widgets/forecast_transaction_list_tile.dart` | Forecast list tile |
-| `lib/app/transactions/widgets/forecast_transaction_list.dart` | Forecast list component |
-| `lib/app/transactions/forecast_transaction_details.page.dart` | Forecast detail page |
 
 ### Modified Files (7)
 | File | Change |
 |------|--------|
 | `lib/main.dart` | StreamBuilder for reactive theme, ForecastModeService init + setRealTheme |
-| `lib/app/layout/tabs.dart` | Stack with ForecastModePill, mock data seeding |
-| `lib/app/transactions/transactions.page.dart` | Forecast/real view split |
-| `lib/app/home/dashboard.page.dart` | Forecast dashboard with summary + list |
-| `lib/app/stats/stats.page.dart` | Forecast stats with distribution + recurrency breakdown |
+| `lib/app/layout/tabs.dart` | Nav bar forecast toggle, mock data seeding |
+| `lib/app/transactions/transactions.page.dart` | Forecast mode uses TransactionListComponent with transactionsStream |
+| `lib/app/transactions/widgets/transaction_list.dart` | Added optional `transactionsStream` parameter |
+| `lib/core/routes/destinations.dart` | Added forecast destination between Stats and Settings |
 | `lib/core/database/sql/initial/tables.drift` | `forecastTransactions` table definition |
 | `lib/core/database/sql/queries/select-full-data.drift` | Forecast queries |
 

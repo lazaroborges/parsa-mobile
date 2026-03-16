@@ -12,7 +12,7 @@ class ForecastModeService {
   // --- Color schemes ---
 
   static final ColorScheme _forecastColorScheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFFD97706), // Warm amber/gold
+    seedColor: const Color(0xFF0D9488), // Teal — harmonizes with the blue theme
     brightness: Brightness.light,
   );
 
@@ -88,5 +88,5 @@ class ForecastModeService {
   }
 
   /// The forecast accent color for use in widgets
-  static const Color forecastAccentColor = Color(0xFFD97706);
+  static const Color forecastAccentColor = Color(0xFF0D9488);
 }

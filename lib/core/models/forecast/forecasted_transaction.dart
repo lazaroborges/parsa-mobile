@@ -4,6 +4,8 @@ import 'package:parsa/core/models/account/account.dart';
 import 'package:parsa/core/models/category/category.dart';
 import 'package:parsa/core/models/forecast/recurrency_type.dart';
 import 'package:parsa/core/models/supported-icon/icon_displayer.dart';
+import 'package:parsa/core/models/transaction/transaction.dart';
+import 'package:parsa/core/models/transaction/transaction_status.enum.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
 
 class ForecastedTransaction {
@@ -88,6 +90,28 @@ class ForecastedTransaction {
       return '${forecastLow!.toStringAsFixed(2)} – ${forecastHigh!.toStringAsFixed(2)}';
     }
     return null;
+  }
+
+  /// Convert to MoneyTransaction so existing UI components can render this forecast.
+  MoneyTransaction toMoneyTransaction() {
+    final cat = category;
+    final acc = account!;
+
+    return MoneyTransaction(
+      id: id,
+      date: forecastDate ?? forecastMonth,
+      value: forecastAmount,
+      isHidden: false,
+      type: type,
+      title: displayName(),
+      account: acc,
+      accountCurrency: acc.currency,
+      category: cat,
+      currentValueInPreferredCurrency: forecastAmount,
+      tags: const [],
+      cousin: cousin,
+      status: TransactionStatus.pending,
+    );
   }
 
   factory ForecastedTransaction.fromJson(Map<String, dynamic> json) {
