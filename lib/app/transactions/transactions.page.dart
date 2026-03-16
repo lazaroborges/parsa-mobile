@@ -249,6 +249,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       'forecast-page__tr-icon-${tr.id}',
                   showGroupDivider: _sortMode == SortMode.date,
                   prevPage: const TabsPage(),
+                  onLongPress: (_) {},
                   onEmptyList: const ForecastEmptyState(),
                 ),
               ),

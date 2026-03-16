@@ -706,10 +706,13 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final isForecast = widget.transaction.id.startsWith('forecast_');
 
     return StreamBuilder(
-        stream: TransactionService.instance
-            .getTransactionById(widget.transaction.id),
+        stream: isForecast
+            ? Stream.value(widget.transaction)
+            : TransactionService.instance
+                .getTransactionById(widget.transaction.id),
         initialData: widget.transaction,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -718,8 +721,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
 
           final transaction = snapshot.data!;
 
-          final transactionDetailsActions = TransactionViewActionService()
-              .transactionDetailsActions(context,
+          final transactionDetailsActions = isForecast
+              ? <ListTileActionItem>[]
+              : TransactionViewActionService().transactionDetailsActions(context,
                   transaction: transaction, navigateBackOnDelete: true);
 
           return Scaffold(
@@ -734,21 +738,23 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                   delegate: _TransactionDetailHeader(
                     heroTag: widget.heroTag,
                     transaction: transaction,
-                    updateCategory: updateCategory,
-                    updateTitle: updateTitle,
+                    updateCategory: isForecast ? (_, __) {} : updateCategory,
+                    updateTitle: isForecast ? (_, __) {} : updateTitle,
                     context: context,
-                    onAmountTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TransactionFormPage(
-                            transactionToEdit: transaction,
-                            mode: transaction.type,
-                          ),
-                        ),
-                      ).then((_) =>
-                          setState(() {})); // Refresh the UI when returning
-                    },
+                    onAmountTap: isForecast
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TransactionFormPage(
+                                  transactionToEdit: transaction,
+                                  mode: transaction.type,
+                                ),
+                              ),
+                            ).then((_) =>
+                                setState(() {})); // Refresh the UI when returning
+                          },
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -1034,8 +1040,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             //     transaction.recurrentInfo.isRecurrent)
                             //   statusDisplayer(transaction),
                             const SizedBox(height: 16),
-                            // Only show quick actions if isOpenFinance is false
-                            if (!transaction.isOpenFinance) ...[
+                            // Only show quick actions if not forecast and not openFinance
+                            if (!isForecast && !transaction.isOpenFinance) ...[
                               const SizedBox(height: 16),
                               CardWithHeader(
                                 title: t.general.quick_actions,
@@ -1160,7 +1166,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
   final Function(BuildContext, MoneyTransaction) updateCategory;
   final Function(BuildContext, MoneyTransaction) updateTitle;
   final BuildContext context;
-  final VoidCallback onAmountTap;
+  final VoidCallback? onAmountTap;
 
   @override
   Widget build(BuildContext buildContext, double shrinkOffset, bool overlap) {

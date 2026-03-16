@@ -455,7 +455,7 @@ class TabsPageState extends State<TabsPage>
     final hasItemsAvailable = userData?['has_items_available'];
 
     // Show connection dialog only if user hasn't finished open finance flow
-    if (!hasFinished && hasItemsAvailable) {
+    if (hasFinished == false && hasItemsAvailable == true) {
       await BankConnectionDialog.showAndHandle(context);
     }
   }
