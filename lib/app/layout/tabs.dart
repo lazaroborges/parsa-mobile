@@ -30,6 +30,9 @@ import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/review/review_service.dart';
+import 'package:parsa/core/presentation/widgets/forecast/forecast_mode_pill.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -118,6 +121,9 @@ class TabsPageState extends State<TabsPage>
 
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
+
+      // Seed mock forecast data for Phase 1
+      await ForecastTransactionService.instance.seedMockData();
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -313,50 +319,64 @@ class TabsPageState extends State<TabsPage>
     final selectedNavItemIndex = menuItems
         .indexWhere((element) => element.id == selectedDestination!.id);
 
-    return Scaffold(
-      bottomNavigationBar: BreakPoint.of(context)
-                  .isLargerThan(BreakpointID.sm) ||
-              !(0 <= selectedNavItemIndex &&
-                  selectedNavItemIndex < menuItems.length)
-          ? null
-          : NavigationBar(
-              destinations: menuItems
-                  .map((e) => e.toNavigationDestinationWidget())
-                  .toList(),
-              selectedIndex: selectedNavItemIndex,
-              onDestinationSelected: (e) => changePage(menuItems.elementAt(e)),
-            ),
-      body: Builder(builder: (context) {
-        final allDestinations = getAllDestinations(context,
-            shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+    return Stack(
+      children: [
+        Scaffold(
+          bottomNavigationBar: BreakPoint.of(context)
+                      .isLargerThan(BreakpointID.sm) ||
+                  !(0 <= selectedNavItemIndex &&
+                      selectedNavItemIndex < menuItems.length)
+              ? null
+              : NavigationBar(
+                  destinations: menuItems
+                      .map((e) => e.toNavigationDestinationWidget())
+                      .toList(),
+                  selectedIndex: selectedNavItemIndex,
+                  onDestinationSelected: (e) =>
+                      changePage(menuItems.elementAt(e)),
+                ),
+          body: Builder(builder: (context) {
+            final allDestinations = getAllDestinations(context,
+                shortLabels:
+                    BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
 
-        return FadeIndexedStack(
-          index: allDestinations
-              .indexWhere((element) => element.id == selectedDestination?.id),
-          duration: const Duration(milliseconds: 300),
-          children: allDestinations.asMap().entries.map((entry) {
-            // If this is the Stats tab, inject the initialIndex and key
-            if (entry.value.destination is StatsPage) {
-              return StatsPage(
-                key: _statsPageKey,
-                initialIndex: _statsInitialIndex,
-                dateRangeService: const DatePeriodState(),
-              );
-            }
-            // If this is the Transactions tab, inject filters and key
-            if (entry.value.destination.runtimeType.toString() ==
-                'TransactionsPage') {
-              debugPrint('[TabsPage] Building TransactionsPage with filters: ' +
-                  (_transactionFilters?.toString() ?? 'null'));
-              return TransactionsPage(
-                key: _transactionsPageKey,
-                filters: _transactionFilters,
-              );
-            }
-            return entry.value.destination;
-          }).toList(),
-        );
-      }),
+            return FadeIndexedStack(
+              index: allDestinations.indexWhere(
+                  (element) => element.id == selectedDestination?.id),
+              duration: const Duration(milliseconds: 300),
+              children: allDestinations.asMap().entries.map((entry) {
+                // If this is the Stats tab, inject the initialIndex and key
+                if (entry.value.destination is StatsPage) {
+                  return StatsPage(
+                    key: _statsPageKey,
+                    initialIndex: _statsInitialIndex,
+                    dateRangeService: const DatePeriodState(),
+                  );
+                }
+                // If this is the Transactions tab, inject filters and key
+                if (entry.value.destination.runtimeType.toString() ==
+                    'TransactionsPage') {
+                  debugPrint(
+                      '[TabsPage] Building TransactionsPage with filters: ' +
+                          (_transactionFilters?.toString() ?? 'null'));
+                  return TransactionsPage(
+                    key: _transactionsPageKey,
+                    filters: _transactionFilters,
+                  );
+                }
+                return entry.value.destination;
+              }).toList(),
+            );
+          }),
+        ),
+        // Floating forecast mode pill above NavigationBar
+        Positioned(
+          bottom: kBottomNavigationBarHeight + 12,
+          left: 0,
+          right: 0,
+          child: const Center(child: ForecastModePill()),
+        ),
+      ],
     );
   }
 

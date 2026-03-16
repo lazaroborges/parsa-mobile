@@ -41,6 +41,7 @@ import 'package:parsa/core/routes/material_app_routes.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:parsa/core/services/branch/link_handler_service.dart';
 import 'package:parsa/core/presentation/audio/audio.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
 
 String apiEndpoint = '';
 
@@ -305,6 +306,7 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
   void initState() {
     super.initState();
     _checkLoginStatus();
+    ForecastModeService.instance.initialize();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -339,26 +341,36 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final ColorScheme lightColorScheme = ColorScheme.fromSeed(
+    final ColorScheme defaultColorScheme = ColorScheme.fromSeed(
       seedColor: Colors.blue,
       brightness: Brightness.light,
     );
 
-    final ThemeData lightTheme = getThemeData(
-      lightColorScheme: lightColorScheme,
+    // Tell ForecastModeService the user's real theme so it can restore it
+    ForecastModeService.instance.setRealTheme(
+      defaultColorScheme,
+      widget.accentColor,
+    );
+
+    final ThemeData defaultTheme = getThemeData(
+      lightColorScheme: defaultColorScheme,
       accentColor: widget.accentColor,
     );
 
-    return MaterialApp(
-      title: 'Parsa',
-      key: ValueKey(refresh),
-      debugShowCheckedModeBanner: false,
-      locale: TranslationProvider.of(context).flutterLocale,
-      scrollBehavior: ScrollBehaviorOverride(),
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: lightTheme,
-      navigatorKey: navigatorKey,
+    return StreamBuilder<ThemeData>(
+      stream: ForecastModeService.instance.themeStream,
+      initialData: defaultTheme,
+      builder: (context, themeSnapshot) {
+        return MaterialApp(
+          title: 'Parsa',
+          key: ValueKey(refresh),
+          debugShowCheckedModeBanner: false,
+          locale: TranslationProvider.of(context).flutterLocale,
+          scrollBehavior: ScrollBehaviorOverride(),
+          supportedLocales: AppLocaleUtils.supportedLocales,
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          theme: themeSnapshot.data ?? defaultTheme,
+          navigatorKey: navigatorKey,
       navigatorObservers: [
         FirebaseAnalyticsObserver(
             analytics: firebaseAnalytics ?? FirebaseAnalytics.instance),
@@ -486,6 +498,8 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
         },
       ),
     );
+      },  // StreamBuilder builder closing
+    );  // StreamBuilder closing
   }
 
   // TODO: Re-enable when intake form check is needed

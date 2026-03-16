@@ -25,6 +25,10 @@ import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_f
 import 'package:parsa/core/routes/route_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
+import 'package:parsa/app/transactions/widgets/forecast_transaction_list.dart';
+import 'package:parsa/core/presentation/widgets/forecast/forecast_empty_state.dart';
 
 enum SortMode { date, valueAsc, valueDesc }
 
@@ -142,6 +146,117 @@ class _TransactionsPageState extends State<TransactionsPage> {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
 
+    return StreamBuilder<bool>(
+      stream: ForecastModeService.instance.forecastModeStream,
+      initialData: ForecastModeService.instance.isInForecastMode,
+      builder: (context, forecastSnapshot) {
+        final isForecastMode = forecastSnapshot.data ?? false;
+
+        if (isForecastMode) {
+          return _buildForecastView(context, t);
+        }
+        return _buildRealView(context, t);
+      },
+    );
+  }
+
+  Widget _buildForecastView(BuildContext context, Translations t) {
+    return StreamBuilder<ForecastCountResult>(
+      stream: ForecastTransactionService.instance.countForecasts(
+        searchValue: searchController.text.isNotEmpty ? searchController.text : null,
+      ),
+      builder: (context, snapshot) {
+        return Scaffold(
+          appBar: AppBar(
+            title: searchActive
+                ? TextField(
+                    controller: searchController,
+                    focusNode: searchFocusNode,
+                    decoration: InputDecoration(
+                      hintText: t.transaction.list.searcher_placeholder,
+                      border: const UnderlineInputBorder(),
+                    ),
+                    onChanged: (text) {
+                      setState(() {});
+                    },
+                  )
+                : const Text('Previsoes'),
+            leading: searchActive
+                ? IconButton(
+                    onPressed: () {
+                      setState(() {
+                        searchActive = false;
+                        searchController.text = "";
+                      });
+                    },
+                    icon: const Icon(Icons.close))
+                : null,
+            actions: [
+              if (!searchActive)
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      searchActive = true;
+                    });
+                    searchFocusNode.requestFocus();
+                  },
+                ),
+            ],
+          ),
+          // No FAB in forecast mode
+          body: Column(
+            children: [
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.all(8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                  child: DefaultTextStyle(
+                    style: Theme.of(context).textTheme.titleMedium!,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (snapshot.hasData) ...[
+                          Text(
+                              '${snapshot.data!.numberOfRes} previsoes'),
+                          CurrencyDisplayer(
+                            amountToConvert: snapshot.data!.valueSum,
+                          ),
+                        ],
+                        if (!snapshot.hasData) ...[
+                          const Skeleton(width: 38, height: 18),
+                          const Skeleton(width: 28, height: 18),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ForecastTransactionListComponent(
+                  heroTagBuilder: (tr) =>
+                      'forecast-page__tr-icon-${tr.id}',
+                  showGroupDivider: _sortMode == SortMode.date,
+                  prevPage: const TabsPage(),
+                  searchValue: searchController.text.isNotEmpty
+                      ? searchController.text
+                      : null,
+                  onEmptyList: const ForecastEmptyState(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRealView(BuildContext context, Translations t) {
     return PopScope(
       canPop: !searchActive && selectedTransactions.isEmpty,
       onPopInvoked: (didPop) {
