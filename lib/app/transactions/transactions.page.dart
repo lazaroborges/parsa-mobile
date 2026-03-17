@@ -166,6 +166,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
     return StreamBuilder<ForecastCountResult>(
       stream: ForecastTransactionService.instance.countForecasts(
         searchValue: searchText,
+        minDate: filters.minDate,
+        maxDate: filters.maxDate,
+        transactionTypes: filters.transactionTypes,
+        accountsIDs: filters.accountsIDs,
+        categories: filters.categories,
       ),
       builder: (context, snapshot) {
         return Scaffold(
@@ -204,11 +209,43 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     searchFocusNode.requestFocus();
                   },
                 ),
+              IconButton(
+                onPressed: () async {
+                  final now = DateTime.now();
+                  final lastDayOfMonth =
+                      DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+                  final preselected = filters.copyWith(
+                    maxDate: filters.maxDate ?? lastDayOfMonth,
+                  );
+                  final modalRes = await openFilterSheetModal(
+                    context,
+                    FilterSheetModal(preselectedFilter: preselected),
+                  );
+
+                  if (modalRes != null) {
+                    setState(() {
+                      filters = modalRes;
+                    });
+                  }
+                },
+                icon: const Icon(Icons.filter_alt_outlined),
+              ),
             ],
           ),
           // No FAB in forecast mode
           body: Column(
             children: [
+              if (filters.hasFilter) ...[
+                FilterRowIndicator(
+                  filters:
+                      filters.copyWith(searchValue: searchController.text),
+                  onChange: (newFilters) {
+                    setState(() {
+                      filters = newFilters;
+                    });
+                  },
+                ),
+              ],
               Card(
                 elevation: 2,
                 margin: const EdgeInsets.all(8),
@@ -244,6 +281,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   transactionsStream:
                       ForecastTransactionService.instance.getTransactions(
                     searchValue: searchText,
+                    minDate: filters.minDate,
+                    maxDate: filters.maxDate,
+                    transactionTypes: filters.transactionTypes,
+                    accountsIDs: filters.accountsIDs,
+                    categories: filters.categories,
                   ),
                   heroTagBuilder: (tr) =>
                       'forecast-page__tr-icon-${tr.id}',
