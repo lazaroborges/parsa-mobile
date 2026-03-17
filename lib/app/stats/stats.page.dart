@@ -14,6 +14,7 @@ import 'package:parsa/core/presentation/widgets/persistent_footer_button.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/filter_sheet_modal.dart';
 import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:parsa/i18n/translations.g.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
 import 'package:parsa/main.dart';
 import 'package:parsa/core/utils/shared_preferences_async.dart';
 
@@ -136,149 +137,161 @@ class _StatsPageState extends State<StatsPage> with RouteAware {
   }
 
   Widget _buildStats(BuildContext context, Translations t) {
-    return DefaultTabController(
-      initialIndex: widget.initialIndex,
-      length: 5,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(t.stats.title),
-          actions: [
-            IconButton(
-                onPressed: () async {
-                  final modalRes = await openFilterSheetModal(
-                    context,
-                    FilterSheetModal(
-                      preselectedFilter: filters,
-                      showDateFilter: false,
-                    ),
-                  );
+    return StreamBuilder<bool>(
+      stream: ForecastModeService.instance.forecastModeStream,
+      initialData: ForecastModeService.instance.isInForecastMode,
+      builder: (context, forecastSnapshot) {
+        final isForecastMode = forecastSnapshot.data ?? false;
+        final tabCount = isForecastMode ? 4 : 5;
 
-                  if (modalRes != null) {
-                    setState(() {
-                      filters = modalRes;
-                    });
-                  }
-                },
-                icon: const Icon(Icons.filter_alt_outlined)),
-          ],
-          bottom: TabBar(
-              tabAlignment: TabAlignment.center,
-              tabs: [
-                Tab(text: t.stats.distribution),
-                Tab(text: t.categories.subcategories),
-                Tab(text: t.stats.cash_flow),
-                Tab(text: t.financial_health.display),
-                Tab(text: t.stats.balance_evolution),
+        return DefaultTabController(
+          initialIndex: widget.initialIndex,
+          length: tabCount,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(t.stats.title),
+              actions: [
+                IconButton(
+                    onPressed: () async {
+                      final modalRes = await openFilterSheetModal(
+                        context,
+                        FilterSheetModal(
+                          preselectedFilter: filters,
+                          showDateFilter: false,
+                        ),
+                      );
+
+                      if (modalRes != null) {
+                        setState(() {
+                          filters = modalRes;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.filter_alt_outlined)),
               ],
-              isScrollable: true),
-        ),
-        persistentFooterButtons: [
-          PersistentFooterButton(
-            child: SegmentedCalendarButton(
-              initialDatePeriodService: dateRangeService,
-              onChanged: (value) {
-                setState(() {
-                  dateRangeService = value.copyWith(
-                    startOfMonthDay: dateRangeService.startOfMonthDay,
-                    startOfWeek: dateRangeService.startOfWeek,
-                  );
-                });
-              },
-            ),
-          )
-        ],
-        body: Column(
-          children: [
-            if (filters.hasFilter) ...[
-              FilterRowIndicator(
-                filters: filters,
-                onChange: (newFilters) {
-                  setState(() {
-                    filters = newFilters;
-                  });
-                },
-              ),
-              const Divider()
-            ],
-            Expanded(
-              child: TabBarView(children: [
-                buildContainerWithPadding([
-                  CardWithHeader(
-                    title: t.stats.by_categories,
-                    body: ChartByCategories(
-                      datePeriodState: dateRangeService,
-                      showList: true,
-                      initialSelectedType: TransactionType.E,
-                      filters: filters,
-                      useSubcategories: false,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  CardWithHeader(
-                    title: t.stats.by_tags,
-                    body: TagStats(
-                      filters: filters.copyWith(
-                        minDate: dateRangeService.startDate,
-                        maxDate: dateRangeService.endDate,
-                      ),
-                    ),
-                  ),
-                ]),
-                buildContainerWithPadding([
-                  CardWithHeader(
-                    title: t.stats.by_categories,
-                    body: ChartByCategories(
-                      datePeriodState: dateRangeService,
-                      showList: true,
-                      initialSelectedType: TransactionType.E,
-                      filters: filters,
-                      useSubcategories: true,
-                    ),
-                  ),
-                ]),
-                buildContainerWithPadding([
-                  CardWithHeader(
-                    title: t.stats.cash_flow,
-                    body: IncomeExpenseComparason(
-                      startDate: dateRangeService.startDate,
-                      endDate: dateRangeService.endDate,
-                      filters: filters,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  CardWithHeader(
-                    title: t.stats.by_periods,
-                    bodyPadding: const EdgeInsets.only(bottom: 12, top: 16),
-                    body: BalanceBarChart(
-                      dateRange: dateRangeService,
-                      filters: filters,
-                    ),
-                  )
-                ]),
-                buildContainerWithPadding(
-                  [
-                    FinanceHealthDetails(
-                      filters: filters.copyWith(
-                          minDate: dateRangeService.startDate,
-                          maxDate: dateRangeService.endDate),
-                    )
+              bottom: TabBar(
+                  tabAlignment: TabAlignment.center,
+                  tabs: [
+                    Tab(text: t.stats.distribution),
+                    Tab(text: t.categories.subcategories),
+                    Tab(text: t.stats.cash_flow),
+                    if (!isForecastMode)
+                      Tab(text: t.financial_health.display),
+                    Tab(text: t.stats.balance_evolution),
                   ],
-                ),
-                buildContainerWithPadding([
-                  CardWithHeader(
-                    title: t.stats.balance_evolution,
-                    body: FundEvolutionLineChart(
-                      showBalanceHeader: true,
-                      dateRange: dateRangeService,
-                      filters: filters,
-                    ),
-                  ),
-                ]),
-              ]),
+                  isScrollable: true),
             ),
-          ],
-        ),
-      ),
+            persistentFooterButtons: [
+              PersistentFooterButton(
+                child: SegmentedCalendarButton(
+                  initialDatePeriodService: dateRangeService,
+                  onChanged: (value) {
+                    setState(() {
+                      dateRangeService = value.copyWith(
+                        startOfMonthDay: dateRangeService.startOfMonthDay,
+                        startOfWeek: dateRangeService.startOfWeek,
+                      );
+                    });
+                  },
+                ),
+              )
+            ],
+            body: Column(
+              children: [
+                if (filters.hasFilter) ...[
+                  FilterRowIndicator(
+                    filters: filters,
+                    onChange: (newFilters) {
+                      setState(() {
+                        filters = newFilters;
+                      });
+                    },
+                  ),
+                  const Divider()
+                ],
+                Expanded(
+                  child: TabBarView(children: [
+                    buildContainerWithPadding([
+                      CardWithHeader(
+                        title: t.stats.by_categories,
+                        body: ChartByCategories(
+                          datePeriodState: dateRangeService,
+                          showList: true,
+                          initialSelectedType: TransactionType.E,
+                          filters: filters,
+                          useSubcategories: false,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      CardWithHeader(
+                        title: t.stats.by_tags,
+                        body: TagStats(
+                          filters: filters.copyWith(
+                            minDate: dateRangeService.startDate,
+                            maxDate: dateRangeService.endDate,
+                          ),
+                        ),
+                      ),
+                    ]),
+                    buildContainerWithPadding([
+                      CardWithHeader(
+                        title: t.stats.by_categories,
+                        body: ChartByCategories(
+                          datePeriodState: dateRangeService,
+                          showList: true,
+                          initialSelectedType: TransactionType.E,
+                          filters: filters,
+                          useSubcategories: true,
+                        ),
+                      ),
+                    ]),
+                    buildContainerWithPadding([
+                      CardWithHeader(
+                        title: t.stats.cash_flow,
+                        body: IncomeExpenseComparason(
+                          startDate: dateRangeService.startDate,
+                          endDate: dateRangeService.endDate,
+                          filters: filters,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      CardWithHeader(
+                        title: t.stats.by_periods,
+                        bodyPadding:
+                            const EdgeInsets.only(bottom: 12, top: 16),
+                        body: BalanceBarChart(
+                          dateRange: dateRangeService,
+                          filters: filters,
+                        ),
+                      )
+                    ]),
+                    if (!isForecastMode)
+                      buildContainerWithPadding(
+                        [
+                          FinanceHealthDetails(
+                            filters: filters.copyWith(
+                                minDate: dateRangeService.startDate,
+                                maxDate: dateRangeService.endDate),
+                          )
+                        ],
+                      ),
+                    buildContainerWithPadding([
+                      CardWithHeader(
+                        title: t.stats.balance_evolution,
+                        body: FundEvolutionLineChart(
+                          showBalanceHeader: true,
+                          dateRange: dateRangeService,
+                          filters: filters,
+                        ),
+                      ),
+                    ]),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

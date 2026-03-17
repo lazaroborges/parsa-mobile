@@ -122,6 +122,7 @@ class ForecastedTransaction {
       account: acc,
       accountCurrency: acc.currency,
       category: cat,
+      parentCategory: cat?.parentCategory,
       currentValueInPreferredCurrency: forecastAmount,
       tags: const [],
       cousin: cousin,

@@ -4,6 +4,7 @@ import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/models/forecast/forecasted_transaction.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ForecastCountResult {
@@ -240,6 +241,43 @@ class ForecastTransactionService {
         result[key] = (result[key] ?? 0) + f.forecastAmount;
       }
       return result;
+    });
+  }
+
+  /// Get the sum of forecast amounts, optionally filtered.
+  /// Mirrors AccountService.getAccountsBalance for forecast data.
+  Stream<double> getAccountsBalance({
+    TransactionFilters? filters,
+  }) {
+    return getForecasts(
+      minDate: filters?.minDate,
+      maxDate: filters?.maxDate,
+      transactionTypes: filters?.transactionTypes,
+      accountsIDs: filters?.accountsIDs,
+      categories: filters?.categories,
+      includeParentCategoriesInSearch:
+          filters?.includeParentCategoriesInSearch ?? false,
+      searchValue: filters?.searchValue,
+    ).map((forecasts) {
+      return forecasts.fold<double>(0, (prev, f) => prev + f.forecastAmount);
+    });
+  }
+
+  /// Get cumulative forecast amount up to a given date.
+  /// Used by fund_evolution_line_chart in forecast mode.
+  Stream<double> getAccountsMoney({
+    TransactionFilters? filters,
+    required DateTime date,
+  }) {
+    return getForecasts(
+      maxDate: date,
+      transactionTypes: filters?.transactionTypes,
+      accountsIDs: filters?.accountsIDs,
+      categories: filters?.categories,
+      includeParentCategoriesInSearch:
+          filters?.includeParentCategoriesInSearch ?? false,
+    ).map((forecasts) {
+      return forecasts.fold<double>(0, (prev, f) => prev + f.forecastAmount);
     });
   }
 }

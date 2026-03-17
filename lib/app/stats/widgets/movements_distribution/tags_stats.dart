@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/chart_by_categories.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 import 'package:parsa/core/database/services/tags/tags_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/models/tags/tag.dart';
@@ -37,8 +39,22 @@ class TagStats extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
 
+    final isForecastMode = ForecastModeService.instance.isInForecastMode;
+    final transactionStream = isForecastMode
+        ? ForecastTransactionService.instance.getTransactions(
+            minDate: filters.minDate,
+            maxDate: filters.maxDate,
+            transactionTypes: filters.transactionTypes,
+            accountsIDs: filters.accountsIDs,
+            categories: filters.categories,
+            includeParentCategoriesInSearch:
+                filters.includeParentCategoriesInSearch,
+            searchValue: filters.searchValue,
+          )
+        : TransactionService.instance.getTransactions(filters: filters);
+
     return StreamBuilder(
-        stream: TransactionService.instance.getTransactions(filters: filters),
+        stream: transactionStream,
         builder: (context, trSnapshot) {
           if (!trSnapshot.hasData) {
             return const LinearProgressIndicator();

@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 import 'package:parsa/core/extensions/lists.extensions.dart';
 import 'package:parsa/core/presentation/widgets/animated_progress_bar.dart';
 import 'package:parsa/core/presentation/widgets/number_ui_formatters/currency_displayer.dart';
@@ -25,6 +27,13 @@ class IncomeExpenseComparason extends StatelessWidget {
 
   final TransactionFilters filters;
 
+  Stream<double> _getBalanceStream(TransactionFilters f) {
+    if (ForecastModeService.instance.isInForecastMode) {
+      return ForecastTransactionService.instance.getAccountsBalance(filters: f);
+    }
+    return AccountService.instance.getAccountsBalance(filters: f);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -38,12 +47,10 @@ class IncomeExpenseComparason extends StatelessWidget {
             children: [
               Text(t.general.balance),
               StreamBuilder(
-                stream: AccountService.instance.getAccountsBalance(
-                  filters: filters.copyWith(
-                    minDate: startDate,
-                    maxDate: endDate,
-                  ),
-                ),
+                stream: _getBalanceStream(filters.copyWith(
+                  minDate: startDate,
+                  maxDate: endDate,
+                )),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return const Skeleton(width: 35, height: 32);
@@ -59,24 +66,20 @@ class IncomeExpenseComparason extends StatelessWidget {
         ),
         StreamBuilder(
           stream: Rx.combineLatest2(
-              AccountService.instance.getAccountsBalance(
-                filters: filters.copyWith(
-                  transactionTypes: [TransactionType.I]
-                      .intersectionWithNullable(filters.transactionTypes)
-                      .toList(),
-                  minDate: startDate,
-                  maxDate: endDate,
-                ),
-              ),
-              AccountService.instance.getAccountsBalance(
-                filters: filters.copyWith(
-                  transactionTypes: [TransactionType.E]
-                      .intersectionWithNullable(filters.transactionTypes)
-                      .toList(),
-                  minDate: startDate,
-                  maxDate: endDate,
-                ),
-              ),
+              _getBalanceStream(filters.copyWith(
+                transactionTypes: [TransactionType.I]
+                    .intersectionWithNullable(filters.transactionTypes)
+                    .toList(),
+                minDate: startDate,
+                maxDate: endDate,
+              )),
+              _getBalanceStream(filters.copyWith(
+                transactionTypes: [TransactionType.E]
+                    .intersectionWithNullable(filters.transactionTypes)
+                    .toList(),
+                minDate: startDate,
+                maxDate: endDate,
+              )),
               (a, b) => [a, b]),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {

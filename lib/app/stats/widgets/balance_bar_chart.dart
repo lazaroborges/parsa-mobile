@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/extensions/lists.extensions.dart';
 import 'package:parsa/core/models/date-utils/date_period.dart';
@@ -72,34 +74,36 @@ class _BalanceBarChartState extends State<BalanceBarChart> {
     List<double> balance = [];
 
     final accountService = AccountService.instance;
+    final isForecastMode = ForecastModeService.instance.isInForecastMode;
 
     final accounts = await widget.filters.accounts().first;
 
-    getIncomeData(DateTime? startDate, DateTime? endDate) async =>
-        await accountService
-            .getAccountsBalance(
-              filters: widget.filters.copyWith(
-                transactionTypes: [TransactionType.I]
-                    .intersectionWithNullable(widget.filters.transactionTypes)
-                    .toList(),
-                minDate: startDate,
-                maxDate: endDate,
-              ),
-            )
+    Future<double> getBalanceStream(TransactionFilters f) async {
+      if (isForecastMode) {
+        return await ForecastTransactionService.instance
+            .getAccountsBalance(filters: f)
             .first;
+      }
+      return await accountService.getAccountsBalance(filters: f).first;
+    }
+
+    getIncomeData(DateTime? startDate, DateTime? endDate) async =>
+        await getBalanceStream(widget.filters.copyWith(
+          transactionTypes: [TransactionType.I]
+              .intersectionWithNullable(widget.filters.transactionTypes)
+              .toList(),
+          minDate: startDate,
+          maxDate: endDate,
+        ));
 
     getExpenseData(DateTime? startDate, DateTime? endDate) async =>
-        await accountService
-            .getAccountsBalance(
-              filters: widget.filters.copyWith(
-                transactionTypes: [TransactionType.E]
-                    .intersectionWithNullable(widget.filters.transactionTypes)
-                    .toList(),
-                minDate: startDate,
-                maxDate: endDate,
-              ),
-            )
-            .first;
+        await getBalanceStream(widget.filters.copyWith(
+          transactionTypes: [TransactionType.E]
+              .intersectionWithNullable(widget.filters.transactionTypes)
+              .toList(),
+          minDate: startDate,
+          maxDate: endDate,
+        ));
 
     if (range.datePeriod.periodType == PeriodType.cycle &&
         range.datePeriod.periodicity == Periodicity.month) {
