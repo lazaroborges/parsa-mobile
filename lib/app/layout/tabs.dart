@@ -121,8 +121,7 @@ class TabsPageState extends State<TabsPage>
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
 
-      // Seed mock forecast data for Phase 1
-      await ForecastTransactionService.instance.seedMockData();
+      // Forecasts are now fetched in dashboard.page.dart in parallel with transactions
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -259,18 +258,21 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
-    // Forecast destination: enter forecast mode
+    // Forecast destination: toggle forecast mode
     if (destination.id == AppMenuDestinationsID.forecast) {
-      ForecastModeService.instance.setForecastMode(true);
+      ForecastModeService.instance.toggle();
       firebaseAnalytics?.logEvent(
         name: 'forecast_mode_toggle',
-        parameters: {'enabled': 'true'},
+        parameters: {
+          'enabled':
+              ForecastModeService.instance.isInForecastMode.toString(),
+        },
       );
       setState(() {});
       return;
     }
 
-    // Tapping "Início" while in forecast mode: exit forecast mode
+    // Tapping "Início" while in forecast mode: exit forecast mode and go to Dashboard
     if (destination.id == AppMenuDestinationsID.dashboard &&
         ForecastModeService.instance.isInForecastMode) {
       ForecastModeService.instance.setForecastMode(false);
@@ -278,7 +280,9 @@ class TabsPageState extends State<TabsPage>
         name: 'forecast_mode_toggle',
         parameters: {'enabled': 'false'},
       );
-      setState(() {});
+      setState(() {
+        selectedDestination = destination;
+      });
       return;
     }
 
@@ -351,26 +355,28 @@ class TabsPageState extends State<TabsPage>
                   !(0 <= selectedNavItemIndex &&
                       selectedNavItemIndex < menuItems.length)
               ? null
-              : (() {
-                  // In forecast mode, hide the forecast button from nav
-                  final navItems = isForecast
-                      ? menuItems
-                          .where((e) =>
-                              e.id != AppMenuDestinationsID.forecast)
-                          .toList()
-                      : menuItems;
-                  final navIndex = navItems.indexWhere(
-                      (e) => e.id == selectedDestination!.id);
-                  return NavigationBar(
-                    destinations: navItems
-                        .map((e) => e.toNavigationDestinationWidget())
-                        .toList(),
-                    selectedIndex:
-                        navIndex >= 0 ? navIndex : 0,
-                    onDestinationSelected: (e) =>
-                        changePage(navItems.elementAt(e)),
-                  );
-                })(),
+              : NavigationBar(
+                  destinations: menuItems.map((e) {
+                    if (e.id == AppMenuDestinationsID.forecast &&
+                        isForecast) {
+                      return NavigationDestination(
+                        icon: Icon(
+                          Icons.trending_up_rounded,
+                          color: ForecastModeService.forecastAccentColor,
+                        ),
+                        selectedIcon: Icon(
+                          Icons.trending_up_rounded,
+                          color: ForecastModeService.forecastAccentColor,
+                        ),
+                        label: 'Previsão',
+                      );
+                    }
+                    return e.toNavigationDestinationWidget();
+                  }).toList(),
+                  selectedIndex: selectedNavItemIndex,
+                  onDestinationSelected: (e) =>
+                      changePage(menuItems.elementAt(e)),
+                ),
           body: Builder(builder: (context) {
             // Exclude the forecast toggle from the page stack
             final allDestinations = getAllDestinations(context,

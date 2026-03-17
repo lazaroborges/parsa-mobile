@@ -11,6 +11,7 @@ import 'package:parsa/app/tags/tags_selector.modal.dart';
 import 'package:parsa/app/transactions/form/transaction_form.page.dart';
 import 'package:parsa/app/transactions/label_value_info_table.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/extensions/string.extension.dart';
@@ -706,7 +707,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final isForecast = widget.transaction.id.startsWith('forecast_');
+    final isForecast = ForecastModeService.instance.isInForecastMode;
 
     return StreamBuilder(
         stream: isForecast

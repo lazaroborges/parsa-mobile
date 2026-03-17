@@ -1,9 +1,10 @@
+import 'package:parsa/core/api/fetch_user_forecasts.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
 import 'package:parsa/core/models/forecast/forecasted_transaction.dart';
-import 'package:parsa/core/models/forecast/recurrency_type.dart';
 import 'package:parsa/core/models/transaction/transaction.dart';
 import 'package:parsa/core/models/transaction/transaction_type.enum.dart';
+import 'package:parsa/core/presentation/widgets/transaction_filter/transaction_filters.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ForecastCountResult {
@@ -21,7 +22,64 @@ class ForecastTransactionService {
   final _forecastsController =
       BehaviorSubject<List<ForecastedTransaction>>.seeded([]);
 
-  bool _isSeeded = false;
+  /// Fetch forecasts from API for a given month and load into the stream.
+  /// [forecastMonth] in YYYY-MM format (e.g., "2026-03").
+  Future<void> fetchAndLoadForecasts(String forecastMonth) async {
+    print('[ForecastService] fetchAndLoadForecasts called for $forecastMonth');
+    try {
+      final forecasts = await fetchUserForecasts(forecastMonth);
+      print('[ForecastService] Fetched ${forecasts.length} forecasts, resolving relationships...');
+
+      // Resolve relationships (account, category) for each forecast
+      final accounts = await AccountService.instance.getAccounts().first;
+      if (accounts.isEmpty) {
+        print('[ForecastService] No accounts found, skipping forecast loading');
+        _forecastsController.add([]);
+        return;
+      }
+
+      final allCategories =
+          await CategoryService.instance.getCategories().first;
+
+      for (final forecast in forecasts) {
+        // Resolve account
+        forecast.account = accounts
+            .where((a) => a.id == forecast.accountId)
+            .firstOrNull;
+
+        // Resolve category by name (API returns category name string)
+        if (forecast.categoryName != null) {
+          forecast.category = allCategories
+              .where((c) => c.name == forecast.categoryName)
+              .firstOrNull;
+          if (forecast.category != null) {
+            forecast.categoryId = forecast.category!.id;
+          }
+        }
+      }
+
+      final withAccounts = forecasts.where((f) => f.account != null).length;
+      final withCategories = forecasts.where((f) => f.category != null).length;
+      print('[ForecastService] Loaded ${forecasts.length} forecasts ($withAccounts with accounts, $withCategories with categories)');
+      for (final f in forecasts.where((f) => f.account == null)) {
+        print('[ForecastService] UNMATCHED accountId: ${f.accountId}');
+      }
+      if (accounts.isNotEmpty) {
+        print('[ForecastService] Available account IDs: ${accounts.map((a) => a.id).toList()}');
+      }
+      _forecastsController.add(forecasts);
+    } catch (e, stackTrace) {
+      print('Error fetching forecasts from API: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  /// Reload forecasts for a specific month. Called when user navigates months in forecast mode.
+  Future<void> loadMonth(DateTime month) async {
+    final monthStr =
+        '${month.year}-${month.month.toString().padLeft(2, '0')}';
+    await fetchAndLoadForecasts(monthStr);
+  }
 
   /// Get forecasts with optional filtering
   Stream<List<ForecastedTransaction>> getForecasts({
@@ -30,6 +88,7 @@ class ForecastTransactionService {
     List<TransactionType>? transactionTypes,
     Iterable<String>? accountsIDs,
     Iterable<String>? categories,
+    bool includeParentCategoriesInSearch = false,
     String? searchValue,
     int? limit,
     int? cousin,
@@ -54,8 +113,14 @@ class ForecastTransactionService {
             filtered.where((f) => accountsIDs.contains(f.accountId)).toList();
       }
       if (categories != null && categories.isNotEmpty) {
-        filtered =
-            filtered.where((f) => categories.contains(f.categoryId)).toList();
+        filtered = filtered.where((f) {
+          if (categories.contains(f.categoryId)) return true;
+          if (includeParentCategoriesInSearch) {
+            final parentId = f.category?.parentCategoryID;
+            if (parentId != null && categories.contains(parentId)) return true;
+          }
+          return false;
+        }).toList();
       }
       if (searchValue != null && searchValue.isNotEmpty) {
         final query = searchValue.toLowerCase();
@@ -82,6 +147,7 @@ class ForecastTransactionService {
     List<TransactionType>? transactionTypes,
     Iterable<String>? accountsIDs,
     Iterable<String>? categories,
+    bool includeParentCategoriesInSearch = false,
     String? searchValue,
   }) {
     return getForecasts(
@@ -90,6 +156,7 @@ class ForecastTransactionService {
       transactionTypes: transactionTypes,
       accountsIDs: accountsIDs,
       categories: categories,
+      includeParentCategoriesInSearch: includeParentCategoriesInSearch,
       searchValue: searchValue,
     ).map((forecasts) {
       final sum =
@@ -122,119 +189,6 @@ class ForecastTransactionService {
     });
   }
 
-  /// Seed mock data for Phase 1 development
-  Future<void> seedMockData() async {
-    if (_isSeeded) return;
-
-    try {
-      final accounts = await AccountService.instance.getAccounts().first;
-      final allCategories =
-          await CategoryService.instance.getMainCategories().first;
-
-      if (accounts.isEmpty) {
-        _forecastsController.add([]);
-        _isSeeded = true;
-        return;
-      }
-
-      final now = DateTime.now();
-      final forecastMonth = DateTime(now.year, now.month + 1, 1);
-      final defaultAccount = accounts.first;
-
-      // Split categories by type
-      final expenseCategories =
-          allCategories.where((c) => c.type.isExpense).toList();
-      final incomeCategories =
-          allCategories.where((c) => c.type.isIncome).toList();
-
-      final mockForecasts = <ForecastedTransaction>[];
-      int idCounter = 1;
-
-      // Generate expense forecasts
-      for (var i = 0; i < expenseCategories.length && i < 8; i++) {
-        final cat = expenseCategories[i];
-        final account =
-            accounts.length > 1 ? accounts[i % accounts.length] : defaultAccount;
-        final isFixed = i < 3;
-        final isVariable = i >= 3 && i < 6;
-
-        final amount = -(100.0 + (i * 150.0));
-        // For expenses (negative): low is less negative (smaller loss), high is more negative (larger loss)
-        final low = amount * 0.85;  // e.g. -250 * 0.85 = -212.5 (less negative = lower bound)
-        final high = amount * 1.15; // e.g. -250 * 1.15 = -287.5 (more negative = upper bound)
-
-        mockForecasts.add(ForecastedTransaction(
-          id: 'forecast_${idCounter++}',
-          recurrencyPatternId: 'pattern_$i',
-          type: TransactionType.E,
-          recurrencyType: isFixed
-              ? RecurrencyType.recurrent_fixed
-              : isVariable
-                  ? RecurrencyType.recurrent_variable
-                  : RecurrencyType.irregular,
-          forecastAmount: amount,
-          forecastLow: isFixed ? null : low,
-          forecastHigh: isFixed ? null : high,
-          forecastDate:
-              isFixed ? DateTime(forecastMonth.year, forecastMonth.month, 5 + i * 5) : null,
-          forecastMonth: forecastMonth,
-          cousin: i + 1,
-          categoryId: cat.id,
-          accountId: account.id,
-          category: cat,
-          account: account,
-        ));
-      }
-
-      // Generate income forecasts
-      for (var i = 0; i < incomeCategories.length && i < 3; i++) {
-        final cat = incomeCategories[i];
-        final amount = 2000.0 + (i * 1000.0);
-
-        mockForecasts.add(ForecastedTransaction(
-          id: 'forecast_${idCounter++}',
-          recurrencyPatternId: 'pattern_income_$i',
-          type: TransactionType.I,
-          recurrencyType: i == 0
-              ? RecurrencyType.recurrent_fixed
-              : RecurrencyType.recurrent_variable,
-          forecastAmount: amount,
-          forecastLow: i == 0 ? null : amount * 0.9,
-          forecastHigh: i == 0 ? null : amount * 1.1,
-          forecastDate: i == 0
-              ? DateTime(forecastMonth.year, forecastMonth.month, 5)
-              : null,
-          forecastMonth: forecastMonth,
-          cousin: 100 + i,
-          categoryId: cat.id,
-          accountId: defaultAccount.id,
-          category: cat,
-          account: defaultAccount,
-        ));
-      }
-
-      // Add an irregular expense without category (envelope pattern)
-      mockForecasts.add(ForecastedTransaction(
-        id: 'forecast_${idCounter++}',
-        type: TransactionType.E,
-        recurrencyType: RecurrencyType.irregular,
-        forecastAmount: -350.0,
-        forecastLow: -500.0,
-        forecastHigh: -200.0,
-        forecastMonth: forecastMonth,
-        accountId: defaultAccount.id,
-        parentCategoryName: 'Outros gastos',
-        account: defaultAccount,
-      ));
-
-      _forecastsController.add(mockForecasts);
-      _isSeeded = true;
-    } catch (e) {
-      print('Error seeding mock forecast data: $e');
-      _forecastsController.add([]);
-    }
-  }
-
   /// Get forecasts as MoneyTransaction objects for reuse with existing UI components
   Stream<List<MoneyTransaction>> getTransactions({
     DateTime? minDate,
@@ -242,6 +196,7 @@ class ForecastTransactionService {
     List<TransactionType>? transactionTypes,
     Iterable<String>? accountsIDs,
     Iterable<String>? categories,
+    bool includeParentCategoriesInSearch = false,
     String? searchValue,
     int? limit,
   }) {
@@ -251,12 +206,13 @@ class ForecastTransactionService {
       transactionTypes: transactionTypes,
       accountsIDs: accountsIDs,
       categories: categories,
+      includeParentCategoriesInSearch: includeParentCategoriesInSearch,
       searchValue: searchValue,
       limit: limit,
     ).map((forecasts) {
       return forecasts
-          .where((f) => f.account != null)
           .map((f) => f.toMoneyTransaction())
+          .whereType<MoneyTransaction>()
           .toList();
     });
   }
@@ -285,6 +241,43 @@ class ForecastTransactionService {
         result[key] = (result[key] ?? 0) + f.forecastAmount;
       }
       return result;
+    });
+  }
+
+  /// Get the sum of forecast amounts, optionally filtered.
+  /// Mirrors AccountService.getAccountsBalance for forecast data.
+  Stream<double> getAccountsBalance({
+    TransactionFilters? filters,
+  }) {
+    return getForecasts(
+      minDate: filters?.minDate,
+      maxDate: filters?.maxDate,
+      transactionTypes: filters?.transactionTypes,
+      accountsIDs: filters?.accountsIDs,
+      categories: filters?.categories,
+      includeParentCategoriesInSearch:
+          filters?.includeParentCategoriesInSearch ?? false,
+      searchValue: filters?.searchValue,
+    ).map((forecasts) {
+      return forecasts.fold<double>(0, (prev, f) => prev + f.forecastAmount);
+    });
+  }
+
+  /// Get cumulative forecast amount up to a given date.
+  /// Used by fund_evolution_line_chart in forecast mode.
+  Stream<double> getAccountsMoney({
+    TransactionFilters? filters,
+    required DateTime date,
+  }) {
+    return getForecasts(
+      maxDate: date,
+      transactionTypes: filters?.transactionTypes,
+      accountsIDs: filters?.accountsIDs,
+      categories: filters?.categories,
+      includeParentCategoriesInSearch:
+          filters?.includeParentCategoriesInSearch ?? false,
+    ).map((forecasts) {
+      return forecasts.fold<double>(0, (prev, f) => prev + f.forecastAmount);
     });
   }
 }

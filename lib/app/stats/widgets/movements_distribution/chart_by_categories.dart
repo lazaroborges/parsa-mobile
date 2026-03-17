@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:parsa/app/stats/widgets/movements_distribution/category_stats_modal.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
 import 'package:parsa/core/database/services/category/category_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/extensions/lists.extensions.dart';
@@ -74,23 +76,44 @@ class _ChartByCategoriesState extends State<ChartByCategories> {
   ) async {
     final data = <TrDistributionChartItem<Category>>[];
     final transactionService = TransactionService.instance;
+    final isForecastMode = ForecastModeService.instance.isInForecastMode;
+    final currentFilters = _getTransactionFilters();
 
-    final transactions = await transactionService
-        .getTransactions(filters: _getTransactionFilters())
-        .first;
+    final List<MoneyTransaction> transactions;
+    final List<MoneyTransaction> previousTransactions;
 
-    final previousPeriodFilters = _getTransactionFilters().copyWith(
-      minDate: widget.datePeriodState.startDate?.subtract(
-        widget.datePeriodState.endDate?.difference(
-                widget.datePeriodState.startDate ?? DateTime.now()) ??
-            Duration.zero,
-      ),
-      maxDate: widget.datePeriodState.startDate,
-    );
+    if (isForecastMode) {
+      transactions = await ForecastTransactionService.instance
+          .getTransactions(
+            transactionTypes: currentFilters.transactionTypes,
+            accountsIDs: currentFilters.accountsIDs,
+            categories: currentFilters.categories,
+            includeParentCategoriesInSearch:
+                currentFilters.includeParentCategoriesInSearch,
+            minDate: currentFilters.minDate,
+            maxDate: currentFilters.maxDate,
+            searchValue: currentFilters.searchValue,
+          )
+          .first;
+      previousTransactions = [];
+    } else {
+      transactions = await transactionService
+          .getTransactions(filters: currentFilters)
+          .first;
 
-    final previousTransactions = await transactionService
-        .getTransactions(filters: previousPeriodFilters)
-        .first;
+      final previousPeriodFilters = currentFilters.copyWith(
+        minDate: widget.datePeriodState.startDate?.subtract(
+          widget.datePeriodState.endDate?.difference(
+                  widget.datePeriodState.startDate ?? DateTime.now()) ??
+              Duration.zero,
+        ),
+        maxDate: widget.datePeriodState.startDate,
+      );
+
+      previousTransactions = await transactionService
+          .getTransactions(filters: previousPeriodFilters)
+          .first;
+    }
 
     for (final transaction in transactions) {
       if (transaction.category == null) continue;

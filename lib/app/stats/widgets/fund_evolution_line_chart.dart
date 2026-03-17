@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/currency/currency_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/models/date-utils/date_period_state.dart';
 import 'package:parsa/core/presentation/theme.dart';
@@ -43,6 +45,8 @@ class FundEvolutionLineChart extends StatelessWidget {
       return Stream.value(null);
     }
 
+    final isForecastMode = ForecastModeService.instance.isInForecastMode;
+
     List<Stream<double>> balance = [];
     List<String> labels = [];
 
@@ -58,8 +62,13 @@ class FundEvolutionLineChart extends StatelessWidget {
           ? DateFormat.MMMMd().format(currentDay)
           : DateFormat.yMMMd().format(currentDay));
 
-      balance.add(AccountService.instance
-          .getAccountsMoney(trFilters: filters, date: currentDay));
+      if (isForecastMode) {
+        balance.add(ForecastTransactionService.instance
+            .getAccountsMoney(filters: filters, date: currentDay));
+      } else {
+        balance.add(AccountService.instance
+            .getAccountsMoney(trFilters: filters, date: currentDay));
+      }
 
       currentDay = currentDay.add(Duration(days: dayRange));
     }
@@ -70,6 +79,7 @@ class FundEvolutionLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isForecastMode = ForecastModeService.instance.isInForecastMode;
     final lineColor = AppColors.of(context).primary;
 
     final accountService = AccountService.instance;
@@ -127,44 +137,45 @@ class FundEvolutionLineChart extends StatelessWidget {
                             //     }),
                           ],
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              t.stats.compared_to_previous_period,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            StreamBuilder(
-                                stream:
-                                    accountService.getAccountsMoneyVariation(
-                                  accounts: accounts,
-                                  startDate: dateRange.startDate,
-                                  endDate: dateRange.endDate,
-                                  convertToPreferredCurrency: true,
-                                ),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData) {
-                                    return const Skeleton(
-                                        width: 52, height: 22);
-                                  }
+                        if (!isForecastMode)
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                t.stats.compared_to_previous_period,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              StreamBuilder(
+                                  stream:
+                                      accountService.getAccountsMoneyVariation(
+                                    accounts: accounts,
+                                    startDate: dateRange.startDate,
+                                    endDate: dateRange.endDate,
+                                    convertToPreferredCurrency: true,
+                                  ),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return const Skeleton(
+                                          width: 52, height: 22);
+                                    }
 
-                                  return TrendingValue(
-                                    percentage: snapshot.data!,
-                                    filled: false,
-                                    fontWeight: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall!
-                                        .fontWeight!,
-                                    fontSize: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall!
-                                        .fontSize!,
-                                    outlined: false,
-                                  );
-                                })
-                          ],
-                        )
+                                    return TrendingValue(
+                                      percentage: snapshot.data!,
+                                      filled: false,
+                                      fontWeight: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall!
+                                          .fontWeight!,
+                                      fontSize: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall!
+                                          .fontSize!,
+                                      outlined: false,
+                                    );
+                                  })
+                            ],
+                          )
                       ],
                     ),
                   );

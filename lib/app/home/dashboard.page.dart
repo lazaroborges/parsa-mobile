@@ -19,6 +19,7 @@ import 'package:parsa/core/api/fetch_user_budgets_service.dart';
 import 'package:parsa/core/api/fetch_user_data_server.dart';
 import 'package:parsa/core/api/fetch_user_tags_service.dart';
 import 'package:parsa/core/api/fetch_user_transactions.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 import 'package:parsa/core/api/post_methods/post_user_settings.dart';
 import 'package:parsa/core/database/services/account/account_service.dart';
 import 'package:parsa/core/database/services/budget/budget_service.dart';
@@ -233,10 +234,13 @@ class _DashboardPageState extends State<DashboardPage> with RouteAware {
         //fetchUserTags(context),
       ]);
 
-      // Finally fetch transactions and budgets
+      // Finally fetch transactions, budgets, and forecasts in parallel
+      final now = DateTime.now();
+      final currentMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
       await Future.wait([
         fetchUserTransactions(null),
         //fetchUserBudgets(context),
+        ForecastTransactionService.instance.fetchAndLoadForecasts(currentMonth),
       ]);
 
       // HACK: Short delay to allow database writes to settle before reading.
