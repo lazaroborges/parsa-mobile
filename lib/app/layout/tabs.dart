@@ -121,8 +121,7 @@ class TabsPageState extends State<TabsPage>
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
 
-      // Seed mock forecast data for Phase 1
-      await ForecastTransactionService.instance.seedMockData();
+      // Forecasts are now fetched in dashboard.page.dart in parallel with transactions
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');

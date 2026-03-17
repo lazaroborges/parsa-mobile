@@ -19,9 +19,12 @@ class ForecastedTransaction {
   final DateTime? forecastDate;
   final DateTime forecastMonth;
   final int? cousin;
-  final String? categoryId;
+  final String? cousinName;
+  String? categoryId;
+  final String? categoryName;
   final String accountId;
   final String? parentCategoryName;
+  final String? description;
 
   // Resolved relationships
   Category? category;
@@ -38,15 +41,23 @@ class ForecastedTransaction {
     this.forecastDate,
     required this.forecastMonth,
     this.cousin,
+    this.cousinName,
     this.categoryId,
+    this.categoryName,
     required this.accountId,
     this.parentCategoryName,
+    this.description,
     this.category,
     this.account,
   });
 
   String displayName() {
-    return category?.name ?? parentCategoryName ?? 'Previsao';
+    return description ??
+        category?.name ??
+        categoryName ??
+        parentCategoryName ??
+        cousinName ??
+        'Previsao';
   }
 
   Color color(BuildContext context) {
@@ -81,8 +92,11 @@ class ForecastedTransaction {
     );
   }
 
-  /// Effective display date: forecastDate for fixed, first of forecastMonth otherwise
-  DateTime get displayDate => forecastDate ?? forecastMonth;
+  /// Effective display date: last day of the forecast month
+  DateTime get displayDate {
+    final lastDay = DateTime(forecastMonth.year, forecastMonth.month + 1, 0);
+    return forecastDate ?? lastDay;
+  }
 
   /// Confidence band text (e.g. "R$ 380 – R$ 420")
   String? get confidenceBandText {
@@ -93,13 +107,14 @@ class ForecastedTransaction {
   }
 
   /// Convert to MoneyTransaction so existing UI components can render this forecast.
-  MoneyTransaction toMoneyTransaction() {
+  MoneyTransaction? toMoneyTransaction() {
+    if (account == null) return null;
     final cat = category;
     final acc = account!;
 
     return MoneyTransaction(
       id: id,
-      date: forecastDate ?? forecastMonth,
+      date: displayDate,
       value: forecastAmount,
       isHidden: false,
       type: type,
@@ -114,24 +129,38 @@ class ForecastedTransaction {
     );
   }
 
+  static double? _negate(double? v) => v != null ? -v : null;
+
   factory ForecastedTransaction.fromJson(Map<String, dynamic> json) {
+    final isCredit = json['type'] == 'CREDIT';
+    final rawAmount = (json['forecastAmount'] as num).toDouble();
+    // API returns positive amounts; app expects negative for expenses
+    final amount = isCredit ? rawAmount : -rawAmount;
+
     return ForecastedTransaction(
       id: json['id'] as String,
-      recurrencyPatternId: json['recurrency_pattern_id'] as String?,
-      type: json['type'] == 'CREDIT' ? TransactionType.I : TransactionType.E,
-      recurrencyType: RecurrencyType.fromString(
-          json['recurrency_type'] as String? ?? 'irregular'),
-      forecastAmount: (json['forecast_amount'] as num).toDouble(),
-      forecastLow: (json['forecast_low'] as num?)?.toDouble(),
-      forecastHigh: (json['forecast_high'] as num?)?.toDouble(),
-      forecastDate: json['forecast_date'] != null
-          ? DateTime.parse(json['forecast_date'] as String)
+      recurrencyPatternId: json['recurrencyPatternId'] != null
+          ? json['recurrencyPatternId'].toString()
           : null,
-      forecastMonth: DateTime.parse(json['forecast_month'] as String),
+      type: isCredit ? TransactionType.I : TransactionType.E,
+      recurrencyType: RecurrencyType.fromString(
+          json['recurrencyType'] as String? ?? 'irregular'),
+      forecastAmount: amount,
+      forecastLow: isCredit
+          ? (json['forecastLow'] as num?)?.toDouble()
+          : _negate((json['forecastHigh'] as num?)?.toDouble()),
+      forecastHigh: isCredit
+          ? (json['forecastHigh'] as num?)?.toDouble()
+          : _negate((json['forecastLow'] as num?)?.toDouble()),
+      forecastDate: json['forecastDate'] != null
+          ? DateTime.parse(json['forecastDate'] as String)
+          : null,
+      forecastMonth: DateTime.parse(json['forecastMonth'] as String),
       cousin: json['cousin'] as int?,
-      categoryId: json['category_id'] as String?,
-      accountId: json['account_id'] as String,
-      parentCategoryName: json['parent_category'] as String?,
+      cousinName: json['cousinName'] as String?,
+      categoryName: json['category'] as String?,
+      accountId: json['accountId'] as String,
+      description: json['description'] as String?,
     );
   }
 }
