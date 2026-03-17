@@ -171,6 +171,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         transactionTypes: filters.transactionTypes,
         accountsIDs: filters.accountsIDs,
         categories: filters.categories,
+        includeParentCategoriesInSearch: filters.includeParentCategoriesInSearch,
       ),
       builder: (context, snapshot) {
         return Scaffold(
@@ -286,6 +287,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     transactionTypes: filters.transactionTypes,
                     accountsIDs: filters.accountsIDs,
                     categories: filters.categories,
+                    includeParentCategoriesInSearch:
+                        filters.includeParentCategoriesInSearch,
                   ),
                   heroTagBuilder: (tr) =>
                       'forecast-page__tr-icon-${tr.id}',

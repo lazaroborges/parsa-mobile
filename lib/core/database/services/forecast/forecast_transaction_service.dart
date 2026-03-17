@@ -87,6 +87,7 @@ class ForecastTransactionService {
     List<TransactionType>? transactionTypes,
     Iterable<String>? accountsIDs,
     Iterable<String>? categories,
+    bool includeParentCategoriesInSearch = false,
     String? searchValue,
     int? limit,
     int? cousin,
@@ -111,8 +112,14 @@ class ForecastTransactionService {
             filtered.where((f) => accountsIDs.contains(f.accountId)).toList();
       }
       if (categories != null && categories.isNotEmpty) {
-        filtered =
-            filtered.where((f) => categories.contains(f.categoryId)).toList();
+        filtered = filtered.where((f) {
+          if (categories.contains(f.categoryId)) return true;
+          if (includeParentCategoriesInSearch) {
+            final parentId = f.category?.parentCategoryID;
+            if (parentId != null && categories.contains(parentId)) return true;
+          }
+          return false;
+        }).toList();
       }
       if (searchValue != null && searchValue.isNotEmpty) {
         final query = searchValue.toLowerCase();
@@ -139,6 +146,7 @@ class ForecastTransactionService {
     List<TransactionType>? transactionTypes,
     Iterable<String>? accountsIDs,
     Iterable<String>? categories,
+    bool includeParentCategoriesInSearch = false,
     String? searchValue,
   }) {
     return getForecasts(
@@ -147,6 +155,7 @@ class ForecastTransactionService {
       transactionTypes: transactionTypes,
       accountsIDs: accountsIDs,
       categories: categories,
+      includeParentCategoriesInSearch: includeParentCategoriesInSearch,
       searchValue: searchValue,
     ).map((forecasts) {
       final sum =
@@ -186,6 +195,7 @@ class ForecastTransactionService {
     List<TransactionType>? transactionTypes,
     Iterable<String>? accountsIDs,
     Iterable<String>? categories,
+    bool includeParentCategoriesInSearch = false,
     String? searchValue,
     int? limit,
   }) {
@@ -195,6 +205,7 @@ class ForecastTransactionService {
       transactionTypes: transactionTypes,
       accountsIDs: accountsIDs,
       categories: categories,
+      includeParentCategoriesInSearch: includeParentCategoriesInSearch,
       searchValue: searchValue,
       limit: limit,
     ).map((forecasts) {
