@@ -60,11 +60,9 @@ class ForecastModeService {
     }
   }
 
-  /// Initialize from persisted state
+  /// Initialize — always start in regular (non-forecast) mode
   Future<void> initialize() async {
-    final lastMode =
-        await SharedPreferencesAsync.instance.getBool(keyForecastMode) ?? false;
-    setForecastMode(lastMode);
+    setForecastMode(false);
   }
 
   /// Set the forecast mode and emit theme + mode changes
