@@ -361,14 +361,14 @@ class TabsPageState extends State<TabsPage>
                         isForecast) {
                       return NavigationDestination(
                         icon: Icon(
-                          Icons.trending_up_rounded,
+                          Icons.auto_awesome,
                           color: ForecastModeService.forecastAccentColor,
                         ),
                         selectedIcon: Icon(
-                          Icons.trending_up_rounded,
+                          Icons.auto_awesome,
                           color: ForecastModeService.forecastAccentColor,
                         ),
-                        label: 'Previsão',
+                        label: 'Previsões',
                       );
                     }
                     return e.toNavigationDestinationWidget();

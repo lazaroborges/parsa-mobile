@@ -113,12 +113,12 @@ List<MainMenuDestination> getAllDestinations(
       icon: Icons.auto_graph_rounded,
       destination: const StatsPage(dateRangeService: DatePeriodState()),
     ),
-    MainMenuDestination(
+    const MainMenuDestination(
       AppMenuDestinationsID.forecast,
-      label: 'Previsao',
-      icon: Icons.trending_up_rounded,
-      selectedIcon: Icons.trending_up_rounded,
-      destination: const SizedBox(), // toggle action, not a page
+      label: 'Previsões',
+      icon: Icons.auto_awesome,
+      selectedIcon: Icons.auto_awesome,
+      destination: SizedBox(), // toggle action, not a page
     ),
     MainMenuDestination(
       AppMenuDestinationsID.settings,
