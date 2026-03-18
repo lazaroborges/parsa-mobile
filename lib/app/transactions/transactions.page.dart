@@ -42,11 +42,16 @@ class TransactionsPage extends StatefulWidget {
     this.filters,
     this.categoryStatsData,
     this.dateRangeText,
+    this.forceForecastMode,
   });
 
   final TransactionFilters? filters;
   final TrDistributionChartItem<Category>? categoryStatsData;
   final String? dateRangeText;
+
+  /// When non-null, overrides the global ForecastModeService to force
+  /// showing either forecast or reconciled transactions.
+  final bool? forceForecastMode;
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
@@ -144,6 +149,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+
+    if (widget.forceForecastMode != null) {
+      return widget.forceForecastMode!
+          ? _buildForecastView(context, t)
+          : _buildRealView(context, t);
+    }
 
     return StreamBuilder<bool>(
       stream: ForecastModeService.instance.forecastModeStream,
