@@ -1051,34 +1051,47 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                               ),
                             ],
 
-                            // Add related transactions section if cousin exists
-                            if (transaction.cousin != null) ...[
-                              const SizedBox(height: 16),
-                              CardWithHeader(
-                                onHeaderButtonClick: () {
-                                  RouteUtils.pushRoute(
-                                    context,
-                                    TransactionsPage(
-                                      filters: TransactionFilters(
+                            // Add related transactions section if cousin or category exists
+                            if (transaction.cousin != null ||
+                                transaction.category != null) ...[
+                              () {
+                                final hasCousin = transaction.cousin != null;
+                                final filters = hasCousin
+                                    ? TransactionFilters(
                                         cousinFilter: transaction.cousin,
+                                      )
+                                    : TransactionFilters(
+                                        categories: [
+                                          transaction.category!.id
+                                        ],
+                                      );
+
+                                return Column(children: [
+                                  const SizedBox(height: 16),
+                                  CardWithHeader(
+                                    onHeaderButtonClick: () {
+                                      RouteUtils.pushRoute(
+                                        context,
+                                        TransactionsPage(
+                                          filters: filters,
+                                          forceForecastMode: false,
+                                        ),
+                                      );
+                                    },
+                                    title: t.transaction.transaction_cousin,
+                                    body: TransactionListComponent(
+                                      filters: filters,
+                                      prevPage: widget.prevPage,
+                                      limit: 5,
+                                      heroTagBuilder: (tr) =>
+                                          'related-${tr.id}-${transaction.cousin ?? transaction.category?.id}-${Random().nextInt(1000000)}',
+                                      onEmptyList: Center(
+                                        child: Text("Don't display this"),
                                       ),
                                     ),
-                                  );
-                                },
-                                title: t.transaction.transaction_cousin,
-                                body: TransactionListComponent(
-                                  filters: TransactionFilters(
-                                    cousinFilter: transaction.cousin,
                                   ),
-                                  prevPage: widget.prevPage,
-                                  limit: 5,
-                                  heroTagBuilder: (tr) =>
-                                      'related-${tr.id}-${transaction.cousin}-${Random().nextInt(1000000)}',
-                                  onEmptyList: Center(
-                                    child: Text("Don't display this"),
-                                  ),
-                                ),
-                              ),
+                                ]);
+                              }(),
                             ],
                           ],
                         ),
