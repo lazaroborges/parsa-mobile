@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Parsa is a Brazilian financial management Flutter application that provides comprehensive personal finance tracking with bank account integration, budgeting, and analytics. The app is localized for Portuguese only for now, and a lot of the code has hardcoded strings into the code. No problem in hard code strings into the code.
 
+## Agent / AI Tools Rules
+
+Don't run around and try figure it out everything on yourself. Ask always for directions and clarification. Don't go beyond what you asked - stay on your lane. Don't overengineer features. Simpler and fully working is better. 
+
+### Clarifications
+
+When making changes to the data schema of the SQLite database that runs inside the app, don't create migrations to v8. Reuse the file `v7.sql` and `tables.drift` (other places might need change too) and apply the changes to build the new feature. The database is always rebuilt when a version is released and there is a backend server for synchronization, so you don't need to worry in keeping the local database intact. 
+
 ## Common Commands
 
 ### Development
@@ -133,9 +141,10 @@ dart fix --apply
 - **Biometric Authentication**: Local authentication support
 
 ### Environment Configuration
-- Uses `.env` file for environment-specific settings
-- Firebase configuration in `firebase_options.dart`
+- Uses `.env` file for environment-specific settings (copy from `.env.example`)
+- Firebase configuration in `firebase_options.dart` (reads from `.env`)
 - Auth0 credentials configured via environment variables
+- **Android Firebase DEVELOPER_ERROR**: Add SHA-1 to Firebase Console. See `docs/firebase-android-setup.md`
 
 ### Asset Management
 - Icons organized by category in `assets/icons/`

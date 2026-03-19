@@ -30,6 +30,8 @@ import 'package:parsa/app/transactions/cousin/cousin_found_dialog.dart';
 import 'package:parsa/core/utils/cousin_utils.dart';
 import 'package:parsa/i18n/translations.g.dart';
 import 'package:parsa/core/services/review/review_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
+import 'package:parsa/core/database/services/forecast/forecast_transaction_service.dart';
 
 // This page is the entry point of the app once the user has complete onboarding
 class TabsPage extends StatefulWidget {
@@ -118,6 +120,8 @@ class TabsPageState extends State<TabsPage>
 
       // Then fetch all other data (accounts, transactions, tags) in parallel
       await Future.wait([refreshData(showLoading: true)]);
+
+      // Forecasts are now fetched in dashboard.page.dart in parallel with transactions
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -254,6 +258,34 @@ class TabsPageState extends State<TabsPage>
   }
 
   void changePage(MainMenuDestination destination) {
+    // Forecast destination: toggle forecast mode
+    if (destination.id == AppMenuDestinationsID.forecast) {
+      ForecastModeService.instance.toggle();
+      firebaseAnalytics?.logEvent(
+        name: 'forecast_mode_toggle',
+        parameters: {
+          'enabled':
+              ForecastModeService.instance.isInForecastMode.toString(),
+        },
+      );
+      setState(() {});
+      return;
+    }
+
+    // Tapping "Início" while in forecast mode: exit forecast mode and go to Dashboard
+    if (destination.id == AppMenuDestinationsID.dashboard &&
+        ForecastModeService.instance.isInForecastMode) {
+      ForecastModeService.instance.setForecastMode(false);
+      firebaseAnalytics?.logEvent(
+        name: 'forecast_mode_toggle',
+        parameters: {'enabled': 'false'},
+      );
+      setState(() {
+        selectedDestination = destination;
+      });
+      return;
+    }
+
     // Track destination click in Firebase Analytics
     firebaseAnalytics?.logEvent(
       name: 'navigation_destination_click',
@@ -263,8 +295,6 @@ class TabsPageState extends State<TabsPage>
         'navigation_type': 'bottom_navigation',
       },
     );
-
-    // navigationSidebarKey.currentState?.setSelectedDestination(destination); // Removed: no longer used
 
     setState(() {
       selectedDestination = destination;
@@ -313,50 +343,78 @@ class TabsPageState extends State<TabsPage>
     final selectedNavItemIndex = menuItems
         .indexWhere((element) => element.id == selectedDestination!.id);
 
-    return Scaffold(
-      bottomNavigationBar: BreakPoint.of(context)
-                  .isLargerThan(BreakpointID.sm) ||
-              !(0 <= selectedNavItemIndex &&
-                  selectedNavItemIndex < menuItems.length)
-          ? null
-          : NavigationBar(
-              destinations: menuItems
-                  .map((e) => e.toNavigationDestinationWidget())
-                  .toList(),
-              selectedIndex: selectedNavItemIndex,
-              onDestinationSelected: (e) => changePage(menuItems.elementAt(e)),
-            ),
-      body: Builder(builder: (context) {
-        final allDestinations = getAllDestinations(context,
-            shortLabels: BreakPoint.of(context).isSmallerThan(BreakpointID.xl));
+    return StreamBuilder<bool>(
+      stream: ForecastModeService.instance.forecastModeStream,
+      initialData: ForecastModeService.instance.isInForecastMode,
+      builder: (context, forecastSnapshot) {
+        final isForecast = forecastSnapshot.data ?? false;
 
-        return FadeIndexedStack(
-          index: allDestinations
-              .indexWhere((element) => element.id == selectedDestination?.id),
-          duration: const Duration(milliseconds: 300),
-          children: allDestinations.asMap().entries.map((entry) {
-            // If this is the Stats tab, inject the initialIndex and key
-            if (entry.value.destination is StatsPage) {
-              return StatsPage(
-                key: _statsPageKey,
-                initialIndex: _statsInitialIndex,
-                dateRangeService: const DatePeriodState(),
-              );
-            }
-            // If this is the Transactions tab, inject filters and key
-            if (entry.value.destination.runtimeType.toString() ==
-                'TransactionsPage') {
-              debugPrint('[TabsPage] Building TransactionsPage with filters: ' +
-                  (_transactionFilters?.toString() ?? 'null'));
-              return TransactionsPage(
-                key: _transactionsPageKey,
-                filters: _transactionFilters,
-              );
-            }
-            return entry.value.destination;
-          }).toList(),
+        return Scaffold(
+          bottomNavigationBar: BreakPoint.of(context)
+                      .isLargerThan(BreakpointID.sm) ||
+                  !(0 <= selectedNavItemIndex &&
+                      selectedNavItemIndex < menuItems.length)
+              ? null
+              : NavigationBar(
+                  destinations: menuItems.map((e) {
+                    if (e.id == AppMenuDestinationsID.forecast &&
+                        isForecast) {
+                      return NavigationDestination(
+                        icon: Icon(
+                          Icons.auto_awesome,
+                          color: ForecastModeService.forecastAccentColor,
+                        ),
+                        selectedIcon: Icon(
+                          Icons.auto_awesome,
+                          color: ForecastModeService.forecastAccentColor,
+                        ),
+                        label: 'Previsões',
+                      );
+                    }
+                    return e.toNavigationDestinationWidget();
+                  }).toList(),
+                  selectedIndex: selectedNavItemIndex,
+                  onDestinationSelected: (e) =>
+                      changePage(menuItems.elementAt(e)),
+                ),
+          body: Builder(builder: (context) {
+            // Exclude the forecast toggle from the page stack
+            final allDestinations = getAllDestinations(context,
+                    shortLabels:
+                        BreakPoint.of(context).isSmallerThan(BreakpointID.xl))
+                .where((d) => d.id != AppMenuDestinationsID.forecast)
+                .toList();
+
+            return FadeIndexedStack(
+              index: allDestinations.indexWhere(
+                  (element) => element.id == selectedDestination?.id),
+              duration: const Duration(milliseconds: 300),
+              children: allDestinations.asMap().entries.map((entry) {
+                // If this is the Stats tab, inject the initialIndex and key
+                if (entry.value.destination is StatsPage) {
+                  return StatsPage(
+                    key: _statsPageKey,
+                    initialIndex: _statsInitialIndex,
+                    dateRangeService: const DatePeriodState(),
+                  );
+                }
+                // If this is the Transactions tab, inject filters and key
+                if (entry.value.destination.runtimeType.toString() ==
+                    'TransactionsPage') {
+                  debugPrint(
+                      '[TabsPage] Building TransactionsPage with filters: ' +
+                          (_transactionFilters?.toString() ?? 'null'));
+                  return TransactionsPage(
+                    key: _transactionsPageKey,
+                    filters: _transactionFilters,
+                  );
+                }
+                return entry.value.destination;
+              }).toList(),
+            );
+          }),
         );
-      }),
+      },
     );
   }
 
@@ -404,7 +462,7 @@ class TabsPageState extends State<TabsPage>
     final hasItemsAvailable = userData?['has_items_available'];
 
     // Show connection dialog only if user hasn't finished open finance flow
-    if (!hasFinished && hasItemsAvailable) {
+    if (hasFinished == false && hasItemsAvailable == true) {
       await BankConnectionDialog.showAndHandle(context);
     }
   }

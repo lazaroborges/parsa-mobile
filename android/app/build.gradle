@@ -2,7 +2,6 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
-    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -90,4 +89,10 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+}
+
+// Firebase config is loaded from .env via Dart. Only apply google-services plugin
+// when google-services.json exists (e.g. in CI or when not using env-based config).
+if (file("google-services.json").exists()) {
+    apply plugin: "com.google.gms.google-services"
 }

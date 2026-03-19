@@ -11,6 +11,7 @@ import './../../../models/category/category.dart';
 import './../../../models/account/account.dart';
 import './../../services/user-setting/user_setting_service.dart';
 import './../../services/app-data/app_data_service.dart';
+import './../../../models/forecast/recurrency_type.dart';
 
 PRAGMA encoding = "UTF-8";
 
@@ -250,3 +251,41 @@ CREATE TABLE IF NOT EXISTS appData (
   appDataKey ENUMNAME(AppDataKey) NOT NULL PRIMARY KEY,
   appDataValue TEXT
 );
+
+CREATE TABLE IF NOT EXISTS forecastTransactions (
+  id TEXT NOT NULL PRIMARY KEY,
+
+  -- FK to recurrency_patterns (from backend)
+  recurrencyPatternId TEXT,
+
+  -- Only E (expense) and I (income) are valid — forecasts are never transfers
+  type ENUMNAME(TransactionType) NOT NULL CHECK(type IN ('E', 'I')),
+
+  -- Classification of recurrency pattern
+  recurrencyType ENUMNAME(RecurrencyType) NOT NULL CHECK(recurrencyType IN ('recurrent_fixed', 'recurrent_variable', 'irregular')),
+
+  -- Point estimate
+  forecastAmount REAL NOT NULL,
+
+  -- Confidence bounds (nullable for fixed recurrencies)
+  forecastLow REAL,
+  forecastHigh REAL,
+
+  -- Specific day for recurrent_fixed, NULL for others
+  forecastDate DATETIME,
+
+  -- 1st of the target month (always set)
+  forecastMonth DATETIME NOT NULL,
+
+  -- Counterparty ID for "Transacoes Similares" lookup
+  cousin INTEGER,
+
+  -- FK to categories table
+  categoryID TEXT REFERENCES categories(id) ON DELETE SET NULL ON UPDATE CASCADE,
+
+  -- FK to accounts table
+  accountID TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE ON UPDATE CASCADE,
+
+  -- Parent category name for irregular envelopes
+  parentCategory TEXT
+) AS ForecastTransactionInDB;

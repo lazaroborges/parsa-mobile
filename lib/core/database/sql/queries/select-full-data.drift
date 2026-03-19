@@ -10,6 +10,7 @@ import './../../../models/category/category.dart';
 import './../../../models/budget/budget.dart';
 import './../../../models/exchange-rate/exchange_rate.dart';
 import './../../../models/transaction/transaction.dart';
+import './../../../models/forecast/forecasted_transaction.dart';
 
 getAccountsWithFullData($predicate = TRUE) WITH Account: 
     SELECT a.*, currency.** 
@@ -179,6 +180,36 @@ getBudgetsWithFullData($predicate = TRUE) WITH Budget:
             WHERE budgetID = budgets.id
         ) AS tags
     FROM budgets
-    WHERE $predicate 
+    WHERE $predicate
     ORDER BY $orderBy
     LIMIT $limit;
+
+getForecastTransactionsWithFullData($predicate = TRUE):
+    SELECT
+        ft.*,
+        a.** as account,
+        accountCurrency.**,
+        c.** as category,
+        pc.** as parentCat
+    FROM forecastTransactions ft
+        INNER JOIN accounts a
+        ON ft.accountID = a.id
+        INNER JOIN currencies accountCurrency
+        ON a.currencyId = accountCurrency.code
+        LEFT JOIN categories c
+        ON ft.categoryID = c.id
+        LEFT JOIN categories pc
+        ON c.parentCategoryID = pc.id
+    WHERE $predicate
+    ORDER BY $orderBy
+    LIMIT $limit;
+
+countForecastTransactions($predicate = TRUE):
+    SELECT COUNT(*) AS forecastsNumber,
+    COALESCE(SUM(ft.forecastAmount), 0) AS totalAmount
+    FROM forecastTransactions ft
+        INNER JOIN accounts a
+        ON ft.accountID = a.id
+        LEFT JOIN categories c
+        ON ft.categoryID = c.id
+    WHERE $predicate;

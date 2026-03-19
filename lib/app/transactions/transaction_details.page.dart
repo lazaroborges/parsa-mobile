@@ -11,6 +11,7 @@ import 'package:parsa/app/tags/tags_selector.modal.dart';
 import 'package:parsa/app/transactions/form/transaction_form.page.dart';
 import 'package:parsa/app/transactions/label_value_info_table.dart';
 import 'package:parsa/app/transactions/transactions.page.dart';
+import 'package:parsa/core/database/services/forecast/forecast_mode_service.dart';
 import 'package:parsa/core/database/services/transaction/transaction_service.dart';
 import 'package:parsa/core/extensions/color.extensions.dart';
 import 'package:parsa/core/extensions/string.extension.dart';
@@ -706,10 +707,13 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final isForecast = ForecastModeService.instance.isInForecastMode;
 
     return StreamBuilder(
-        stream: TransactionService.instance
-            .getTransactionById(widget.transaction.id),
+        stream: isForecast
+            ? Stream.value(widget.transaction)
+            : TransactionService.instance
+                .getTransactionById(widget.transaction.id),
         initialData: widget.transaction,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -718,8 +722,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
 
           final transaction = snapshot.data!;
 
-          final transactionDetailsActions = TransactionViewActionService()
-              .transactionDetailsActions(context,
+          final transactionDetailsActions = isForecast
+              ? <ListTileActionItem>[]
+              : TransactionViewActionService().transactionDetailsActions(context,
                   transaction: transaction, navigateBackOnDelete: true);
 
           return Scaffold(
@@ -734,21 +739,23 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                   delegate: _TransactionDetailHeader(
                     heroTag: widget.heroTag,
                     transaction: transaction,
-                    updateCategory: updateCategory,
-                    updateTitle: updateTitle,
+                    updateCategory: isForecast ? (_, __) {} : updateCategory,
+                    updateTitle: isForecast ? (_, __) {} : updateTitle,
                     context: context,
-                    onAmountTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TransactionFormPage(
-                            transactionToEdit: transaction,
-                            mode: transaction.type,
-                          ),
-                        ),
-                      ).then((_) =>
-                          setState(() {})); // Refresh the UI when returning
-                    },
+                    onAmountTap: isForecast
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TransactionFormPage(
+                                  transactionToEdit: transaction,
+                                  mode: transaction.type,
+                                ),
+                              ),
+                            ).then((_) =>
+                                setState(() {})); // Refresh the UI when returning
+                          },
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -1034,8 +1041,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                             //     transaction.recurrentInfo.isRecurrent)
                             //   statusDisplayer(transaction),
                             const SizedBox(height: 16),
-                            // Only show quick actions if isOpenFinance is false
-                            if (!transaction.isOpenFinance) ...[
+                            // Only show quick actions if not forecast and not openFinance
+                            if (!isForecast && !transaction.isOpenFinance) ...[
                               const SizedBox(height: 16),
                               CardWithHeader(
                                 title: t.general.quick_actions,
@@ -1044,34 +1051,47 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                               ),
                             ],
 
-                            // Add related transactions section if cousin exists
-                            if (transaction.cousin != null) ...[
-                              const SizedBox(height: 16),
-                              CardWithHeader(
-                                onHeaderButtonClick: () {
-                                  RouteUtils.pushRoute(
-                                    context,
-                                    TransactionsPage(
-                                      filters: TransactionFilters(
+                            // Add related transactions section if cousin or category exists
+                            if (transaction.cousin != null ||
+                                transaction.category != null) ...[
+                              () {
+                                final hasCousin = transaction.cousin != null;
+                                final filters = hasCousin
+                                    ? TransactionFilters(
                                         cousinFilter: transaction.cousin,
+                                      )
+                                    : TransactionFilters(
+                                        categories: [
+                                          transaction.category!.id
+                                        ],
+                                      );
+
+                                return Column(children: [
+                                  const SizedBox(height: 16),
+                                  CardWithHeader(
+                                    onHeaderButtonClick: () {
+                                      RouteUtils.pushRoute(
+                                        context,
+                                        TransactionsPage(
+                                          filters: filters,
+                                          forceForecastMode: false,
+                                        ),
+                                      );
+                                    },
+                                    title: t.transaction.transaction_cousin,
+                                    body: TransactionListComponent(
+                                      filters: filters,
+                                      prevPage: widget.prevPage,
+                                      limit: 5,
+                                      heroTagBuilder: (tr) =>
+                                          'related-${tr.id}-${transaction.cousin ?? transaction.category?.id}-${Random().nextInt(1000000)}',
+                                      onEmptyList: Center(
+                                        child: Text("Don't display this"),
                                       ),
                                     ),
-                                  );
-                                },
-                                title: t.transaction.transaction_cousin,
-                                body: TransactionListComponent(
-                                  filters: TransactionFilters(
-                                    cousinFilter: transaction.cousin,
                                   ),
-                                  prevPage: widget.prevPage,
-                                  limit: 5,
-                                  heroTagBuilder: (tr) =>
-                                      'related-${tr.id}-${transaction.cousin}-${Random().nextInt(1000000)}',
-                                  onEmptyList: Center(
-                                    child: Text("Don't display this"),
-                                  ),
-                                ),
-                              ),
+                                ]);
+                              }(),
                             ],
                           ],
                         ),
@@ -1160,7 +1180,7 @@ class _TransactionDetailHeader extends SliverPersistentHeaderDelegate {
   final Function(BuildContext, MoneyTransaction) updateCategory;
   final Function(BuildContext, MoneyTransaction) updateTitle;
   final BuildContext context;
-  final VoidCallback onAmountTap;
+  final VoidCallback? onAmountTap;
 
   @override
   Widget build(BuildContext buildContext, double shrinkOffset, bool overlap) {

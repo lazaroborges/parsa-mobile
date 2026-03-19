@@ -32,7 +32,13 @@ class TransactionListComponent extends StatefulWidget {
     this.onTap,
     this.selectedTransactions = const [],
     this.onTransactionsLoaded,
+    this.transactionsStream,
   });
+
+  /// Optional external stream of transactions. When provided, this stream is
+  /// used instead of querying TransactionService internally. This enables
+  /// reuse of this component with forecast data or other data sources.
+  final Stream<List<MoneyTransaction>>? transactionsStream;
 
   final TransactionFilters filters;
   final int? accountNameMaxLength;
@@ -139,12 +145,15 @@ class _TransactionListComponentState extends State<TransactionListComponent> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: TransactionService.instance.getTransactions(
+    final stream = widget.transactionsStream ??
+        TransactionService.instance.getTransactions(
           filters: widget.filters,
           limit: widget.limit * currentPage,
           orderBy: widget.orderBy,
-        ),
+        );
+
+    return StreamBuilder(
+        stream: stream,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return widget.onLoading;

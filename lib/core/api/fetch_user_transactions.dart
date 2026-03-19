@@ -86,7 +86,7 @@ Future<void> fetchUserTransactions(String? accountId,
         final hasFinished = userData['has_finished_openfinance_flow'];
         final trigger = userData['trigger_swipe_cards_flow'];
 
-        if (hasFinished && trigger) {
+        if (hasFinished == true && trigger == true) {
           // Use the global navigator key to get context
           final context = navigatorKey.currentContext;
           if (context != null && context.mounted) {

@@ -48,15 +48,15 @@ extension TransactionStatusExtension on TransactionStatus? {
   IconData get icon {
     if (this == null) return Icons.do_not_disturb_on_rounded;
 
-    if (this == TransactionStatus.notconsidered) 
+    if (this == TransactionStatus.notconsidered)
       return Icons.do_not_disturb_on_rounded;
-    if (this == TransactionStatus.reconciled) 
+    if (this == TransactionStatus.reconciled)
       return Icons.check_circle_rounded;
-    if (this == TransactionStatus.voided) 
+    if (this == TransactionStatus.voided)
       return Icons.cancel_rounded;
-    if (this == TransactionStatus.pending) 
+    if (this == TransactionStatus.pending)
       return Icons.hourglass_full_rounded;
-    if (this == TransactionStatus.unreconciled) 
+    if (this == TransactionStatus.unreconciled)
       return Icons.cloud_off_rounded;
 
     return Icons.question_mark;
