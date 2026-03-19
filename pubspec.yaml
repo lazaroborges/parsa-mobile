@@ -3,7 +3,7 @@ description: controle financeiro sem esforço.
 
 publish_to: none
 
-version: 2.17.0+145   
+version: 3.0.0+147     
 
 environment:
   flutter: ">=3.22.3"
@@ -101,11 +101,11 @@ dev_dependencies:
 
 build:
   ios:
-    build-name: 2.17.0    
-    build-number: 145
+    build-name: 3.0.0    
+    build-number: 147
   android:
-    build-name: 2.17.0
-    build-number: 145
+    build-name: 3.0.0
+    build-number: 147
 
 flutter_launcher_icons:
   image_path: 'assets/resources/appIcon.png'
