@@ -247,7 +247,7 @@ class TabsPageState extends State<TabsPage>
 
   Future<void> _fetchUserInfoServer() async {
     try {
-      final data = await fetchUserDataAtServer();
+      await fetchUserDataAtServer();
     } catch (e) {
       print('Error during API login: $e');
       // Handle error as needed

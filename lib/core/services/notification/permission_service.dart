@@ -81,14 +81,6 @@ class PermissionService {
         print('Registration Token=$_fcmToken');
       }
 
-      // Set up token refresh listener
-      messaging.onTokenRefresh.listen((newToken) {
-        _fcmToken = newToken;
-        if (kDebugMode) {
-          print('FCM Token refreshed: $newToken');
-        }
-      });
-
       return _fcmToken;
     } catch (e) {
       if (kDebugMode) {

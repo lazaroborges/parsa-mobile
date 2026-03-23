@@ -489,8 +489,10 @@ class FCMService {
           print("TabsPage not found, refreshing directly");
         }
 
-        print(
-            "--------------------    Fetching transactions for item: $itemId");
+        if (kDebugMode) {
+          print(
+              "--------------------    Fetching transactions for item: $itemId");
+        }
 
         // First fetch accounts, then transactions from ItemId
         await Future.wait([
@@ -722,7 +724,7 @@ class FCMService {
         Uri.parse('$apiEndpoint/messaging/open/'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + accessToken,
+          'Authorization': 'Bearer $accessToken',
         },
         body: jsonEncode({'notification_id': notificationId}),
       );
