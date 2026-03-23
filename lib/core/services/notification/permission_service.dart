@@ -49,6 +49,31 @@ class PermissionService {
     try {
       final messaging = FirebaseMessaging.instance;
 
+      // On iOS, ensure remote notifications are registered and APNs token is available
+      if (Platform.isIOS) {
+        // requestPermission() triggers registerForRemoteNotifications() on iOS,
+        // which is needed every app launch for the APNs token to be delivered
+        await messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+        // Wait for APNs token to arrive
+        String? apnsToken;
+        for (int i = 0; i < 10; i++) {
+          apnsToken = await messaging.getAPNSToken();
+          if (apnsToken != null) break;
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        if (apnsToken == null) {
+          if (kDebugMode) {
+            print('APNs token not available after waiting');
+          }
+          return null;
+        }
+      }
+
       // Request a registration token for sending messages to users
       _fcmToken = await messaging.getToken();
 
