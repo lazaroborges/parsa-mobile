@@ -122,6 +122,9 @@ class TabsPageState extends State<TabsPage>
       await Future.wait([refreshData(showLoading: true)]);
 
       // Forecasts are now fetched in dashboard.page.dart in parallel with transactions
+
+      // Register FCM token after auth is confirmed ready
+      await FCMService.instance.registerToken();
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -195,18 +198,12 @@ class TabsPageState extends State<TabsPage>
       // FCM service will handle getting preferences as needed
       if (hasPermission) {
         await FCMService.instance.initialize();
-        return;
-      }
-
-      // If we've never requested before, show the permission dialog
-      if (!permissionRequested) {
-        // Request permission with FCM (follows codelab example)
-        final success =
-            await FCMService.instance.requestPermissionAndInitialize();
-
-        // Mark that we've requested permission
+      } else if (!permissionRequested) {
+        // If we've never requested before, show the permission dialog
+        await FCMService.instance.requestPermissionAndInitialize();
         await prefs.setBool('notification_permission_requested', true);
       }
+
     } catch (e) {
       if (kDebugMode) {
         print('Error during initialization: $e');
@@ -250,7 +247,7 @@ class TabsPageState extends State<TabsPage>
 
   Future<void> _fetchUserInfoServer() async {
     try {
-      final data = await fetchUserDataAtServer();
+      await fetchUserDataAtServer();
     } catch (e) {
       print('Error during API login: $e');
       // Handle error as needed

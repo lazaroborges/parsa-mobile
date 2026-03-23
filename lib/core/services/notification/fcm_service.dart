@@ -489,8 +489,10 @@ class FCMService {
           print("TabsPage not found, refreshing directly");
         }
 
-        print(
-            "--------------------    Fetching transactions for item: $itemId");
+        if (kDebugMode) {
+          print(
+              "--------------------    Fetching transactions for item: $itemId");
+        }
 
         // First fetch accounts, then transactions from ItemId
         await Future.wait([
@@ -546,44 +548,28 @@ class FCMService {
 
   // Register the FCM token for any service that needs it
   Future<bool> registerToken() async {
-    // If not initialized, try to initialize first
-    if (!_isInitialized) {
-      if (kDebugMode) {
-        print(
-            'FCM not initialized, attempting to initialize before registering token');
-      }
-
-      try {
-        await initialize();
-        // If initialization failed, return false
-        if (!_isInitialized) {
-          if (kDebugMode) {
-            print('Cannot register token: FCM initialization failed');
-          }
-          return true;
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error initializing FCM before token registration: $e');
-        }
-        return true;
-      }
-    }
-
     if (_isTokenRegistered) {
       return true;
     }
 
+    // Get FCM token directly — no dependency on initialize()
     final token = await PermissionService.instance.getToken();
     if (token == null) {
       if (kDebugMode) {
-        print('Cannot register token: No token available');
+        print('Cannot register token: No FCM token available');
       }
       return false;
     }
 
     final result = await saveTokenToServer(token);
     _isTokenRegistered = result;
+
+    if (kDebugMode) {
+      print(result
+          ? 'registerToken: FCM token registered successfully'
+          : 'registerToken: Failed to register FCM token');
+    }
+
     return result;
   }
 
@@ -655,10 +641,11 @@ class FCMService {
           print('Response: ${response.body}');
         }
         break;
-      } catch (e) {
+      } catch (e, stackTrace) {
         if (kDebugMode) {
           print(
               'Error registering FCM token with backend (attempt $attempt/$maxRetries): $e');
+          print('Stack trace: $stackTrace');
         }
 
         // Only retry on exceptions if we haven't hit max retries
@@ -737,7 +724,7 @@ class FCMService {
         Uri.parse('$apiEndpoint/messaging/open/'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + accessToken,
+          'Authorization': 'Bearer $accessToken',
         },
         body: jsonEncode({'notification_id': notificationId}),
       );
