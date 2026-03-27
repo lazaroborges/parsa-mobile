@@ -34,14 +34,8 @@ class NotificationPreferencesService {
         !_preferencesRefreshedThisSession ||
         _cachedPreferences == null) {
       try {
-        // First check if notification permission is granted
-        final hasPermission =
-            await PermissionService.instance.hasNotificationPermission();
-
-        // If permission denied, still fetch the user's saved preferences from the server
-        // Do NOT overwrite them — the user's choices should be preserved regardless of OS permission state
-
-        // We have permission, proceed with getting preferences from server
+        // Fetch the user's saved preferences from the server
+        // Even if OS permission is denied, preserve user's choices — don't overwrite them
         final authService = BackendAuthService.instance;
         final token = authService.token;
         if (token == null) {
