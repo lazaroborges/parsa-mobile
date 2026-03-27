@@ -31,7 +31,7 @@ alwaysApply: false
 ## Notification Preferences
 - Get preferences: `NotificationPreferencesService.instance.getPreferences(forceRefresh: true)`
 - Update preferences: `NotificationPreferencesService.instance.updatePreferences()`
-- When permission is denied, all preferences should be set to `false`
+- When permission is denied, preserve user's server-side preferences (don't overwrite to `false`). The `updatePreferences()` method blocks enabling preferences without OS permission, but `getPreferences()` always returns the user's saved values.
 - Reset session flag on app start: `NotificationPreferencesService.instance.resetSessionFlag()`
 
 ## Notification Navigation

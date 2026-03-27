@@ -87,15 +87,8 @@ class FCMService {
           print("FCM initialization: notification permission not granted");
         }
 
-        // Update notification preferences to reflect permission state
-        await NotificationPreferencesService.instance.updatePreferences(
-          budgetsEnabled: false,
-          generalEnabled: false,
-          transactionsEnabled: false,
-          accountEnabled: false,
-        );
-
         // Mark as initialized but exit early
+        // Do NOT overwrite backend preferences — the user's saved choices should be preserved
         _isInitialized = true;
         _isInitializing = false;
         return;
@@ -432,14 +425,7 @@ class FCMService {
         print("Notification permission denied by user");
       }
 
-      // Update notification preferences to reflect permission state
-      await NotificationPreferencesService.instance.updatePreferences(
-        budgetsEnabled: false,
-        generalEnabled: false,
-        transactionsEnabled: false,
-        accountEnabled: false,
-      );
-
+      // Do NOT overwrite backend preferences — the user's saved choices should be preserved
       return false;
     }
 

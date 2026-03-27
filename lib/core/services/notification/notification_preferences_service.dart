@@ -34,38 +34,8 @@ class NotificationPreferencesService {
         !_preferencesRefreshedThisSession ||
         _cachedPreferences == null) {
       try {
-        // First check if notification permission is granted
-        final hasPermission =
-            await PermissionService.instance.hasNotificationPermission();
-
-        // If permission denied but cache exists, preserve cached values
-        if (!hasPermission && _cachedPreferences != null) {
-          // Mark session as refreshed
-          _preferencesRefreshedThisSession = true;
-          return _cachedPreferences!;
-        }
-
-        // If permission denied and no cache, use default values
-        if (!hasPermission) {
-          // If no permission and no cache, use disabled values
-          final allDisabled = {
-            'budgets_enabled': false,
-            'general_enabled': false,
-            'transactions_enabled': false,
-            'account_enabled': false,
-          };
-
-          // Update backend silently
-          _updateBackendPreferences(allDisabled);
-
-          // Cache the disabled preferences
-          _cachedPreferences = allDisabled;
-          _preferencesRefreshedThisSession = true;
-
-          return allDisabled;
-        }
-
-        // We have permission, proceed with getting preferences from server
+        // Fetch the user's saved preferences from the server
+        // Even if OS permission is denied, preserve user's choices — don't overwrite them
         final authService = BackendAuthService.instance;
         final token = authService.token;
         if (token == null) {
