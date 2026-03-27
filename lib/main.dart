@@ -493,7 +493,11 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                     await LinkHandlerService.instance.processPendingDeepLinks();
                   });
                 } catch (e) {
-                  print('Navigation failed (app may be in background): $e');
+                  if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+                    print('Navigation skipped (app in background): $e');
+                  } else {
+                    rethrow;
+                  }
                 }
               },
             );
