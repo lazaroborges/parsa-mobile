@@ -46,6 +46,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   bool _isLoading = false;
   bool _isRegistering = false;
   bool _obscurePassword = true;
+  bool _contentReady = false;
 
   // Android workaround: Store OAuth token received via router deep link
   static String? _pendingOAuthToken;
@@ -95,8 +96,13 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
 
     // Start animations sequence
     Future.delayed(const Duration(seconds: 1), () {
+      if (!mounted) return;
       _logoController.forward().then((_) {
-        _contentController.forward();
+        if (!mounted) return;
+        _contentController.forward().then((_) {
+          if (!mounted) return;
+          setState(() => _contentReady = true);
+        });
       });
     });
 
@@ -235,6 +241,21 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
     }
   }
 
+  bool _isIosSessionNotReady(Object e) {
+    final errorStr = e.toString();
+    return Platform.isIOS &&
+        errorStr.contains('AuthenticationServices') &&
+        errorStr.contains('error 3');
+  }
+
+  bool _isUserCancelled(Object e) {
+    final errorStr = e.toString();
+    return errorStr.contains('CANCELED') ||
+        errorStr.contains('CANCELLED') ||
+        errorStr.contains('canceled') ||
+        errorStr.contains('cancelled');
+  }
+
   Future<void> _loginWithGoogle() async {
     setState(() => _isLoading = true);
 
@@ -260,17 +281,30 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
           throw Exception('Não foi possível abrir o navegador');
         }
       } else {
-        // iOS: Use FlutterWebAuth2 (works correctly on iOS)
-        print('iOS: Opening FlutterWebAuth2 with scheme: com.parsa.app');
-        final result = await FlutterWebAuth2.authenticate(
-          url: authUrl,
-          callbackUrlScheme: 'com.parsa.app',
-        );
+        // iOS: Use FlutterWebAuth2, retry if session isn't ready yet
+        String? result;
+        for (var attempt = 0; attempt < 3; attempt++) {
+          try {
+            print('iOS: Opening FlutterWebAuth2 (attempt ${attempt + 1})');
+            result = await FlutterWebAuth2.authenticate(
+              url: authUrl,
+              callbackUrlScheme: 'com.parsa.app',
+            );
+            break;
+          } catch (e) {
+            if (_isIosSessionNotReady(e) && attempt < 2 && mounted) {
+              print('iOS session not ready, retrying in ${500 * (attempt + 1)}ms...');
+              await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+              continue;
+            }
+            rethrow;
+          }
+        }
 
         print('OAuth callback received: $result');
 
         // Step 3: Extract code or token from callback URL
-        final uri = Uri.parse(result);
+        final uri = Uri.parse(result!);
         final code = uri.queryParameters['code'];
         final token = uri.queryParameters['token'];
 
@@ -294,9 +328,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       print('Error type: ${e.runtimeType}');
 
       if (mounted) {
-        // Check if user canceled
-        final errorStr = e.toString();
-        if (errorStr.contains('CANCELED') || errorStr.contains('canceled')) {
+        if (_isUserCancelled(e)) {
           _showError('Login cancelado');
         } else {
           _showError('Falha no login com Google: ${e.toString()}');
@@ -321,19 +353,30 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       final authUrl = await authService.getAppleMobileOAuthUrl();
       print('Apple OAuth URL received: $authUrl');
 
-      // Step 2: Open native authentication session
-      // ASWebAuthenticationSession on iOS
-      // Backend will redirect to com.parsa.app://oauth-callback?token=...
-      print('Opening FlutterWebAuth session...');
-      final result = await FlutterWebAuth2.authenticate(
-        url: authUrl,
-        callbackUrlScheme: 'com.parsa.app',
-      );
+      // Step 2: Open native authentication session, retry if not ready
+      String? result;
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          print('Opening FlutterWebAuth session (attempt ${attempt + 1})...');
+          result = await FlutterWebAuth2.authenticate(
+            url: authUrl,
+            callbackUrlScheme: 'com.parsa.app',
+          );
+          break;
+        } catch (e) {
+          if (_isIosSessionNotReady(e) && attempt < 2 && mounted) {
+            print('iOS session not ready, retrying in ${500 * (attempt + 1)}ms...');
+            await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+            continue;
+          }
+          rethrow;
+        }
+      }
 
       print('Apple OAuth callback result: $result');
 
       // Step 3: Extract code or token from callback URL
-      final uri = Uri.parse(result);
+      final uri = Uri.parse(result!);
       final code = uri.queryParameters['code'];
       final token = uri.queryParameters['token'];
       final error = uri.queryParameters['error'];
@@ -361,11 +404,11 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
       print('Apple login error: $e');
       print('Error type: ${e.runtimeType}');
       if (mounted) {
-        final errorMessage = e.toString().contains('CANCELLED') || 
-                            e.toString().contains('canceled')
-            ? 'Login cancelado'
-            : 'Falha no login com Apple: ${e.toString()}';
-        _showError(errorMessage);
+        if (_isUserCancelled(e)) {
+          _showError('Login cancelado');
+        } else {
+          _showError('Falha no login com Apple: ${e.toString()}');
+        }
       }
     } finally {
       if (mounted) {
@@ -486,9 +529,11 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                         ],
                       ),
                       // Login Form Section
-                      FadeTransition(
-                        opacity: _contentFadeAnimation,
-                        child: Column(
+                      IgnorePointer(
+                        ignoring: !_contentReady,
+                        child: FadeTransition(
+                          opacity: _contentFadeAnimation,
+                          child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (_isRegistering) ...[
@@ -711,6 +756,7 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 4),
                           ],
+                          ),
                         ),
                       ),
                     ],

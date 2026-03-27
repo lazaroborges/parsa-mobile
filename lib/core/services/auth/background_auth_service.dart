@@ -107,7 +107,7 @@ class BackgroundAuthService with WidgetsBindingObserver {
         pageBuilder: (context, _, __) => WillPopScope(
           onWillPop: () async => false, // Prevent back button
           child: BiometricsCheckScreen(
-            onBiometricsVerified: () {
+            onBiometricsVerified: () async {
               // On successful authentication, pop the BiometricsCheckScreen
               Navigator.of(context).pop();
               // Update session

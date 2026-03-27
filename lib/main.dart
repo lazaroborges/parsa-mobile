@@ -482,15 +482,19 @@ class _MaterialAppContainerState extends State<MaterialAppContainer> {
                 
                 // Direct navigation to TabsPage (bypassing intake form)
                 if (!mounted) return;
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => TabsPage(key: tabsPageKey)),
-                );
-                // After navigation, process pending deep links
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  await LinkHandlerService.instance.processPendingDeepLinks();
-                });
+                try {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TabsPage(key: tabsPageKey)),
+                  );
+                  // After navigation, process pending deep links
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    await LinkHandlerService.instance.processPendingDeepLinks();
+                  });
+                } catch (e) {
+                  print('Navigation failed (app may be in background): $e');
+                }
               },
             );
           }
