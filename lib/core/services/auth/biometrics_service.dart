@@ -14,7 +14,7 @@ class BiometricsService {
   final LocalAuthentication _localAuth = LocalAuthentication();
 
   Future<void> authenticateAndNavigate(BuildContext context,
-      {VoidCallback? onVerified}) async {
+      {Future<void> Function()? onVerified}) async {
     bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
     bool isAuthenticated = false;
 
@@ -37,7 +37,7 @@ class BiometricsService {
 
       // Call the provided callback if available
       if (onVerified != null) {
-        onVerified();
+        await onVerified();
       } else {
         // Find the BiometricsCheckScreen widget and call its callback
         final biometricsWidget =
