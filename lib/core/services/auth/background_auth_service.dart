@@ -72,7 +72,9 @@ class BackgroundAuthService with WidgetsBindingObserver {
 
     // If app was in background for more than threshold, require authentication
     if (difference >= _backgroundThreshold) {
-      // First try biometric authentication
+      // Reset flags so biometrics actually prompts
+      BiometricsCheckScreen.verifiedThisSession = false;
+      BiometricsCheckScreen.resetCheckInProgress();
       await _authenticateUser();
     }
 

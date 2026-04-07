@@ -16,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
+import 'package:parsa/core/services/auth/biometrics_check_screen.dart';
 import '../../core/presentation/app_colors.dart';
 
 final GlobalKey<TabsPageState> tabsPageKey = GlobalKey<TabsPageState>();
@@ -420,6 +421,9 @@ class _IntroPageState extends State<IntroPage> with TickerProviderStateMixin {
   
   
   Future<void> _handlePostLogin() async {
+    // User just logged in — no biometrics needed this session
+    BiometricsCheckScreen.verifiedThisSession = true;
+
     // Fetch user data from server
     await fetchUserDataAtServer();
 

@@ -6,6 +6,15 @@ import 'package:parsa/core/services/auth/biometrics_service.dart';
 class BiometricsCheckScreen extends StatefulWidget {
   final Future<void> Function()? onBiometricsVerified;
 
+  /// Tracks whether biometrics has been verified or is in progress this session.
+  /// Reset by BackgroundAuthService when re-auth is needed.
+  static bool verifiedThisSession = false;
+  static bool _checkInProgress = false;
+
+  static void resetCheckInProgress() {
+    _checkInProgress = false;
+  }
+
   const BiometricsCheckScreen({
     Key? key,
     this.onBiometricsVerified,
@@ -22,7 +31,21 @@ class _BiometricsCheckScreenState extends State<BiometricsCheckScreen> {
   void initState() {
     super.initState();
     _biometricsService = BiometricsService();
-    _authenticate();
+
+    if (BiometricsCheckScreen.verifiedThisSession ||
+        BiometricsCheckScreen._checkInProgress) {
+      // Already verified or another check is in progress — skip
+      if (BiometricsCheckScreen.verifiedThisSession) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (widget.onBiometricsVerified != null) {
+            widget.onBiometricsVerified!();
+          }
+        });
+      }
+    } else {
+      BiometricsCheckScreen._checkInProgress = true;
+      _authenticate();
+    }
   }
 
   void _authenticate() {
