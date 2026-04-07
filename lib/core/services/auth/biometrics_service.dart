@@ -32,7 +32,11 @@ class BiometricsService {
       print('Authentication error: $e');
     }
 
+    // Check is done — clear in-progress flag
+    BiometricsCheckScreen.resetCheckInProgress();
+
     if (isAuthenticated) {
+      BiometricsCheckScreen.verifiedThisSession = true;
       unawaited(SessionService.instance.registerUserSession());
 
       // Call the provided callback if available
